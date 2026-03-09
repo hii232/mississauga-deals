@@ -70,6 +70,50 @@ const DEAL_OF_WEEK = { id:"ML1013", hamzaNote:"12.4% price reduction on a 4-bed 
 
 const TYPE_ICON = { Detached:"🏠", "Semi-Detached":"🏡", Townhouse:"🏘️", Condo:"🏢" };
 const PROPERTY_TYPES = ["All Types","Detached","Semi-Detached","Townhouse","Condo"];
+
+// LRT stops (Hurontario LRT): neighbourhoods within ~800m of a confirmed stop
+const LRT_HOODS = new Set(["Cooksville","Hurontario","Port Credit","Lakeview"]);
+
+// PRE-CON PROJECTS
+const PRECON_PROJECTS = [
+  { id:"PC001", name:"M City 7", developer:"Rogers Real Estate", neighbourhood:"Cooksville", type:"Condo", price:649000, priceFrom:649000, priceTo:920000, beds:"1–3 bed", occupancy:"Q3 2027", deposit:"5% now / 5% 2026 / 5% 2027", incentives:"Free Assignment, Capped Levies, Parking Included", lrtAccess:true, units:750, sold:82, hamzaNote:"Best LRT-adjacent value in Mississauga right now. Rogers backing. Cooksville is the next Yonge/Eg corridor. I have VIP pricing — list is $80K below comparable launches.", img:"🏙️" },
+  { id:"PC002", name:"Brightwater II", developer:"Diamond/Kilmer", neighbourhood:"Port Credit", type:"Condo", price:889000, priceFrom:889000, priceTo:1450000, beds:"1–3 bed", occupancy:"Q4 2026", deposit:"5% / 5% / 2.5% / 2.5%", incentives:"Waterfront Access, Free Locker, VIP Pricing", lrtAccess:true, units:400, sold:91, hamzaNote:"Port Credit waterfront is irreplaceable. Brightwater master plan is one of the most ambitious in GTA history. 91% sold — remaining units are the best layouts. This is appreciation-first, not cash flow.", img:"⚓" },
+  { id:"PC003", name:"Hawkins Gate", developer:"Mattamy Homes", neighbourhood:"Erin Mills", neighbourhood:"Churchill Meadows", type:"Townhouse", price:899000, priceFrom:899000, priceTo:1150000, beds:"3–4 bed", occupancy:"Q1 2028", deposit:"10% on signing / 10% in 2026", incentives:"Freehold Townhome, No Maintenance Fee, Bonus Upgrade Package", lrtAccess:false, units:280, sold:44, hamzaNote:"Only freehold pre-con townhouse launch in Churchill Meadows this year. Mattamy has the strongest build quality in Mississauga's west end. 44% sold — still early. School ratings here are 9/10.", img:"🏘️" },
+  { id:"PC004", name:"Hurontario Urban Towns", developer:"Vandyk Group", neighbourhood:"Hurontario", type:"Townhouse", price:799000, priceFrom:799000, priceTo:999000, beds:"2–3 bed", occupancy:"Q2 2027", deposit:"5% / 5% / 5% / 5%", incentives:"LRT Station Steps Away, Capped Dev Charges, Free Assignment", lrtAccess:true, units:320, sold:67, hamzaNote:"Stacked towns right on the LRT spine. Rental demand here will be enormous when the LRT opens — young professionals who can't afford cars. Cash flow play with serious appreciation kicker.", img:"🚇" },
+  { id:"PC005", name:"The Clarkson", developer:"Edenshaw", neighbourhood:"Clarkson", type:"Condo", price:729000, priceFrom:729000, priceTo:1100000, beds:"1–3 bed", occupancy:"Q4 2027", deposit:"5% / 5% / 5%", incentives:"GO Train 5 min walk, Rooftop Terrace, VIP Floor Plans", lrtAccess:false, units:480, sold:58, hamzaNote:"Clarkson GO is criminally underrated. 30 min to Union. Edenshaw has never delivered a bad building. This is the sleeper pre-con pick of 2026 — word is getting out but it's not sold out yet.", img:"🚂" },
+];
+
+// MARKET PULSE DATA (updated monthly)
+const MARKET_PULSE = {
+  updated: "March 2026",
+  mississauga: { avgSoldPrice: 1048000, avgDOM: 28, salesListRatio: 98.2, inventory: 2.1, yoyChange: -3.2, momChange: 1.8 },
+  byHood: [
+    { hood:"Port Credit",    avgPrice:1312000, dom:11, slr:103.2, inv:1.4, trend:"hot" },
+    { hood:"Lakeview",       avgPrice:1289000, dom:17, slr:101.8, inv:1.6, trend:"hot" },
+    { hood:"Streetsville",   avgPrice:921000,  dom:14, slr:99.4,  inv:1.9, trend:"warm" },
+    { hood:"Clarkson",       avgPrice:1015000, dom:28, slr:97.8,  inv:2.3, trend:"warm" },
+    { hood:"Erin Mills",     avgPrice:891000,  dom:24, slr:97.1,  inv:2.4, trend:"warm" },
+    { hood:"Churchill Meadows",avgPrice:798000,dom:19, slr:96.8,  inv:2.5, trend:"warm" },
+    { hood:"Cooksville",     avgPrice:712000,  dom:15, slr:99.1,  inv:2.1, trend:"warm" },
+    { hood:"Hurontario",     avgPrice:688000,  dom:22, slr:98.3,  inv:2.2, trend:"warm" },
+    { hood:"Meadowvale",     avgPrice:715000,  dom:23, slr:96.2,  inv:2.7, trend:"cool" },
+    { hood:"Malton",         avgPrice:598000,  dom:21, slr:97.4,  inv:2.6, trend:"cool" },
+  ]
+};
+
+// INVESTOR QUIZ
+const QUIZ_QUESTIONS = [
+  { q:"What is your primary investment goal?", opts:["Monthly cash flow","Long-term appreciation","BRRR / force equity","Pre-construction flip"] },
+  { q:"What is your investment budget?", opts:["Under $700K","$700K – $900K","$900K – $1.2M","$1.2M+"] },
+  { q:"How hands-on do you want to be?", opts:["Fully passive (tenant + manager)","Semi-passive (screen tenants)","Hands-on renovator","Depends on the deal"] },
+  { q:"What is your timeline to close?", opts:["Ready now","1–3 months","3–6 months","Just exploring"] },
+];
+const QUIZ_PROFILES = {
+  "Monthly cash flow":    { label:"Cash Flow Investor",  emoji:"💰", desc:"You want properties that pay you monthly. Focus: high-yield, price-reduced, multi-family.", filters:{minYield:4,sort:"yield",maxPrice:900000} },
+  "Long-term appreciation":{ label:"Appreciation Play",  emoji:"📈", desc:"You are buying the neighbourhood, not just the property. Focus: LRT corridor, lakefront, gentrifying areas.", filters:{sort:"score",hoods:["Port Credit","Lakeview","Cooksville","Hurontario"]} },
+  "BRRR / force equity":  { label:"BRRR Specialist",     emoji:"🔄", desc:"You want motivated sellers with upside. Focus: longest DOM, biggest price reductions, under-assessed.", filters:{minPriceReduction:5,maxDom:60,sort:"reduction"} },
+  "Pre-construction flip":{ label:"Pre-Con Investor",    emoji:"🏙️", desc:"You want to get in early and assign before closing. Focus: VIP pre-con access, LRT proximity.", filters:{} },
+};
 const HOODS = [...new Set(MOCK_LISTINGS.map(l=>l.neighbourhood))].sort();
 
 function calcMortgage(price, rate=0.065, years=25, down=0.20) {
@@ -92,7 +136,7 @@ function calcMetrics(l) {
   return { mortgage, tax, cashFlow, yield:yld, ppsf, score:Math.min(10,Math.max(1,Math.round(score*10)/10)) };
 }
 
-const DATA = MOCK_LISTINGS.map(l=>({...l,...calcMetrics(l)}));
+const DATA = MOCK_LISTINGS.map(l=>({...l,...calcMetrics(l),lrtAccess:LRT_HOODS.has(l.neighbourhood)}));
 const fmt = n=>new Intl.NumberFormat("en-CA",{style:"currency",currency:"CAD",maximumFractionDigits:0}).format(n);
 const fmtK = n=>n>=1000000?`$${(n/1000000).toFixed(2)}M`:`$${Math.round(n/1000)}K`;
 
@@ -140,6 +184,17 @@ export default function App() {
   const [registered, setRegistered] = useState(false);
   const [analysisCount, setAnalysisCount] = useState(0);
   const [selectedHood, setSelectedHood] = useState(null);
+  const [sellerModal, setSellerModal] = useState(false);
+  const [sellerForm, setSellerForm] = useState({address:"",type:"Detached",beds:"3",estimate:"",name:"",phone:""});
+  const [sellerSubmitted, setSellerSubmitted] = useState(false);
+  const [quizModal, setQuizModal] = useState(false);
+  const [quizStep, setQuizStep] = useState(0);
+  const [quizAnswers, setQuizAnswers] = useState([]);
+  const [quizResult, setQuizResult] = useState(null);
+  const [preconModal, setPreconModal] = useState(null);
+  const [preconForm, setPreconForm] = useState({name:"",phone:"",email:"",budget:"Under $700K"});
+  const [preconSubmitted, setPreconSubmitted] = useState(false);
+  const [lrtFilter, setLrtFilter] = useState(false);
 
   // MORTGAGE CALC STATE
   const [mortCalc, setMortCalc] = useState({downPct:20,rate:6.5,years:25});
@@ -157,6 +212,7 @@ export default function App() {
       if(filters.cashFlowOnly&&l.cashFlow<=0)return false;
       if(filters.hoods.length&&!filters.hoods.includes(l.neighbourhood))return false;
       if(filters.propertyType!=="All Types"&&l.type!==filters.propertyType)return false;
+      if(lrtFilter&&!l.lrtAccess)return false;
       return true;
     });
     return r.sort((a,b)=>{
@@ -220,6 +276,40 @@ export default function App() {
   };
 
   const analysisLeft=Math.max(0,1-analysisCount);
+
+  const submitSellerForm=()=>{
+    if(!sellerForm.address||!sellerForm.name||!sellerForm.phone)return;
+    setSellerSubmitted(true);
+    const msg=encodeURIComponent("🏠 NEW SELLER LEAD from MississaugaInvestor.ca\n\nAddress: "+sellerForm.address+"\nType: "+sellerForm.type+" | Beds: "+sellerForm.beds+"\nEst. Value: "+sellerForm.estimate+"\nOwner: "+sellerForm.name+" | Phone: "+sellerForm.phone+"\n\nFollow up for free home valuation!");
+    window.open("https://wa.me/16476091289?text="+msg,"_blank");
+  };
+
+  const submitQuiz=(answer)=>{
+    const newAnswers=[...quizAnswers,answer];
+    if(quizStep<QUIZ_QUESTIONS.length-1){setQuizAnswers(newAnswers);setQuizStep(s=>s+1);}
+    else{
+      const profile=QUIZ_PROFILES[newAnswers[0]]||QUIZ_PROFILES["Monthly cash flow"];
+      setQuizResult({...profile,answers:newAnswers});
+      setQuizAnswers(newAnswers);
+    }
+  };
+
+  const applyQuizProfile=(profile)=>{
+    if(profile.label==="Pre-Con Investor"){setView("precon");setQuizModal(false);return;}
+    setFilters(f=>({...f,...profile.filters}));
+    setView("grid");
+    setQuizModal(false);
+    setQuizResult(null);
+    setQuizStep(0);
+    setQuizAnswers([]);
+  };
+
+  const submitPrecon=(project)=>{
+    if(!preconForm.name||!preconForm.phone)return;
+    setPreconSubmitted(true);
+    const msg=encodeURIComponent("🏙️ NEW PRE-CON VIP REQUEST\n\nProject: "+project.name+" ("+project.neighbourhood+")\nName: "+preconForm.name+"\nPhone: "+preconForm.phone+"\nEmail: "+preconForm.email+"\nBudget: "+preconForm.budget+"\n\nRequest VIP pricing!");
+    window.open("https://wa.me/16476091289?text="+msg,"_blank");
+  };
 
   // MORTGAGE CALC
   const calcMort=(price,downPct,rate,years)=>{
@@ -338,12 +428,23 @@ export default function App() {
       {/* ── VIEW TABS + PROPERTY TYPES ── */}
       <div style={{background:"#0A1628",padding:"12px 24px",position:"sticky",top:66,zIndex:40,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{maxWidth:1220,margin:"0 auto",display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          {["grid","map","neighbourhoods"].map(v=>(
+          {[
+            {v:"grid",l:"🏘️ Listings"},{v:"precon",l:"🏙️ Pre-Con VIP"},{v:"pulse",l:"📊 Market Pulse"},
+            {v:"map",l:"🗺️ Map"},{v:"neighbourhoods",l:"🌆 Hoods"}
+          ].map(({v,l})=>(
             <button key={v} onClick={()=>setView(v)}
               style={{background:view===v?"rgba(27,79,216,0.3)":"rgba(255,255,255,0.05)",color:view===v?"#38BDF8":"#64748B",border:`1px solid ${view===v?"rgba(27,79,216,0.5)":"rgba(255,255,255,0.1)"}`,borderRadius:10,padding:"7px 16px",fontSize:12,fontWeight:view===v?700:500,cursor:"pointer",fontFamily:"inherit"}}>
-              {v==="grid"?"🏘️ Listings":v==="map"?"🗺️ Map View":"🏙️ Neighbourhoods"}
+              {l}
             </button>
           ))}
+          <button onClick={()=>setSellerModal(true)}
+            style={{background:"rgba(239,68,68,0.15)",color:"#F87171",border:"1px solid rgba(239,68,68,0.3)",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+            🏷️ What Is My Home Worth?
+          </button>
+          <button onClick={()=>setQuizModal(true)}
+            style={{background:"rgba(245,166,35,0.15)",color:"#FCD34D",border:"1px solid rgba(245,166,35,0.3)",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+            🧠 Find My Deal Type
+          </button>
           <div style={{width:"1px",height:20,background:"rgba(255,255,255,0.1)",margin:"0 4px"}}/>
           {PROPERTY_TYPES.map(t=>{
             const active=filters.propertyType===t;
@@ -419,6 +520,7 @@ export default function App() {
               {label:"⏳ Motivated Seller",active:filters.maxDom<=60,fn:()=>setFilters(f=>({...f,maxDom:f.maxDom<=60?90:60}))},
               {label:"💰 Under $800K",active:filters.maxPrice<=800000,fn:()=>setFilters(f=>({...f,maxPrice:f.maxPrice<=800000?1400000:800000}))},
               {label:"✅ Cash Flow+",active:filters.cashFlowOnly,fn:()=>setFilters(f=>({...f,cashFlowOnly:!f.cashFlowOnly}))},
+              {label:"🚇 LRT Access",active:lrtFilter,fn:()=>setLrtFilter(v=>!v)},
               {label:"❤️ Saved",active:false,fn:()=>{}},
             ].map(c=>(
               <button key={c.label} onClick={c.fn}
@@ -587,6 +689,7 @@ export default function App() {
                       <div style={{position:"absolute",top:10,left:10,display:"flex",gap:5}}>
                         {l.priceReduction>0&&<span style={{background:"#EF4444",color:"#fff",fontSize:10,fontWeight:800,padding:"3px 8px",borderRadius:6}}>▼ {l.priceReduction}% Off</span>}
                         {l.dom>45&&<span style={{background:"#F59E0B",color:"#fff",fontSize:10,fontWeight:800,padding:"3px 8px",borderRadius:6}}>{l.dom}d</span>}
+                        {l.lrtAccess&&<span style={{background:"#0EA5E9",color:"#fff",fontSize:10,fontWeight:800,padding:"3px 8px",borderRadius:6}}>🚇 LRT</span>}
                       </div>
                       <div style={{position:"absolute",top:10,right:50,background:scoreBg(l.score),border:`2px solid ${scoreColor(l.score)}`,borderRadius:10,padding:"4px 10px",textAlign:"center"}}>
                         <div style={{fontSize:15,fontWeight:900,color:scoreColor(l.score),lineHeight:1}}>{l.score}</div>
@@ -709,7 +812,7 @@ export default function App() {
 
                 {/* MODAL TABS */}
                 <div style={{display:"flex",gap:4,marginBottom:20,background:"#F8FAFC",borderRadius:12,padding:4}}>
-                  {[{k:"overview",l:"📊 Overview"},{k:"mortgage",l:"🏦 Mortgage Calc"},{k:"brrr",l:"🔄 BRRR Calc"},{k:"comps",l:"📋 Sold Comps"},{k:"ai",l:"🤖 AI Analysis"}].map(t=>(
+                  {[{k:"overview",l:"📊 Overview"},{k:"mortgage",l:"🏦 Mortgage Calc"},{k:"brrr",l:"🔄 BRRR Calc"},{k:"caprate",l:"📐 Cap Rate"},{k:"comps",l:"📋 Sold Comps"},{k:"ai",l:"🤖 AI Analysis"}].map(t=>(
                     <button key={t.k} className="tab-btn" onClick={()=>setModalTab(t.k)}
                       style={{flex:1,background:modalTab===t.k?"#fff":"transparent",color:modalTab===t.k?"#1B4FD8":"#64748B",border:"none",borderRadius:9,padding:"8px 4px",fontSize:11,fontWeight:modalTab===t.k?700:500,cursor:"pointer",fontFamily:"inherit",boxShadow:modalTab===t.k?"0 2px 8px rgba(0,0,0,0.08)":"none",whiteSpace:"nowrap"}}>
                       {t.l}
@@ -874,6 +977,71 @@ export default function App() {
                   </div>
                 )}
 
+                {/* CAP RATE TAB */}
+                {modalTab==="caprate"&&modal&&(()=>{
+                  const annualRent=modal.estimatedRent*12;
+                  const annualTax=(modal.assessedValue*0.0092);
+                  const insurance=1800;
+                  const management=annualRent*0.08;
+                  const maintenance=modal.price*0.01;
+                  const vacancy=annualRent*0.04;
+                  const noi=annualRent-annualTax-insurance-management-maintenance-vacancy;
+                  const capRate=(noi/modal.price)*100;
+                  const mortgage=modal.mortgage*12;
+                  const annualCashFlow=noi-mortgage;
+                  const cashOnCash=(annualCashFlow/(modal.price*0.20))*100;
+                  const marginalRate=0.46;
+                  const taxableIncome=annualRent-(annualTax+insurance+management+maintenance+vacancy+mortgage*0.7);
+                  const afterTaxCashFlow=annualCashFlow-(Math.max(0,taxableIncome)*marginalRate);
+                  const grm=modal.price/annualRent;
+                  return(
+                    <div style={{animation:"fadeIn 0.2s ease"}}>
+                      <div style={{marginBottom:16}}>
+                        <div style={{fontSize:14,fontWeight:800,color:"#0F172A",marginBottom:4}}>Cap Rate & After-Tax Returns</div>
+                        <div style={{fontSize:12,color:"#64748B"}}>Assumes 20% down, 6.5% rate, 25yr am, 46% marginal tax rate.</div>
+                      </div>
+                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+                        {[
+                          {l:"Cap Rate",v:capRate.toFixed(2)+"%",sub:"NOI / Purchase Price",c:capRate>4.5?"#16A865":capRate>3.5?"#F5A623":"#EF4444"},
+                          {l:"Cash-on-Cash",v:cashOnCash.toFixed(2)+"%",sub:"Annual CF / Equity Invested",c:cashOnCash>5?"#16A865":cashOnCash>0?"#F5A623":"#EF4444"},
+                          {l:"GRM",v:grm.toFixed(1)+"x",sub:"Price / Annual Rent",c:grm<15?"#16A865":grm<18?"#F5A623":"#EF4444"},
+                          {l:"After-Tax CF/yr",v:(afterTaxCashFlow>=0?"+":"")+Math.round(afterTaxCashFlow).toLocaleString("en-CA",{style:"currency",currency:"CAD",maximumFractionDigits:0}),sub:"Net of 46% marginal rate",c:afterTaxCashFlow>0?"#16A865":afterTaxCashFlow>-5000?"#F5A623":"#EF4444"},
+                        ].map(m=>(
+                          <div key={m.l} style={{background:"#F8FAFC",borderRadius:12,padding:"14px",border:"1px solid #E8EDF4",textAlign:"center"}}>
+                            <div style={{fontSize:10,color:"#94A3B8",fontWeight:700,textTransform:"uppercase",marginBottom:4}}>{m.l}</div>
+                            <div style={{fontSize:22,fontWeight:900,color:m.c}}>{m.v}</div>
+                            <div style={{fontSize:10,color:"#94A3B8",marginTop:2}}>{m.sub}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{background:"#F8FAFC",borderRadius:12,padding:"14px",border:"1px solid #E8EDF4",marginBottom:12}}>
+                        <div style={{fontSize:11,fontWeight:800,color:"#0F172A",marginBottom:10,textTransform:"uppercase",letterSpacing:0.5}}>NOI Breakdown (Annual)</div>
+                        {[
+                          {l:"Gross Rental Income",v:annualRent,pos:true},
+                          {l:"Property Tax",v:-annualTax,pos:false},
+                          {l:"Insurance",v:-insurance,pos:false},
+                          {l:"Property Management (8%)",v:-management,pos:false},
+                          {l:"Maintenance (1% of value)",v:-maintenance,pos:false},
+                          {l:"Vacancy Allowance (4%)",v:-vacancy,pos:false},
+                          {l:"Net Operating Income",v:noi,pos:noi>0,bold:true},
+                          {l:"Mortgage Payments",v:-mortgage,pos:false},
+                          {l:"Annual Cash Flow",v:annualCashFlow,pos:annualCashFlow>0,bold:true},
+                        ].map((row,i)=>(
+                          <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:i<8?"1px solid #F1F5F9":"none",fontWeight:row.bold?800:400}}>
+                            <span style={{fontSize:12,color:row.bold?"#0F172A":"#475569"}}>{row.l}</span>
+                            <span style={{fontSize:12,color:row.pos?"#16A865":"#EF4444",fontWeight:row.bold?800:600}}>
+                              {row.v>=0?"+":""}{Math.round(row.v).toLocaleString("en-CA",{style:"currency",currency:"CAD",maximumFractionDigits:0})}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"12px 14px",fontSize:12,color:"#78350F",lineHeight:1.6}}>
+                        <strong>💡 Hamza&apos;s Take:</strong> {capRate>4.5?"Cap rate above 4.5% is strong for Mississauga — this is a legitimate income property.":capRate>3.5?"Cap rate in the 3.5–4.5% range is typical for Mississauga. Negotiate on price or rents to push it above 4.5%.":"Cap rate below 3.5% means you are buying appreciation, not cash flow. Know your strategy going in."} After-tax cash flow of {Math.round(afterTaxCashFlow/12).toLocaleString("en-CA",{style:"currency",currency:"CAD",maximumFractionDigits:0})}/mo assumes 46% marginal rate — consult your accountant.
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* SOLD COMPS TAB */}
                 {modalTab==="comps"&&(
                   <div style={{animation:"fadeIn 0.2s ease"}}>
@@ -960,6 +1128,120 @@ export default function App() {
         </div>
       )}
 
+      {/* ── PRE-CON VIEW ── */}
+      {view==="precon"&&(
+        <div style={{maxWidth:1220,margin:"0 auto",padding:"28px 24px"}}>
+          <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",borderRadius:20,padding:"32px",marginBottom:28,textAlign:"center"}}>
+            <div style={{fontSize:13,color:"#38BDF8",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>VIP PRE-CONSTRUCTION ACCESS</div>
+            <h2 style={{fontSize:28,fontWeight:900,color:"#fff",marginBottom:12}}>Get In Before The Public</h2>
+            <p style={{fontSize:14,color:"#94A3B8",maxWidth:600,margin:"0 auto",lineHeight:1.8}}>VIP pricing is 10–15% below public launch. I have direct relationships with Mississauga developers. Register below and I will contact you within 24 hours with exclusive floor plans and pricing worksheets.</p>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:20}}>
+            {PRECON_PROJECTS.map(p=>(
+              <div key={p.id} style={{background:"#fff",borderRadius:18,overflow:"hidden",boxShadow:"0 2px 16px rgba(0,0,0,0.07)",border:"1px solid #F1F5F9",cursor:"pointer",transition:"all 0.2s"}}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.12)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 2px 16px rgba(0,0,0,0.07)";}}>
+                <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",padding:"24px",position:"relative"}}>
+                  <div style={{fontSize:48,marginBottom:8}}>{p.img}</div>
+                  <div style={{fontSize:18,fontWeight:900,color:"#fff",marginBottom:4}}>{p.name}</div>
+                  <div style={{fontSize:12,color:"#94A3B8",marginBottom:12}}>{p.developer} · {p.neighbourhood} · {p.type}</div>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    {p.lrtAccess&&<span style={{background:"rgba(14,165,233,0.2)",border:"1px solid rgba(14,165,233,0.4)",color:"#38BDF8",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>🚇 LRT ACCESS</span>}
+                    <span style={{background:"rgba(16,185,129,0.2)",border:"1px solid rgba(16,185,129,0.4)",color:"#10B981",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>🔥 {p.sold}% SOLD</span>
+                    <span style={{background:"rgba(245,166,35,0.2)",border:"1px solid rgba(245,166,35,0.4)",color:"#FCD34D",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>📅 {p.occupancy}</span>
+                  </div>
+                </div>
+                <div style={{padding:"18px"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+                    {[{l:"Starting From",v:fmtK(p.priceFrom)},{l:"Up To",v:fmtK(p.priceTo)},{l:"Suites",v:p.beds},{l:"Units",v:p.units+" total"}].map(m=>(
+                      <div key={m.l} style={{background:"#F8FAFC",borderRadius:8,padding:"10px",textAlign:"center",border:"1px solid #F1F5F9"}}>
+                        <div style={{fontSize:9,color:"#94A3B8",fontWeight:700,textTransform:"uppercase",marginBottom:2}}>{m.l}</div>
+                        <div style={{fontSize:14,fontWeight:800,color:"#0F172A"}}>{m.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:10,padding:"10px 12px",marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#065F46",marginBottom:4,textTransform:"uppercase"}}>🎁 Incentives</div>
+                    <div style={{fontSize:12,color:"#065F46"}}>{p.incentives}</div>
+                  </div>
+                  <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"10px 12px",marginBottom:14}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#92400E",marginBottom:4,textTransform:"uppercase"}}>💬 Hamza&apos;s Take</div>
+                    <div style={{fontSize:12,color:"#78350F",lineHeight:1.6}}>{p.hamzaNote}</div>
+                  </div>
+                  <div style={{background:"#F8FAFC",borderRadius:8,padding:"8px 12px",marginBottom:14,fontSize:11,color:"#475569"}}>
+                    <strong>Deposit:</strong> {p.deposit}
+                  </div>
+                  <button onClick={()=>{setPreconModal(p);setPreconSubmitted(false);setPreconForm({name:"",phone:"",email:"",budget:"Under $700K"});}}
+                    style={{width:"100%",background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
+                    🔐 Request VIP Pricing & Floor Plans
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MARKET PULSE VIEW ── */}
+      {view==="pulse"&&(
+        <div style={{maxWidth:1220,margin:"0 auto",padding:"28px 24px"}}>
+          <div style={{marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:12}}>
+            <div>
+              <h2 style={{fontSize:24,fontWeight:900,color:"#0F172A",marginBottom:4}}>Mississauga Market Pulse</h2>
+              <div style={{fontSize:13,color:"#64748B"}}>Updated {MARKET_PULSE.updated} · Data sourced from TRREB</div>
+            </div>
+            <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:10,padding:"8px 16px",fontSize:12,color:"#1B4FD8",fontWeight:600}}>📊 Updated Monthly by Hamza</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12,marginBottom:28}}>
+            {[
+              {l:"Avg Sold Price",v:fmtK(MARKET_PULSE.mississauga.avgSoldPrice),sub:"All property types",c:"#0F172A"},
+              {l:"Avg Days on Market",v:MARKET_PULSE.mississauga.avgDOM+"d",sub:"City-wide average",c:"#0F172A"},
+              {l:"Sale/List Ratio",v:MARKET_PULSE.mississauga.salesListRatio+"%",sub:MARKET_PULSE.mississauga.salesListRatio>100?"Sellers market":"Balanced market",c:MARKET_PULSE.mississauga.salesListRatio>100?"#16A865":"#F5A623"},
+              {l:"Months Inventory",v:MARKET_PULSE.mississauga.inventory+"mo",sub:MARKET_PULSE.mississauga.inventory<2?"Very low supply":"Moderate supply",c:MARKET_PULSE.mississauga.inventory<2?"#EF4444":"#F5A623"},
+              {l:"YoY Price Change",v:(MARKET_PULSE.mississauga.yoyChange>0?"+":"")+MARKET_PULSE.mississauga.yoyChange+"%",sub:"vs March 2025",c:MARKET_PULSE.mississauga.yoyChange>0?"#16A865":"#EF4444"},
+              {l:"MoM Change",v:(MARKET_PULSE.mississauga.momChange>0?"+":"")+MARKET_PULSE.mississauga.momChange+"%",sub:"vs February 2026",c:MARKET_PULSE.mississauga.momChange>0?"#16A865":"#EF4444"},
+            ].map(m=>(
+              <div key={m.l} style={{background:"#fff",borderRadius:14,padding:"18px",boxShadow:"0 2px 12px rgba(0,0,0,0.06)",border:"1px solid #F1F5F9",textAlign:"center"}}>
+                <div style={{fontSize:10,color:"#94A3B8",fontWeight:700,textTransform:"uppercase",marginBottom:6,letterSpacing:0.5}}>{m.l}</div>
+                <div style={{fontSize:24,fontWeight:900,color:m.c,marginBottom:4}}>{m.v}</div>
+                <div style={{fontSize:11,color:"#94A3B8"}}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{background:"#fff",borderRadius:16,padding:"24px",boxShadow:"0 2px 12px rgba(0,0,0,0.06)",border:"1px solid #F1F5F9",marginBottom:20}}>
+            <div style={{fontSize:15,fontWeight:800,color:"#0F172A",marginBottom:16}}>Neighbourhood Heat Map — {MARKET_PULSE.updated}</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}}>
+              {MARKET_PULSE.byHood.map(h=>{
+                const heat={hot:{bg:"#FFF1F2",border:"#FECDD3",badge:"#EF4444",badgeBg:"#FEE2E2",label:"🔥 Hot"},warm:{bg:"#FFFBEB",border:"#FDE68A",badge:"#D97706",badgeBg:"#FEF3C7",label:"⚡ Warm"},cool:{bg:"#EFF6FF",border:"#BFDBFE",badge:"#1B4FD8",badgeBg:"#DBEAFE",label:"❄️ Cool"}}[h.trend];
+                return(
+                  <div key={h.hood} style={{background:heat.bg,borderRadius:12,padding:"14px",border:`1px solid ${heat.border}`}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                      <div style={{fontSize:13,fontWeight:800,color:"#0F172A"}}>{h.hood}</div>
+                      <span style={{background:heat.badgeBg,color:heat.badge,fontSize:10,fontWeight:800,padding:"2px 8px",borderRadius:20}}>{heat.label}</span>
+                    </div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4}}>
+                      {[{l:"Avg Sold",v:fmtK(h.avgPrice)},{l:"Avg DOM",v:h.dom+"d"},{l:"Sale/List",v:h.slr+"%"}].map(m=>(
+                        <div key={m.l} style={{textAlign:"center"}}>
+                          <div style={{fontSize:9,color:"#94A3B8",fontWeight:600,textTransform:"uppercase"}}>{m.l}</div>
+                          <div style={{fontSize:13,fontWeight:800,color:"#0F172A"}}>{m.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",borderRadius:16,padding:"24px",textAlign:"center"}}>
+            <div style={{fontSize:15,fontWeight:800,color:"#fff",marginBottom:8}}>Want a Custom Market Report for Your Neighbourhood?</div>
+            <div style={{fontSize:13,color:"#94A3B8",marginBottom:16}}>I pull fresh TRREB data every month and send personalized updates to registered investors.</div>
+            <button onClick={()=>setAlertModal(true)} style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px 28px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
+              📬 Get Monthly Market Reports — Free
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── AGENT BIO SECTION ── */}
       <div style={{background:"linear-gradient(135deg,#0A1628 0%,#0F2850 100%)",padding:"60px 24px",marginTop:40}}>
         <div style={{maxWidth:900,margin:"0 auto",display:"flex",gap:48,alignItems:"center",flexWrap:"wrap"}}>
@@ -971,6 +1253,10 @@ export default function App() {
             <div style={{fontSize:12,color:"#38BDF8",fontWeight:600,marginBottom:4}}>Sales Representative</div>
             <div style={{fontSize:11,color:"#475569",marginBottom:12}}>Royal LePage Signature Realty</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              <a href="https://calendly.com/hamza-nouman" target="_blank" rel="noreferrer"
+                style={{background:"linear-gradient(135deg,#7C3AED,#A855F7)",color:"#fff",textDecoration:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:700,display:"block",textAlign:"center"}}>
+                📅 Book a Call
+              </a>
               <a href="tel:6476091289" style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",textDecoration:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:700,display:"block"}}>📞 647-609-1289</a>
               <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer" style={{background:"#16A865",color:"#fff",textDecoration:"none",borderRadius:10,padding:"10px 20px",fontSize:13,fontWeight:700,display:"block"}}>💬 WhatsApp Me</a>
             </div>
@@ -1007,6 +1293,153 @@ export default function App() {
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
         </svg>
       </a>
+
+      {/* ── SELLER MODAL ── */}
+      {sellerModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setSellerModal(false)}>
+          <div style={{background:"#fff",borderRadius:20,padding:"32px",maxWidth:480,width:"100%",maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+            {!sellerSubmitted?(
+              <>
+                <div style={{textAlign:"center",marginBottom:24}}>
+                  <div style={{fontSize:40,marginBottom:8}}>🏷️</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#0F172A",marginBottom:4}}>What Is My Home Worth?</div>
+                  <div style={{fontSize:13,color:"#64748B",lineHeight:1.6}}>Get a free, no-obligation home valuation from Hamza. I will analyze recent sold comps and give you a precise price range within 24 hours.</div>
+                </div>
+                {[{l:"Property Address",k:"address",ph:"123 Main St, Mississauga",type:"text"},{l:"Your Name",k:"name",ph:"John Smith",type:"text"},{l:"Phone Number",k:"phone",ph:"647-xxx-xxxx",type:"tel"}].map(f=>(
+                  <div key={f.k} style={{marginBottom:14}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>{f.l} *</div>
+                    <input type={f.type} placeholder={f.ph} value={sellerForm[f.k]} onChange={e=>setSellerForm(p=>({...p,[f.k]:e.target.value}))}
+                      style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+                  </div>
+                ))}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Property Type</div>
+                    <select value={sellerForm.type} onChange={e=>setSellerForm(p=>({...p,type:e.target.value}))}
+                      style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit"}}>
+                      {["Detached","Semi-Detached","Townhouse","Condo"].map(t=><option key={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Bedrooms</div>
+                    <select value={sellerForm.beds} onChange={e=>setSellerForm(p=>({...p,beds:e.target.value}))}
+                      style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit"}}>
+                      {["1","2","3","4","5+"].map(b=><option key={b}>{b}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Your Estimate (optional)</div>
+                  <input type="text" placeholder="e.g. $900K – $1.1M" value={sellerForm.estimate} onChange={e=>setSellerForm(p=>({...p,estimate:e.target.value}))}
+                    style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+                </div>
+                <button onClick={submitSellerForm} disabled={!sellerForm.address||!sellerForm.name||!sellerForm.phone}
+                  style={{width:"100%",background:sellerForm.address&&sellerForm.name&&sellerForm.phone?"linear-gradient(135deg,#1B4FD8,#0EA5E9)":"#E2E8F0",color:sellerForm.address&&sellerForm.name&&sellerForm.phone?"#fff":"#94A3B8",border:"none",borderRadius:12,padding:"14px",fontWeight:700,fontSize:14,cursor:sellerForm.address&&sellerForm.name&&sellerForm.phone?"pointer":"default",fontFamily:"inherit",marginBottom:10}}>
+                  📱 Send Me My Free Valuation
+                </button>
+                <button onClick={()=>setSellerModal(false)} style={{width:"100%",background:"none",border:"none",color:"#94A3B8",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancel</button>
+              </>
+            ):(
+              <div style={{textAlign:"center",padding:"20px 0"}}>
+                <div style={{fontSize:56,marginBottom:16}}>✅</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#0F172A",marginBottom:8}}>Request Received!</div>
+                <div style={{fontSize:14,color:"#64748B",lineHeight:1.8,marginBottom:20}}>Hamza has been notified via WhatsApp and will send you a full CMA with comparable sales within 24 hours.</div>
+                <button onClick={()=>setSellerModal(false)} style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px 28px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Done</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── INVESTOR QUIZ MODAL ── */}
+      {quizModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>{setQuizModal(false);setQuizStep(0);setQuizAnswers([]);setQuizResult(null);}}>
+          <div style={{background:"#fff",borderRadius:20,padding:"32px",maxWidth:520,width:"100%"}} onClick={e=>e.stopPropagation()}>
+            {!quizResult?(
+              <>
+                <div style={{marginBottom:20}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                    <div style={{fontSize:13,color:"#94A3B8",fontWeight:600}}>Question {quizStep+1} of {QUIZ_QUESTIONS.length}</div>
+                    <button onClick={()=>{setQuizModal(false);setQuizStep(0);setQuizAnswers([]);setQuizResult(null);}} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:"#94A3B8"}}>×</button>
+                  </div>
+                  <div style={{background:"#F1F5F9",borderRadius:8,height:6,marginBottom:20}}>
+                    <div style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",height:6,borderRadius:8,width:`${((quizStep)/QUIZ_QUESTIONS.length)*100}%`,transition:"width 0.3s"}}/>
+                  </div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#0F172A",marginBottom:6}}>🧠 Find Your Investor Profile</div>
+                  <div style={{fontSize:16,fontWeight:700,color:"#334155",marginBottom:20}}>{QUIZ_QUESTIONS[quizStep].q}</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                    {QUIZ_QUESTIONS[quizStep].opts.map(opt=>(
+                      <button key={opt} onClick={()=>submitQuiz(opt)}
+                        style={{background:"#F8FAFC",border:"2px solid #E2E8F0",borderRadius:12,padding:"14px 18px",fontSize:14,fontWeight:600,color:"#334155",cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all 0.15s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor="#1B4FD8";e.currentTarget.style.background="#EFF6FF";e.currentTarget.style.color="#1B4FD8";}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor="#E2E8F0";e.currentTarget.style.background="#F8FAFC";e.currentTarget.style.color="#334155";}}>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ):(
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:56,marginBottom:12}}>{quizResult.emoji}</div>
+                <div style={{fontSize:11,color:"#38BDF8",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:6}}>YOUR INVESTOR PROFILE</div>
+                <div style={{fontSize:24,fontWeight:900,color:"#0F172A",marginBottom:12}}>{quizResult.label}</div>
+                <div style={{fontSize:14,color:"#64748B",lineHeight:1.8,marginBottom:24,background:"#F8FAFC",borderRadius:12,padding:"16px"}}>{quizResult.desc}</div>
+                <button onClick={()=>applyQuizProfile(quizResult)}
+                  style={{width:"100%",background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"14px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit",marginBottom:10}}>
+                  {quizResult.label==="Pre-Con Investor"?"View Pre-Con Projects →":"Show Me Matching Listings →"}
+                </button>
+                <button onClick={()=>{setQuizStep(0);setQuizAnswers([]);setQuizResult(null);}} style={{background:"none",border:"none",color:"#94A3B8",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Retake Quiz</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── PRE-CON VIP MODAL ── */}
+      {preconModal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={()=>setPreconModal(null)}>
+          <div style={{background:"#fff",borderRadius:20,padding:"32px",maxWidth:460,width:"100%",maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+            {!preconSubmitted?(
+              <>
+                <div style={{textAlign:"center",marginBottom:24}}>
+                  <div style={{fontSize:36,marginBottom:8}}>{preconModal.img}</div>
+                  <div style={{fontSize:20,fontWeight:900,color:"#0F172A",marginBottom:4}}>{preconModal.name}</div>
+                  <div style={{fontSize:13,color:"#64748B",marginBottom:12}}>{preconModal.neighbourhood} · From {fmtK(preconModal.priceFrom)}</div>
+                  <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#1E40AF",lineHeight:1.6}}>
+                    🔐 VIP registrants receive exclusive floor plans, pricing worksheets, and first access before the public launch.
+                  </div>
+                </div>
+                {[{l:"Full Name",k:"name",ph:"John Smith",type:"text"},{l:"Phone Number",k:"phone",ph:"647-xxx-xxxx",type:"tel"},{l:"Email Address",k:"email",ph:"john@email.com",type:"email"}].map(f=>(
+                  <div key={f.k} style={{marginBottom:14}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>{f.l} *</div>
+                    <input type={f.type} placeholder={f.ph} value={preconForm[f.k]} onChange={e=>setPreconForm(p=>({...p,[f.k]:e.target.value}))}
+                      style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+                  </div>
+                ))}
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Investment Budget</div>
+                  <select value={preconForm.budget} onChange={e=>setPreconForm(p=>({...p,budget:e.target.value}))}
+                    style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"11px 14px",fontSize:13,outline:"none",fontFamily:"inherit"}}>
+                    {["Under $700K","$700K – $900K","$900K – $1.2M","$1.2M+"].map(b=><option key={b}>{b}</option>)}
+                  </select>
+                </div>
+                <button onClick={()=>submitPrecon(preconModal)} disabled={!preconForm.name||!preconForm.phone}
+                  style={{width:"100%",background:preconForm.name&&preconForm.phone?"linear-gradient(135deg,#1B4FD8,#0EA5E9)":"#E2E8F0",color:preconForm.name&&preconForm.phone?"#fff":"#94A3B8",border:"none",borderRadius:12,padding:"14px",fontWeight:700,fontSize:14,cursor:preconForm.name&&preconForm.phone?"pointer":"default",fontFamily:"inherit"}}>
+                  🔐 Request VIP Pricing & Floor Plans
+                </button>
+              </>
+            ):(
+              <div style={{textAlign:"center",padding:"20px 0"}}>
+                <div style={{fontSize:56,marginBottom:16}}>🎉</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#0F172A",marginBottom:8}}>You&apos;re on the VIP List!</div>
+                <div style={{fontSize:14,color:"#64748B",lineHeight:1.8,marginBottom:20}}>Hamza will contact you within 24 hours with exclusive floor plans and VIP pricing for {preconModal.name}.</div>
+                <button onClick={()=>setPreconModal(null)} style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px 28px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Done</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── LEAD CAPTURE MODAL ── */}
       {alertModal&&(
