@@ -49,6 +49,25 @@ const HOOD_INFO = {
   "Hurontario":{ avgPrice:724000, avgRent:3275, yield:4.0, trend:"+3.8%", lrtAccess:true, desc:"LRT spine corridor. Highest density growth zone in Mississauga. Strong appreciation + rental demand.", emoji:"📈" },
 };
 
+// SOLD COMPS
+const SOLD_COMPS = {
+  "Erin Mills-Detached":    [{addr:"2901 Folkway Dr",soldPrice:891000,soldDate:"Feb 2026",dom:18,sqft:2050},{addr:"1488 Stonepine Cres",soldPrice:875000,soldDate:"Jan 2026",dom:24,sqft:1980},{addr:"3022 Tamarack Dr",soldPrice:912000,soldDate:"Dec 2025",dom:11,sqft:2200}],
+  "Erin Mills-Townhouse":   [{addr:"5489 Glen Erin Dr",soldPrice:741000,soldDate:"Feb 2026",dom:14,sqft:1750},{addr:"5601 Glen Erin Dr",soldPrice:758000,soldDate:"Jan 2026",dom:22,sqft:1800}],
+  "Churchill Meadows-Townhouse":[{addr:"5488 Bullrush Dr",soldPrice:762000,soldDate:"Feb 2026",dom:19,sqft:1780},{addr:"3201 Preserve Dr",soldPrice:748000,soldDate:"Jan 2026",dom:27,sqft:1750}],
+  "Churchill Meadows-Semi-Detached":[{addr:"2318 Burnhamthorpe Rd",soldPrice:798000,soldDate:"Feb 2026",dom:16,sqft:1900},{addr:"5589 Kindletree Cres",soldPrice:812000,soldDate:"Jan 2026",dom:21,sqft:1950}],
+  "Clarkson-Detached":      [{addr:"1044 Inverhouse Dr",soldPrice:1015000,soldDate:"Feb 2026",dom:28,sqft:2250},{addr:"788 Clarkson Rd N",soldPrice:998000,soldDate:"Jan 2026",dom:33,sqft:2100}],
+  "Cooksville-Semi-Detached":[{addr:"289 Rathburn Rd W",soldPrice:712000,soldDate:"Feb 2026",dom:12,sqft:1580},{addr:"401 Rathburn Rd W",soldPrice:698000,soldDate:"Jan 2026",dom:18,sqft:1520}],
+  "Cooksville-Condo":       [{addr:"2180 Hurontario St",soldPrice:621000,soldDate:"Feb 2026",dom:22,sqft:1080},{addr:"2250 Hurontario St",soldPrice:638000,soldDate:"Jan 2026",dom:15,sqft:1120}],
+  "Port Credit-Detached":   [{addr:"1901 Lakeshore Rd W",soldPrice:1425000,soldDate:"Feb 2026",dom:9,sqft:1600},{addr:"44 Compass Way",soldPrice:1389000,soldDate:"Jan 2026",dom:14,sqft:1520}],
+  "Port Credit-Condo":      [{addr:"70 Port St E",soldPrice:1175000,soldDate:"Feb 2026",dom:11,sqft:1180},{addr:"21 Park St E",soldPrice:1198000,soldDate:"Jan 2026",dom:8,sqft:1210}],
+  "Meadowvale-Semi-Detached":[{addr:"3201 Redpath Cir",soldPrice:672000,soldDate:"Feb 2026",dom:19,sqft:1440},{addr:"7701 Magistrate Terr",soldPrice:758000,soldDate:"Jan 2026",dom:23,sqft:1920}],
+  "Lakeview-Detached":      [{addr:"488 Lakeshore Rd E",soldPrice:1289000,soldDate:"Feb 2026",dom:17,sqft:1680},{addr:"601 Lakeshore Rd E",soldPrice:1312000,soldDate:"Jan 2026",dom:12,sqft:1720}],
+  "Streetsville-Detached":  [{addr:"418 Queen St S",soldPrice:921000,soldDate:"Feb 2026",dom:14,sqft:1780},{addr:"501 Queen St S",soldPrice:945000,soldDate:"Jan 2026",dom:9,sqft:1820}],
+  "Malton-Townhouse":       [{addr:"4388 Tahoe Blvd",soldPrice:585000,soldDate:"Feb 2026",dom:21,sqft:1280},{addr:"3921 Tomken Rd",soldPrice:612000,soldDate:"Jan 2026",dom:18,sqft:1350}],
+  "Hurontario-Townhouse":   [{addr:"655 Bristol Rd W",soldPrice:688000,soldDate:"Feb 2026",dom:16,sqft:1480},{addr:"4089 Periwinkle Cres",soldPrice:731000,soldDate:"Jan 2026",dom:24,sqft:1660}],
+};
+const DEAL_OF_WEEK = { id:"ML1013", hamzaNote:"12.4% price reduction on a 4-bed Erin Mills detached — seller has been sitting 67 days and is motivated. At $869K with a finished basement, this cash flows better than anything else in the neighbourhood. I would move on this before the weekend.", highlight:"12.4% below asking · 67 days · Motivated seller · Finished basement" };
+
 const TYPE_ICON = { Detached:"🏠", "Semi-Detached":"🏡", Townhouse:"🏘️", Condo:"🏢" };
 const PROPERTY_TYPES = ["All Types","Detached","Semi-Detached","Townhouse","Condo"];
 const HOODS = [...new Set(MOCK_LISTINGS.map(l=>l.neighbourhood))].sort();
@@ -161,7 +180,7 @@ export default function App() {
 
   const runAnalysis=async(listing)=>{
     if(analysis[listing.id]||loading[listing.id])return;
-    if(analysisCount>=3&&!registered){setAlertModal(true);return;}
+    if(analysisCount>=1&&!registered){setAlertModal(true);return;}
     setLoading(l=>({...l,[listing.id]:true}));
     try{
       const metrics={mortgage:listing.mortgage,tax:listing.tax,cashFlow:listing.cashFlow,yield:listing.yield,ppsf:listing.ppsf,score:listing.score};
@@ -188,7 +207,19 @@ export default function App() {
     else{navigator.clipboard.writeText(text).then(()=>alert("Listing copied to clipboard!"));}
   };
 
-  const analysisLeft=Math.max(0,3-analysisCount);
+  const onRegisterSuccess=()=>{
+    setSubmitted(true);
+    setRegistered(true);
+    if(favGate){setFavourites(f=>[...f,favGate]);setFavGate(null);}
+    // WhatsApp notification to Hamza
+    const name=form.name||"Someone";
+    const phone=form.phone||"";
+    const email=form.email||"";
+    const msg=encodeURIComponent(`🔔 NEW LEAD from MississaugaInvestor.ca\n\nName: ${name}\nPhone: ${phone}\nEmail: ${email}\n\nReply to follow up!`);
+    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+  };
+
+  const analysisLeft=Math.max(0,1-analysisCount);
 
   // MORTGAGE CALC
   const calcMort=(price,downPct,rate,years)=>{
@@ -263,7 +294,7 @@ export default function App() {
               </div>
             )}
             <div style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"5px 12px",fontSize:11,color:"#94A3B8",fontWeight:600}}>
-              🤖 {registered?"∞":analysisLeft+"/3"} AI
+              🤖 {registered?"∞":analysisLeft+"/1"} AI
             </div>
             <button onClick={()=>setAlertModal(true)} style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:10,padding:"9px 20px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 14px rgba(27,79,216,0.4)"}}>
               🔔 Get Deal Alerts
@@ -510,7 +541,40 @@ export default function App() {
               </button>
             </div>
           ):(
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(330px,1fr))",gap:20}}>
+            <div>
+              {(()=>{const dotw=DATA.find(l=>l.id===DEAL_OF_WEEK.id);if(!dotw)return null;return(
+                <div onClick={()=>openModal(dotw)} style={{background:"linear-gradient(135deg,#0A1628 0%,#1B3A6B 100%)",borderRadius:20,padding:"22px 26px",marginBottom:24,cursor:"pointer",border:"2px solid rgba(251,191,36,0.4)",boxShadow:"0 4px 24px rgba(27,79,216,0.2)",position:"relative",overflow:"hidden"}}>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:20,flexWrap:"wrap"}}>
+                    <div style={{flex:1,minWidth:240}}>
+                      <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(251,191,36,0.15)",border:"1px solid rgba(251,191,36,0.4)",borderRadius:20,padding:"4px 12px",marginBottom:12}}>
+                        <span style={{fontSize:14}}>🏆</span>
+                        <span style={{fontSize:11,fontWeight:800,color:"#FCD34D",letterSpacing:1}}>HAMZA&apos;S DEAL OF THE WEEK</span>
+                      </div>
+                      <div style={{fontSize:20,fontWeight:900,color:"#fff",marginBottom:4}}>{dotw.address}</div>
+                      <div style={{fontSize:13,color:"#94A3B8",marginBottom:12}}>{dotw.neighbourhood} · {dotw.type} · {dotw.bedrooms}bd/{dotw.bathrooms}ba</div>
+                      <div style={{background:"rgba(255,255,255,0.06)",borderRadius:12,padding:"12px 16px",marginBottom:12}}>
+                        <div style={{fontSize:12,color:"#FCD34D",fontWeight:700,marginBottom:6}}>💬 HAMZA&apos;S NOTE</div>
+                        <div style={{fontSize:13,color:"#CBD5E1",lineHeight:1.7}}>{DEAL_OF_WEEK.hamzaNote}</div>
+                      </div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                        {DEAL_OF_WEEK.highlight.split(" · ").map(h=>(
+                          <span key={h} style={{background:"rgba(251,191,36,0.12)",border:"1px solid rgba(251,191,36,0.3)",borderRadius:20,padding:"4px 12px",fontSize:11,color:"#FCD34D",fontWeight:600}}>{h}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+                      {[{label:"Price",val:fmtK(dotw.price)},{label:"Score",val:dotw.score+"/10"},{label:"Yield",val:dotw.yield.toFixed(2)+"%"},{label:"Price Drop",val:dotw.priceReduction+"%"}].map(m=>(
+                        <div key={m.label} style={{background:"rgba(255,255,255,0.06)",borderRadius:12,padding:"14px 18px",textAlign:"center",minWidth:80}}>
+                          <div style={{fontSize:11,color:"#64748B",marginBottom:4,fontWeight:600}}>{m.label}</div>
+                          <div style={{fontSize:20,fontWeight:900,color:"#fff"}}>{m.val}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{marginTop:14,fontSize:12,color:"#475569"}}>Click to view full AI analysis, mortgage calc and sold comps →</div>
+                </div>
+              );})()}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(330px,1fr))",gap:20}}>
               {results.map((l,i)=>{
                 const ai=analysis[l.id];
                 const hp=HOOD_COLORS[l.neighbourhood]||{bg:"#E8F4F0",text:"#0E7A5A"};
@@ -571,6 +635,7 @@ export default function App() {
                   </div>
                 );
               })}
+              </div>
             </div>
           )
         )}
@@ -644,7 +709,7 @@ export default function App() {
 
                 {/* MODAL TABS */}
                 <div style={{display:"flex",gap:4,marginBottom:20,background:"#F8FAFC",borderRadius:12,padding:4}}>
-                  {[{k:"overview",l:"📊 Overview"},{k:"mortgage",l:"🏦 Mortgage Calc"},{k:"brrr",l:"🔄 BRRR Calc"},{k:"ai",l:"🤖 AI Analysis"}].map(t=>(
+                  {[{k:"overview",l:"📊 Overview"},{k:"mortgage",l:"🏦 Mortgage Calc"},{k:"brrr",l:"🔄 BRRR Calc"},{k:"comps",l:"📋 Sold Comps"},{k:"ai",l:"🤖 AI Analysis"}].map(t=>(
                     <button key={t.k} className="tab-btn" onClick={()=>setModalTab(t.k)}
                       style={{flex:1,background:modalTab===t.k?"#fff":"transparent",color:modalTab===t.k?"#1B4FD8":"#64748B",border:"none",borderRadius:9,padding:"8px 4px",fontSize:11,fontWeight:modalTab===t.k?700:500,cursor:"pointer",fontFamily:"inherit",boxShadow:modalTab===t.k?"0 2px 8px rgba(0,0,0,0.08)":"none",whiteSpace:"nowrap"}}>
                       {t.l}
@@ -780,7 +845,7 @@ export default function App() {
                       )}
                       {!ai&&!ld&&analysisLeft<=0&&!registered&&(
                         <div style={{textAlign:"center",padding:"10px 0"}}>
-                          <div style={{fontSize:13,color:"#64748B",marginBottom:12}}>You've used your 3 free analyses today.</div>
+                          <div style={{fontSize:13,color:"#64748B",marginBottom:12}}>You've used your 1 free analysis. Register free for unlimited access.</div>
                           <button onClick={()=>setAlertModal(true)} style={{width:"100%",background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"14px",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
                             Register for Unlimited Access
                           </button>
@@ -805,6 +870,66 @@ export default function App() {
                           {ai.hamzaNote&&<div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"12px 14px",display:"flex",gap:10}}><div style={{fontSize:18,flexShrink:0}}>👤</div><div><div style={{fontSize:10,fontWeight:700,color:"#92400E",marginBottom:4,textTransform:"uppercase"}}>Hamza's Local Insight</div><div style={{fontSize:13,color:"#78350F",lineHeight:1.5}}>{ai.hamzaNote}</div></div></div>}
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* SOLD COMPS TAB */}
+                {modalTab==="comps"&&(
+                  <div style={{animation:"fadeIn 0.2s ease"}}>
+                    <div style={{marginBottom:16}}>
+                      <div style={{fontSize:14,fontWeight:800,color:"#0F172A",marginBottom:4}}>Sold Comparables — Last 90 Days</div>
+                      <div style={{fontSize:12,color:"#64748B"}}>Similar {modal.type}s in {modal.neighbourhood} that have recently sold.</div>
+                    </div>
+                    {(()=>{
+                      const key=modal.neighbourhood+"-"+modal.type;
+                      const comps=SOLD_COMPS[key];
+                      if(!comps||comps.length===0)return(
+                        <div style={{textAlign:"center",padding:"32px 0",background:"#F8FAFC",borderRadius:12}}>
+                          <div style={{fontSize:32,marginBottom:8}}>📋</div>
+                          <div style={{fontSize:13,color:"#64748B"}}>No recent sold data for this type in {modal.neighbourhood}.</div>
+                          <div style={{fontSize:12,color:"#94A3B8",marginTop:4}}>Contact Hamza for a custom CMA report.</div>
+                        </div>
+                      );
+                      const avgSold=Math.round(comps.reduce((a,c)=>a+c.soldPrice,0)/comps.length);
+                      const vsAsking=((modal.price-avgSold)/avgSold*100).toFixed(1);
+                      const ppsf=Math.round(avgSold/(comps[0].sqft||modal.sqft));
+                      return(
+                        <div>
+                          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+                            {[{l:"Avg Sold Price",v:fmtK(avgSold)},{l:"This Listing vs Avg",v:(vsAsking>0?"+":"")+vsAsking+"%",c:parseFloat(vsAsking)<0?"#16A865":parseFloat(vsAsking)>5?"#EF4444":"#F5A623"},{l:"Avg $/sqft Sold",v:"$"+ppsf}].map(m=>(
+                              <div key={m.l} style={{background:"#F8FAFC",borderRadius:10,padding:"12px",textAlign:"center",border:"1px solid #E8EDF4"}}>
+                                <div style={{fontSize:10,color:"#94A3B8",fontWeight:700,textTransform:"uppercase",marginBottom:4}}>{m.l}</div>
+                                <div style={{fontSize:16,fontWeight:900,color:m.c||"#0F172A"}}>{m.v}</div>
+                              </div>
+                            ))}
+                          </div>
+                          {parseFloat(vsAsking)<-3&&<div style={{background:"#ECFDF5",border:"1px solid #6EE7B7",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#065F46",fontWeight:600}}>✅ This listing is priced {Math.abs(vsAsking)}% BELOW recent sold comps — potential upside.</div>}
+                          {parseFloat(vsAsking)>5&&<div style={{background:"#FFF7ED",border:"1px solid #FDE68A",borderRadius:10,padding:"10px 14px",marginBottom:14,fontSize:12,color:"#92400E",fontWeight:600}}>⚠️ This listing is priced {vsAsking}% ABOVE recent sold comps — negotiate hard.</div>}
+                          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                            {comps.map((c,i)=>(
+                              <div key={i} style={{background:"#fff",borderRadius:12,padding:"14px 16px",border:"1px solid #E8EDF4",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+                                <div>
+                                  <div style={{fontSize:13,fontWeight:700,color:"#0F172A",marginBottom:2}}>{c.addr}</div>
+                                  <div style={{fontSize:11,color:"#94A3B8"}}>{c.soldDate} · {c.dom}d on market · {c.sqft.toLocaleString()} sqft</div>
+                                </div>
+                                <div style={{textAlign:"right"}}>
+                                  <div style={{fontSize:16,fontWeight:900,color:"#16A865"}}>{fmtK(c.soldPrice)}</div>
+                                  <div style={{fontSize:11,color:"#94A3B8"}}>${Math.round(c.soldPrice/c.sqft)}/sqft</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{marginTop:14,background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"12px 14px",fontSize:12,color:"#78350F",lineHeight:1.6}}>
+                            <strong>💡 Hamza&apos;s CMA Take:</strong> Based on these comps, fair value for this {modal.type} in {modal.neighbourhood} is around {fmtK(avgSold)}. {parseFloat(vsAsking)<0?"This listing is priced below market — strong buy signal.":"Use this data to negotiate a better price before offering."}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div style={{marginTop:16}}>
+                      <button onClick={()=>setAlertModal(true)} style={{width:"100%",background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
+                        📊 Get Full CMA Report from Hamza — Free
+                      </button>
                     </div>
                   </div>
                 )}
@@ -856,7 +981,7 @@ export default function App() {
             </div>
             <h2 style={{fontSize:24,fontWeight:900,color:"#fff",marginBottom:14,lineHeight:1.3}}>Your Mississauga Investment Specialist</h2>
             <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:16}}>With <strong style={{color:"#fff"}}>8+ years</strong> in the GTA and hundreds of successful transactions, I built this tool because investors deserve real data — not sales pitches. Every listing you see is scored on cash flow, yield, price reduction, and market momentum.</p>
-            <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:20}}>I specialize in <strong style={{color:"#fff"}}>investment properties, pre-construction, multi-family, BRRR strategy, and power of sale</strong> across Mississauga, Oakville, Milton, Burlington, Brampton and the GTA. Fluent in English, Urdu, Hindi.</p>
+            <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:20}}>I specialize in <strong style={{color:"#fff"}}>investment properties, pre-construction, multi-family, BRRR strategy, and power of sale</strong> across Mississauga, Oakville, Milton, Burlington, Brampton and the GTA. Fluent in English, Urdu, Hindi, Punjabi & Pashto.</p>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               {["Investment Properties","Pre-Construction","BRRR Strategy","Multi-Family","Power of Sale","First-Time Buyers"].map(s=>(
                 <span key={s} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,padding:"5px 12px",fontSize:11,color:"#94A3B8"}}>{s}</span>
@@ -899,7 +1024,7 @@ export default function App() {
                       style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"12px 14px",fontSize:14,outline:"none",fontFamily:"inherit",color:"#0F172A"}}/>
                   </div>
                 ))}
-                <button onClick={()=>{if(form.name&&form.phone)setSubmitted(true);}} disabled={!form.name||!form.phone}
+                <button onClick={()=>{if(form.name&&form.phone)onRegisterSuccess();}} disabled={!form.name||!form.phone}
                   style={{width:"100%",background:form.name&&form.phone?"linear-gradient(135deg,#0A1628,#1B4FD8)":"#E2E8F0",color:form.name&&form.phone?"#fff":"#94A3B8",border:"none",borderRadius:12,padding:"15px",fontWeight:700,fontSize:15,cursor:form.name&&form.phone?"pointer":"not-allowed",fontFamily:"inherit"}}>
                   Unlock Full Access
                 </button>
