@@ -1130,55 +1130,104 @@ export default function App() {
 
       {/* ── PRE-CON VIEW ── */}
       {view==="precon"&&(
-        <div style={{maxWidth:1220,margin:"0 auto",padding:"28px 24px"}}>
-          <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",borderRadius:20,padding:"32px",marginBottom:28,textAlign:"center"}}>
-            <div style={{fontSize:13,color:"#38BDF8",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>VIP PRE-CONSTRUCTION ACCESS</div>
-            <h2 style={{fontSize:28,fontWeight:900,color:"#fff",marginBottom:12}}>Get In Before The Public</h2>
-            <p style={{fontSize:14,color:"#94A3B8",maxWidth:600,margin:"0 auto",lineHeight:1.8}}>VIP pricing is 10–15% below public launch. I have direct relationships with Mississauga developers. Register below and I will contact you within 24 hours with exclusive floor plans and pricing worksheets.</p>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(340px,1fr))",gap:20}}>
-            {PRECON_PROJECTS.map(p=>(
-              <div key={p.id} style={{background:"#fff",borderRadius:18,overflow:"hidden",boxShadow:"0 2px 16px rgba(0,0,0,0.07)",border:"1px solid #F1F5F9",cursor:"pointer",transition:"all 0.2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.12)";}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 2px 16px rgba(0,0,0,0.07)";}}>
-                <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",padding:"24px",position:"relative"}}>
-                  <div style={{fontSize:48,marginBottom:8}}>{p.img}</div>
-                  <div style={{fontSize:18,fontWeight:900,color:"#fff",marginBottom:4}}>{p.name}</div>
-                  <div style={{fontSize:12,color:"#94A3B8",marginBottom:12}}>{p.developer} · {p.neighbourhood} · {p.type}</div>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    {p.lrtAccess&&<span style={{background:"rgba(14,165,233,0.2)",border:"1px solid rgba(14,165,233,0.4)",color:"#38BDF8",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>🚇 LRT ACCESS</span>}
-                    <span style={{background:"rgba(16,185,129,0.2)",border:"1px solid rgba(16,185,129,0.4)",color:"#10B981",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>🔥 {p.sold}% SOLD</span>
-                    <span style={{background:"rgba(245,166,35,0.2)",border:"1px solid rgba(245,166,35,0.4)",color:"#FCD34D",fontSize:10,fontWeight:800,padding:"3px 10px",borderRadius:20}}>📅 {p.occupancy}</span>
+        <div style={{maxWidth:680,margin:"0 auto",padding:"48px 24px"}}>
+          {!preconSubmitted?(
+            <div style={{background:"#fff",borderRadius:24,boxShadow:"0 4px 32px rgba(0,0,0,0.08)",overflow:"hidden",border:"1px solid #F1F5F9"}}>
+              <div style={{background:"linear-gradient(135deg,#0A1628,#1B3A6B)",padding:"40px 36px",textAlign:"center"}}>
+                <div style={{fontSize:48,marginBottom:12}}>🏙️</div>
+                <div style={{fontSize:12,color:"#38BDF8",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>VIP PRE-CONSTRUCTION ACCESS</div>
+                <h2 style={{fontSize:26,fontWeight:900,color:"#fff",marginBottom:12,lineHeight:1.3}}>Get In Before The Public</h2>
+                <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,maxWidth:480,margin:"0 auto"}}>Register for VIP pre-construction access. I will send you projects matching your budget before public launch — including floor plans, pricing, and deposit structures not available online.</p>
+              </div>
+              <div style={{padding:"32px 36px"}}>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:28}}>
+                  {[{icon:"🔐",label:"VIP-only pricing"},{icon:"📐",label:"Exclusive floor plans"},{icon:"📞",label:"Direct developer access"}].map(b=>(
+                    <div key={b.label} style={{background:"#F8FAFC",borderRadius:12,padding:"14px 10px",textAlign:"center",border:"1px solid #F1F5F9"}}>
+                      <div style={{fontSize:22,marginBottom:6}}>{b.icon}</div>
+                      <div style={{fontSize:11,fontWeight:700,color:"#334155"}}>{b.label}</div>
+                    </div>
+                  ))}
+                </div>
+                {[
+                  {l:"Full Name",k:"name",ph:"John Smith",type:"text"},
+                  {l:"Phone Number",k:"phone",ph:"647-xxx-xxxx",type:"tel"},
+                  {l:"Email Address",k:"email",ph:"john@email.com",type:"email"},
+                ].map(f=>(
+                  <div key={f.k} style={{marginBottom:14}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>{f.l} *</div>
+                    <input type={f.type} placeholder={f.ph} value={preconForm[f.k]} onChange={e=>setPreconForm(p=>({...p,[f.k]:e.target.value}))}
+                      style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"12px 14px",fontSize:13,outline:"none",fontFamily:"inherit",boxSizing:"border-box",transition:"border-color 0.2s"}}
+                      onFocus={e=>e.target.style.borderColor="#1B4FD8"} onBlur={e=>e.target.style.borderColor="#E2E8F0"}/>
+                  </div>
+                ))}
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Investment Budget</div>
+                  <select value={preconForm.budget} onChange={e=>setPreconForm(p=>({...p,budget:e.target.value}))}
+                    style={{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"12px 14px",fontSize:13,outline:"none",fontFamily:"inherit",background:"#fff"}}>
+                    {["Under $700K","$700K – $900K","$900K – $1.2M","$1.2M+"].map(b=><option key={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div style={{marginBottom:20}}>
+                  <div style={{fontSize:12,fontWeight:700,color:"#374151",marginBottom:5}}>Areas of Interest (optional)</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+                    {["Port Credit","Cooksville","Hurontario","Erin Mills","Churchill Meadows","Clarkson","Any Mississauga"].map(a=>{
+                      const areas=preconForm.areas||[];
+                      const on=areas.includes(a);
+                      return(
+                        <button key={a} type="button" onClick={()=>setPreconForm(p=>({...p,areas:on?(p.areas||[]).filter(x=>x!==a):[...(p.areas||[]),a]}))}
+                          style={{background:on?"#EFF6FF":"#F8FAFC",color:on?"#1B4FD8":"#64748B",border:`1.5px solid ${on?"#1B4FD8":"#E2E8F0"}`,borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:on?700:500,cursor:"pointer",fontFamily:"inherit"}}>
+                          {on?"✓ ":""}{a}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                <div style={{padding:"18px"}}>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
-                    {[{l:"Starting From",v:fmtK(p.priceFrom)},{l:"Up To",v:fmtK(p.priceTo)},{l:"Suites",v:p.beds},{l:"Units",v:p.units+" total"}].map(m=>(
-                      <div key={m.l} style={{background:"#F8FAFC",borderRadius:8,padding:"10px",textAlign:"center",border:"1px solid #F1F5F9"}}>
-                        <div style={{fontSize:9,color:"#94A3B8",fontWeight:700,textTransform:"uppercase",marginBottom:2}}>{m.l}</div>
-                        <div style={{fontSize:14,fontWeight:800,color:"#0F172A"}}>{m.v}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{background:"#F0FDF4",border:"1px solid #BBF7D0",borderRadius:10,padding:"10px 12px",marginBottom:14}}>
-                    <div style={{fontSize:10,fontWeight:700,color:"#065F46",marginBottom:4,textTransform:"uppercase"}}>🎁 Incentives</div>
-                    <div style={{fontSize:12,color:"#065F46"}}>{p.incentives}</div>
-                  </div>
-                  <div style={{background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:10,padding:"10px 12px",marginBottom:14}}>
-                    <div style={{fontSize:10,fontWeight:700,color:"#92400E",marginBottom:4,textTransform:"uppercase"}}>💬 Hamza&apos;s Take</div>
-                    <div style={{fontSize:12,color:"#78350F",lineHeight:1.6}}>{p.hamzaNote}</div>
-                  </div>
-                  <div style={{background:"#F8FAFC",borderRadius:8,padding:"8px 12px",marginBottom:14,fontSize:11,color:"#475569"}}>
-                    <strong>Deposit:</strong> {p.deposit}
-                  </div>
-                  <button onClick={()=>{setPreconModal(p);setPreconSubmitted(false);setPreconForm({name:"",phone:"",email:"",budget:"Under $700K"});}}
-                    style={{width:"100%",background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
-                    🔐 Request VIP Pricing & Floor Plans
-                  </button>
+                <button
+                  onClick={()=>{
+                    if(!preconForm.name||!preconForm.phone)return;
+                    setPreconSubmitted(true);
+                    const areas=(preconForm.areas||[]).join(", ")||"Any";
+                    const msg=encodeURIComponent("🏙️ NEW PRE-CON VIP REQUEST from MississaugaInvestor.ca
+
+Name: "+preconForm.name+"
+Phone: "+preconForm.phone+"
+Email: "+preconForm.email+"
+Budget: "+preconForm.budget+"
+Areas: "+areas+"
+
+Follow up within 24hrs!");
+                    window.open("https://wa.me/16476091289?text="+msg,"_blank");
+                  }}
+                  disabled={!preconForm.name||!preconForm.phone}
+                  style={{width:"100%",background:preconForm.name&&preconForm.phone?"linear-gradient(135deg,#1B4FD8,#0EA5E9)":"#E2E8F0",color:preconForm.name&&preconForm.phone?"#fff":"#94A3B8",border:"none",borderRadius:12,padding:"15px",fontWeight:700,fontSize:15,cursor:preconForm.name&&preconForm.phone?"pointer":"default",fontFamily:"inherit",marginBottom:12}}>
+                  🔐 Register for VIP Access
+                </button>
+                <div style={{fontSize:11,color:"#94A3B8",textAlign:"center",lineHeight:1.6}}>
+                  No obligation. No spam. Hamza Nouman · Royal LePage Signature Realty · 647-609-1289
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ):(
+            <div style={{background:"#fff",borderRadius:24,boxShadow:"0 4px 32px rgba(0,0,0,0.08)",padding:"60px 36px",textAlign:"center",border:"1px solid #F1F5F9"}}>
+              <div style={{fontSize:64,marginBottom:16}}>🎉</div>
+              <div style={{fontSize:24,fontWeight:900,color:"#0F172A",marginBottom:8}}>You&apos;re on the VIP List!</div>
+              <div style={{fontSize:14,color:"#64748B",lineHeight:1.8,marginBottom:24,maxWidth:400,margin:"0 auto 24px"}}>
+                Hamza will contact you within 24 hours with pre-construction projects matching your budget — before they go public.
+              </div>
+              <div style={{background:"#EFF6FF",border:"1px solid #BFDBFE",borderRadius:14,padding:"16px 20px",marginBottom:24,display:"inline-flex",alignItems:"center",gap:12}}>
+                <span style={{fontSize:20}}>📱</span>
+                <div style={{textAlign:"left"}}>
+                  <div style={{fontSize:11,color:"#64748B",fontWeight:600}}>Questions? Reach Hamza directly</div>
+                  <a href="tel:6476091289" style={{fontSize:15,fontWeight:800,color:"#1B4FD8",textDecoration:"none"}}>647-609-1289</a>
+                </div>
+              </div>
+              <br/>
+              <button onClick={()=>{setPreconSubmitted(false);setPreconForm({name:"",phone:"",email:"",budget:"Under $700K"});setView("grid");}}
+                style={{background:"linear-gradient(135deg,#1B4FD8,#0EA5E9)",color:"#fff",border:"none",borderRadius:12,padding:"13px 28px",fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
+                Back to Listings
+              </button>
+            </div>
+          )}
         </div>
       )}
 
