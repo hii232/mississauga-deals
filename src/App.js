@@ -933,8 +933,8 @@ export default function App() {
       {/* ── BIO ── */}
       <div style={{background:CARD,borderTop:"1px solid "+BORDER,padding:"56px 24px"}}>
         <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"auto 1fr",gap:40,alignItems:"center"}}>
-          <div style={{width:120,height:120,borderRadius:"50%",background:"linear-gradient(135deg,"+GOLD+",#8B6914)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:48,flexShrink:0,border:"3px solid rgba(201,168,76,0.3)"}}>
-            👤
+          <div style={{width:120,height:120,borderRadius:"50%",flexShrink:0,border:"3px solid rgba(201,168,76,0.3)",overflow:"hidden",background:"#0D1828"}}>
+            <img src="/hamza.jpg.JPG" alt="Hamza Nouman" onError={e=>{e.target.style.display="none";e.target.parentNode.innerHTML="<div style='width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px'>👤</div>";}} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}}/>
           </div>
           <div>
             <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:6}}>Your Agent</div>
