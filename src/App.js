@@ -3023,7 +3023,7 @@ Thing 1 — Upload your photo
 Go to github.com/hii232/mississauga-deals
 Click the public folder
 Click Add file → Upload files
-Drag your photo onto the page — rename it exactly hamza.jpg before uploading
+Drag your photo onto the page — rename it exactly hamza.jpg.JPG before uploading
 Click Commit changes
 Thing 2 — Replace App.js
 
