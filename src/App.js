@@ -1187,15 +1187,7 @@ export default function App() {
                     if(!preconForm.name||!preconForm.phone)return;
                     setPreconSubmitted(true);
                     const areas=(preconForm.areas||[]).join(", ")||"Any";
-                    const msg=encodeURIComponent("🏙️ NEW PRE-CON VIP REQUEST from MississaugaInvestor.ca
-
-Name: "+preconForm.name+"
-Phone: "+preconForm.phone+"
-Email: "+preconForm.email+"
-Budget: "+preconForm.budget+"
-Areas: "+areas+"
-
-Follow up within 24hrs!");
+                    const msg=encodeURIComponent("NEW PRE-CON VIP REQUEST from MississaugaInvestor.ca\n\nName: "+preconForm.name+"\nPhone: "+preconForm.phone+"\nEmail: "+preconForm.email+"\nBudget: "+preconForm.budget+"\nAreas: "+areas+"\n\nFollow up within 24hrs!");
                     window.open("https://wa.me/16476091289?text="+msg,"_blank");
                   }}
                   disabled={!preconForm.name||!preconForm.phone}
