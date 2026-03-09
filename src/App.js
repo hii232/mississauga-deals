@@ -1308,7 +1308,7 @@ export default function App() {
             </div>
             <h2 style={{fontSize:24,fontWeight:900,color:"#fff",marginBottom:14,lineHeight:1.3}}>Your Mississauga Investment Specialist</h2>
             <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:16}}>With <strong style={{color:"#fff"}}>8+ years</strong> in the GTA and hundreds of successful transactions, I built this tool because investors deserve real data — not sales pitches. Every listing you see is scored on cash flow, yield, price reduction, and market momentum.</p>
-            <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:20}}>I specialize in <strong style={{color:"#fff"}}>investment properties, pre-construction, multi-family, BRRR strategy, and power of sale</strong> across Mississauga, Oakville, Milton, Burlington, Brampton and the GTA. Fluent in English, Urdu, Hindi, Punjabi & Pashto.</p>
+            <p style={{fontSize:14,color:"#94A3B8",lineHeight:1.8,marginBottom:20}}>I specialize in <strong style={{color:"#fff"}}>investment properties, pre-construction, multi-family, BRRR strategy, and power of sale</strong> across Mississauga, Oakville, Milton, Burlington, Brampton and the GTA. Fluent in English, Urdu, Hindi.</p>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               {["Investment Properties","Pre-Construction","BRRR Strategy","Multi-Family","Power of Sale","First-Time Buyers"].map(s=>(
                 <span key={s} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,padding:"5px 12px",fontSize:11,color:"#94A3B8"}}>{s}</span>
