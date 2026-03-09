@@ -6,16 +6,16 @@ body{background:#060B15}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#060B15}::-webkit-scrollbar-thumb{background:#1E3560;border-radius:3px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes goldPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4)}70%{box-shadow:0 0 0 10px rgba(201,168,76,0)}}
+@keyframes goldPulse{0%,100%{box-shadow:0 0 0 0 rgba(126,200,227,0.4)}70%{box-shadow:0 0 0 10px rgba(126,200,227,0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 .card{transition:transform .25s ease,box-shadow .25s ease}
-.card:hover{transform:translateY(-5px)!important;box-shadow:0 24px 60px rgba(201,168,76,0.1)!important}
+.card:hover{transform:translateY(-5px)!important;box-shadow:0 24px 60px rgba(126,200,227,0.1)!important}
 .tbtn{transition:all .2s ease}.tbtn:hover{background:rgba(255,255,255,0.07)!important}
-.chip{transition:all .18s ease}.chip:hover{border-color:#C9A84C!important;color:#C9A84C!important;background:rgba(201,168,76,0.08)!important}
-.chip.active{background:rgba(201,168,76,0.15)!important;border-color:#C9A84C!important;color:#C9A84C!important}
-input:focus,select:focus{outline:none!important;border-color:#C9A84C!important;box-shadow:0 0 0 3px rgba(201,168,76,0.15)!important}
-.mbtn:hover{background:#B8963E!important}
+.chip{transition:all .18s ease}.chip:hover{border-color:#7EC8E3!important;color:#7EC8E3!important;background:rgba(126,200,227,0.08)!important}
+.chip.active{background:rgba(126,200,227,0.15)!important;border-color:#7EC8E3!important;color:#7EC8E3!important}
+input:focus,select:focus{outline:none!important;border-color:#7EC8E3!important;box-shadow:0 0 0 3px rgba(126,200,227,0.15)!important}
+.mbtn:hover{background:#4DAAC8!important}
 .wabtn{animation:goldPulse 2s infinite}
 `;
 
@@ -78,8 +78,9 @@ const calcMonthly = (price, downPct, rate, years) => {
   return Math.round(principal * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1));
 };
 
-const GOLD="#C9A84C"; const NAVY="#060B15"; const CARD="#0D1828"; const BORDER="rgba(255,255,255,0.07)";
-const GREEN="#10B981"; const RED="#EF4444"; const BLUE="#3B82F6";
+const GOLD="#7EC8E3"; const NAVY="#07111F"; const CARD="#0C1A2E"; const BORDER="rgba(126,200,227,0.12)";
+const GREEN="#34D399"; const RED="#F87171"; const BLUE="#38BDF8";
+const GOLD2="#5BB3D0"; const ACCENT="#A8DAEB";
 
 export default function App() {
   const [view, setView] = useState("grid");
@@ -173,7 +174,7 @@ export default function App() {
   const totalInvested = sel ? sel.price*mortDown/100 + brrrReno : 0;
   const cashRecovered = sel ? refiAmount - sel.price*(1-mortDown/100) : 0;
 
-  const scoreColor = s => s>=8.5?"#10B981":s>=7?"#C9A84C":s>=5.5?"#94A3B8":"#EF4444";
+  const scoreColor = s => s>=8.5?"#10B981":s>=7?"#7EC8E3":s>=5.5?"#94A3B8":"#EF4444";
   const trendColor = t => t==="hot"?"#EF4444":t==="warm"?"#F59E0B":"#3B82F6";
   const trendLabel = t => t==="hot"?"🔥 HOT":t==="warm"?"📈 WARM":"🧊 COOL";
 
@@ -194,7 +195,7 @@ export default function App() {
 
   const Btn = ({children,onClick,disabled,style={}}) => (
     <button onClick={onClick} disabled={disabled} className="mbtn"
-      style={{background:disabled?"#1E3A5F":GOLD,color:disabled?"#64748B":"#060B15",border:"none",borderRadius:12,padding:"13px 24px",fontWeight:700,fontSize:14,cursor:disabled?"default":"pointer",fontFamily:"inherit",transition:"background .2s",...style}}>
+      style={{background:disabled?"#0F2A40":GOLD,color:disabled?"#64748B":"#060B15",border:"none",borderRadius:12,padding:"13px 24px",fontWeight:700,fontSize:14,cursor:disabled?"default":"pointer",fontFamily:"inherit",transition:"background .2s",...style}}>
       {children}
     </button>
   );
@@ -207,22 +208,22 @@ export default function App() {
       <header style={{background:"rgba(6,11,21,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+BORDER,position:"sticky",top:0,zIndex:100,padding:"0 24px"}}>
         <div style={{maxWidth:1300,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:64}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,"+GOLD+",#8B6914)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⬡</div>
+            <div style={{width:34,height:34,borderRadius:8,background:"linear-gradient(135deg,#1A4A6B,#0F3355)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⬡</div>
             <div>
               <div style={{fontFamily:"'Fraunces',serif",fontWeight:700,fontSize:17,color:"#F8FAFC",lineHeight:1}}>MississaugaInvestor</div>
               <div style={{fontSize:10,color:GOLD,fontWeight:600,letterSpacing:1,textTransform:"uppercase"}}>Investment Intelligence</div>
             </div>
           </div>
           <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <button onClick={()=>setShowSellerModal(true)} style={{background:"rgba(201,168,76,0.12)",border:"1px solid rgba(201,168,76,0.3)",color:GOLD,borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🏷️ What Is My Home Worth?</button>
-            <a href="tel:6476091289" style={{background:"linear-gradient(135deg,"+GOLD+",#B8963E)",color:"#060B15",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none"}}>📞 647-609-1289</a>
+            <button onClick={()=>setShowSellerModal(true)} style={{background:"rgba(126,200,227,0.08)",border:"1px solid rgba(126,200,227,0.25)",color:GOLD,borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🏷️ What Is My Home Worth?</button>
+            <a href="tel:6476091289" style={{background:"linear-gradient(135deg,#5BB3D0,#2A8BB0)",color:"#060B15",borderRadius:10,padding:"8px 16px",fontSize:12,fontWeight:700,textDecoration:"none"}}>📞 647-609-1289</a>
           </div>
         </div>
       </header>
 
       {/* ── HERO ── */}
       <div style={{background:"linear-gradient(135deg,#060B15 0%,#0D1828 50%,#060B15 100%)",borderBottom:"1px solid "+BORDER,padding:"36px 24px 28px",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,backgroundImage:"radial-gradient(circle at 20% 50%, rgba(201,168,76,0.05) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(59,130,246,0.04) 0%, transparent 50%)",pointerEvents:"none"}}/>
+        <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,backgroundImage:"radial-gradient(circle at 20% 50%, rgba(126,200,227,0.05) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(59,130,246,0.04) 0%, transparent 50%)",pointerEvents:"none"}}/>
         <div style={{maxWidth:1300,margin:"0 auto"}}>
           <div style={{animation:"fadeUp .6s ease"}}>
             <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>Mississauga Real Estate Intelligence</div>
@@ -239,7 +240,7 @@ export default function App() {
                 style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1.5px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"13px 48px 13px 44px",fontSize:14,color:"#F8FAFC",fontFamily:"inherit"}}/>
               <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",fontSize:16,opacity:0.4}}>🔍</span>
             </div>
-            <button onClick={()=>setShowFilters(f=>!f)} style={{background:showFilters?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.06)",border:"1.5px solid "+(showFilters?GOLD:"rgba(255,255,255,0.1)"),color:showFilters?GOLD:"#94A3B8",borderRadius:12,padding:"0 20px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
+            <button onClick={()=>setShowFilters(f=>!f)} style={{background:showFilters?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.06)",border:"1.5px solid "+(showFilters?GOLD:"rgba(255,255,255,0.1)"),color:showFilters?GOLD:"#94A3B8",borderRadius:12,padding:"0 20px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>
               ⚙️ Filters {showFilters?"▲":"▼"}
             </button>
           </div>
@@ -257,7 +258,7 @@ export default function App() {
                 <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
                   {Object.keys(HOOD_DATA).map(h=>(
                     <button key={h} className="chip" onClick={()=>toggleHood(h)}
-                      style={{background:filters.neighbourhoods.includes(h)?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(filters.neighbourhoods.includes(h)?GOLD:"rgba(255,255,255,0.1)"),color:filters.neighbourhoods.includes(h)?GOLD:"#94A3B8",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
+                      style={{background:filters.neighbourhoods.includes(h)?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(filters.neighbourhoods.includes(h)?GOLD:"rgba(255,255,255,0.1)"),color:filters.neighbourhoods.includes(h)?GOLD:"#94A3B8",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>
                       {h}
                     </button>
                   ))}
@@ -284,7 +285,7 @@ export default function App() {
         <div style={{maxWidth:1300,margin:"0 auto",padding:"0 24px",display:"flex",gap:2,overflowX:"auto"}}>
           {[{id:"grid",icon:"🏠",label:"Listings"},{id:"precon",icon:"🏙️",label:"Pre-Con VIP"},{id:"pulse",icon:"📊",label:"Market Pulse"},{id:"map",icon:"🗺️",label:"Map"},{id:"hoods",icon:"📍",label:"Hoods"},{id:"quiz",icon:"🧠",label:"Find My Deal"}].map(t=>(
             <button key={t.id} className="tbtn" onClick={()=>setView(t.id)}
-              style={{background:view===t.id?"rgba(201,168,76,0.12)":"transparent",color:view===t.id?GOLD:"#94A3B8",border:"none",borderBottom:view===t.id?"2px solid "+GOLD:"2px solid transparent",padding:"14px 16px",fontSize:13,fontWeight:view===t.id?700:500,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6}}>
+              style={{background:view===t.id?"rgba(126,200,227,0.12)":"transparent",color:view===t.id?GOLD:"#94A3B8",border:"none",borderBottom:view===t.id?"2px solid "+GOLD:"2px solid transparent",padding:"14px 16px",fontSize:13,fontWeight:view===t.id?700:500,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6}}>
               <span>{t.icon}</span><span>{t.label}</span>
             </button>
           ))}
@@ -296,9 +297,9 @@ export default function App() {
         <div style={{maxWidth:1300,margin:"0 auto",padding:"24px"}}>
           {/* Deal of Week */}
           {LISTINGS.filter(l=>l.dealOfWeek).map(l=>(
-            <div key={l.id} className="card" onClick={()=>handleListingClick(l)} style={{background:"linear-gradient(135deg,#0D1828,#12203A)",border:"1px solid rgba(201,168,76,0.3)",borderRadius:18,padding:"20px 24px",marginBottom:24,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
+            <div key={l.id} className="card" onClick={()=>handleListingClick(l)} style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",border:"1px solid rgba(126,200,227,0.3)",borderRadius:18,padding:"20px 24px",marginBottom:24,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
               <div style={{display:"flex",alignItems:"center",gap:16}}>
-                <div style={{background:"rgba(201,168,76,0.15)",borderRadius:12,padding:"10px 16px",border:"1px solid rgba(201,168,76,0.3)"}}>
+                <div style={{background:"rgba(126,200,227,0.15)",borderRadius:12,padding:"10px 16px",border:"1px solid rgba(126,200,227,0.3)"}}>
                   <div style={{fontSize:10,color:GOLD,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>⭐ Hamza&apos;s Pick of the Week</div>
                 </div>
                 <div>
@@ -311,7 +312,7 @@ export default function App() {
                   <div style={{fontFamily:"'DM Mono',monospace",fontSize:22,fontWeight:700,color:GOLD}}>{fmtK(l.price)}</div>
                   <div style={{fontSize:11,color:GREEN,fontWeight:600}}>▼ {l.priceReduction}% · {l.dom} days on market</div>
                 </div>
-                <div style={{background:"linear-gradient(135deg,"+GOLD+",#B8963E)",borderRadius:10,padding:"10px 20px",color:"#060B15",fontWeight:700,fontSize:13}}>View Analysis →</div>
+                <div style={{background:"linear-gradient(135deg,#5BB3D0,#2A8BB0)",borderRadius:10,padding:"10px 20px",color:"#060B15",fontWeight:700,fontSize:13}}>View Analysis →</div>
               </div>
             </div>
           ))}
@@ -321,7 +322,7 @@ export default function App() {
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
               {["All","Detached","Semi-Detached","Townhouse","Condo"].map(t=>(
                 <button key={t} className="chip" onClick={()=>setPropType(t)}
-                  style={{background:propType===t?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(propType===t?GOLD:"rgba(255,255,255,0.1)"),color:propType===t?GOLD:"#94A3B8",borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:propType===t?700:500,cursor:"pointer",fontFamily:"inherit"}}>
+                  style={{background:propType===t?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(propType===t?GOLD:"rgba(255,255,255,0.1)"),color:propType===t?GOLD:"#94A3B8",borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:propType===t?700:500,cursor:"pointer",fontFamily:"inherit"}}>
                   {t}
                 </button>
               ))}
@@ -344,7 +345,7 @@ export default function App() {
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
             {[{k:"pricedrop",l:"📉 Price Reduced"},{k:"motivated",l:"⏰ 40+ Days Listed"},{k:"under800",l:"💲 Under $800K"},{k:"cashflow",l:"💰 Cash Flow+"},{k:"lrt",l:"🚇 LRT Access"}].map(c=>(
               <button key={c.k} className={"chip"+(chips.has(c.k)?" active":"")} onClick={()=>toggleChip(c.k)}
-                style={{background:chips.has(c.k)?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(chips.has(c.k)?GOLD:"rgba(255,255,255,0.08)"),color:chips.has(c.k)?GOLD:"#64748B",borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:chips.has(c.k)?700:500,cursor:"pointer",fontFamily:"inherit"}}>
+                style={{background:chips.has(c.k)?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(chips.has(c.k)?GOLD:"rgba(255,255,255,0.08)"),color:chips.has(c.k)?GOLD:"#64748B",borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:chips.has(c.k)?700:500,cursor:"pointer",fontFamily:"inherit"}}>
                 {c.l}
               </button>
             ))}
@@ -356,7 +357,7 @@ export default function App() {
               <div key={l.id} className="card" onClick={()=>handleListingClick(l)}
                 style={{background:CARD,borderRadius:18,overflow:"hidden",border:"1px solid "+BORDER,cursor:"pointer",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
                 {/* Photo area */}
-                <div style={{height:170,background:"linear-gradient(135deg,#0D1828,#162035)",position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{height:170,background:"linear-gradient(135deg,#0C1A2E,#0F2040)",position:"relative",display:"flex",alignItems:"center",justifyContent:"center"}}>
                   <div style={{textAlign:"center",opacity:0.2}}>
                     <div style={{fontSize:48}}>🏠</div>
                   </div>
@@ -385,7 +386,7 @@ export default function App() {
                   <div style={{borderTop:"1px solid "+BORDER,paddingTop:12,marginBottom:12,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                     <div style={{fontSize:10,color:"#475569",fontStyle:"italic"}}>Courtesy of {l.brokerage}</div>
                   </div>
-                  <button style={{width:"100%",background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.3)",color:GOLD,borderRadius:10,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                  <button style={{width:"100%",background:"rgba(126,200,227,0.1)",border:"1px solid rgba(126,200,227,0.3)",color:GOLD,borderRadius:10,padding:"10px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
                     View Investment Analysis →
                   </button>
                 </div>
@@ -442,7 +443,7 @@ export default function App() {
                     </div>
                   ))}
                 </div>
-                <div style={{background:"rgba(201,168,76,0.07)",border:"1px solid rgba(201,168,76,0.15)",borderRadius:8,padding:"9px 12px"}}>
+                <div style={{background:"rgba(126,200,227,0.07)",border:"1px solid rgba(126,200,227,0.15)",borderRadius:8,padding:"9px 12px"}}>
                   <div style={{fontSize:10,fontWeight:700,color:GOLD,marginBottom:3}}>💬 Hamza&apos;s Take</div>
                   <div style={{fontSize:11,color:"#94A3B8",lineHeight:1.6}}>{d.note}</div>
                 </div>
@@ -465,7 +466,7 @@ export default function App() {
               const hoodListings = LISTINGS.filter(l=>l.neighbourhood===h);
               return (
                 <div key={h} className="card" style={{background:CARD,border:"1px solid "+BORDER,borderRadius:18,overflow:"hidden",boxShadow:"0 4px 20px rgba(0,0,0,0.3)"}}>
-                  <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"20px",borderBottom:"1px solid "+BORDER}}>
+                  <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"20px",borderBottom:"1px solid "+BORDER}}>
                     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                       <div>
                         <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:4}}>{h}</div>
@@ -484,7 +485,7 @@ export default function App() {
                       ))}
                     </div>
                     <div style={{fontSize:12,color:"#94A3B8",lineHeight:1.7,marginBottom:14}}>{d.note}</div>
-                    <button onClick={()=>{setView("grid");setFilters(f=>({...f,neighbourhoods:[h]}));}} style={{width:"100%",background:"rgba(201,168,76,0.1)",border:"1px solid rgba(201,168,76,0.3)",color:GOLD,borderRadius:10,padding:"10px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
+                    <button onClick={()=>{setView("grid");setFilters(f=>({...f,neighbourhoods:[h]}));}} style={{width:"100%",background:"rgba(126,200,227,0.1)",border:"1px solid rgba(126,200,227,0.3)",color:GOLD,borderRadius:10,padding:"10px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>
                       View {h} Listings →
                     </button>
                   </div>
@@ -500,7 +501,7 @@ export default function App() {
         <div style={{maxWidth:620,margin:"0 auto",padding:"48px 24px"}}>
           {!preconSubmitted?(
             <div style={{background:CARD,borderRadius:24,border:"1px solid "+BORDER,overflow:"hidden"}}>
-              <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"40px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
+              <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"40px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
                 <div style={{fontSize:56,marginBottom:12}}>🏙️</div>
                 <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:8}}>VIP Pre-Construction Access</div>
                 <h2 style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:700,color:"#F8FAFC",marginBottom:12,lineHeight:1.3}}>Get In Before The Public</h2>
@@ -531,7 +532,7 @@ export default function App() {
                     {["Port Credit","Cooksville","Hurontario","Erin Mills","Churchill Meadows","Clarkson","Any Mississauga"].map(a=>{
                       const on=(preconForm.areas||[]).includes(a);
                       return <button key={a} type="button" className="chip" onClick={()=>setPreconForm(p=>({...p,areas:on?(p.areas||[]).filter(x=>x!==a):[...(p.areas||[]),a]}))}
-                        style={{background:on?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(on?GOLD:"rgba(255,255,255,0.1)"),color:on?GOLD:"#64748B",borderRadius:20,padding:"5px 12px",fontSize:11,fontWeight:on?700:400,cursor:"pointer",fontFamily:"inherit"}}>
+                        style={{background:on?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.04)",border:"1px solid "+(on?GOLD:"rgba(255,255,255,0.1)"),color:on?GOLD:"#64748B",borderRadius:20,padding:"5px 12px",fontSize:11,fontWeight:on?700:400,cursor:"pointer",fontFamily:"inherit"}}>
                         {on?"✓ ":""}{a}
                       </button>;
                     })}
@@ -553,7 +554,7 @@ export default function App() {
               <div style={{fontSize:64,marginBottom:16}}>🎉</div>
               <div style={{fontFamily:"'Fraunces',serif",fontSize:24,fontWeight:700,color:"#F8FAFC",marginBottom:8}}>You&apos;re on the VIP List!</div>
               <div style={{fontSize:14,color:"#64748B",lineHeight:1.8,maxWidth:380,margin:"0 auto 24px"}}>Hamza will contact you within 24 hours with projects matching your budget — before they go public.</div>
-              <a href="tel:6476091289" style={{display:"inline-block",background:"rgba(201,168,76,0.12)",border:"1px solid rgba(201,168,76,0.3)",color:GOLD,borderRadius:12,padding:"12px 24px",fontWeight:700,fontSize:14,textDecoration:"none",marginBottom:16}}>📞 647-609-1289</a>
+              <a href="tel:6476091289" style={{display:"inline-block",background:"rgba(126,200,227,0.08)",border:"1px solid rgba(126,200,227,0.25)",color:GOLD,borderRadius:12,padding:"12px 24px",fontWeight:700,fontSize:14,textDecoration:"none",marginBottom:16}}>📞 647-609-1289</a>
               <br/>
               <button onClick={()=>{setPreconSubmitted(false);setPreconForm({name:"",phone:"",email:"",budget:"Under $700K",areas:[]});setView("grid");}} style={{background:"transparent",border:"none",color:"#64748B",fontSize:13,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline"}}>Back to listings</button>
             </div>
@@ -566,7 +567,7 @@ export default function App() {
         <div style={{maxWidth:600,margin:"0 auto",padding:"48px 24px"}}>
           {!quizResult?(
             <div style={{background:CARD,border:"1px solid "+BORDER,borderRadius:24,overflow:"hidden"}}>
-              <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"32px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
+              <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"32px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
                 <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:6}}>Deal Type Quiz</div>
                 <h2 style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#F8FAFC",marginBottom:4}}>Find Your Ideal Investment Strategy</h2>
                 <div style={{fontSize:12,color:"#64748B"}}>Question {Math.min(quizStep+1,4)} of 4</div>
@@ -591,7 +592,7 @@ export default function App() {
                         setQuizResult(QUIZ_RESULTS[r]);
                       }
                     }}
-                      style={{background:quizAnswers[quizStep]===o?"rgba(201,168,76,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(quizAnswers[quizStep]===o?GOLD:"rgba(255,255,255,0.08)"),color:quizAnswers[quizStep]===o?GOLD:"#94A3B8",borderRadius:12,padding:"14px 12px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",textAlign:"left",lineHeight:1.4}}>
+                      style={{background:quizAnswers[quizStep]===o?"rgba(126,200,227,0.15)":"rgba(255,255,255,0.04)",border:"1.5px solid "+(quizAnswers[quizStep]===o?GOLD:"rgba(255,255,255,0.08)"),color:quizAnswers[quizStep]===o?GOLD:"#94A3B8",borderRadius:12,padding:"14px 12px",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit",textAlign:"left",lineHeight:1.4}}>
                       {o}
                     </button>
                   ))}
@@ -600,7 +601,7 @@ export default function App() {
             </div>
           ):(
             <div style={{background:CARD,border:"1px solid "+BORDER,borderRadius:24,overflow:"hidden"}}>
-              <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"32px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
+              <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"32px",textAlign:"center",borderBottom:"1px solid "+BORDER}}>
                 <div style={{fontSize:56,marginBottom:12}}>{quizResult.emoji}</div>
                 <div style={{fontFamily:"'Fraunces',serif",fontSize:22,fontWeight:700,color:"#F8FAFC",marginBottom:6}}>{quizResult.title}</div>
                 <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:1.5,textTransform:"uppercase"}}>Your Investor Profile</div>
@@ -641,11 +642,11 @@ export default function App() {
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",padding:"20px",overflowY:"auto",animation:"fadeIn .2s ease"}} onClick={e=>e.target===e.currentTarget&&setSelectedListing(null)}>
           <div style={{background:"#0D1828",borderRadius:24,width:"100%",maxWidth:800,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 40px 100px rgba(0,0,0,0.8)"}}>
             {/* Modal header */}
-            <div style={{background:"linear-gradient(135deg,#0D1828,#162035)",padding:"24px",borderRadius:"24px 24px 0 0",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"24px",borderRadius:"24px 24px 0 0",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div>
                   <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-                    <span style={{background:"rgba(201,168,76,0.15)",color:GOLD,fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:"1px solid rgba(201,168,76,0.3)"}}>{sel.type}</span>
+                    <span style={{background:"rgba(126,200,227,0.15)",color:GOLD,fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20,border:"1px solid rgba(126,200,227,0.3)"}}>{sel.type}</span>
                     {sel.lrtAccess&&<span style={{background:"rgba(14,165,233,0.15)",color:"#38BDF8",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20}}>🚇 LRT Access</span>}
                     {sel.priceReduction>0&&<span style={{background:"rgba(239,68,68,0.15)",color:"#F87171",fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:20}}>📉 {sel.priceReduction}% Price Reduction</span>}
                   </div>
@@ -701,7 +702,7 @@ export default function App() {
               {/* Hamza's Take tab */}
               {modalTab==="hamza"&&(
                 <div>
-                  <div style={{background:"rgba(201,168,76,0.07)",border:"1px solid rgba(201,168,76,0.2)",borderRadius:14,padding:"16px 20px",marginBottom:20}}>
+                  <div style={{background:"rgba(126,200,227,0.07)",border:"1px solid rgba(126,200,227,0.2)",borderRadius:14,padding:"16px 20px",marginBottom:20}}>
                     <div style={{fontSize:11,color:GOLD,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>⚠️ Hamza&apos;s Personal Investment Opinion — Not MLS Data</div>
                     <div style={{fontSize:13,color:"#94A3B8",lineHeight:1.7}}>The following analysis represents Hamza Nouman&apos;s personal assessment based on market experience. It is not derived from MLS data and does not constitute financial advice.</div>
                   </div>
@@ -729,7 +730,7 @@ export default function App() {
                       <div style={{fontSize:9,color:"#475569",marginTop:4}}>*Hamza&apos;s estimate</div>
                     </div>
                   </div>
-                  <div style={{background:"rgba(201,168,76,0.07)",border:"1px solid rgba(201,168,76,0.2)",borderRadius:12,padding:"16px 20px",marginBottom:16}}>
+                  <div style={{background:"rgba(126,200,227,0.07)",border:"1px solid rgba(126,200,227,0.2)",borderRadius:12,padding:"16px 20px",marginBottom:16}}>
                     <div style={{fontSize:11,fontWeight:700,color:GOLD,marginBottom:8}}>💬 Hamza&apos;s Notes</div>
                     <div style={{fontSize:13,color:"#CBD5E1",lineHeight:1.8}}>{sel.hamzaNotes}</div>
                   </div>
@@ -796,7 +797,7 @@ export default function App() {
               {/* Cap Rate tab */}
               {modalTab==="caprate"&&(
                 <div>
-                  <div style={{background:"rgba(201,168,76,0.07)",border:"1px solid rgba(201,168,76,0.15)",borderRadius:12,padding:"14px 18px",marginBottom:20,fontSize:11,color:"#94A3B8",lineHeight:1.7}}>
+                  <div style={{background:"rgba(126,200,227,0.07)",border:"1px solid rgba(126,200,227,0.15)",borderRadius:12,padding:"14px 18px",marginBottom:20,fontSize:11,color:"#94A3B8",lineHeight:1.7}}>
                     ⚠️ All return estimates below are Hamza Nouman&apos;s personal analysis using estimated market rents. They do not constitute financial advice. Consult a financial advisor before investing.
                   </div>
                   {(()=>{
@@ -812,7 +813,7 @@ export default function App() {
                     return (
                       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
                         {[{l:"Annual Gross Rent*",v:"$"+annualRent.toLocaleString()},{l:"Vacancy + Expenses (35%)",v:"-$"+Math.round(expenses).toLocaleString()},{l:"Net Operating Income",v:"$"+Math.round(noi).toLocaleString()},{l:"Cap Rate",v:capRate+"%",big:true},{l:"Cash-on-Cash Return",v:coc+"%",big:true},{l:"Gross Rent Multiplier",v:grm+"x"},{l:"Annual Cash Flow",v:"$"+Math.round(annualCF).toLocaleString(),cf:true},{l:"Monthly Cash Flow",v:"$"+Math.round(annualCF/12).toLocaleString()+"/mo",cf:true}].map(s=>(
-                          <div key={s.l} style={{background:s.big?"rgba(201,168,76,0.08)":s.cf?( annualCF>0?"rgba(16,185,129,0.07)":"rgba(239,68,68,0.07)"):"rgba(255,255,255,0.03)",borderRadius:10,padding:"14px",border:"1px solid "+(s.big?"rgba(201,168,76,0.2)":s.cf?(annualCF>0?"rgba(16,185,129,0.15)":"rgba(239,68,68,0.15)"):"rgba(255,255,255,0.06)")}}>
+                          <div key={s.l} style={{background:s.big?"rgba(126,200,227,0.08)":s.cf?( annualCF>0?"rgba(16,185,129,0.07)":"rgba(239,68,68,0.07)"):"rgba(255,255,255,0.03)",borderRadius:10,padding:"14px",border:"1px solid "+(s.big?"rgba(126,200,227,0.2)":s.cf?(annualCF>0?"rgba(16,185,129,0.15)":"rgba(239,68,68,0.15)"):"rgba(255,255,255,0.06)")}}>
                             <div style={{fontSize:9,color:"#64748B",fontWeight:700,textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>{s.l}</div>
                             <div style={{fontFamily:"'DM Mono',monospace",fontSize:s.big?20:15,fontWeight:700,color:s.big?GOLD:s.cf?(annualCF>0?GREEN:RED):"#F8FAFC"}}>{s.v}</div>
                           </div>
@@ -836,7 +837,7 @@ export default function App() {
                   )}
                   {aiLoading&&(
                     <div style={{textAlign:"center",padding:"40px 0"}}>
-                      <div style={{width:40,height:40,border:"3px solid rgba(201,168,76,0.2)",borderTop:"3px solid "+GOLD,borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 16px"}}/>
+                      <div style={{width:40,height:40,border:"3px solid rgba(126,200,227,0.2)",borderTop:"3px solid "+GOLD,borderRadius:"50%",animation:"spin 1s linear infinite",margin:"0 auto 16px"}}/>
                       <div style={{color:"#64748B",fontSize:14}}>Analyzing investment potential...</div>
                     </div>
                   )}
@@ -857,8 +858,8 @@ export default function App() {
       {/* ── REGISTER MODAL ── */}
       {showRegModal&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",animation:"fadeIn .2s ease"}} onClick={e=>e.target===e.currentTarget&&setShowRegModal(false)}>
-          <div style={{background:"#0D1828",borderRadius:24,width:"100%",maxWidth:420,border:"1px solid rgba(201,168,76,0.2)",boxShadow:"0 40px 100px rgba(0,0,0,0.8)"}}>
-            <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"32px",borderRadius:"24px 24px 0 0",textAlign:"center",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+          <div style={{background:"#0D1828",borderRadius:24,width:"100%",maxWidth:420,border:"1px solid rgba(126,200,227,0.2)",boxShadow:"0 40px 100px rgba(0,0,0,0.8)"}}>
+            <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"32px",borderRadius:"24px 24px 0 0",textAlign:"center",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
               <div style={{fontSize:44,marginBottom:10}}>🔐</div>
               <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:6}}>Unlock Full Investment Analysis</div>
               <div style={{fontSize:13,color:"#94A3B8",lineHeight:1.7}}>Register for free to access Hamza&apos;s full investment breakdown, BRRR calculator, cap rate analysis, and AI analysis for every listing.</div>
@@ -882,7 +883,7 @@ export default function App() {
           <div style={{background:"#0D1828",borderRadius:24,width:"100%",maxWidth:460,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 40px 100px rgba(0,0,0,0.8)"}}>
             {!sellerSubmitted?(
               <>
-                <div style={{background:"linear-gradient(135deg,#0D1828,#12203A)",padding:"28px",borderRadius:"24px 24px 0 0",textAlign:"center",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+                <div style={{background:"linear-gradient(135deg,#0C1A2E,#0F2040)",padding:"28px",borderRadius:"24px 24px 0 0",textAlign:"center",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
                   <div style={{fontSize:44,marginBottom:10}}>🏷️</div>
                   <div style={{fontFamily:"'Fraunces',serif",fontSize:20,fontWeight:700,color:"#F8FAFC",marginBottom:6}}>What Is My Home Worth?</div>
                   <div style={{fontSize:13,color:"#94A3B8",lineHeight:1.7}}>Get Hamza&apos;s professional market valuation — based on real sold comparables in your neighbourhood.</div>
@@ -933,7 +934,7 @@ export default function App() {
       {/* ── BIO ── */}
       <div style={{background:CARD,borderTop:"1px solid "+BORDER,padding:"56px 24px"}}>
         <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"auto 1fr",gap:40,alignItems:"center"}}>
-          <div style={{width:120,height:120,borderRadius:"50%",flexShrink:0,border:"3px solid rgba(201,168,76,0.3)",overflow:"hidden",background:"#0D1828"}}>
+          <div style={{width:120,height:120,borderRadius:"50%",flexShrink:0,border:"3px solid rgba(126,200,227,0.3)",overflow:"hidden",background:"#0D1828"}}>
             <img src="/hamza.jpg.JPG" alt="Hamza Nouman" onError={e=>{e.target.style.display="none";e.target.parentNode.innerHTML="<div style='width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px'>👤</div>";}} style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top"}}/>
           </div>
           <div>
@@ -941,13 +942,13 @@ export default function App() {
             <div style={{fontFamily:"'Fraunces',serif",fontSize:26,fontWeight:700,color:"#F8FAFC",marginBottom:4}}>Hamza Nouman</div>
             <div style={{fontSize:13,color:"#94A3B8",marginBottom:4}}>Sales Representative · Royal LePage Signature Realty</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
-              <span style={{background:"rgba(201,168,76,0.12)",border:"1px solid rgba(201,168,76,0.25)",color:GOLD,fontSize:11,fontWeight:700,padding:"3px 12px",borderRadius:20}}>🏆 Master Sales Award</span>
+              <span style={{background:"rgba(126,200,227,0.12)",border:"1px solid rgba(126,200,227,0.25)",color:GOLD,fontSize:11,fontWeight:700,padding:"3px 12px",borderRadius:20}}>🏆 Master Sales Award</span>
               <span style={{background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.2)",color:"#60A5FA",fontSize:11,fontWeight:700,padding:"3px 12px",borderRadius:20}}>8+ Years GTA Experience</span>
               <span style={{background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.2)",color:"#34D399",fontSize:11,fontWeight:700,padding:"3px 12px",borderRadius:20}}>English · Urdu · Hindi</span>
             </div>
             <div style={{fontSize:13,color:"#94A3B8",lineHeight:1.8,marginBottom:18,maxWidth:580}}>Specializing in investment properties, BRRR strategy, pre-construction, and multi-family across Mississauga, Oakville, Milton, Burlington, Brampton and Toronto.</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <a href="tel:6476091289" style={{background:"linear-gradient(135deg,"+GOLD+",#B8963E)",color:"#060B15",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,textDecoration:"none"}}>📞 647-609-1289</a>
+              <a href="tel:6476091289" style={{background:"linear-gradient(135deg,#5BB3D0,#2A8BB0)",color:"#060B15",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,textDecoration:"none"}}>📞 647-609-1289</a>
               <a href={"https://wa.me/16476091289?text="+encodeURIComponent("Hi Hamza, I found you on MississaugaInvestor.ca and would like to discuss investment properties.")} target="_blank" rel="noreferrer" style={{background:"linear-gradient(135deg,#25D366,#128C7E)",color:"#fff",borderRadius:10,padding:"10px 20px",fontWeight:700,fontSize:13,textDecoration:"none"}}>💬 WhatsApp</a>
               <a href="https://hamzahomes.ca" target="_blank" rel="noreferrer" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#94A3B8",borderRadius:10,padding:"10px 20px",fontWeight:600,fontSize:13,textDecoration:"none"}}>🌐 hamzahomes.ca</a>
             </div>
@@ -956,11 +957,43 @@ export default function App() {
       </div>
 
       {/* ── FOOTER ── */}
-      <footer style={{background:"#040810",borderTop:"1px solid rgba(255,255,255,0.04)",padding:"24px",textAlign:"center"}}>
-        <div style={{fontSize:11,color:"#334155",lineHeight:1.8,maxWidth:800,margin:"0 auto"}}>
-          The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA) and identify the quality of services provided by real estate professionals who are members of CREA. The trademarks REALTOR®, REALTORS® and the REALTOR® logo are controlled by CREA and identify real estate professionals who are members of CREA. Data provided by TRREB — deemed reliable but not guaranteed. Investment scores and analysis are the personal opinion of Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage, and do not constitute financial, legal, or investment advice.
-          <br/><br/>
-          © 2026 Hamza Nouman · Royal LePage Signature Realty, Brokerage · 647-609-1289 · hamza@nouman.ca
+      <footer style={{background:"#040810",borderTop:"1px solid rgba(255,255,255,0.04)",padding:"32px 24px"}}>
+        <div style={{maxWidth:860,margin:"0 auto"}}>
+          {/* CREA Trademark Logos + Statements */}
+          <div style={{display:"flex",gap:20,alignItems:"flex-start",marginBottom:20,paddingBottom:20,borderBottom:"1px solid rgba(255,255,255,0.05)",flexWrap:"wrap"}}>
+            <div style={{display:"flex",gap:16,alignItems:"flex-start",flex:1,minWidth:280}}>
+              <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"6px 10px",flexShrink:0,fontSize:13,fontWeight:900,color:"#CBD5E1",fontFamily:"serif",lineHeight:1}}>
+                <div>R</div>
+                <div style={{fontSize:8,fontWeight:400,letterSpacing:0.5}}>REALTOR®</div>
+              </div>
+              <p style={{fontSize:10,color:"#334155",lineHeight:1.7,margin:0}}>
+                The trademarks REALTOR®, REALTORS®, and the REALTOR® logo are controlled by The Canadian Real Estate Association (CREA) and identify real estate professionals who are members of CREA.
+              </p>
+            </div>
+            <div style={{display:"flex",gap:16,alignItems:"flex-start",flex:1,minWidth:280}}>
+              <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:6,padding:"6px 10px",flexShrink:0,fontSize:11,fontWeight:900,color:"#CBD5E1",lineHeight:1,textAlign:"center"}}>
+                <div style={{fontSize:9,letterSpacing:0.5}}>MLS®</div>
+                <div style={{fontSize:7,fontWeight:400,marginTop:2}}>Multiple Listing Service®</div>
+              </div>
+              <p style={{fontSize:10,color:"#334155",lineHeight:1.7,margin:0}}>
+                The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA) and identify the quality of services provided by real estate professionals who are members of CREA.
+              </p>
+            </div>
+          </div>
+          {/* Data disclaimer */}
+          <p style={{fontSize:10,color:"#334155",lineHeight:1.7,marginBottom:16,textAlign:"center"}}>
+            The information contained on this website is based in whole or in part on information provided by members of CREA, who are responsible for its accuracy. CREA reproduces and distributes this information as a service for its members and assumes no responsibility for its accuracy. The listing content on this website is protected by copyright and other laws, and is intended solely for the private, non-commercial use by individuals. Investment analysis, deal scores, and all financial estimates are the personal opinion of Hamza Nouman and do not constitute financial, legal, or investment advice.
+          </p>
+          {/* Bottom bar */}
+          <div style={{borderTop:"1px solid rgba(255,255,255,0.04)",paddingTop:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+            <div style={{fontSize:10,color:"#334155"}}>
+              Royal LePage Signature Realty, Brokerage &nbsp;|&nbsp; Independently Owned &amp; Operated &nbsp;|&nbsp; © 2026 Hamza Nouman
+            </div>
+            <div style={{display:"flex",gap:16}}>
+              <a href="https://hamzahomes.ca/terms-of-service" target="_blank" rel="noreferrer" style={{fontSize:10,color:"#475569",textDecoration:"none"}}>Terms of Service</a>
+              <a href="https://hamzahomes.ca/privacy-policy" target="_blank" rel="noreferrer" style={{fontSize:10,color:"#475569",textDecoration:"none"}}>Privacy Policy</a>
+            </div>
+          </div>
         </div>
       </footer>
 
