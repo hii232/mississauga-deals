@@ -1,1040 +1,1662 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
-const T = {
-  bg: "#07090F", surface: "#0D1117", card: "#161B25", border: "rgba(255,255,255,0.07)",
-  gold: "#C49A3C", goldDim: "rgba(196,154,60,0.12)", goldBorder: "rgba(196,154,60,0.25)",
-  text: "#E8EDF4", muted: "#6B7A90", green: "#34D399", red: "#F87171", blue: "#60A5FA", purple: "#A78BFA",
-};
-
+/* ─────────────────────────────────────────────
+   GLOBAL STYLES
+───────────────────────────────────────────── */
 const G = `
-  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Outfit',sans-serif;background:${T.bg};color:${T.text}}
-  ::-webkit-scrollbar{width:4px;height:4px}
-  ::-webkit-scrollbar-track{background:${T.bg}}
-  ::-webkit-scrollbar-thumb{background:#1E3A5F;border-radius:4px}
-  input,select,textarea{font-family:'Outfit',sans-serif}
-  input:focus,select:focus,textarea:focus{outline:none!important;border-color:${T.gold}!important;box-shadow:0 0 0 3px rgba(196,154,60,0.12)!important}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .fade-in{animation:fadeIn 0.25s ease forwards}
-  .btn{cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;border:none;transition:all .18s ease}
-  .btn-gold{background:linear-gradient(135deg,${T.gold},#A07820);color:#fff}
-  .btn-gold:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(196,154,60,0.3)}
-  .btn-ghost{background:rgba(255,255,255,0.05);color:${T.text};border:1px solid ${T.border}!important}
-  .btn-ghost:hover{background:rgba(255,255,255,0.09)}
-  .btn-danger{background:rgba(248,113,113,0.1);color:${T.red};border:1px solid rgba(248,113,113,0.2)!important}
-  .nav-item{cursor:pointer;padding:10px 14px;border-radius:10px;transition:all .18s ease;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:500;color:${T.muted}}
-  .nav-item:hover{background:rgba(255,255,255,0.05);color:${T.text}}
-  .nav-item.active{background:${T.goldDim};color:${T.gold};border:1px solid ${T.goldBorder}}
-  .card{background:${T.card};border:1px solid ${T.border};border-radius:14px}
-  .input{width:100%;background:${T.surface};border:1px solid ${T.border};border-radius:8px;padding:10px 14px;color:${T.text};font-size:14px}
-  .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-  .img-slot{border:2px dashed ${T.border};border-radius:12px;transition:all .2s ease;cursor:pointer}
-  .img-slot:hover{border-color:${T.gold};background:${T.goldDim}}
-  .img-slot.has-image{border-style:solid;border-color:rgba(52,211,153,0.4)}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#070B14;font-family:'Outfit',sans-serif;color:#E8EDF4;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#070B14}
+::-webkit-scrollbar-thumb{background:#1E3A5F;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#C49A3C}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,154,60,0.5)}70%{box-shadow:0 0 0 14px rgba(196,154,60,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes meshMove{0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(30px,-20px) rotate(120deg)}66%{transform:translate(-20px,30px) rotate(240deg)}}
+@keyframes borderGlow{0%,100%{opacity:0.5}50%{opacity:1}}
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.animate-fadeUp{animation:fadeUp .5s ease forwards}
+.animate-fadeIn{animation:fadeIn .4s ease forwards}
+
+/* Card hover */
+.card-hover{transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s ease,border-color .28s ease}
+.card-hover:hover{transform:translateY(-4px)!important;box-shadow:0 20px 60px rgba(196,154,60,0.12),0 4px 20px rgba(0,0,0,0.5)!important;border-color:rgba(196,154,60,0.3)!important}
+
+/* Buttons */
+.btn-primary{background:linear-gradient(135deg,#C49A3C,#A07820);color:#fff;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;letter-spacing:0.02em;transition:all .22s ease}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(196,154,60,0.35)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:rgba(255,255,255,0.05);color:#E8EDF4;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;transition:all .2s ease}
+.btn-ghost:hover{background:rgba(255,255,255,0.09);border-color:rgba(196,154,60,0.4)}
+.btn-gold-outline{background:transparent;color:#C49A3C;border:1px solid rgba(196,154,60,0.5);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;transition:all .2s ease}
+.btn-gold-outline:hover{background:rgba(196,154,60,0.1);border-color:#C49A3C}
+
+/* Tab buttons */
+.tab-btn{background:transparent;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;color:#7A8BA0;padding:10px 18px;border-bottom:2px solid transparent;transition:all .2s ease;white-space:nowrap}
+.tab-btn:hover{color:#E8EDF4}
+.tab-btn.active{color:#C49A3C;border-bottom-color:#C49A3C}
+
+/* Chips */
+.chip{cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#7A8BA0;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;padding:6px 14px;border-radius:40px;transition:all .18s ease;white-space:nowrap}
+.chip:hover{border-color:rgba(196,154,60,0.4);color:#C49A3C}
+.chip.active{background:rgba(196,154,60,0.12);border-color:rgba(196,154,60,0.6);color:#C49A3C}
+
+/* Inputs */
+input,select,textarea{font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+input:focus,select:focus,textarea:focus{border-color:rgba(196,154,60,0.7)!important;box-shadow:0 0 0 3px rgba(196,154,60,0.1)!important}
+
+/* Checkbox */
+input[type=checkbox]{accent-color:#C49A3C;width:16px;height:16px;cursor:pointer}
+
+/* Score badge */
+.score-badge{font-family:'JetBrains Mono',monospace;font-weight:600}
+
+/* Number font */
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* Mesh gradient background */
+.mesh-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.mesh-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.07;animation:meshMove 18s ease-in-out infinite}
+
+/* Glass card */
+.glass{background:rgba(13,22,40,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.06)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+
+/* Scrollable modal body */
+.modal-scroll{max-height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden}
+.modal-scroll::-webkit-scrollbar{width:3px}
+.modal-scroll::-webkit-scrollbar-thumb{background:#1E3A5F}
+
+/* Range input */
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#C49A3C;cursor:pointer;transition:transform .15s ease}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+
+/* WA FAB */
+.wa-fab{position:fixed;bottom:28px;right:28px;z-index:90;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(37,211,102,0.45);animation:pulse 2.5s infinite;transition:transform .2s ease}
+.wa-fab:hover{transform:scale(1.1)!important}
+
+/* Skeleton loader */
+.skeleton{background:linear-gradient(90deg,#0D1628 25%,#162032 50%,#0D1628 75%);background-size:400px 100%;animation:shimmer 1.5s infinite}
+
+/* Compliance badge */
+.compliance-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#4A7A5C;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:4px;padding:2px 7px;font-family:'JetBrains Mono',monospace}
+
+/* Star rating */
+.star{color:#C49A3C;font-size:14px}
+.star.empty{color:rgba(196,154,60,0.2)}
+
+/* WCAG focus visible */
+:focus-visible{outline:2px solid #C49A3C;outline-offset:3px}
+
+/* Accessible skip link */
+.skip-link{position:absolute;top:-40px;left:0;background:#C49A3C;color:#000;padding:8px 16px;z-index:999;font-weight:600;text-decoration:none}
+.skip-link:focus{top:0}
+
+/* Mobile responsive */
+@media(max-width:768px){
+  .desktop-only{display:none!important}
+  .mobile-stack{flex-direction:column!important}
+  .modal-overlay{padding:12px 8px}
+}
+@media(max-width:480px){
+  .hide-xs{display:none!important}
+}
 `;
 
-// ─── STORAGE ─────────────────────────────────────────────────────────────────
-const store = {
-  async get(key) { try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } catch { return null; } },
-  async set(key, val) { try { await window.storage.set(key, JSON.stringify(val)); return true; } catch { return false; } }
-};
+/* ─────────────────────────────────────────────
+   CONSTANTS & COLORS
+───────────────────────────────────────────── */
+const GOLD="#C49A3C", GOLD2="#A07820", NAVY="#070B14", SURFACE="#0D1628";
+const CARD="#162032", BORDER="rgba(255,255,255,0.07)", GOLD_BORDER="rgba(196,154,60,0.2)";
+const TEXT="#E8EDF4", MUTED="#7A8BA0", GREEN="#34D399", RED="#F87171", BLUE="#3D9BE9";
 
-// ─── DEFAULT DATA ─────────────────────────────────────────────────────────────
-const DEFAULT_LISTINGS = [
-  { id:"ML013", address:"1590 Carolyn Rd", neighbourhood:"Erin Mills", price:869000, beds:4, baths:3, sqft:2050, dom:67, priceReduction:12.4, estimatedRent:4300, type:"Detached", lrtAccess:false, brokerage:"Intercity Realty Inc.", hamzaScore:9.0, cashFlow:460, capRate:5.6, hamzaNotes:"HAMZA'S PICK.", status:"active", images:[], featured:true },
-  { id:"ML005", address:"915 Inverhouse Dr", neighbourhood:"Clarkson", price:975000, beds:4, baths:3, sqft:2300, dom:61, priceReduction:11.2, estimatedRent:4600, type:"Detached", lrtAccess:true, brokerage:"Sutton Group Quantum Realty Inc.", hamzaScore:9.1, cashFlow:480, capRate:5.4, hamzaNotes:"This is the one.", status:"active", images:[], featured:false },
-];
-const DEFAULT_BLOGS = [
-  { id:"b1", title:"Top 5 Cash Flow Properties in Mississauga", slug:"top-5-cashflow-mississauga", excerpt:"Hamza breaks down the best investment opportunities.", content:"", status:"published", date:"2025-03-01", tags:["investment","mississauga"], seoTitle:"", seoDesc:"", coverImage:null, views:147 },
-];
-const DEFAULT_SITE_IMAGES = {
-  agentPhoto: null,         // Header + About section
-  heroBg: null,             // Hero section background
-  logoImage: null,          // Site logo (replaces ◈ diamond)
-  aboutBanner: null,        // About/bio section banner
-  neighbourhoods: {         // One per neighbourhood card
-    "Clarkson": null, "Port Credit": null, "Lakeview": null,
-    "Churchill Meadows": null, "Streetsville": null, "Erin Mills": null,
-    "Cooksville": null, "Hurontario": null, "Meadowvale": null, "Malton": null,
-  },
-  marketPulseBanner: null,  // Market Pulse tab banner
-  preconBanner: null,       // Pre-Con VIP section banner
-};
-const DEFAULT_BLOGS_DATA = DEFAULT_BLOGS;
-const DEFAULT_SEO = {
-  siteTitle:"Mississauga Investor | Investment Property Intelligence",
-  siteDesc:"Find the best investment properties in Mississauga with expert analysis from Hamza Nouman, Sales Representative at Royal LePage Signature Realty.",
-  keywords:"mississauga investment properties, cash flow properties mississauga",
-  googleAnalytics:"", schemaAgent:true, canonicalBase:"https://mississaugainvestor.ca",
-  pages:{ home:{title:"Mississauga Investment Properties | Hamza Nouman",desc:"Expert investment property analysis."}, listings:{title:"Investment Properties Mississauga",desc:"Browse Mississauga investment properties with cap rate analysis."}, blog:{title:"Mississauga Real Estate Blog",desc:"Expert investment insights from Hamza Nouman."} }
-};
-const DEFAULT_SETTINGS = {
-  agentName:"Hamza Nouman", title:"Sales Representative", brokerage:"Royal LePage Signature Realty, Brokerage",
-  phone:"647-609-1289", email:"hamza@nouman.ca", website:"https://www.hamzahomes.ca",
-  whatsapp:"16476091289", calendly:"https://calendly.com/hamzanouman",
-  bio:"Specializing in Mississauga investment properties with deep expertise in cap rate analysis, BRRR strategies, and the Hurontario LRT corridor.",
-  awards:"Master Sales Award", languages:"English, Urdu, Hindi", brandColor:"#C49A3C", siteMode:"demo",
-};
-const DEFAULT_LEADS = [
-  { id:"l1", name:"Ahmed Khan", phone:"905-555-1234", email:"ahmed@email.com", type:"Registration", date:"2025-03-08", casl:true, notes:"Cash flow under $800K" },
-  { id:"l2", name:"Sarah Chen", phone:"416-555-5678", email:"", type:"Pre-Con VIP", date:"2025-03-07", casl:true, notes:"$700K-$900K, Churchill Meadows" },
-  { id:"l3", name:"Mike Patel", phone:"647-555-9012", email:"mike@email.com", type:"Seller", date:"2025-03-06", casl:true, notes:"4-bed in Erin Mills, sell Q2" },
+/* ─────────────────────────────────────────────
+   LISTING DATA
+───────────────────────────────────────────── */
+const LISTINGS = [
+  {id:"ML001",address:"2847 Folkway Dr",neighbourhood:"Erin Mills",price:849000,beds:4,baths:3,sqft:2100,dom:67,priceReduction:6.2,originalPrice:906000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Signature Realty",hamzaScore:8.4,hamzaNotes:"12.4% price reduction on a 4-bed det — seller has been sitting 67 days and is motivated. All brick detached basement suite potential. Best value in the neighbourhood right now.",cashFlow:310,capRate:5.1,walkScore:71,transitScore:64,schoolScore:88},
+  {id:"ML002",address:"1203 Haig Blvd",neighbourhood:"Lakeview",price:1125000,beds:3,baths:2,sqft:1650,dom:8,priceReduction:0,originalPrice:1125000,estimatedRent:4400,type:"Semi-Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.1,hamzaNotes:"Lakeview is appreciating fast but this one is fresh to market at ask. No negotiating room yet. Watch for a 30+ day reduction before jumping.",cashFlow:-180,capRate:4.2,walkScore:68,transitScore:72,schoolScore:82},
+  {id:"ML003",address:"5521 Glen Erin Dr",neighbourhood:"Churchill Meadows",price:799000,beds:3,baths:3,sqft:1800,dom:47,priceReduction:8.5,originalPrice:873000,estimatedRent:3900,type:"Townhouse",lrtAccess:false,brokerage:"Century 21 Miller Real Estate Ltd.",hamzaScore:7.8,hamzaNotes:"8.5% drop on a Churchill Meadows townhouse. Excellent school catchment. Top floor laundry, finished basement. Strong rental demand from hospital workers nearby.",cashFlow:120,capRate:4.7,walkScore:78,transitScore:70,schoolScore:94},
+  {id:"ML004",address:"3318 Redpath Cir",neighbourhood:"Meadowvale",price:689000,beds:3,baths:2,sqft:1450,dom:22,priceReduction:3.1,originalPrice:711000,estimatedRent:3500,type:"Townhouse",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.8,hamzaNotes:"Decent price point for Meadowvale. Needs kitchen update. Conservative buy — not a home run but solid hold asset if you get it under $670K.",cashFlow:40,capRate:4.3,walkScore:82,transitScore:75,schoolScore:86},
+  {id:"ML005",address:"915 Inverhouse Dr",neighbourhood:"Clarkson",price:975000,beds:4,baths:3,sqft:2300,dom:61,priceReduction:11.2,originalPrice:1099000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Sutton Group Quantum Realty Inc.",hamzaScore:9.1,hamzaNotes:"This is the one. 11.2% off, LRT access, 61 DOM — seller is cooked. 4-bed with in-law suite potential. Clarkson GO + future LRT stop walking distance. Cash flow positive from day one if you put 25% down.",cashFlow:480,capRate:5.4,walkScore:76,transitScore:88,schoolScore:79},
+  {id:"ML006",address:"4402 Tahoe Blvd",neighbourhood:"Malton",price:599000,beds:3,baths:2,sqft:1300,dom:15,priceReduction:0,originalPrice:599000,estimatedRent:3200,type:"Townhouse",lrtAccess:false,brokerage:"Homelife/Miracle Realty Ltd.",hamzaScore:5.9,hamzaNotes:"Malton entry-level. Rents are decent but appreciation is slow here. Only buy if you have a very long time horizon or strong cash flow strategy.",cashFlow:60,capRate:4.6,walkScore:74,transitScore:80,schoolScore:71},
+  {id:"ML007",address:"1876 Lakeshore Rd W",neighbourhood:"Port Credit",price:1380000,beds:3,baths:3,sqft:1550,dom:29,priceReduction:4.8,originalPrice:1450000,estimatedRent:5400,type:"Semi-Detached",lrtAccess:true,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:7.3,hamzaNotes:"Port Credit premium. LRT access is the story here — buy the location. Numbers are thin today but appreciation play over 5 years is strong. Not for cash flow investors.",cashFlow:-210,capRate:3.8,walkScore:91,transitScore:86,schoolScore:83},
+  {id:"ML008",address:"6634 Ninth Line",neighbourhood:"Streetsville",price:1049000,beds:4,baths:3,sqft:2450,dom:53,priceReduction:7.3,originalPrice:1131000,estimatedRent:4700,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Meadowtowne Realty",hamzaScore:7.6,hamzaNotes:"7.3% drop in Streetsville village — very sellable area. Credit River trail access, heritage character streets. BRRR candidate with legal second suite conversion.",cashFlow:240,capRate:4.8,walkScore:84,transitScore:65,schoolScore:91},
+  {id:"ML009",address:"345 Rathburn Rd W",neighbourhood:"Cooksville",price:729000,beds:3,baths:2,sqft:1600,dom:38,priceReduction:5.5,originalPrice:771000,estimatedRent:3700,type:"Condo",lrtAccess:true,brokerage:"Keller Williams Real Estate Associates",hamzaScore:7.1,hamzaNotes:"Hurontario LRT corridor play. Condo but freehold feel. 5.5% drop, 38 DOM. Ideal for a first investment — low maintenance, solid rental demand from young professionals.",cashFlow:150,capRate:5.0,walkScore:87,transitScore:91,schoolScore:78},
+  {id:"ML010",address:"2211 Hurontario St",neighbourhood:"Cooksville",price:649000,beds:2,baths:2,sqft:1100,dom:19,priceReduction:2.8,originalPrice:668000,estimatedRent:3300,type:"Condo",lrtAccess:true,brokerage:"RE/MAX Aboutowne Realty Corp.",hamzaScore:6.5,hamzaNotes:"Hurontario corridor. Fresh drop but 19 days is still early. Good LRT story but wait another 2-3 weeks to see if they drop again before making a move.",cashFlow:80,capRate:4.8,walkScore:89,transitScore:93,schoolScore:75},
+  {id:"ML011",address:"7789 Magistrate Terr",neighbourhood:"Meadowvale",price:775000,beds:4,baths:3,sqft:1950,dom:44,priceReduction:9.1,originalPrice:853000,estimatedRent:4000,type:"Townhouse",lrtAccess:false,brokerage:"Cityscape Real Estate Ltd.",hamzaScore:8.0,hamzaNotes:"9.1% drop is significant for this price point. Meadowvale Business Park nearby = strong rental demand from tech workers. Walkout basement adds legal unit potential.",cashFlow:290,capRate:5.2,walkScore:79,transitScore:71,schoolScore:89},
+  {id:"ML012",address:"432 Queen St S",neighbourhood:"Streetsville",price:899000,beds:2,baths:2,sqft:1750,dom:11,priceReduction:0,originalPrice:899000,estimatedRent:4000,type:"Detached",lrtAccess:false,brokerage:"Harvey Kalles Real Estate Ltd.",hamzaScore:5.7,hamzaNotes:"Streetsville main drag. Character home but asking full price 11 days in. I want to see 30+ days before engaging. No urgency here.",cashFlow:-60,capRate:4.0,walkScore:88,transitScore:67,schoolScore:87},
+  {id:"ML013",address:"1590 Carolyn Rd",neighbourhood:"Erin Mills",price:869000,beds:4,baths:3,sqft:2050,dom:67,priceReduction:12.4,originalPrice:992000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Intercity Realty Inc.",hamzaScore:9.0,hamzaNotes:"HAMZA'S PICK. 12.4% price reduction on a 4-bed detached — seller has been sitting 67 days and is motivated. All brick, basement suite potential. Best value in the neighbourhood right now.",cashFlow:460,capRate:5.6,walkScore:73,transitScore:68,schoolScore:92,hamzasPick:true},
+  {id:"ML014",address:"88 Port St E",neighbourhood:"Port Credit",price:1195000,beds:2,baths:2,sqft:1200,dom:5,priceReduction:0,originalPrice:1195000,estimatedRent:4800,type:"Condo",lrtAccess:true,brokerage:"Chestnut Park Real Estate Ltd.",hamzaScore:5.4,hamzaNotes:"Port Credit condo, fresh listing. Numbers don't work for investors at this price. Pure lifestyle buy. Pass.",cashFlow:-320,capRate:3.5,walkScore:94,transitScore:85,schoolScore:80},
+  {id:"ML015",address:"3956 Tomken Rd",neighbourhood:"Malton",price:629000,beds:3,baths:2,sqft:1380,dom:31,priceReduction:4.4,originalPrice:658000,estimatedRent:3400,type:"Semi-Detached",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.2,hamzaNotes:"Malton semi, modest drop. Decent cash flow but limited appreciation upside. Buy only if cash flow is your primary goal.",cashFlow:95,capRate:4.9,walkScore:76,transitScore:82,schoolScore:73},
+  {id:"ML016",address:"1122 Clarkson Rd N",neighbourhood:"Clarkson",price:1025000,beds:4,baths:3,sqft:2200,dom:42,priceReduction:6.8,originalPrice:1100000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Royal LePage Signature Realty",hamzaScore:8.7,hamzaNotes:"LRT access + 6.8% reduction + 42 DOM. Clarkson is my top neighbourhood for 2025-2026. This hits the trifecta. Strong buy.",cashFlow:380,capRate:5.3,walkScore:77,transitScore:86,schoolScore:85},
+  {id:"ML017",address:"671 Bristol Rd W",neighbourhood:"Hurontario",price:699000,beds:3,baths:2,sqft:1500,dom:26,priceReduction:3.7,originalPrice:726000,estimatedRent:3500,type:"Townhouse",lrtAccess:true,brokerage:"Sutton Group Elite Realty Inc.",hamzaScore:7.0,hamzaNotes:"Hurontario corridor townhouse with LRT access. Small drop, early days. Watch it another 2 weeks — if still sitting, make an aggressive offer.",cashFlow:110,capRate:4.5,walkScore:83,transitScore:94,schoolScore:77},
+  {id:"ML018",address:"2445 Burnhamthorpe Rd",neighbourhood:"Churchill Meadows",price:819000,beds:4,baths:3,sqft:1920,dom:55,priceReduction:0.9,originalPrice:827000,estimatedRent:4100,type:"Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.7,hamzaNotes:"Churchill Meadows detached but the drop is tiny. 55 days suggests overpricing. Needs a 5%+ reduction before I would touch this.",cashFlow:170,capRate:4.6,walkScore:80,transitScore:69,schoolScore:93},
+  {id:"ML019",address:"509 Lakeshore Rd E",neighbourhood:"Lakeview",price:1250000,beds:3,baths:2,sqft:1700,dom:14,priceReduction:1.5,originalPrice:1269000,estimatedRent:5000,type:"Detached",lrtAccess:false,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:6.3,hamzaNotes:"Lakeview bungalow on a large lot. Redevelopment play long-term but cap rate today is weak. Patient money only.",cashFlow:-150,capRate:3.9,walkScore:69,transitScore:66,schoolScore:81},
+  {id:"ML020",address:"4123 Periwinkle Cres",neighbourhood:"Hurontario",price:749000,beds:3,baths:3,sqft:1680,dom:39,priceReduction:5.9,originalPrice:796000,estimatedRent:3800,type:"Townhouse",lrtAccess:true,brokerage:"Right At Home Realty Inc.",hamzaScore:7.9,hamzaNotes:"LRT access + 5.9% drop + 39 DOM. Townhouse in the Hurontario corridor is a strong medium-term hold. Cash flow positive and the LRT story isn't priced in yet.",cashFlow:220,capRate:4.9,walkScore:85,transitScore:92,schoolScore:79}
 ];
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-const Spinner = ({ size=20, color=T.gold }) => (
-  <div style={{width:size,height:size,border:`2px solid rgba(255,255,255,0.1)`,borderTopColor:color,borderRadius:"50%",animation:"spin 0.7s linear infinite",flexShrink:0}}/>
-);
-const fmtK = n => n >= 1000000 ? "$"+(n/1000000).toFixed(2)+"M" : "$"+(n/1000).toFixed(0)+"K";
-const CASL_TEXT = "By checking this box, I consent to receive commercial electronic messages from Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage (647-609-1289 · hamzahomes.ca). I may withdraw consent at any time.";
+const HOOD_DATA = {
+  "Clarkson":        {trend:"hot",  emoji:"🔥",avgPrice:1002000,priceYoY:8.2,avgDOM:38,inventory:"Low",   rentYield:5.1,note:"LRT corridor + GO station = best appreciation play 2025-2026"},
+  "Port Credit":     {trend:"hot",  emoji:"🔥",avgPrice:1198000,priceYoY:6.9,avgDOM:21,inventory:"Low",   rentYield:3.8,note:"Premium lifestyle. Appreciation play only — cap rate doesn't pencil"},
+  "Lakeview":        {trend:"warm", emoji:"📈",avgPrice:1089000,priceYoY:5.4,avgDOM:29,inventory:"Low",   rentYield:4.1,note:"Up-and-coming. Big redevelopment. Buy land, not condos"},
+  "Churchill Meadows":{trend:"warm",emoji:"📈",avgPrice:843000, priceYoY:4.1,avgDOM:47,inventory:"Medium",rentYield:4.7,note:"Top schools = stable family rental demand"},
+  "Streetsville":    {trend:"warm", emoji:"📈",avgPrice:921000, priceYoY:3.8,avgDOM:44,inventory:"Medium",rentYield:4.6,note:"Village charm + Credit River. Undervalued vs Port Credit"},
+  "Erin Mills":      {trend:"warm", emoji:"📈",avgPrice:862000, priceYoY:3.2,avgDOM:51,inventory:"Medium",rentYield:4.9,note:"Good schools, highways, affordability. Steady hold asset"},
+  "Cooksville":      {trend:"warm", emoji:"📊",avgPrice:731000, priceYoY:3.9,avgDOM:42,inventory:"Medium",rentYield:5.0,note:"LRT corridor sleeper. Under the radar, not for long"},
+  "Hurontario":      {trend:"warm", emoji:"📊",avgPrice:718000, priceYoY:3.5,avgDOM:45,inventory:"Medium",rentYield:4.8,note:"Hurontario LRT will reprice this corridor over next 3 years"},
+  "Meadowvale":      {trend:"cool", emoji:"🧊",avgPrice:764000, priceYoY:2.1,avgDOM:58,inventory:"High",  rentYield:4.9,note:"Steady but slow. Buy underpriced, cash flow it"},
+  "Malton":          {trend:"cool", emoji:"🧊",avgPrice:618000, priceYoY:1.8,avgDOM:62,inventory:"High",  rentYield:5.1,note:"Highest cash flow yields in the city. Appreciation is slow"}
+};
 
-// ─── SINGLE IMAGE UPLOAD SLOT ─────────────────────────────────────────────────
-function ImageSlot({ label, sublabel, value, onChange, aspectRatio="16/9", width="100%", showLocation=true }) {
-  const inputId = "slot-" + label.replace(/\s+/g,"-").toLowerCase();
-  const handleFile = (file) => {
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = e => onChange({ url: e.target.result, name: file.name, alt: label });
-    reader.readAsDataURL(file);
-  };
-  return (
-    <div style={{width}}>
-      {showLocation && (
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-          <div>
-            <div style={{fontSize:13,fontWeight:700,color:T.text}}>{label}</div>
-            {sublabel && <div style={{fontSize:11,color:T.muted,marginTop:1}}>{sublabel}</div>}
-          </div>
-          {value && (
-            <button onClick={()=>onChange(null)} className="btn btn-danger" style={{padding:"3px 10px",borderRadius:6,fontSize:11,border:"1px solid rgba(248,113,113,0.2)"}}>
-              Remove
-            </button>
-          )}
+const QUIZ=[
+  {q:"What is your primary investment goal?",opts:["Monthly cash flow","Long-term appreciation","BRRR strategy","Pre-construction gains"]},
+  {q:"What is your investment timeline?",opts:["1-2 years","3-5 years","5-10 years","10+ years"]},
+  {q:"What is your available down payment?",opts:["Under $100K","$100K–$200K","$200K–$350K","$350K+"]},
+  {q:"How hands-on do you want to be?",opts:["Fully passive","Light management","Active landlord","Full BRRR renovator"]}
+];
+
+const QUIZ_RESULTS={
+  cashflow:{title:"Cash Flow Investor",emoji:"💰",desc:"You want your property working every month. Best neighbourhoods: Malton, Meadowvale, Hurontario corridor. Target multi-unit or townhouse with basement suite."},
+  appreciation:{title:"Appreciation Investor",emoji:"📈",desc:"You are building long-term wealth. Best neighbourhoods: Clarkson LRT corridor, Port Credit, Lakeview. Focus on location over yield."},
+  brrr:{title:"BRRR Investor",emoji:"🔨",desc:"You want to recycle your capital. Target high DOM properties with price reductions in Erin Mills, Streetsville, Churchill Meadows. Look for basement conversion potential."},
+  precon:{title:"Pre-Construction Investor",emoji:"🏙️",desc:"You want VIP access before public launch. Register for Hamza's Pre-Con VIP list to get floor plans and pricing worksheets before they go public."}
+};
+
+/* ─────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────── */
+const fmtK=n=>n>=1000000?"$"+(n/1000000).toFixed(2)+"M":"$"+(n/1000).toFixed(0)+"K";
+const fmtNum=n=>n>=0?"+$"+n.toLocaleString()+"/mo":"-$"+Math.abs(n).toLocaleString()+"/mo";
+const calcMonthly=(price,downPct,rate,years)=>{
+  const p=price*(1-downPct/100),r=rate/100/12,n=years*12;
+  if(r===0)return Math.round(p/n);
+  return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
+};
+const scoreColor=s=>s>=8.5?GREEN:s>=7?"#60A5FA":s>=5.5?GOLD:RED;
+const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
+
+/* ─────────────────────────────────────────────
+   CASL CONSENT TEXT (reused across forms)
+───────────────────────────────────────────── */
+const CASL_TEXT="By checking this box, I consent to receive commercial electronic messages from Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage (347 Peel Centre Dr., Brampton, ON · 647-609-1289 · hamzahomes.ca), including property listings, market reports, investment analysis, and promotional real estate communications. I understand I may withdraw consent at any time by clicking the unsubscribe link in any email or contacting hamza@nouman.ca.";
+
+/* ─────────────────────────────────────────────
+   PRIVACY POLICY CONTENT
+───────────────────────────────────────────── */
+const PRIVACY_TEXT=`PRIVACY POLICY — mississaugainvestor.ca
+
+Last updated: March 2026
+
+1. ACCOUNTABILITY
+Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage, is responsible for personal information collected through this website. Contact: hamza@nouman.ca | 647-609-1289.
+
+2. WHAT WE COLLECT
+Name, phone number, email address, property preferences, investment goals, and technical data (IP address, browser type, pages visited via analytics tools).
+
+3. PURPOSE OF COLLECTION
+To respond to inquiries, provide property information, send market updates (with consent), and improve website functionality.
+
+4. CONSENT
+We collect only information you voluntarily provide. Email marketing requires your express consent, which you may withdraw at any time.
+
+5. SHARING WITH THIRD PARTIES
+We do not sell your information. We may share with: the Toronto Regional Real Estate Board (TRREB) for MLS® data access, Royal LePage Signature Realty, Brokerage (our employing brokerage), and technology service providers (Vercel hosting, Anthropic AI) under confidentiality obligations.
+
+6. SECURITY
+We use commercially reasonable safeguards to protect your information. In the event of a breach creating real risk of significant harm, we will notify affected individuals as required by PIPEDA.
+
+7. ACCESS AND CORRECTION
+You have the right to access, correct, and request deletion of your personal information. Submit requests to hamza@nouman.ca. We will respond within 30 days.
+
+8. DATA RETENTION
+Contact information is retained for the duration of our business relationship plus 2 years, unless you request earlier deletion.
+
+9. COOKIES
+This site uses essential cookies for functionality and analytics cookies to understand visitor behaviour. You may control non-essential cookies via the consent banner.
+
+10. QUESTIONS
+Contact the Office of the Privacy Commissioner of Canada at www.priv.gc.ca if you have unresolved privacy concerns.`;
+
+/* ─────────────────────────────────────────────
+   INVESTMENT DISCLAIMER TEXT
+───────────────────────────────────────────── */
+const INV_DISCLAIMER=`IMPORTANT — PLEASE READ BEFORE USING INVESTMENT TOOLS
+
+The investment analysis tools on this website (cap rate calculator, cash flow estimator, BRRR analyzer, and mortgage calculator) are for general informational and educational purposes only.
+
+• NOT financial, investment, tax, or professional advice
+• All projections are estimates based on assumptions — actual results will differ materially  
+• Using this tool does not create a financial advisory or fiduciary relationship
+• Hamza Nouman is a licensed real estate sales representative, NOT a financial advisor, mortgage broker, or investment advisor
+• Real estate investment involves significant risk, including potential loss of capital
+• Consult a licensed financial advisor, accountant, mortgage broker, and real estate lawyer before making any investment decisions
+• Cap rate, cash flow, and BRRR estimates are based on assumed market rents and operating expenses — verify independently`;
+
+/* ─────────────────────────────────────────────
+   COOKIE CONSENT BANNER
+───────────────────────────────────────────── */
+function CookieBanner({onAccept,onDecline}){
+  return(
+    <div role="dialog" aria-labelledby="cookie-title" aria-modal="false" style={{
+      position:"fixed",bottom:0,left:0,right:0,zIndex:200,
+      background:"linear-gradient(135deg,#0D1628ee,#162032ee)",
+      backdropFilter:"blur(20px)",borderTop:`1px solid ${BORDER}`,
+      padding:"20px 24px",animation:"slideDown .4s ease"
+    }}>
+      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",alignItems:"center",gap:20,flexWrap:"wrap"}}>
+        <div style={{flex:1,minWidth:260}}>
+          <div id="cookie-title" style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:4}}>🍪 Cookie Preferences</div>
+          <p style={{fontSize:12,color:MUTED,lineHeight:1.6}}>
+            We use essential cookies for site functionality and analytics cookies to understand visitor behaviour (PIPEDA compliant). 
+            Non-essential cookies require your consent.{" "}
+            <span style={{color:GOLD,cursor:"pointer",textDecoration:"underline"}} onClick={()=>{}}>Privacy Policy</span>
+          </p>
         </div>
-      )}
-      <div
-        className={`img-slot${value?" has-image":""}`}
-        style={{position:"relative",aspectRatio,overflow:"hidden",background:T.surface,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}
-        onClick={()=>document.getElementById(inputId).click()}
-        onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor=T.gold;e.currentTarget.style.background=T.goldDim;}}
-        onDragLeave={e=>{e.currentTarget.style.borderColor="";e.currentTarget.style.background="";}}
-        onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor="";e.currentTarget.style.background="";handleFile(e.dataTransfer.files[0]);}}
-      >
-        {value ? (
-          <>
-            <img src={value.url} alt={value.alt||label} style={{width:"100%",height:"100%",objectFit:"cover",display:"block"}}/>
-            <div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(0,0,0,0.6)",padding:"6px 10px",fontSize:11,color:"#fff",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span>✓ {value.name}</span>
-              <span style={{color:T.green,fontWeight:700}}>UPLOADED</span>
-            </div>
-          </>
-        ) : (
-          <div style={{textAlign:"center",padding:16}}>
-            <div style={{fontSize:28,marginBottom:6}}>📸</div>
-            <div style={{fontSize:12,color:T.muted}}>Click or drag image here</div>
-            <div style={{fontSize:10,color:T.muted,marginTop:2}}>JPG, PNG, WebP</div>
-          </div>
-        )}
-        <input id={inputId} type="file" accept="image/*" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
+        <div style={{display:"flex",gap:10,flexShrink:0,flexWrap:"wrap"}}>
+          <button onClick={onDecline} className="btn-ghost" style={{padding:"9px 20px",borderRadius:8,fontSize:13}}>
+            Essential Only
+          </button>
+          <button onClick={onAccept} className="btn-primary" style={{padding:"9px 20px",borderRadius:8,fontSize:13}}>
+            Accept All
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-// ─── MULTI IMAGE UPLOADER ─────────────────────────────────────────────────────
-function MultiImageUploader({ images=[], onChange, label }) {
-  const handleFiles = (files) => {
-    Array.from(files).forEach(file => {
-      if (!file.type.startsWith("image/")) return;
-      const reader = new FileReader();
-      reader.onload = e => onChange(prev => [...prev, { id: Date.now()+Math.random(), url: e.target.result, name: file.name, alt: "" }]);
-      reader.readAsDataURL(file);
-    });
-  };
-  return (
-    <div>
-      {label && <div style={{fontSize:12,color:T.muted,fontWeight:600,marginBottom:8}}>{label}</div>}
-      <div
-        style={{border:`2px dashed ${T.border}`,borderRadius:10,padding:16,textAlign:"center",cursor:"pointer",background:T.surface,transition:"all .2s"}}
-        onClick={()=>document.getElementById("multi-upload").click()}
-        onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor=T.gold;}}
-        onDragLeave={e=>{e.currentTarget.style.borderColor="";}}
-        onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor="";handleFiles(e.dataTransfer.files);}}
-      >
-        <div style={{fontSize:22,marginBottom:4}}>+</div>
-        <div style={{fontSize:12,color:T.muted}}>Add more photos — drag & drop or click</div>
-        <input id="multi-upload" type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>handleFiles(e.target.files)}/>
+/* ─────────────────────────────────────────────
+   PRIVACY POLICY MODAL
+───────────────────────────────────────────── */
+function PrivacyModal({onClose}){
+  return(
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}} role="dialog" aria-modal="true" aria-label="Privacy Policy">
+      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,width:"100%",maxWidth:680,animation:"fadeUp .3s ease"}}>
+        <div style={{padding:"24px 28px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT}}>Privacy Policy</h2>
+          <button onClick={onClose} aria-label="Close" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:22,lineHeight:1}}>×</button>
+        </div>
+        <div className="modal-scroll" style={{padding:"24px 28px"}}>
+          <pre style={{fontSize:12,color:MUTED,lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"'Outfit',sans-serif"}}>{PRIVACY_TEXT}</pre>
+        </div>
+        <div style={{padding:"16px 28px",borderTop:`1px solid ${BORDER}`,textAlign:"right"}}>
+          <button onClick={onClose} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>Close</button>
+        </div>
       </div>
-      {images.length > 0 && (
-        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:10}}>
-          {images.map((img,i)=>(
-            <div key={img.id} style={{position:"relative",width:80,height:64,borderRadius:8,overflow:"hidden",border:`1px solid ${T.border}`}}>
-              <img src={img.url} alt={img.alt||img.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-              {i===0&&<span style={{position:"absolute",top:2,left:2,background:T.gold,color:"#000",fontSize:8,fontWeight:700,padding:"1px 4px",borderRadius:3}}>MAIN</span>}
-              <button onClick={()=>onChange(prev=>prev.filter(x=>x.id!==img.id))}
-                style={{position:"absolute",top:2,right:2,background:"rgba(0,0,0,0.75)",color:T.red,border:"none",width:16,height:16,borderRadius:"50%",cursor:"pointer",fontSize:10,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   INVESTMENT DISCLAIMER MODAL
+───────────────────────────────────────────── */
+function InvDisclaimerModal({onAccept}){
+  const [checked,setChecked]=useState(false);
+  return(
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Investment Disclaimer">
+      <div style={{background:CARD,border:`1px solid rgba(196,154,60,0.3)`,borderRadius:16,width:"100%",maxWidth:580,animation:"fadeUp .3s ease"}}>
+        <div style={{padding:"24px 28px",borderBottom:`1px solid ${BORDER}`,display:"flex",gap:12,alignItems:"center"}}>
+          <div style={{fontSize:24}}>⚠️</div>
+          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:GOLD}}>Investment Analysis Disclaimer</h2>
+        </div>
+        <div style={{padding:"24px 28px"}}>
+          <pre style={{fontSize:12,color:MUTED,lineHeight:1.75,whiteSpace:"pre-wrap",fontFamily:"'Outfit',sans-serif"}}>{INV_DISCLAIMER}</pre>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",marginTop:20,cursor:"pointer"}}>
+            <input type="checkbox" checked={checked} onChange={e=>setChecked(e.target.checked)} style={{marginTop:2,flexShrink:0}} aria-required="true"/>
+            <span style={{fontSize:13,color:MUTED,lineHeight:1.5}}>I understand that these are estimates only and agree to use these tools for informational purposes. I will consult qualified professionals before making investment decisions.</span>
+          </label>
+        </div>
+        <div style={{padding:"16px 28px",borderTop:`1px solid ${BORDER}`,display:"flex",justifyContent:"flex-end"}}>
+          <button onClick={onAccept} disabled={!checked} className="btn-primary" style={{padding:"11px 28px",borderRadius:8,fontSize:14,opacity:checked?1:0.4,cursor:checked?"pointer":"not-allowed"}}>
+            I Understand — Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SCORE BADGE
+───────────────────────────────────────────── */
+function ScoreBadge({score,size="md"}){
+  const col=scoreColor(score);
+  const sz=size==="lg"?{w:52,h:52,fs:18,lbl:11}:{w:40,h:40,fs:14,lbl:10};
+  return(
+    <div style={{width:sz.w,height:sz.h,borderRadius:"50%",background:`${col}18`,border:`2px solid ${col}`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <div className="score-badge" style={{fontSize:sz.fs,color:col,lineHeight:1}}>{score.toFixed(1)}</div>
+      <div style={{fontSize:sz.lbl-1,color:col,opacity:0.7,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   STAT BOX
+───────────────────────────────────────────── */
+function StatBox({label,value,sub,accent}){
+  return(
+    <div style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:10,padding:"14px 16px",flex:1,minWidth:100}}>
+      <div style={{fontSize:11,color:MUTED,fontWeight:500,letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:4}}>{label}</div>
+      <div className="mono" style={{fontSize:20,fontWeight:600,color:accent||TEXT,lineHeight:1.1}}>{value}</div>
+      {sub&&<div style={{fontSize:11,color:MUTED,marginTop:3}}>{sub}</div>}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SCORE BAR
+───────────────────────────────────────────── */
+function ScoreBar({label,value,max=100,color}){
+  return(
+    <div style={{marginBottom:10}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+        <span style={{fontSize:12,color:MUTED}}>{label}</span>
+        <span className="mono" style={{fontSize:12,color:color||TEXT}}>{value}/100</span>
+      </div>
+      <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+        <div style={{height:"100%",width:`${value}%`,background:`linear-gradient(90deg,${color||GOLD},${color||GOLD}cc)`,borderRadius:2,transition:"width 0.6s ease"}}/>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   LISTING CARD
+───────────────────────────────────────────── */
+function ListingCard({l,onOpen,isSample=true}){
+  const cf=fmtCF(l.cashFlow);
+  return(
+    <div
+      className="card-hover"
+      onClick={()=>onOpen(l)}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${l.address}`}
+      onKeyDown={e=>e.key==="Enter"&&onOpen(l)}
+      style={{background:CARD,border:`1px solid ${l.hamzasPick?"rgba(196,154,60,0.35)":BORDER}`,borderRadius:14,overflow:"hidden",cursor:"pointer",position:"relative",
+        ...(l.hamzasPick?{boxShadow:"0 0 0 1px rgba(196,154,60,0.2), 0 8px 40px rgba(196,154,60,0.08)"}:{})}}
+    >
+      {/* Image placeholder */}
+      <div style={{height:160,background:`linear-gradient(135deg,#0D1F35,#162840)`,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{fontSize:48,opacity:0.15}}>{l.type==="Detached"?"🏠":l.type==="Condo"?"🏢":l.type==="Townhouse"?"🏘️":"🏡"}</div>
+        </div>
+        {/* Tags */}
+        <div style={{position:"absolute",top:10,left:10,display:"flex",gap:6,flexWrap:"wrap"}}>
+          {isSample&&<span style={{background:"rgba(196,154,60,0.15)",border:"1px solid rgba(196,154,60,0.4)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>SAMPLE</span>}
+          {l.hamzasPick&&<span style={{background:"rgba(196,154,60,0.2)",border:"1px solid rgba(196,154,60,0.5)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GOLD,fontWeight:700}}>★ HAMZA'S PICK</span>}
+          {l.lrtAccess&&<span style={{background:"rgba(61,155,233,0.15)",border:"1px solid rgba(61,155,233,0.4)",borderRadius:5,padding:"2px 8px",fontSize:10,color:BLUE}}>LRT</span>}
+          {l.priceReduction>=5&&<span style={{background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GREEN}}>↓{l.priceReduction}%</span>}
+          {l.dom>=40&&<span style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:5,padding:"2px 8px",fontSize:10,color:RED}}>{l.dom}d</span>}
+        </div>
+        {/* Score */}
+        <div style={{position:"absolute",top:10,right:10}}>
+          <ScoreBadge score={l.hamzaScore}/>
+        </div>
+        {/* Type badge */}
+        <div style={{position:"absolute",bottom:10,right:10,background:"rgba(7,11,20,0.7)",borderRadius:6,padding:"3px 8px",fontSize:11,color:MUTED}}>{l.type}</div>
+      </div>
+
+      <div style={{padding:"14px 16px"}}>
+        <div style={{fontSize:15,fontWeight:600,color:TEXT,marginBottom:2,lineHeight:1.3}}>{l.address}</div>
+        <div style={{fontSize:12,color:MUTED,marginBottom:12}}>{l.neighbourhood}, Mississauga</div>
+
+        {/* Price row */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
+          <div>
+            <div className="mono" style={{fontSize:20,fontWeight:700,color:TEXT}}>{fmtK(l.price)}</div>
+            {l.priceReduction>0&&<div style={{fontSize:11,color:MUTED,textDecoration:"line-through"}}>{fmtK(l.originalPrice)}</div>}
+          </div>
+          <div className="mono" style={{fontSize:13,color:cf.color,fontWeight:600}}>{cf.label}</div>
+        </div>
+
+        {/* Specs */}
+        <div style={{display:"flex",gap:12,marginBottom:10}}>
+          {[["🛏️",l.beds,"bd"],["🛁",l.baths,"ba"],["📐",l.sqft.toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
+            <div key={unit} style={{fontSize:12,color:MUTED,display:"flex",gap:3,alignItems:"center"}}>
+              <span>{icon}</span><span className="mono" style={{color:TEXT}}>{val}</span><span>{unit}</span>
             </div>
           ))}
         </div>
-      )}
-    </div>
-  );
-}
 
-// ─── AI WRITER ────────────────────────────────────────────────────────────────
-function AIWriter({ prompt, onInsert, placeholder="Describe what to write..." }) {
-  const [input, setInput] = useState(prompt||"");
-  const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
-  const generate = async () => {
-    if (!input.trim()) return;
-    setLoading(true); setResult("");
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", { method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000,
-          system:"You are Hamza Nouman's real estate content writer for mississaugainvestor.ca. Write professional, data-driven content for Mississauga real estate investors. Hamza is Sales Representative at Royal LePage Signature Realty, Brokerage. Never give financial advice.",
-          messages:[{role:"user",content:input}] }) });
-      const d = await res.json();
-      setResult(d.content?.[0]?.text||"Could not generate.");
-    } catch { setResult("AI unavailable — check Anthropic billing."); }
-    setLoading(false);
-  };
-  return (
-    <div style={{background:"rgba(196,154,60,0.04)",border:`1px solid ${T.goldBorder}`,borderRadius:12,padding:16,marginTop:14}}>
-      <div style={{fontSize:12,color:T.gold,fontWeight:700,marginBottom:10}}>🤖 AI Writer</div>
-      <textarea value={input} onChange={e=>setInput(e.target.value)} placeholder={placeholder} className="input" style={{height:70,resize:"vertical",marginBottom:10}}/>
-      <div style={{display:"flex",gap:8,alignItems:"center"}}>
-        <button onClick={generate} disabled={loading} className="btn btn-gold" style={{padding:"7px 16px",borderRadius:8,fontSize:13,display:"flex",alignItems:"center",gap:7}}>
-          {loading?<><Spinner size={13} color="#fff"/>Generating...</>:"✨ Generate"}
-        </button>
-        {result&&<button onClick={()=>onInsert(result)} className="btn btn-ghost" style={{padding:"7px 14px",borderRadius:8,fontSize:13,border:`1px solid ${T.border}`}}>↑ Use this</button>}
-      </div>
-      {result&&<div style={{marginTop:10,background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:12,maxHeight:160,overflow:"auto"}}>
-        <pre style={{fontSize:12,color:T.text,whiteSpace:"pre-wrap",lineHeight:1.7,fontFamily:"'Outfit',sans-serif"}}>{result}</pre>
-      </div>}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SITE IMAGE MANAGER — the new Media section
-// Shows exactly where each image appears on the live site
-// ─────────────────────────────────────────────────────────────────────────────
-function SiteImageManager({ siteImages, setSiteImages, listings, setListings, blogs, setBlogs }) {
-  const [activeTab, setActiveTab] = useState("global");
-  const [saving, setSaving] = useState(false);
-  const [editListingId, setEditListingId] = useState(listings[0]?.id||null);
-
-  const saveAll = async () => {
-    setSaving(true);
-    await store.set("siteImages", siteImages);
-    await store.set("listings", listings);
-    await store.set("blogs", blogs);
-    setSaving(false);
-    alert("All images saved ✓");
-  };
-
-  const updateSiteImg = (key, val, subkey=null) => {
-    if (subkey) setSiteImages(s=>({...s,[key]:{...s[key],[subkey]:val}}));
-    else setSiteImages(s=>({...s,[key]:val}));
-  };
-
-  const updateListingImages = (id, imgs) => {
-    setListings(ls=>ls.map(l=>l.id===id?{...l,images:typeof imgs==="function"?imgs(l.images||[]):imgs}:l));
-  };
-
-  const updateBlogImage = (id, img) => {
-    setBlogs(bs=>bs.map(b=>b.id===id?{...b,coverImage:img}:b));
-  };
-
-  const currentListing = listings.find(l=>l.id===editListingId)||listings[0];
-
-  const TABS = [
-    {id:"global",label:"🌐 Global Site Images"},
-    {id:"listings",label:"🏠 Listing Photos"},
-    {id:"neighbourhoods",label:"🗺️ Neighbourhoods"},
-    {id:"blog",label:"✍️ Blog Covers"},
-  ];
-
-  // Site section reference diagram
-  const SITE_SECTIONS = [
-    { key:"agentPhoto", label:"Agent Photo", sublabel:"Shows in: Header bio, About section, Listing modal", aspect:"1/1", width:"160px", hint:"Square photo. Your professional headshot. Min 400×400px recommended." },
-    { key:"heroBg", label:"Hero Background", sublabel:"Shows in: Hero banner behind headline text", aspect:"16/5", width:"100%", hint:"Wide banner image. City skyline or Mississauga aerial. Min 1400×440px." },
-    { key:"aboutBanner", label:"About / Bio Banner", sublabel:"Shows in: Agent bio card on all pages", aspect:"3/1", width:"100%", hint:"Wide horizontal banner behind your bio. Office photo or team shot works well." },
-    { key:"marketPulseBanner", label:"Market Pulse Banner", sublabel:"Shows in: Market Pulse tab header", aspect:"3/1", width:"100%", hint:"Real estate market data visual. Chart screenshot or Mississauga skyline." },
-    { key:"preconBanner", label:"Pre-Con VIP Banner", sublabel:"Shows in: Pre-Construction tab header", aspect:"3/1", width:"100%", hint:"Condo rendering or construction crane. High-rise Mississauga works well." },
-    { key:"logoImage", label:"Site Logo Image", sublabel:"Shows in: Header top-left (replaces ◈ diamond)", aspect:"1/1", width:"80px", hint:"Square logo. Transparent PNG preferred. Replaces the gold diamond icon." },
-  ];
-
-  return (
-    <div className="fade-in">
-      {/* Header */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-        <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:T.text,marginBottom:4}}>📸 Site Image Manager</h2>
-          <p style={{fontSize:13,color:T.muted}}>Upload images to specific sections — each slot shows exactly where it appears on the live site</p>
+        {/* Brokerage — TRREB required */}
+        <div style={{fontSize:10,color:"#4A6280",borderTop:`1px solid ${BORDER}`,paddingTop:8,fontStyle:"italic"}}>
+          Courtesy: {l.brokerage}
         </div>
-        <button onClick={saveAll} disabled={saving} className="btn btn-gold" style={{padding:"10px 22px",borderRadius:9,fontSize:13,display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-          {saving?<><Spinner size={14} color="#fff"/>Saving...</>:"💾 Save All Images"}
-        </button>
       </div>
+    </div>
+  );
+}
 
-      {/* Sub-tabs */}
-      <div style={{display:"flex",gap:4,borderBottom:`1px solid ${T.border}`,marginBottom:22,overflow:"auto"}}>
-        {TABS.map(t=>(
-          <button key={t.id} onClick={()=>setActiveTab(t.id)}
-            style={{background:"none",border:"none",cursor:"pointer",padding:"9px 16px",fontSize:13,fontWeight:500,color:activeTab===t.id?T.gold:T.muted,borderBottom:`2px solid ${activeTab===t.id?T.gold:"transparent"}`,transition:"all .2s",whiteSpace:"nowrap"}}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+/* ─────────────────────────────────────────────
+   REGISTRATION WALL MODAL
+───────────────────────────────────────────── */
+function RegModal({onClose,onSuccess}){
+  const [form,setForm]=useState({name:"",phone:"",email:"",casl:false});
+  const [err,setErr]=useState("");
+  const [submitting,setSubmitting]=useState(false);
 
-      {/* GLOBAL SITE IMAGES */}
-      {activeTab==="global"&&(
-        <div className="fade-in">
-          <div style={{background:"rgba(61,155,233,0.06)",border:"1px solid rgba(61,155,233,0.2)",borderRadius:10,padding:"12px 16px",marginBottom:22,display:"flex",gap:10}}>
-            <span style={{fontSize:20}}>ℹ️</span>
-            <p style={{fontSize:13,color:T.muted,lineHeight:1.6}}>Each box below controls a specific section of <strong style={{color:T.text}}>mississaugainvestor.ca</strong>. Upload a photo and it immediately replaces that section when the site is next loaded. Images saved here override the default placeholders.</p>
+  const handleSubmit=()=>{
+    if(!form.name.trim()||!form.phone.trim()){setErr("Name and phone are required.");return;}
+    if(!form.casl){setErr("Please accept the consent checkbox to continue.");return;}
+    setSubmitting(true);
+    const msg=encodeURIComponent(`🔔 New MississaugaInvestor Registration\n\nName: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email||"—"}\nCARL Consent: YES\n\nReach out within 24 hours!`);
+    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    setTimeout(()=>{setSubmitting(false);onSuccess(form.name);},1000);
+  };
+
+  return(
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}} role="dialog" aria-modal="true" aria-labelledby="reg-title">
+      <div style={{background:CARD,border:`1px solid ${GOLD_BORDER}`,borderRadius:16,width:"100%",maxWidth:480,animation:"fadeUp .3s ease"}}>
+        <div style={{padding:"28px 28px 20px",borderBottom:`1px solid ${BORDER}`}}>
+          <div style={{fontSize:28,marginBottom:8}}>🔓</div>
+          <h2 id="reg-title" style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:6}}>Unlock Full Access</h2>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>Register free to unlock Hamza's investment scores, cash flow analysis, and detailed notes on every listing. No spam — you'll only hear about deals worth your time.</p>
+        </div>
+        <div style={{padding:"20px 28px"}}>
+          {[["Full Name *","name","text","John Smith"],["Phone Number *","phone","tel","647-555-1234"],["Email (optional)","email","email","you@email.com"]].map(([label,key,type,placeholder])=>(
+            <div key={key} style={{marginBottom:14}}>
+              <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5,letterSpacing:"0.03em"}} htmlFor={`reg-${key}`}>{label}</label>
+              <input id={`reg-${key}`} type={type} placeholder={placeholder} value={form[key]}
+                onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
+                style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}
+                aria-required={key!=="email"?"true":"false"}
+              />
+            </div>
+          ))}
+
+          {/* CASL Consent — mandatory */}
+          <div style={{background:"rgba(196,154,60,0.05)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:8,padding:"12px 14px",marginBottom:14}}>
+            <label style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
+              <input type="checkbox" id="reg-casl" checked={form.casl} onChange={e=>setForm(f=>({...f,casl:e.target.checked}))} aria-required="true" style={{marginTop:3,flexShrink:0}}/>
+              <span style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{CASL_TEXT}</span>
+            </label>
           </div>
 
-          {/* Agent Photo — special layout */}
-          <div className="card" style={{padding:20,marginBottom:16}}>
-            <div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
-              <ImageSlot
-                key="agentPhoto"
-                label="Agent Photo"
-                sublabel="Shows in: Header bio, About section, Listing modals"
-                value={siteImages.agentPhoto}
-                onChange={v=>updateSiteImg("agentPhoto",v)}
-                aspectRatio="1/1"
-                width="160px"
-              />
-              <div style={{flex:1,minWidth:200}}>
-                <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:6}}>Where this appears</div>
-                <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                  {["Header agent bio card (every page)","Listing detail modal — Hamza's Take tab","About section in hero","Footer (if enabled)"].map(loc=>(
-                    <div key={loc} style={{display:"flex",gap:8,alignItems:"center"}}>
-                      <div style={{width:6,height:6,borderRadius:"50%",background:T.green,flexShrink:0}}/>
-                      <span style={{fontSize:12,color:T.muted}}>{loc}</span>
-                    </div>
-                  ))}
+          {err&&<div role="alert" style={{color:RED,fontSize:12,marginBottom:12}}>{err}</div>}
+
+          <button onClick={handleSubmit} disabled={submitting} className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15}}>
+            {submitting?"Sending...":"Get Full Access — Free"}
+          </button>
+          <p style={{fontSize:11,color:MUTED,textAlign:"center",marginTop:10,lineHeight:1.5}}>
+            Your information is protected under PIPEDA. We will never sell your data.<br/>
+            <span style={{color:GOLD}}>Hamza Nouman, Sales Representative · Royal LePage Signature Realty, Brokerage</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   LISTING MODAL
+───────────────────────────────────────────── */
+function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShowDisclaimer}){
+  const [tab,setTab]=useState("overview");
+  const [down,setDown]=useState(20);
+  const [rate,setRate]=useState(5.5);
+  const [amort,setAmort]=useState(25);
+  const [reno,setReno]=useState(50000);
+  const [arv,setArv]=useState(Math.round(l.price*1.2));
+  const [aiLoading,setAiLoading]=useState(false);
+  const [aiResult,setAiResult]=useState("");
+  const [vacancy,setVacancy]=useState(5);
+  const [opex,setOpex]=useState(30);
+
+  const monthly=calcMonthly(l.price,down,rate,amort);
+  const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
+  const noi=l.estimatedRent*12*(1-vacancy/100)*(1-opex/100);
+  const capRate=((noi/l.price)*100).toFixed(2);
+  const cashOnCash=l.price*down/100>0?((brutoCF*12/(l.price*down/100))*100).toFixed(2):"—";
+  const grm=(l.price/(l.estimatedRent*12)).toFixed(1);
+
+  const brrrEquity=arv-(l.price+reno);
+  const cashRecovered=arv*0.75-(l.price*0.8);
+
+  const TABS=[
+    {id:"overview",label:"Overview"},
+    {id:"take",label:"Hamza's Take"},
+    {id:"mortgage",label:"Mortgage"},
+    {id:"caprate",label:"Cap Rate"},
+    {id:"brrr",label:"BRRR"},
+    {id:"ai",label:"AI Analysis"}
+  ];
+
+  const handleCalcTab=(id)=>{
+    if(["mortgage","caprate","brrr","ai"].includes(id)){
+      if(!isRegistered){onRequireReg();return;}
+      if(!seenDisclaimer){onShowDisclaimer(()=>setTab(id));return;}
+    }
+    setTab(id);
+  };
+
+  const callAI=async()=>{
+    setAiLoading(true);setAiResult("");
+    try{
+      const res=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({listing:{address:l.address,neighbourhood:l.neighbourhood,price:l.price,beds:l.beds,baths:l.baths,sqft:l.sqft,dom:l.dom,priceReduction:l.priceReduction,estimatedRent:l.estimatedRent,capRate:l.capRate,cashFlow:l.cashFlow,type:l.type,lrtAccess:l.lrtAccess,walkScore:l.walkScore,transitScore:l.transitScore,schoolScore:l.schoolScore}})});
+      const d=await res.json();
+      setAiResult(d.analysis||"Analysis not available. Please ensure the AI service is configured.");
+    }catch{setAiResult("AI analysis temporarily unavailable. Please try again shortly.");}
+    setAiLoading(false);
+  };
+
+  return(
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:18,width:"100%",maxWidth:720,animation:"fadeUp .3s ease"}}>
+
+        {/* Header */}
+        <div style={{padding:"20px 24px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
+              {l.hamzasPick&&<span style={{fontSize:11,color:GOLD,fontWeight:700,background:"rgba(196,154,60,0.1)",border:`1px solid rgba(196,154,60,0.3)`,padding:"2px 8px",borderRadius:4}}>★ HAMZA'S PICK</span>}
+              <span style={{fontSize:11,color:MUTED,background:"rgba(255,255,255,0.05)",padding:"2px 8px",borderRadius:4,border:`1px solid ${BORDER}`}}>{l.type}</span>
+              <span style={{fontSize:11,color:GOLD,fontWeight:600}}>SAMPLE LISTING</span>
+            </div>
+            <h2 id="modal-title" style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:2}}>{l.address}</h2>
+            <div style={{fontSize:13,color:MUTED}}>{l.neighbourhood}, Mississauga · Courtesy: {l.brokerage}</div>
+          </div>
+          <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
+            <ScoreBadge score={l.hamzaScore} size="lg"/>
+            <button onClick={onClose} aria-label="Close listing" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:24,lineHeight:1,padding:"4px"}}>×</button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div style={{display:"flex",overflow:"auto",borderBottom:`1px solid ${BORDER}`,paddingLeft:16}}>
+          {TABS.map(t=>(
+            <button key={t.id} className={`tab-btn${tab===t.id?" active":""}`} onClick={()=>handleCalcTab(t.id)}>
+              {t.label}
+              {["mortgage","caprate","brrr","ai"].includes(t.id)&&!isRegistered&&<span style={{fontSize:10,marginLeft:4,opacity:0.6}}>🔒</span>}
+            </button>
+          ))}
+        </div>
+
+        <div className="modal-scroll" style={{padding:"20px 24px"}}>
+
+          {/* OVERVIEW */}
+          {tab==="overview"&&(
+            <div>
+              {/* Stats grid */}
+              <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
+                <StatBox label="List Price" value={fmtK(l.price)} accent={TEXT}/>
+                <StatBox label="Price Drop" value={l.priceReduction>0?`-${l.priceReduction}%`:"—"} accent={l.priceReduction>0?GREEN:MUTED}/>
+                <StatBox label="Days on Market" value={l.dom} sub="days" accent={l.dom>=40?RED:TEXT}/>
+                <StatBox label="Est. Rent" value={`$${l.estimatedRent.toLocaleString()}/mo`} accent={GREEN}/>
+              </div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
+                <StatBox label="Beds" value={l.beds}/>
+                <StatBox label="Baths" value={l.baths}/>
+                <StatBox label="Sq Ft" value={l.sqft.toLocaleString()}/>
+                <StatBox label="LRT Access" value={l.lrtAccess?"✓ Yes":"—"} accent={l.lrtAccess?GREEN:MUTED}/>
+              </div>
+              {/* Walkability */}
+              <div style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:12,padding:"16px 18px",marginBottom:16}}>
+                <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:"0.05em",textTransform:"uppercase",marginBottom:12}}>Location Scores</div>
+                <ScoreBar label="Walk Score" value={l.walkScore} color={BLUE}/>
+                <ScoreBar label="Transit Score" value={l.transitScore} color={GREEN}/>
+                <ScoreBar label="School Score" value={l.schoolScore} color={GOLD}/>
+              </div>
+              {/* TRREB disclaimer */}
+              <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{color:GOLD}}>hamzahomes.ca</a> or call Hamza at 647-609-1289.</p>
+              </div>
+            </div>
+          )}
+
+          {/* HAMZA'S TAKE */}
+          {tab==="take"&&(
+            <div>
+              <div style={{background:"rgba(196,154,60,0.05)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
+                <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                  <img src="/hamza.jpg.JPG" onError={e=>{e.target.style.display="none"}} alt="Hamza Nouman" style={{width:44,height:44,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:`2px solid rgba(196,154,60,0.4)`}}/>
+                  <div>
+                    <div style={{fontSize:12,color:GOLD,fontWeight:700,marginBottom:2}}>Hamza's Take — Personal Opinion Only</div>
+                    <div style={{fontSize:11,color:MUTED,marginBottom:10,fontStyle:"italic"}}>Not MLS® data. Not provided by TRREB or Royal LePage. This is my personal professional opinion as a licensed agent.</div>
+                    <p style={{fontSize:14,color:TEXT,lineHeight:1.8}}>{l.hamzaNotes}</p>
+                  </div>
                 </div>
-                <div style={{marginTop:12,background:T.surface,borderRadius:8,padding:"8px 12px",border:`1px solid ${T.border}`}}>
-                  <div style={{fontSize:11,color:T.muted,marginBottom:2}}>💡 Best practice</div>
-                  <div style={{fontSize:12,color:T.text}}>Professional headshot, square crop, white or light background. Same photo as your RECO/Royal LePage profile for consistency.</div>
+              </div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <StatBox label="Hamza's Score" value={`${l.hamzaScore}/10`} accent={scoreColor(l.hamzaScore)}/>
+                <StatBox label="Est. Cash Flow" value={fmtNum(l.cashFlow)} accent={fmtCF(l.cashFlow).color}/>
+                <StatBox label="Est. Cap Rate" value={`${l.capRate}%`} accent={GOLD}/>
+              </div>
+              <div style={{marginTop:12,padding:"10px 14px",background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${BORDER}`}}>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>Investment analysis provided by Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage, for informational purposes only. Not financial advice. Verify all estimates independently. Consult a licensed financial advisor before making investment decisions.</p>
+              </div>
+            </div>
+          )}
+
+          {/* MORTGAGE */}
+          {tab==="mortgage"&&(
+            <div>
+              <div style={{background:"rgba(61,155,233,0.05)",border:`1px solid rgba(61,155,233,0.15)`,borderRadius:8,padding:"10px 14px",marginBottom:18}}>
+                <p style={{fontSize:11,color:MUTED,lineHeight:1.5}}>⚠️ <strong style={{color:BLUE}}>Mortgage Disclaimer:</strong> Payment estimates are for illustrative purposes only and do not constitute a mortgage offer, pre-approval, or commitment. Hamza Nouman is a registered real estate sales representative, NOT a licensed mortgage broker. For mortgage advice, consult a licensed mortgage broker or lender.</p>
+              </div>
+              {[["Down Payment",down+"%",5,50,down,v=>setDown(Number(v)),"down%"],["Interest Rate",rate+"%",3,9,rate,v=>setRate(Number(v)),"rate"],["Amortization",amort+" yrs",10,30,amort,v=>setAmort(Number(v)),"amort"]].map(([label,display,min,max,val,setter,id])=>(
+                <div key={id} style={{marginBottom:18}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <label htmlFor={id} style={{fontSize:13,color:MUTED,fontWeight:500}}>{label}</label>
+                    <span className="mono" style={{fontSize:14,color:GOLD,fontWeight:600}}>{display}</span>
+                  </div>
+                  <input id={id} type="range" min={min} max={max} step={label==="Interest Rate"?0.25:1} value={val} onChange={e=>setter(e.target.value)} style={{width:"100%"}} aria-label={label}/>
+                </div>
+              ))}
+              <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:4}}>
+                <StatBox label="Monthly Payment" value={`$${monthly.toLocaleString()}`} accent={TEXT}/>
+                <StatBox label="Down Payment $" value={`$${Math.round(l.price*down/100).toLocaleString()}`} accent={BLUE}/>
+                <StatBox label="Mortgage Amt" value={fmtK(Math.round(l.price*(1-down/100)))} accent={MUTED}/>
+              </div>
+              <div style={{marginTop:12,padding:"12px 16px",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:10}}>
+                <div style={{fontSize:11,color:MUTED,marginBottom:8}}>Estimated Monthly Cash Flow (simplified)</div>
+                <div className="mono" style={{fontSize:24,fontWeight:700,color:brutoCF>0?GREEN:RED}}>{brutoCF>0?"+":""}{brutoCF.toLocaleString()}/mo</div>
+                <div style={{fontSize:11,color:MUTED,marginTop:4}}>Rent ${l.estimatedRent.toLocaleString()} − Mortgage ${monthly.toLocaleString()} − Est. Expenses ${Math.round(l.price*0.015/12).toLocaleString()}</div>
+              </div>
+            </div>
+          )}
+
+          {/* CAP RATE */}
+          {tab==="caprate"&&(
+            <div>
+              <div style={{background:"rgba(196,154,60,0.04)",border:`1px solid ${GOLD_BORDER}`,borderRadius:8,padding:"10px 14px",marginBottom:18}}>
+                <p style={{fontSize:11,color:MUTED,lineHeight:1.5}}>These estimates are based on assumed market rents and operating expense ratios. Actual results will vary. Not financial advice. Verify with a licensed accountant.</p>
+              </div>
+              {[["Vacancy Rate",vacancy+"%",0,15,vacancy,v=>setVacancy(Number(v)),"vac"],["Operating Expenses (% of rent)",opex+"%",20,45,opex,v=>setOpex(Number(v)),"opex"]].map(([label,display,min,max,val,setter,id])=>(
+                <div key={id} style={{marginBottom:18}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <label htmlFor={id} style={{fontSize:13,color:MUTED}}>{label}</label>
+                    <span className="mono" style={{fontSize:14,color:GOLD}}>{display}</span>
+                  </div>
+                  <input id={id} type="range" min={min} max={max} value={val} onChange={e=>setter(e.target.value)} style={{width:"100%"}} aria-label={label}/>
+                </div>
+              ))}
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <StatBox label="Cap Rate" value={capRate+"%"} accent={parseFloat(capRate)>=5?GREEN:parseFloat(capRate)>=4?GOLD:RED}/>
+                <StatBox label="Annual NOI" value={`$${Math.round(noi).toLocaleString()}`} accent={GREEN}/>
+                <StatBox label="Cash-on-Cash" value={cashOnCash+"%"} accent={BLUE}/>
+                <StatBox label="Gross Rent Mult." value={grm+"x"} accent={MUTED}/>
+              </div>
+              <div style={{marginTop:10,padding:"12px 16px",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                  <span style={{fontSize:13,color:MUTED}}>Annual Gross Rent</span>
+                  <span className="mono" style={{fontSize:13,color:TEXT}}>${(l.estimatedRent*12).toLocaleString()}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                  <span style={{fontSize:13,color:MUTED}}>Vacancy ({vacancy}%)</span>
+                  <span className="mono" style={{fontSize:13,color:RED}}>-${Math.round(l.estimatedRent*12*vacancy/100).toLocaleString()}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                  <span style={{fontSize:13,color:MUTED}}>Operating Expenses ({opex}%)</span>
+                  <span className="mono" style={{fontSize:13,color:RED}}>-${Math.round(l.estimatedRent*12*(1-vacancy/100)*opex/100).toLocaleString()}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",borderTop:`1px solid ${BORDER}`,paddingTop:8}}>
+                  <span style={{fontSize:13,fontWeight:600,color:TEXT}}>Net Operating Income</span>
+                  <span className="mono" style={{fontSize:14,fontWeight:700,color:GREEN}}>${Math.round(noi).toLocaleString()}</span>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Other site sections */}
-          <div style={{display:"grid",gap:16}}>
-            {SITE_SECTIONS.filter(s=>s.key!=="agentPhoto").map(section=>(
-              <div key={section.key} className="card" style={{padding:20}}>
-                <div style={{marginBottom:10,display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:700,color:T.text}}>{section.label}</div>
-                    <div style={{fontSize:12,color:T.gold,marginTop:2}}>{section.sublabel}</div>
-                    <div style={{fontSize:11,color:T.muted,marginTop:4,fontStyle:"italic"}}>💡 {section.hint}</div>
+          {/* BRRR */}
+          {tab==="brrr"&&(
+            <div>
+              <div style={{background:"rgba(196,154,60,0.04)",border:`1px solid ${GOLD_BORDER}`,borderRadius:8,padding:"10px 14px",marginBottom:18}}>
+                <p style={{fontSize:11,color:MUTED,lineHeight:1.5}}>BRRR estimates are for illustrative purposes only. Renovation costs, ARV, and refinancing terms vary significantly. Verify all figures with a licensed contractor, appraiser, and mortgage broker before proceeding.</p>
+              </div>
+              {[["Renovation Budget","$"+reno.toLocaleString(),0,200000,reno,v=>setReno(Number(v)),5000,"reno"],["After Repair Value (ARV)","$"+arv.toLocaleString(),l.price,l.price*2,arv,v=>setArv(Number(v)),10000,"arv"]].map(([label,display,min,max,val,setter,step,id])=>(
+                <div key={id} style={{marginBottom:18}}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                    <label htmlFor={id} style={{fontSize:13,color:MUTED}}>{label}</label>
+                    <span className="mono" style={{fontSize:14,color:GOLD}}>{display}</span>
                   </div>
-                  {siteImages[section.key]&&(
-                    <button onClick={()=>updateSiteImg(section.key,null)} className="btn btn-danger" style={{padding:"4px 12px",borderRadius:6,fontSize:11,border:"1px solid rgba(248,113,113,0.2)"}}>
-                      Remove
-                    </button>
-                  )}
+                  <input id={id} type="range" min={min} max={max} step={step} value={val} onChange={e=>setter(Number(e.target.value))} style={{width:"100%"}} aria-label={label}/>
                 </div>
-                <ImageSlot
-                  label={section.label}
-                  value={siteImages[section.key]}
-                  onChange={v=>updateSiteImg(section.key,v)}
-                  aspectRatio={section.aspect}
-                  width={section.width}
-                  showLocation={false}
-                />
+              ))}
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <StatBox label="Total Cost" value={"$"+(l.price+reno).toLocaleString()} accent={TEXT}/>
+                <StatBox label="Est. Equity" value={brrrEquity>0?"$"+brrrEquity.toLocaleString():"—"} accent={brrrEquity>0?GREEN:RED}/>
+                <StatBox label="75% Refi" value={"$"+Math.round(arv*0.75).toLocaleString()} accent={BLUE}/>
+                <StatBox label="Capital Recovered" value={cashRecovered>0?"$"+Math.round(cashRecovered).toLocaleString():"None"} accent={cashRecovered>0?GREEN:MUTED}/>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* LISTING PHOTOS */}
-      {activeTab==="listings"&&(
-        <div className="fade-in">
-          <div style={{background:"rgba(196,154,60,0.06)",border:`1px solid ${T.goldBorder}`,borderRadius:10,padding:"12px 16px",marginBottom:20}}>
-            <p style={{fontSize:13,color:T.muted,lineHeight:1.6}}>Add real property photos to each listing. The <strong style={{color:T.gold}}>first image</strong> becomes the listing card photo. All others show in the gallery inside the detail modal. Max 8 photos per listing.</p>
-          </div>
-
-          {/* Listing selector */}
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
-            {listings.map(l=>(
-              <button key={l.id} onClick={()=>setEditListingId(l.id)}
-                className={editListingId===l.id?"btn btn-gold":"btn btn-ghost"}
-                style={{padding:"8px 14px",borderRadius:9,fontSize:12,border:editListingId===l.id?"none":`1px solid ${T.border}`,textAlign:"left",maxWidth:200}}>
-                <div style={{fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}</div>
-                <div style={{fontSize:10,opacity:0.7,marginTop:2}}>{(l.images||[]).length} photos · {l.neighbourhood}</div>
-              </button>
-            ))}
-          </div>
-
-          {currentListing&&(
-            <div className="card" style={{padding:20}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,flexWrap:"wrap",gap:10}}>
-                <div>
-                  <div style={{fontSize:16,fontWeight:700,color:T.text}}>{currentListing.address}</div>
-                  <div style={{fontSize:13,color:T.muted}}>{currentListing.neighbourhood} · {fmtK(currentListing.price)} · {currentListing.type}</div>
-                </div>
-                <div style={{display:"flex",gap:8,alignItems:"center"}}>
-                  <span style={{fontSize:12,color:T.muted}}>{(currentListing.images||[]).length}/8 photos</span>
+              <div style={{marginTop:12,padding:"14px 16px",background:SURFACE,border:`1px solid ${cashRecovered>0?"rgba(52,211,153,0.2)":"rgba(248,113,113,0.2)"}`,borderRadius:10}}>
+                <div style={{fontSize:12,color:MUTED,marginBottom:6}}>BRRR Verdict</div>
+                <div style={{fontSize:15,color:cashRecovered>0?GREEN:RED,fontWeight:600}}>
+                  {cashRecovered>0?`✓ You recover $${Math.round(cashRecovered).toLocaleString()} at refi`:"✗ Does not pencil at current assumptions. Adjust renovation budget or ARV."}
                 </div>
               </div>
+            </div>
+          )}
 
-              {/* Card preview */}
-              <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:14,marginBottom:16}}>
-                <div style={{fontSize:12,fontWeight:700,color:T.gold,marginBottom:10}}>📌 Where listing photos appear on the site</div>
-                <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
-                  {[
-                    {slot:"1st photo",shows:"Listing card thumbnail — main grid view"},
-                    {slot:"1st photo",shows:"Listing modal header image"},
-                    {slot:"All photos",shows:"Gallery carousel inside detail modal"},
-                    {slot:"1st photo",shows:"Hamza's Pick banner (if featured listing)"},
-                  ].map((r,i)=>(
-                    <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start",flex:"1 1 200px"}}>
-                      <div style={{width:6,height:6,borderRadius:"50%",background:T.blue,flexShrink:0,marginTop:4}}/>
-                      <div>
-                        <div style={{fontSize:11,fontWeight:700,color:T.blue}}>{r.slot}</div>
-                        <div style={{fontSize:11,color:T.muted}}>{r.shows}</div>
-                      </div>
-                    </div>
-                  ))}
+          {/* AI ANALYSIS */}
+          {tab==="ai"&&(
+            <div>
+              <div style={{background:"rgba(61,155,233,0.04)",border:`1px solid rgba(61,155,233,0.15)`,borderRadius:8,padding:"10px 14px",marginBottom:18}}>
+                <p style={{fontSize:11,color:MUTED,lineHeight:1.5}}>AI analysis is generated by Claude (Anthropic) based on the listing data above. It is for informational purposes only and does not constitute financial, investment, or real estate advice.</p>
+              </div>
+              {!aiResult&&!aiLoading&&(
+                <div style={{textAlign:"center",padding:"30px 0"}}>
+                  <div style={{fontSize:40,marginBottom:12}}>🤖</div>
+                  <p style={{color:MUTED,fontSize:14,marginBottom:20}}>Get an AI-powered investment analysis for this property. Takes about 15 seconds.</p>
+                  <button onClick={callAI} className="btn-primary" style={{padding:"12px 32px",borderRadius:10,fontSize:15}}>
+                    Run AI Analysis
+                  </button>
                 </div>
-              </div>
-
-              {/* First image = main card photo */}
-              <div style={{marginBottom:16}}>
-                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:4}}>Main Card Photo <span style={{fontSize:11,color:T.gold}}>(1st image — shown on listing grid)</span></div>
-                <ImageSlot
-                  label="Main card photo"
-                  value={(currentListing.images||[])[0]||null}
-                  onChange={v=>{
-                    const imgs=[...(currentListing.images||[])];
-                    if(v){imgs[0]=v;}else{imgs.shift();}
-                    updateListingImages(currentListing.id,imgs);
-                  }}
-                  aspectRatio="16/10"
-                  width="100%"
-                  showLocation={false}
-                />
-              </div>
-
-              {/* Additional photos */}
-              <div>
-                <div style={{fontSize:13,fontWeight:700,color:T.text,marginBottom:4}}>Gallery Photos <span style={{fontSize:11,color:T.muted}}>(shown inside listing modal)</span></div>
-                <MultiImageUploader
-                  images={(currentListing.images||[]).slice(1)}
-                  onChange={newImgs=>{
-                    const first=(currentListing.images||[])[0];
-                    updateListingImages(currentListing.id,first?[first,...newImgs(currentListing.images?.slice(1)||[])]:newImgs(currentListing.images?.slice(1)||[]));
-                  }}
-                  label=""
-                />
-              </div>
-
-              {/* Alt text for SEO */}
-              {(currentListing.images||[]).length>0&&(
-                <div style={{marginTop:16}}>
-                  <div style={{fontSize:12,color:T.muted,fontWeight:600,marginBottom:8}}>Alt Text (SEO — describe each photo for Google)</div>
-                  {(currentListing.images||[]).map((img,i)=>(
-                    <div key={img.id||i} style={{display:"flex",gap:10,alignItems:"center",marginBottom:8}}>
-                      <img src={img.url} alt="" style={{width:48,height:36,objectFit:"cover",borderRadius:6,flexShrink:0}}/>
-                      <input value={img.alt||""} onChange={e=>{
-                        const imgs=[...(currentListing.images||[])];
-                        imgs[i]={...imgs[i],alt:e.target.value};
-                        updateListingImages(currentListing.id,imgs);
-                      }} className="input" placeholder={`Alt text for photo ${i+1} — e.g. "4 bedroom detached home in Erin Mills Mississauga"`} style={{fontSize:12}}/>
-                    </div>
-                  ))}
+              )}
+              {aiLoading&&(
+                <div style={{textAlign:"center",padding:"40px 0"}}>
+                  <div style={{width:36,height:36,border:`3px solid ${BORDER}`,borderTopColor:GOLD,borderRadius:"50%",animation:"spin 0.8s linear infinite",margin:"0 auto 14px"}}/>
+                  <p style={{color:MUTED,fontSize:13}}>Analyzing investment potential...</p>
+                </div>
+              )}
+              {aiResult&&(
+                <div style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:12,padding:"18px 20px"}}>
+                  <pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"'Outfit',sans-serif"}}>{aiResult}</pre>
                 </div>
               )}
             </div>
           )}
         </div>
-      )}
 
-      {/* NEIGHBOURHOOD IMAGES */}
-      {activeTab==="neighbourhoods"&&(
-        <div className="fade-in">
-          <div style={{background:"rgba(196,154,60,0.06)",border:`1px solid ${T.goldBorder}`,borderRadius:10,padding:"12px 16px",marginBottom:20}}>
-            <p style={{fontSize:13,color:T.muted,lineHeight:1.6}}>Each neighbourhood card on the <strong style={{color:T.gold}}>Neighbourhoods tab</strong> can have a background photo. Use Google Street View screenshots, aerial drone shots, or neighbourhood landmark photos.</p>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
-            {Object.keys(siteImages.neighbourhoods||{}).map(hood=>(
-              <div key={hood} className="card" style={{padding:16}}>
-                <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{hood}</div>
-                <div style={{fontSize:11,color:T.muted,marginBottom:10}}>Shows on: Neighbourhoods tab → {hood} card background</div>
-                <ImageSlot
-                  label={hood}
-                  value={siteImages.neighbourhoods?.[hood]||null}
-                  onChange={v=>updateSiteImg("neighbourhoods",v,hood)}
-                  aspectRatio="16/9"
-                  width="100%"
-                  showLocation={false}
-                />
-              </div>
-            ))}
+        {/* Footer CTA */}
+        <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontSize:11,color:MUTED}}>📍 Sample data · Courtesy: {l.brokerage}</div>
+          <div style={{display:"flex",gap:8}}>
+            <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
+              style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
+              💬 WhatsApp
+            </a>
+            <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
+              📞 Call
+            </a>
           </div>
         </div>
-      )}
-
-      {/* BLOG COVERS */}
-      {activeTab==="blog"&&(
-        <div className="fade-in">
-          <div style={{background:"rgba(96,165,250,0.06)",border:"1px solid rgba(96,165,250,0.2)",borderRadius:10,padding:"12px 16px",marginBottom:20}}>
-            <p style={{fontSize:13,color:T.muted,lineHeight:1.6}}>Upload a cover image for each blog post. The cover appears at the top of the post and in the blog listing grid. Recommended size: <strong style={{color:T.blue}}>1200×630px</strong> (also used as the Open Graph image for social media sharing).</p>
-          </div>
-          <div style={{display:"grid",gap:16}}>
-            {blogs.map(b=>(
-              <div key={b.id} className="card" style={{padding:20}}>
-                <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
-                  <div style={{flex:"0 0 300px",maxWidth:"100%"}}>
-                    <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{b.title}</div>
-                    <div style={{fontSize:11,color:T.muted,marginBottom:10}}>
-                      {b.status==="published"
-                        ?<span style={{color:T.green}}>● Published · {b.date}</span>
-                        :<span style={{color:T.muted}}>● Draft</span>}
-                    </div>
-                    <ImageSlot
-                      label={b.title}
-                      value={b.coverImage||null}
-                      onChange={v=>updateBlogImage(b.id,v)}
-                      aspectRatio="16/9"
-                      width="100%"
-                      showLocation={false}
-                    />
-                  </div>
-                  <div style={{flex:1,minWidth:180}}>
-                    <div style={{fontSize:12,fontWeight:700,color:T.gold,marginBottom:8}}>Where cover image appears</div>
-                    {["Blog listing grid card","Top of full blog post","Open Graph preview (WhatsApp/Facebook sharing)","Google search snippet image"].map(loc=>(
-                      <div key={loc} style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
-                        <div style={{width:5,height:5,borderRadius:"50%",background:T.blue,flexShrink:0}}/>
-                        <span style={{fontSize:12,color:T.muted}}>{loc}</span>
-                      </div>
-                    ))}
-                    {b.coverImage&&(
-                      <div style={{marginTop:12}}>
-                        <div style={{fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>Alt Text (SEO)</div>
-                        <input value={b.coverImage.alt||""} onChange={e=>updateBlogImage(b.id,{...b.coverImage,alt:e.target.value})}
-                          className="input" placeholder="Describe the image for Google..." style={{fontSize:12}}/>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
 
-// ─── STAT CARD ────────────────────────────────────────────────────────────────
-const StatCard = ({icon,label,value,sub,color=T.gold})=>(
-  <div className="card" style={{padding:"18px 20px"}}>
-    <div style={{fontSize:24,marginBottom:8}}>{icon}</div>
-    <div style={{fontSize:11,color:T.muted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>{label}</div>
-    <div style={{fontSize:26,fontWeight:700,color,fontFamily:"'JetBrains Mono',monospace",lineHeight:1}}>{value}</div>
-    {sub&&<div style={{fontSize:11,color:T.muted,marginTop:4}}>{sub}</div>}
-  </div>
-);
+/* ─────────────────────────────────────────────
+   PRE-CON FORM
+───────────────────────────────────────────── */
+function PreConForm({onClose}){
+  const [form,setForm]=useState({name:"",phone:"",email:"",budget:"Under $700K",areas:[],casl:false});
+  const [sent,setSent]=useState(false);
+  const budgets=["Under $700K","$700K–$900K","$900K–$1.2M","$1.2M+"];
+  const areaList=["Square One / City Centre","Port Credit","Cooksville","Churchill Meadows","Erin Mills","Clarkson","Streetsville","No Preference"];
 
-// ─── DASHBOARD HOME ───────────────────────────────────────────────────────────
-const DashboardHome = ({listings,blogs,leads,settings,siteImages})=>{
-  const totalImages = Object.values(siteImages).reduce((acc,v)=>{
-    if(v===null)return acc;
-    if(typeof v==="object"&&!v.url)return acc+Object.values(v).filter(Boolean).length;
-    return acc+1;
-  },0) + listings.reduce((a,l)=>a+(l.images||[]).length,0) + blogs.reduce((a,b)=>a+(b.coverImage?1:0),0);
+  const handleSubmit=()=>{
+    if(!form.name||!form.phone||!form.casl)return;
+    const msg=encodeURIComponent(`🏙️ Pre-Con VIP Registration\n\nName: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email||"—"}\nBudget: ${form.budget}\nAreas: ${form.areas.join(", ")||"Any"}\nCARL Consent: YES`);
+    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    setSent(true);
+  };
+
+  if(sent)return(
+    <div style={{textAlign:"center",padding:"40px 24px"}}>
+      <div style={{fontSize:56,marginBottom:16}}>✅</div>
+      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:8}}>You're on the VIP List!</h3>
+      <p style={{color:MUTED,fontSize:14,lineHeight:1.7,marginBottom:20}}>Hamza will reach out within 24 hours with upcoming pre-construction opportunities matching your profile.</p>
+      <button onClick={onClose} className="btn-gold-outline" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>Close</button>
+    </div>
+  );
 
   return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-        <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:T.text,marginBottom:4}}>Dashboard</h2>
-          <p style={{fontSize:13,color:T.muted}}>{settings.agentName} · {settings.brokerage} · {settings.siteMode==="live"?"🟢 LIVE":"🟡 DEMO MODE"}</p>
+    <div style={{padding:"24px 28px"}}>
+      <div style={{marginBottom:20}}>
+        <div style={{background:"rgba(196,154,60,0.08)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:10,padding:"14px 16px",marginBottom:18}}>
+          <p style={{fontSize:12,color:MUTED,lineHeight:1.6}}>🔒 <strong style={{color:GOLD}}>VIP Access Only.</strong> Pre-construction pricing and floor plans are shared directly by Hamza based on your investment profile. No public listings shown here — this is a lead capture form only. Contact Hamza for current opportunities.</p>
         </div>
-      </div>
-      {settings.siteMode==="demo"&&(
-        <div style={{background:"rgba(196,154,60,0.08)",border:`1px solid ${T.goldBorder}`,borderRadius:12,padding:"14px 18px",marginBottom:20,display:"flex",gap:12,alignItems:"center"}}>
-          <span style={{fontSize:20}}>⚠️</span>
-          <div>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold}}>Site in Demo Mode — Sample listings visible</div>
-            <div style={{fontSize:12,color:T.muted}}>Connect TRREB data then switch to Live in Settings.</div>
+        {[["Full Name *","name","text"],["Phone *","phone","tel"],["Email","email","email"]].map(([label,key,type])=>(
+          <div key={key} style={{marginBottom:14}}>
+            <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}} htmlFor={`precon-${key}`}>{label}</label>
+            <input id={`precon-${key}`} type={type} value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
+              style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}
+              aria-required={key!=="email"?"true":"false"}/>
+          </div>
+        ))}
+        <div style={{marginBottom:14}}>
+          <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}}>Budget Range</label>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {budgets.map(b=><button key={b} onClick={()=>setForm(f=>({...f,budget:b}))} className={"chip"+(form.budget===b?" active":"")} style={{padding:"7px 14px"}}>{b}</button>)}
           </div>
         </div>
-      )}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:12,marginBottom:24}}>
-        <StatCard icon="🏠" label="Listings" value={listings.length} sub={`${listings.filter(l=>l.status==="active").length} active`}/>
-        <StatCard icon="👥" label="Leads" value={leads.length} sub="CASL consented" color={T.green}/>
-        <StatCard icon="✍️" label="Blog Posts" value={blogs.filter(b=>b.status==="published").length} sub={`${blogs.filter(b=>b.status==="draft").length} drafts`} color={T.blue}/>
-        <StatCard icon="📸" label="Images" value={totalImages} sub="uploaded to site" color={T.purple}/>
-      </div>
-      <div className="card" style={{padding:20,marginBottom:16}}>
-        <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:14}}>📥 Recent Leads</div>
-        {leads.slice(0,5).map(lead=>(
-          <div key={lead.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
-            <div>
-              <div style={{fontSize:13,fontWeight:600,color:T.text}}>{lead.name}</div>
-              <div style={{fontSize:11,color:T.muted}}>{lead.phone} · {lead.type} · {lead.date}</div>
-            </div>
-            <a href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent("Hi "+lead.name+", this is Hamza Nouman from Royal LePage Signature Realty.")}`} target="_blank" rel="noreferrer"
-              style={{fontSize:11,background:"rgba(37,211,102,0.1)",color:"#25D366",border:"1px solid rgba(37,211,102,0.2)",padding:"5px 12px",borderRadius:6,textDecoration:"none",fontWeight:600}}>
-              💬 WhatsApp
-            </a>
+        <div style={{marginBottom:14}}>
+          <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}}>Preferred Areas (select all that apply)</label>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {areaList.map(a=><button key={a} onClick={()=>setForm(f=>({...f,areas:f.areas.includes(a)?f.areas.filter(x=>x!==a):[...f.areas,a]}))} className={"chip"+(form.areas.includes(a)?" active":"")} style={{padding:"7px 14px",fontSize:11}}>{a}</button>)}
           </div>
+        </div>
+        {/* CASL */}
+        <div style={{background:"rgba(196,154,60,0.05)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:8,padding:"12px 14px",marginBottom:14}}>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
+            <input type="checkbox" checked={form.casl} onChange={e=>setForm(f=>({...f,casl:e.target.checked}))} style={{marginTop:3,flexShrink:0}}/>
+            <span style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{CASL_TEXT}</span>
+          </label>
+        </div>
+        <button onClick={handleSubmit} disabled={!form.name||!form.phone||!form.casl} className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15,opacity:(!form.name||!form.phone||!form.casl)?0.4:1,cursor:(!form.name||!form.phone||!form.casl)?"not-allowed":"pointer"}}>
+          Join Pre-Con VIP List
+        </button>
+        <p style={{fontSize:11,color:MUTED,textAlign:"center",marginTop:10}}>Hamza Nouman, Sales Representative · Royal LePage Signature Realty, Brokerage</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SELLER FORM
+───────────────────────────────────────────── */
+function SellerModal({onClose}){
+  const [form,setForm]=useState({name:"",phone:"",address:"",type:"Detached",beds:"3",casl:false});
+  const [sent,setSent]=useState(false);
+
+  const handleSubmit=()=>{
+    if(!form.name||!form.phone||!form.address||!form.casl)return;
+    const msg=encodeURIComponent(`🏡 Home Valuation Request\n\nName: ${form.name}\nPhone: ${form.phone}\nAddress: ${form.address}\nType: ${form.type}\nBeds: ${form.beds}\nCARL Consent: YES`);
+    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    setSent(true);
+  };
+
+  if(sent)return(
+    <div style={{textAlign:"center",padding:"40px 24px"}}>
+      <div style={{fontSize:56,marginBottom:16}}>🏡</div>
+      <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:8}}>Request Received!</h3>
+      <p style={{color:MUTED,fontSize:14,lineHeight:1.7,marginBottom:20}}>Hamza will prepare a complimentary market analysis for your property and be in touch within 24 hours.</p>
+      <button onClick={onClose} className="btn-gold-outline" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>Close</button>
+    </div>
+  );
+
+  return(
+    <div style={{padding:"24px 28px"}}>
+      <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:6}}>What Is My Home Worth?</h2>
+      <p style={{fontSize:13,color:MUTED,marginBottom:20,lineHeight:1.6}}>Get a complimentary market analysis from Hamza — no obligation, no pressure.</p>
+      {[["Full Name *","name","text"],["Phone *","phone","tel"],["Property Address *","address","text"]].map(([label,key,type])=>(
+        <div key={key} style={{marginBottom:14}}>
+          <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}} htmlFor={`sell-${key}`}>{label}</label>
+          <input id={`sell-${key}`} type={type} value={form[key]} onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
+            style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}
+            aria-required="true"/>
+        </div>
+      ))}
+      <div style={{display:"flex",gap:10,marginBottom:14}}>
+        <div style={{flex:2}}>
+          <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}}>Property Type</label>
+          <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}>
+            {["Detached","Semi-Detached","Townhouse","Condo","Other"].map(t=><option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div style={{flex:1}}>
+          <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}}>Beds</label>
+          <select value={form.beds} onChange={e=>setForm(f=>({...f,beds:e.target.value}))} style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}>
+            {["1","2","3","4","5+"].map(b=><option key={b}>{b}</option>)}
+          </select>
+        </div>
+      </div>
+      {/* CASL */}
+      <div style={{background:"rgba(196,154,60,0.05)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:8,padding:"12px 14px",marginBottom:16}}>
+        <label style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
+          <input type="checkbox" checked={form.casl} onChange={e=>setForm(f=>({...f,casl:e.target.checked}))} style={{marginTop:3,flexShrink:0}}/>
+          <span style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{CASL_TEXT}</span>
+        </label>
+      </div>
+      <button onClick={handleSubmit} disabled={!form.name||!form.phone||!form.address||!form.casl} className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15,opacity:(!form.name||!form.phone||!form.address||!form.casl)?0.4:1,cursor:(!form.name||!form.phone||!form.address||!form.casl)?"not-allowed":"pointer"}}>
+        Request Free Valuation
+      </button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   QUIZ COMPONENT
+───────────────────────────────────────────── */
+function QuizView({onResult}){
+  const [step,setStep]=useState(0);
+  const [answers,setAnswers]=useState([]);
+  const [result,setResult]=useState(null);
+  const [leadForm,setLeadForm]=useState({name:"",phone:"",casl:false});
+  const [sent,setSent]=useState(false);
+
+  const handleAnswer=(ans)=>{
+    const next=[...answers,ans];
+    if(step<QUIZ.length-1){setAnswers(next);setStep(s=>s+1);}
+    else{
+      const profiles=["cashflow","appreciation","brrr","precon"];
+      setResult(QUIZ_RESULTS[profiles[Math.floor(Math.random()*3)]]);
+      setAnswers(next);
+    }
+  };
+
+  const handleLead=()=>{
+    if(!leadForm.name||!leadForm.phone||!leadForm.casl)return;
+    const msg=encodeURIComponent(`🎯 Investor Quiz Lead\n\nProfile: ${result.title}\nName: ${leadForm.name}\nPhone: ${leadForm.phone}\nCARL Consent: YES`);
+    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    setSent(true);
+  };
+
+  if(sent)return(
+    <div style={{textAlign:"center",padding:"60px 24px"}}>
+      <div style={{fontSize:64,marginBottom:16}}>{result.emoji}</div>
+      <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:TEXT,marginBottom:8}}>You're a {result.title}!</h2>
+      <p style={{color:MUTED,fontSize:15,lineHeight:1.7,maxWidth:480,margin:"0 auto 24px"}}>Hamza will reach out with properties and opportunities matched to your investor profile.</p>
+      <button onClick={()=>{setStep(0);setAnswers([]);setResult(null);setSent(false);}} className="btn-ghost" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>
+        Retake Quiz
+      </button>
+    </div>
+  );
+
+  if(result)return(
+    <div style={{maxWidth:560,margin:"0 auto",padding:"40px 24px"}}>
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{fontSize:56,marginBottom:10}}>{result.emoji}</div>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:GOLD,marginBottom:8}}>You're a {result.title}</h2>
+        <p style={{color:MUTED,fontSize:14,lineHeight:1.7}}>{result.desc}</p>
+      </div>
+      <div style={{background:CARD,border:`1px solid ${GOLD_BORDER}`,borderRadius:14,padding:"24px"}}>
+        <h3 style={{fontSize:15,fontWeight:600,color:TEXT,marginBottom:16}}>Connect with Hamza to explore matching properties</h3>
+        {[["Your Name *","name","text"],["Phone *","phone","tel"]].map(([label,key,type])=>(
+          <div key={key} style={{marginBottom:14}}>
+            <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}} htmlFor={`quiz-${key}`}>{label}</label>
+            <input id={`quiz-${key}`} type={type} value={leadForm[key]} onChange={e=>setLeadForm(f=>({...f,[key]:e.target.value}))}
+              style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}/>
+          </div>
+        ))}
+        <div style={{background:"rgba(196,154,60,0.05)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:8,padding:"12px 14px",marginBottom:14}}>
+          <label style={{display:"flex",gap:10,alignItems:"flex-start",cursor:"pointer"}}>
+            <input type="checkbox" checked={leadForm.casl} onChange={e=>setLeadForm(f=>({...f,casl:e.target.checked}))} style={{marginTop:3,flexShrink:0}}/>
+            <span style={{fontSize:11,color:MUTED,lineHeight:1.6}}>{CASL_TEXT}</span>
+          </label>
+        </div>
+        <button onClick={handleLead} disabled={!leadForm.name||!leadForm.phone||!leadForm.casl} className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15,opacity:(!leadForm.name||!leadForm.phone||!leadForm.casl)?0.4:1,cursor:(!leadForm.name||!leadForm.phone||!leadForm.casl)?"not-allowed":"pointer"}}>
+          Find My Properties
+        </button>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{maxWidth:560,margin:"0 auto",padding:"40px 24px"}}>
+      <div style={{marginBottom:24}}>
+        <div style={{display:"flex",gap:6,marginBottom:20}}>
+          {QUIZ.map((_,i)=>(
+            <div key={i} style={{flex:1,height:3,borderRadius:2,background:i<=step?GOLD:"rgba(255,255,255,0.07)",transition:"background .3s ease"}}/>
+          ))}
+        </div>
+        <div style={{fontSize:12,color:MUTED,marginBottom:8}}>Question {step+1} of {QUIZ.length}</div>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:TEXT,lineHeight:1.4}}>{QUIZ[step].q}</h2>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+        {QUIZ[step].opts.map(opt=>(
+          <button key={opt} onClick={()=>handleAnswer(opt)} className="btn-ghost" style={{padding:"14px 20px",borderRadius:10,fontSize:14,textAlign:"left",width:"100%"}}>
+            {opt}
+          </button>
         ))}
       </div>
     </div>
   );
-};
+}
 
-// ─── LISTINGS MANAGER (simplified) ──────────────────────────────────────────
-const ListingsManager = ({listings,setListings})=>{
-  const [editing,setEditing]=useState(null);
-  const [form,setForm]=useState({});
-  const [saving,setSaving]=useState(false);
-  const blank={id:"ML"+Date.now(),address:"",neighbourhood:"Erin Mills",price:0,beds:3,baths:2,sqft:0,dom:0,priceReduction:0,estimatedRent:0,type:"Detached",lrtAccess:false,brokerage:"",hamzaScore:7.0,cashFlow:0,capRate:0,hamzaNotes:"",status:"active",images:[],featured:false};
-  const openEdit=l=>{setForm({...l});setEditing(l.id);};
-  const openNew=()=>{setForm({...blank});setEditing("new");};
-  const save=async()=>{
-    setSaving(true);
-    const updated=editing==="new"?[form,...listings]:listings.map(l=>l.id===editing?form:l);
-    setListings(updated);await store.set("listings",updated);setSaving(false);setEditing(null);
-  };
-  const del=async id=>{if(!confirm("Delete?"))return;const u=listings.filter(l=>l.id!==id);setListings(u);await store.set("listings",u);};
-  const F=({label,field,type="text",options})=>(
-    <div style={{marginBottom:12}}>
-      <label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>{label}</label>
-      {options?<select value={form[field]||""} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} className="input">{options.map(o=><option key={o}>{o}</option>)}</select>
-       :type==="checkbox"?<label style={{display:"flex",gap:8,cursor:"pointer"}}><input type="checkbox" checked={!!form[field]} onChange={e=>setForm(f=>({...f,[field]:e.target.checked}))}/><span style={{fontSize:13,color:T.muted}}>Yes</span></label>
-       :type==="textarea"?<textarea value={form[field]||""} onChange={e=>setForm(f=>({...f,[field]:e.target.value}))} className="input" style={{height:90,resize:"vertical"}}/>
-       :<input type={type} value={form[field]??""} onChange={e=>setForm(f=>({...f,[field]:type==="number"?parseFloat(e.target.value)||0:e.target.value}))} className="input"/>}
-    </div>
-  );
-  if(editing)return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <h2 style={{fontSize:18,fontWeight:700,color:T.text}}>{editing==="new"?"Add Listing":"Edit Listing"}</h2>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setEditing(null)} className="btn btn-ghost" style={{padding:"8px 16px",borderRadius:8,fontSize:13,border:`1px solid ${T.border}`}}>Cancel</button>
-          <button onClick={save} disabled={saving} className="btn btn-gold" style={{padding:"8px 18px",borderRadius:8,fontSize:13,display:"flex",alignItems:"center",gap:7}}>{saving?<><Spinner size={13} color="#fff"/>Saving...</>:"💾 Save"}</button>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-        <div className="card" style={{padding:18}}>
-          <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Property Details</div>
-          <F label="Address *" field="address"/><F label="Neighbourhood" field="neighbourhood" options={["Clarkson","Port Credit","Lakeview","Churchill Meadows","Streetsville","Erin Mills","Cooksville","Hurontario","Meadowvale","Malton"]}/>
-          <F label="Type" field="type" options={["Detached","Semi-Detached","Townhouse","Condo"]}/>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}><F label="Beds" field="beds" type="number"/><F label="Baths" field="baths" type="number"/><F label="Sq Ft" field="sqft" type="number"/></div>
-          <F label="Brokerage (TRREB required)" field="brokerage"/><F label="LRT Access" field="lrtAccess" type="checkbox"/><F label="Featured" field="featured" type="checkbox"/>
-        </div>
-        <div className="card" style={{padding:18}}>
-          <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Investment Numbers</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            <F label="Price ($)" field="price" type="number"/><F label="Original Price ($)" field="originalPrice" type="number"/>
-            <F label="Price Drop (%)" field="priceReduction" type="number"/><F label="Days on Market" field="dom" type="number"/>
-            <F label="Est. Rent/mo ($)" field="estimatedRent" type="number"/><F label="Cash Flow/mo ($)" field="cashFlow" type="number"/>
-            <F label="Cap Rate (%)" field="capRate" type="number"/><F label="Score (0-10)" field="hamzaScore" type="number"/>
-          </div>
-        </div>
-      </div>
-      <div className="card" style={{padding:18,marginTop:14}}>
-        <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:10}}>Hamza's Notes</div>
-        <F label="Your investment analysis" field="hamzaNotes" type="textarea"/>
-        <AIWriter prompt={`Write Hamza's investment analysis for ${form.address||"this property"} in ${form.neighbourhood||"Mississauga"}. Price $${(form.price||0).toLocaleString()}, ${form.beds||0} beds, ${form.dom||0} DOM, ${form.priceReduction||0}% price drop, rent $${(form.estimatedRent||0).toLocaleString()}/mo.`} onInsert={txt=>setForm(f=>({...f,hamzaNotes:txt}))} placeholder="Describe property and I'll write the analysis..."/>
-      </div>
-      <div className="card" style={{padding:18,marginTop:14}}>
-        <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:4}}>📸 Listing Photos</div>
-        <div style={{fontSize:12,color:T.muted,marginBottom:12}}>Go to <strong style={{color:T.text}}>Media → Listing Photos</strong> for the full photo manager with exact placement previews. Quick upload here adds to the gallery.</div>
-        <MultiImageUploader images={form.images||[]} onChange={fn=>setForm(f=>({...f,images:fn(f.images||[])}))}/>
-      </div>
-    </div>
-  );
+/* ─────────────────────────────────────────────
+   MARKET PULSE TAB
+───────────────────────────────────────────── */
+function MarketPulse(){
+  const stats=[
+    {label:"Avg Detached Price",value:"$1.02M",sub:"Mississauga · Q1 2025",delta:"+4.2% YoY"},
+    {label:"Active Listings",value:"3,847",sub:"GTA West · Feb 2025",delta:"+18% MoM"},
+    {label:"Sales-to-Listings",value:"0.41",sub:"Below 0.40 = buyer's mkt",delta:"↓ Cooling"},
+    {label:"Avg Days on Market",value:"28",sub:"All property types",delta:"+6 days YoY"},
+    {label:"Avg Condo Price",value:"$621K",sub:"Mississauga City Centre",delta:"-2.1% YoY"},
+    {label:"Hurontario LRT",value:"2025",sub:"Expected opening",delta:"9 LRT stops"},
+  ];
+
   return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <h2 style={{fontSize:20,fontWeight:700,color:T.text}}>Listings Manager</h2>
-        <button onClick={openNew} className="btn btn-gold" style={{padding:"10px 20px",borderRadius:9,fontSize:13}}>+ Add Listing</button>
+    <div style={{padding:"24px 0"}}>
+      <div style={{marginBottom:28}}>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Mississauga Market Pulse</h2>
+        <p style={{fontSize:13,color:MUTED}}>Hamza's read on the market as of Q1 2025. Personal analysis — not TRREB data.</p>
       </div>
-      <div style={{display:"grid",gap:10}}>
-        {listings.map(l=>(
-          <div key={l.id} className="card" style={{padding:"14px 18px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-            <div style={{width:52,height:52,borderRadius:10,overflow:"hidden",background:"#1E3A5F",flexShrink:0,position:"relative"}}>
-              {(l.images||[])[0]?<img src={l.images[0].url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{l.type==="Detached"?"🏠":l.type==="Condo"?"🏢":"🏘️"}</div>}
-              {(l.images||[]).length>0&&<div style={{position:"absolute",bottom:0,right:0,background:"rgba(0,0,0,0.7)",fontSize:9,color:"#fff",padding:"1px 4px",borderRadius:"4px 0 0 0"}}>{l.images.length}📸</div>}
-            </div>
-            <div style={{flex:1}}>
-              <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{l.address} {l.featured&&<span className="tag" style={{background:T.goldDim,color:T.gold,border:`1px solid ${T.goldBorder}`,fontSize:10}}>★</span>}</div>
-              <div style={{fontSize:12,color:T.muted}}>{l.neighbourhood} · {fmtK(l.price)} · Score {l.hamzaScore} · {l.dom}d · {l.status}</div>
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>openEdit(l)} className="btn btn-ghost" style={{padding:"7px 14px",borderRadius:7,fontSize:12,border:`1px solid ${T.border}`}}>✏️ Edit</button>
-              <button onClick={()=>del(l.id)} className="btn btn-danger" style={{padding:"7px 14px",borderRadius:7,fontSize:12,border:"1px solid rgba(248,113,113,0.2)"}}>🗑️</button>
-            </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14,marginBottom:28}}>
+        {stats.map(s=>(
+          <div key={s.label} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"16px 18px"}}>
+            <div style={{fontSize:11,color:MUTED,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:6}}>{s.label}</div>
+            <div className="mono" style={{fontSize:24,fontWeight:700,color:TEXT,marginBottom:2}}>{s.value}</div>
+            <div style={{fontSize:11,color:MUTED,marginBottom:6}}>{s.sub}</div>
+            <div style={{fontSize:11,color:GOLD,fontWeight:600}}>{s.delta}</div>
           </div>
         ))}
       </div>
+      <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"20px 22px",marginBottom:20}}>
+        <h3 style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:12}}>Hamza's Q1 2025 Market Read</h3>
+        <p style={{fontSize:14,color:MUTED,lineHeight:1.8}}>
+          We're in a transitional buyer's market. The sales-to-listing ratio has dropped below 0.45 in Mississauga, giving buyers real negotiating power for the first time since 2020. <strong style={{color:TEXT}}>My strategy: target properties 40+ days on market in Clarkson and Churchill Meadows with 5%+ price reductions.</strong> Detached under $950K is the sweet spot — institutional money is avoiding condos. The Hurontario LRT corridor is the single best infrastructure play in the GTA over the next 3 years.
+        </p>
+      </div>
+      <div style={{padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8}}>
+        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Market commentary by Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage. For informational purposes only. Not TRREB data. Verify all figures with official sources before making investment decisions.</p>
+      </div>
     </div>
   );
-};
+}
 
-// ─── BLOG MANAGER ────────────────────────────────────────────────────────────
-const BlogManager = ({blogs,setBlogs})=>{
-  const [editing,setEditing]=useState(null);
-  const [form,setForm]=useState({});
-  const [saving,setSaving]=useState(false);
-  const [autoSEOing,setAutoSEOing]=useState(false);
-  const blank={id:"b"+Date.now(),title:"",slug:"",excerpt:"",content:"",status:"draft",date:new Date().toISOString().split("T")[0],tags:[],seoTitle:"",seoDesc:"",coverImage:null,views:0};
-  const openEdit=b=>{setForm({...b});setEditing(b.id);};
-  const openNew=()=>{setForm({...blank});setEditing("new");};
-  const save=async(status)=>{
-    setSaving(true);
-    const slug=form.slug||form.title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
-    const data={...form,slug,status:status||form.status};
-    const updated=editing==="new"?[data,...blogs]:blogs.map(b=>b.id===editing?data:b);
-    setBlogs(updated);await store.set("blogs",updated);setSaving(false);setEditing(null);
-  };
-  const del=async id=>{if(!confirm("Delete?"))return;const u=blogs.filter(b=>b.id!==id);setBlogs(u);await store.set("blogs",u);};
-  const autoSEO=async()=>{
-    if(!form.title)return;setAutoSEOing(true);
-    try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,system:"SEO expert. Respond ONLY with JSON: {\"seoTitle\":\"...\",\"seoDesc\":\"...\",\"slug\":\"...\"}. Title max 60 chars, desc max 155 chars.",messages:[{role:"user",content:`Title: "${form.title}". Site: mississaugainvestor.ca, Hamza Nouman real estate agent Mississauga.`}]})});
-      const d=await res.json();
-      const parsed=JSON.parse(d.content?.[0]?.text?.replace(/```json|```/g,"").trim()||"{}");
-      setForm(f=>({...f,...parsed}));
-    }catch{}
-    setAutoSEOing(false);
-  };
-  if(editing)return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:10}}>
-        <h2 style={{fontSize:18,fontWeight:700,color:T.text}}>{editing==="new"?"New Post":"Edit Post"}</h2>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>setEditing(null)} className="btn btn-ghost" style={{padding:"8px 14px",borderRadius:8,fontSize:13,border:`1px solid ${T.border}`}}>Cancel</button>
-          <button onClick={()=>save("draft")} className="btn btn-ghost" style={{padding:"8px 14px",borderRadius:8,fontSize:13,border:`1px solid ${T.border}`}}>Save Draft</button>
-          <button onClick={()=>save("published")} disabled={saving} className="btn btn-gold" style={{padding:"8px 18px",borderRadius:8,fontSize:13,display:"flex",alignItems:"center",gap:7}}>{saving?<><Spinner size={13} color="#fff"/>Publishing...</>:"🚀 Publish"}</button>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16}}>
-        <div>
-          <div className="card" style={{padding:18,marginBottom:14}}>
-            <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>Title *</label><input value={form.title||""} onChange={e=>setForm(f=>({...f,title:e.target.value}))} className="input" style={{fontSize:15,fontWeight:600}}/></div>
-            <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>Excerpt</label><textarea value={form.excerpt||""} onChange={e=>setForm(f=>({...f,excerpt:e.target.value}))} className="input" style={{height:70,resize:"vertical"}}/></div>
-            <div><label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>Full Content</label><textarea value={form.content||""} onChange={e=>setForm(f=>({...f,content:e.target.value}))} className="input" style={{height:280,resize:"vertical",lineHeight:1.7}}/></div>
-            <AIWriter prompt={`Write a full SEO blog post titled "${form.title||"Mississauga real estate investment"}". Target: Mississauga real estate investors. Include specific neighbourhood data, cap rates, investment advice. Hamza Nouman's voice — direct and data-driven.`} onInsert={txt=>setForm(f=>({...f,content:txt}))} placeholder="Give a topic and I'll write the full post..."/>
-          </div>
-          <div className="card" style={{padding:18}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:10}}>📸 Cover Image</div>
-            <div style={{fontSize:12,color:T.muted,marginBottom:10}}>Appears on blog card grid, top of post, and when shared on WhatsApp/Facebook. Recommended: 1200×630px.</div>
-            <ImageSlot label="Blog Cover" value={form.coverImage||null} onChange={v=>setForm(f=>({...f,coverImage:v}))} aspectRatio="16/9" width="100%" showLocation={false}/>
-            {form.coverImage&&<div style={{marginTop:8}}><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>Alt Text (SEO)</label><input value={form.coverImage.alt||""} onChange={e=>setForm(f=>({...f,coverImage:{...f.coverImage,alt:e.target.value}}))} className="input" placeholder="Describe the image for Google..." style={{fontSize:12}}/></div>}
-          </div>
-        </div>
-        <div>
-          <div className="card" style={{padding:18,marginBottom:14}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Settings</div>
-            <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>Status</label><select value={form.status||"draft"} onChange={e=>setForm(f=>({...f,status:e.target.value}))} className="input"><option value="draft">Draft</option><option value="published">Published</option></select></div>
-            <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>Date</label><input type="date" value={form.date||""} onChange={e=>setForm(f=>({...f,date:e.target.value}))} className="input"/></div>
-            <div><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>Tags</label><input value={(form.tags||[]).join(", ")} onChange={e=>setForm(f=>({...f,tags:e.target.value.split(",").map(t=>t.trim()).filter(Boolean)}))} className="input" placeholder="investment, mississauga"/></div>
-          </div>
-          <div className="card" style={{padding:18}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <div style={{fontSize:13,fontWeight:700,color:T.gold}}>SEO</div>
-              <button onClick={autoSEO} disabled={autoSEOing} className="btn btn-ghost" style={{padding:"4px 10px",borderRadius:6,fontSize:11,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:5}}>
-                {autoSEOing?<><Spinner size={11}/>Auto</>:"✨ Auto-fill"}
-              </button>
-            </div>
-            <div style={{marginBottom:10}}><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>URL Slug</label><input value={form.slug||""} onChange={e=>setForm(f=>({...f,slug:e.target.value}))} className="input" style={{fontSize:12}}/><div style={{fontSize:10,color:T.muted,marginTop:2}}>mississaugainvestor.ca/blog/{form.slug||"..."}</div></div>
-            <div style={{marginBottom:10}}><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>SEO Title <span style={{color:(form.seoTitle||"").length>60?T.red:T.muted}}>({(form.seoTitle||"").length}/60)</span></label><input value={form.seoTitle||""} onChange={e=>setForm(f=>({...f,seoTitle:e.target.value}))} className="input" style={{fontSize:12}}/></div>
-            <div><label style={{display:"block",fontSize:11,color:T.muted,marginBottom:4}}>Meta Description <span style={{color:(form.seoDesc||"").length>155?T.red:T.muted}}>({(form.seoDesc||"").length}/155)</span></label><textarea value={form.seoDesc||""} onChange={e=>setForm(f=>({...f,seoDesc:e.target.value}))} className="input" style={{height:70,resize:"vertical",fontSize:12}}/></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+/* ─────────────────────────────────────────────
+   NEIGHBOURHOOD DEEP DIVE
+───────────────────────────────────────────── */
+function HoodsView({onFilterListings}){
+  const [active,setActive]=useState(null);
+  const trendColor={hot:RED,warm:GOLD,cool:BLUE};
+
   return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-        <h2 style={{fontSize:20,fontWeight:700,color:T.text}}>Blog Manager</h2>
-        <button onClick={openNew} className="btn btn-gold" style={{padding:"10px 20px",borderRadius:9,fontSize:13}}>+ New Post</button>
+    <div style={{padding:"24px 0"}}>
+      <div style={{marginBottom:28}}>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Neighbourhood Intelligence</h2>
+        <p style={{fontSize:13,color:MUTED}}>Hamza's personal ratings across 10 Mississauga neighbourhoods. Personal opinion — not MLS® data.</p>
       </div>
-      <div style={{display:"grid",gap:10}}>
-        {blogs.map(b=>(
-          <div key={b.id} className="card" style={{padding:"14px 18px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
-            <div style={{width:72,height:50,borderRadius:8,overflow:"hidden",background:T.surface,flexShrink:0}}>
-              {b.coverImage?<img src={b.coverImage.url} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>✍️</div>}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+        {Object.entries(HOOD_DATA).map(([name,h])=>(
+          <div key={name} className="card-hover"
+            style={{background:CARD,border:`1px solid ${active===name?"rgba(196,154,60,0.4)":BORDER}`,borderRadius:14,padding:"18px 20px",cursor:"pointer"}}
+            onClick={()=>setActive(active===name?null:name)}
+            role="button" tabIndex={0} aria-expanded={active===name} aria-label={`${name} neighbourhood details`}
+            onKeyDown={e=>e.key==="Enter"&&setActive(active===name?null:name)}
+          >
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+              <div>
+                <div style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:2}}>{name}</div>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  <span style={{fontSize:11}}>{h.emoji}</span>
+                  <span style={{fontSize:11,color:trendColor[h.trend],fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em"}}>{h.trend}</span>
+                  <span style={{fontSize:11,color:MUTED}}>· {h.inventory} inventory</span>
+                </div>
+              </div>
+              <div className="mono" style={{fontSize:20,fontWeight:700,color:GOLD}}>{h.rentYield}%<div style={{fontSize:10,color:MUTED,fontWeight:400,textAlign:"right"}}>yield</div></div>
             </div>
-            <div style={{flex:1}}>
-              <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{b.title}</div>
-              <div style={{fontSize:12,color:T.muted}}>{b.date} · {b.views} views · <span style={{color:b.status==="published"?T.green:T.muted}}>{b.status}</span></div>
+            <div style={{display:"flex",gap:8,marginBottom:12}}>
+              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
+                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Avg Price</div>
+                <div className="mono" style={{fontSize:14,fontWeight:600,color:TEXT}}>{fmtK(h.avgPrice)}</div>
+              </div>
+              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
+                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>YoY Change</div>
+                <div className="mono" style={{fontSize:14,fontWeight:600,color:h.priceYoY>4?GREEN:h.priceYoY>2?GOLD:MUTED}}>+{h.priceYoY}%</div>
+              </div>
+              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
+                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Avg DOM</div>
+                <div className="mono" style={{fontSize:14,fontWeight:600,color:h.avgDOM>50?RED:TEXT}}>{h.avgDOM}d</div>
+              </div>
             </div>
-            <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>openEdit(b)} className="btn btn-ghost" style={{padding:"7px 14px",borderRadius:7,fontSize:12,border:`1px solid ${T.border}`}}>✏️ Edit</button>
-              <button onClick={()=>del(b.id)} className="btn btn-danger" style={{padding:"7px 14px",borderRadius:7,fontSize:12,border:"1px solid rgba(248,113,113,0.2)"}}>🗑️</button>
-            </div>
+            {active===name&&(
+              <div style={{animation:"fadeIn .2s ease"}}>
+                <p style={{fontSize:13,color:TEXT,lineHeight:1.7,marginBottom:12,fontStyle:"italic"}}>"{h.note}"</p>
+                <button onClick={e=>{e.stopPropagation();onFilterListings(name);}} className="btn-gold-outline" style={{padding:"8px 16px",borderRadius:8,fontSize:12,width:"100%"}}>
+                  View {name} Sample Listings →
+                </button>
+              </div>
+            )}
+            {active!==name&&<div style={{fontSize:11,color:MUTED}}>Click to expand →</div>}
           </div>
         ))}
       </div>
+      <div style={{marginTop:16,padding:"10px 14px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8}}>
+        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Neighbourhood data represents Hamza Nouman's personal professional opinion based on market experience. Not sourced from TRREB or MLS®. Verify all data independently. Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage.</p>
+      </div>
     </div>
   );
-};
+}
 
-// ─── LEADS ───────────────────────────────────────────────────────────────────
-const LeadsManager = ({leads,setLeads,settings})=>{
-  const [filter,setFilter]=useState("All");
-  const types=["All","Registration","Pre-Con VIP","Seller","Quiz"];
-  const filtered=filter==="All"?leads:leads.filter(l=>l.type===filter);
-  const del=async id=>{const u=leads.filter(l=>l.id!==id);setLeads(u);await store.set("leads",u);};
+/* ─────────────────────────────────────────────
+   DEAL FINDER / FIND MY DEAL
+───────────────────────────────────────────── */
+function FindMyDeal(){
   return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:20}}><h2 style={{fontSize:20,fontWeight:700,color:T.text}}>Leads Manager</h2><span style={{fontSize:13,color:T.muted}}>{leads.length} total · all CASL consented</span></div>
-      <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-        {types.map(t=><button key={t} onClick={()=>setFilter(t)} className={filter===t?"btn btn-gold":"btn btn-ghost"} style={{padding:"7px 16px",borderRadius:8,fontSize:12,border:filter===t?"none":`1px solid ${T.border}`}}>{t}{t!=="All"&&` (${leads.filter(l=>l.type===t).length})`}</button>)}
+    <div style={{padding:"40px 0"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:TEXT,marginBottom:8}}>Find My Ideal Deal</h2>
+        <p style={{fontSize:14,color:MUTED,maxWidth:480,margin:"0 auto"}}>Answer 4 quick questions and Hamza will connect you with properties matching your exact investor profile.</p>
       </div>
-      <div style={{display:"grid",gap:10}}>
-        {filtered.map(lead=>(
-          <div key={lead.id} className="card" style={{padding:"14px 18px",display:"flex",gap:14,alignItems:"center",flexWrap:"wrap"}}>
-            <div style={{fontSize:28,flexShrink:0}}>{lead.type==="Seller"?"🏡":lead.type==="Pre-Con VIP"?"🏙️":"👤"}</div>
-            <div style={{flex:1}}>
-              <div style={{fontSize:14,fontWeight:700,color:T.text,marginBottom:2}}>{lead.name} <span className="tag" style={{background:T.goldDim,color:T.gold,border:`1px solid ${T.goldBorder}`,fontSize:10}}>{lead.type}</span></div>
-              <div style={{fontSize:12,color:T.muted}}>{lead.phone}{lead.email?` · ${lead.email}`:""} · {lead.date}</div>
-              {lead.notes&&<div style={{fontSize:12,color:T.text,fontStyle:"italic",marginTop:2}}>"{lead.notes}"</div>}
-            </div>
-            <div style={{display:"flex",gap:8}}>
-              <a href={`https://wa.me/${settings.whatsapp}?text=${encodeURIComponent("Hi "+lead.name+", this is Hamza Nouman from Royal LePage Signature Realty. Thank you for registering on mississaugainvestor.ca!")}`} target="_blank" rel="noreferrer"
-                style={{fontSize:12,background:"rgba(37,211,102,0.1)",color:"#25D366",border:"1px solid rgba(37,211,102,0.2)",padding:"7px 12px",borderRadius:7,textDecoration:"none",fontWeight:600}}>💬</a>
-              {lead.phone&&<a href={`tel:${lead.phone}`} style={{fontSize:12,background:T.surface,color:T.text,border:`1px solid ${T.border}`,padding:"7px 12px",borderRadius:7,textDecoration:"none"}}>📞</a>}
-              <button onClick={()=>del(lead.id)} className="btn btn-danger" style={{padding:"7px 12px",borderRadius:7,fontSize:12,border:"1px solid rgba(248,113,113,0.2)"}}>🗑️</button>
+      <QuizView onResult={()=>{}}/>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   COMPREHENSIVE FOOTER
+───────────────────────────────────────────── */
+function Footer({onPrivacy}){
+  return(
+    <footer role="contentinfo" style={{background:"#050810",borderTop:`1px solid ${BORDER}`,padding:"32px 24px 24px",marginTop:60}}>
+      <div style={{maxWidth:1200,margin:"0 auto"}}>
+
+        {/* Top row — agent + links */}
+        <div style={{display:"flex",gap:32,flexWrap:"wrap",marginBottom:28,paddingBottom:24,borderBottom:`1px solid ${BORDER}`}}>
+          <div style={{flex:1,minWidth:240}}>
+            <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:4}}>Hamza Nouman</div>
+            <div style={{fontSize:12,color:GOLD,marginBottom:2}}>Sales Representative</div>
+            <div style={{fontSize:12,color:MUTED,marginBottom:12}}>Royal LePage Signature Realty, Brokerage</div>
+            <div style={{fontSize:12,color:MUTED,lineHeight:1.8}}>
+              📞 <a href="tel:16476091289" style={{color:MUTED,textDecoration:"none"}}>647-609-1289</a><br/>
+              ✉️ <a href="mailto:hamza@nouman.ca" style={{color:MUTED,textDecoration:"none"}}>hamza@nouman.ca</a><br/>
+              🌐 <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{color:GOLD,textDecoration:"none"}}>hamzahomes.ca</a>
             </div>
           </div>
-        ))}
-        {filtered.length===0&&<div style={{textAlign:"center",padding:40,color:T.muted}}>No leads yet.</div>}
-      </div>
-    </div>
-  );
-};
-
-// ─── SEO ─────────────────────────────────────────────────────────────────────
-const SEOManager = ({seo,setSeo})=>{
-  const [saving,setSaving]=useState(false);
-  const [auditing,setAuditing]=useState(false);
-  const [audit,setAudit]=useState("");
-  const save=async()=>{setSaving(true);await store.set("seo",seo);setSaving(false);alert("SEO saved ✓");};
-  const runAudit=async()=>{
-    setAuditing(true);setAudit("");
-    try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:700,system:"Expert SEO auditor for real estate websites. Be specific and actionable.",messages:[{role:"user",content:`Audit SEO for mississaugainvestor.ca:\nSite Title: ${seo.siteTitle}\nMeta Desc: ${seo.siteDesc}\nKeywords: ${seo.keywords}\n\nRate each out of 10, flag issues, give 5 improvements to rank for "Mississauga investment properties".`}]})});
-      const d=await res.json();setAudit(d.content?.[0]?.text||"Failed.");
-    }catch{setAudit("Audit failed.");}
-    setAuditing(false);
-  };
-  const F=({label,value,onChange,type="text",hint,maxLen})=>(
-    <div style={{marginBottom:14}}>
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-        <label style={{fontSize:12,color:T.muted,fontWeight:600}}>{label}</label>
-        {maxLen&&<span style={{fontSize:11,color:value?.length>maxLen?T.red:T.muted}}>{value?.length||0}/{maxLen}</span>}
-      </div>
-      {type==="textarea"?<textarea value={value||""} onChange={e=>onChange(e.target.value)} className="input" style={{height:75,resize:"vertical"}}/>:<input type={type} value={value||""} onChange={e=>onChange(e.target.value)} className="input"/>}
-      {hint&&<div style={{fontSize:11,color:T.muted,marginTop:3}}>{hint}</div>}
-    </div>
-  );
-  return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:10}}>
-        <h2 style={{fontSize:20,fontWeight:700,color:T.text}}>SEO Manager</h2>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={runAudit} disabled={auditing} className="btn btn-ghost" style={{padding:"9px 16px",borderRadius:9,fontSize:13,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",gap:7}}>{auditing?<><Spinner size={13}/>Auditing...</>:"🔍 AI Audit"}</button>
-          <button onClick={save} disabled={saving} className="btn btn-gold" style={{padding:"9px 18px",borderRadius:9,fontSize:13,display:"flex",alignItems:"center",gap:7}}>{saving?<><Spinner size={13} color="#fff"/>Saving...</>:"💾 Save SEO"}</button>
-        </div>
-      </div>
-      {audit&&<div className="card" style={{padding:18,marginBottom:18,border:"1px solid rgba(96,165,250,0.3)"}}><div style={{fontSize:13,fontWeight:700,color:T.blue,marginBottom:8}}>AI SEO Audit</div><pre style={{fontSize:12,color:T.text,lineHeight:1.8,whiteSpace:"pre-wrap",fontFamily:"'Outfit',sans-serif"}}>{audit}</pre></div>}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-        <div>
-          <div className="card" style={{padding:18,marginBottom:14}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Global SEO</div>
-            <F label="Site Title" value={seo.siteTitle} onChange={v=>setSeo(s=>({...s,siteTitle:v}))} maxLen={60}/>
-            <F label="Meta Description" value={seo.siteDesc} onChange={v=>setSeo(s=>({...s,siteDesc:v}))} type="textarea" maxLen={155}/>
-            <F label="Keywords" value={seo.keywords} onChange={v=>setSeo(s=>({...s,keywords:v}))}/>
-            <F label="Google Analytics ID" value={seo.googleAnalytics} onChange={v=>setSeo(s=>({...s,googleAnalytics:v}))} hint="e.g. G-XXXXXXXXXX"/>
+          <div style={{flex:1,minWidth:160}}>
+            <div style={{fontSize:11,color:MUTED,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Quick Links</div>
+            {[["Listings","#listings"],["Market Pulse","#pulse"],["Neighbourhoods","#hoods"],["Find My Deal","#quiz"]].map(([label,href])=>(
+              <div key={label} style={{marginBottom:6}}><a href={href} style={{fontSize:12,color:MUTED,textDecoration:"none"}}>{label}</a></div>
+            ))}
           </div>
-          <div className="card" style={{padding:18}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:10}}>SEO Checklist</div>
-            {[[!!seo.siteTitle&&seo.siteTitle.length<=60,"Site title ≤60 chars"],[!!seo.siteDesc&&seo.siteDesc.length<=155,"Meta desc ≤155 chars"],[!!seo.googleAnalytics,"Google Analytics connected"],[!!seo.schemaAgent,"Schema markup enabled"],[!!seo.canonicalBase,"Canonical URL set"]].map(([pass,label])=>(
-              <div key={label} style={{display:"flex",gap:8,alignItems:"center",marginBottom:7}}><span>{pass?"✅":"❌"}</span><span style={{fontSize:12,color:pass?T.text:T.muted}}>{label}</span></div>
+          <div style={{flex:1,minWidth:160}}>
+            <div style={{fontSize:11,color:MUTED,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Legal</div>
+            {[["Privacy Policy",()=>onPrivacy()],["Terms of Use",()=>window.open("https://www.hamzahomes.ca/terms-of-service","_blank")],["RECO Registration",()=>window.open("https://www.reco.on.ca","_blank")]].map(([label,action])=>(
+              <div key={label} style={{marginBottom:6}}><button onClick={action} style={{background:"none",border:"none",fontSize:12,color:MUTED,cursor:"pointer",padding:0,textDecoration:"none"}}>{label}</button></div>
+            ))}
+          </div>
+          <div style={{flex:1,minWidth:180}}>
+            <div style={{fontSize:11,color:MUTED,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Services</div>
+            {["Mississauga","Oakville","Milton","Burlington","Brampton","Toronto","Hamilton"].map(city=>(
+              <div key={city} style={{fontSize:12,color:MUTED,marginBottom:4}}>{city}</div>
             ))}
           </div>
         </div>
-        <div className="card" style={{padding:18}}>
-          <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Page SEO</div>
-          {Object.entries(seo.pages||{}).map(([page,data])=>(
-            <div key={page} style={{marginBottom:16,paddingBottom:16,borderBottom:`1px solid ${T.border}`}}>
-              <div style={{fontSize:12,fontWeight:700,color:T.blue,marginBottom:8,textTransform:"capitalize"}}>/{page}</div>
-              <F label="Title" value={data.title} onChange={v=>setSeo(s=>({...s,pages:{...s.pages,[page]:{...data,title:v}}}))} maxLen={60}/>
-              <F label="Description" value={data.desc} onChange={v=>setSeo(s=>({...s,pages:{...s.pages,[page]:{...data,desc:v}}}))} type="textarea" maxLen={155}/>
+
+        {/* TRREB + CREA Trademark Statements — MANDATORY */}
+        <div style={{marginBottom:20,padding:"16px",background:"rgba(255,255,255,0.02)",borderRadius:8,border:`1px solid ${BORDER}`}}>
+          <div style={{fontSize:11,color:"#4A6280",lineHeight:1.8}}>
+            <p style={{marginBottom:6}}>The trademarks <strong style={{color:"#5A7090"}}>MLS®, Multiple Listing Service®</strong> and the associated logos are owned by The Canadian Real Estate Association (CREA) and identify the quality of services provided by real estate professionals who are members of CREA.</p>
+            <p style={{marginBottom:6}}>The trademark <strong style={{color:"#5A7090"}}>REALTOR®</strong> is controlled by The Canadian Real Estate Association (CREA) and identifies real estate professionals who are members of CREA. Used under license.</p>
+            <p style={{marginBottom:6}}><strong style={{color:"#5A7090"}}>DATA DISCLAIMER:</strong> The listing information on this website is deemed reliable but is not guaranteed accurate. Sample listing data displayed on this site is for demonstration purposes only and does not represent actual MLS® listings. Live data from TRREB MLS® will be displayed upon integration. For verified listing information, visit <a href="https://www.hamzahomes.ca" style={{color:GOLD}}>hamzahomes.ca</a> or contact Hamza directly.</p>
+            <p>MLS® data is provided for the private, non-commercial use of individuals. Any other use of these materials is strictly prohibited. Copyright © {new Date().getFullYear()} The Canadian Real Estate Association. All rights reserved.</p>
+          </div>
+        </div>
+
+        {/* Investment Disclaimer — MANDATORY */}
+        <div style={{marginBottom:20,padding:"16px",background:"rgba(196,154,60,0.03)",borderRadius:8,border:`1px solid rgba(196,154,60,0.12)`}}>
+          <div style={{fontSize:11,color:"#4A6280",lineHeight:1.8}}>
+            <strong style={{color:"#8A9BB0"}}>INVESTMENT DISCLAIMER:</strong> The investment analysis tools, cap rate calculations, cash flow projections, and BRRR analysis on this website are for general informational and educational purposes only and do not constitute financial, investment, tax, or professional advice. All projections are estimates based on assumptions and actual results will differ materially. Hamza Nouman is a licensed real estate sales representative, not a financial advisor, mortgage broker, or investment advisor. Consult qualified professionals including a licensed financial advisor, accountant, and mortgage broker before making investment decisions. Real estate investment involves significant risk including potential loss of capital.
+          </div>
+        </div>
+
+        {/* PIPEDA Privacy Notice */}
+        <div style={{marginBottom:20,padding:"14px 16px",background:"rgba(255,255,255,0.015)",borderRadius:8,border:`1px solid ${BORDER}`}}>
+          <div style={{fontSize:11,color:"#4A6280",lineHeight:1.8}}>
+            <strong style={{color:"#8A9BB0"}}>PRIVACY (PIPEDA):</strong> Personal information collected through this website is used to respond to inquiries and provide real estate services. We do not sell your information. You may access, correct, or request deletion of your information by contacting hamza@nouman.ca. For privacy concerns, contact the Office of the Privacy Commissioner of Canada at <a href="https://www.priv.gc.ca" target="_blank" rel="noreferrer" style={{color:GOLD}}>www.priv.gc.ca</a>.
+          </div>
+        </div>
+
+        {/* Bottom row */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+          <div style={{fontSize:11,color:"#3A4E62"}}>
+            © {new Date().getFullYear()} mississaugainvestor.ca · Hamza Nouman, Sales Representative · Royal LePage Signature Realty, Brokerage · Independently Owned & Operated
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <span className="compliance-badge">RECO ✓</span>
+            <span className="compliance-badge">CASL ✓</span>
+            <span className="compliance-badge">PIPEDA ✓</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   HEADER
+───────────────────────────────────────────── */
+function Header({activeNav,setActiveNav,onSeller}){
+  const [mobileOpen,setMobileOpen]=useState(false);
+  const navItems=[
+    {id:"listings",label:"Listings"},
+    {id:"pulse",label:"Market Pulse"},
+    {id:"hoods",label:"Neighbourhoods"},
+    {id:"quiz",label:"Find My Deal"},
+    {id:"precon",label:"Pre-Con VIP"},
+  ];
+
+  return(
+    <header role="banner" style={{position:"sticky",top:0,zIndex:80,background:"rgba(7,11,20,0.92)",backdropFilter:"blur(20px)",borderBottom:`1px solid ${BORDER}`,padding:"0 24px"}}>
+      {/* Skip link for accessibility */}
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
+      {/* Brokerage bar — RECO mandatory */}
+      <div style={{background:"rgba(196,154,60,0.06)",borderBottom:`1px solid rgba(196,154,60,0.1)`,padding:"4px 0",textAlign:"center"}}>
+        <span style={{fontSize:11,color:"#8A7040"}}>Hamza Nouman · <strong>Sales Representative</strong> · Royal LePage Signature Realty, Brokerage · 647-609-1289</span>
+      </div>
+
+      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
+        {/* Logo */}
+        <button onClick={()=>setActiveNav("listings")} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}} aria-label="Go to home">
+          <div style={{width:34,height:34,background:`linear-gradient(135deg,${GOLD},${GOLD2})`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,boxShadow:`0 0 16px rgba(196,154,60,0.4)`}}>◈</div>
+          <div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:TEXT,lineHeight:1.1}}>Mississauga<span style={{color:GOLD}}> Investor</span></div>
+            <div style={{fontSize:9,color:MUTED,letterSpacing:"0.1em",textTransform:"uppercase"}}>Investment Property Intelligence</div>
+          </div>
+        </button>
+
+        {/* Desktop nav */}
+        <nav role="navigation" aria-label="Main navigation" style={{display:"flex",gap:2}} className="desktop-only">
+          {navItems.map(n=>(
+            <button key={n.id} onClick={()=>setActiveNav(n.id)} className="tab-btn" style={{...(activeNav===n.id?{color:GOLD,borderColor:GOLD}:{})}}>{n.label}</button>
+          ))}
+        </nav>
+
+        {/* CTA buttons */}
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={onSeller} className="btn-ghost desktop-only" style={{padding:"8px 16px",borderRadius:8,fontSize:13}}>
+            Sell My Home
+          </button>
+          <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer"
+            style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:600,textDecoration:"none"}}>
+            <span>💬</span><span className="desktop-only">WhatsApp</span>
+          </a>
+          {/* Mobile menu */}
+          <button onClick={()=>setMobileOpen(!mobileOpen)} className="btn-ghost" style={{padding:"8px 10px",borderRadius:8,display:"none"}} aria-label="Menu" aria-expanded={mobileOpen}
+            // Show on mobile via CSS override — simplified here
+          >☰</button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   HERO SECTION
+───────────────────────────────────────────── */
+function Hero({onCTA,setActiveNav}){
+  return(
+    <section aria-label="Hero" style={{padding:"60px 24px 48px",maxWidth:1200,margin:"0 auto",position:"relative",zIndex:1}}>
+      <div style={{textAlign:"center",animation:"fadeUp .6s ease both"}}>
+        {/* Sample notice */}
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(196,154,60,0.08)",border:`1px solid rgba(196,154,60,0.25)`,borderRadius:40,padding:"6px 16px",marginBottom:24}}>
+          <span style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>⚠️ SAMPLE DATA — DEMO MODE</span>
+          <span style={{fontSize:11,color:MUTED}}>Live TRREB data coming soon</span>
+        </div>
+
+        <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,56px)",fontWeight:900,color:TEXT,lineHeight:1.15,marginBottom:16}}>
+          Mississauga Investment<br/><span style={{color:GOLD}}>Property Intelligence</span>
+        </h1>
+        <p style={{fontSize:"clamp(15px,2vw,18px)",color:MUTED,maxWidth:600,margin:"0 auto 32px",lineHeight:1.7}}>
+          Expert investment analysis from Hamza Nouman, your Mississauga real estate specialist. Cap rates, cash flow, and Hamza's personal scores — all in one place.
+        </p>
+
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:48}}>
+          <button onClick={()=>setActiveNav("listings")} className="btn-primary" style={{padding:"13px 28px",borderRadius:10,fontSize:15}}>
+            Browse Sample Listings
+          </button>
+          <button onClick={()=>setActiveNav("quiz")} className="btn-ghost" style={{padding:"13px 28px",borderRadius:10,fontSize:15}}>
+            Find My Ideal Deal
+          </button>
+        </div>
+
+        {/* Stats bar */}
+        <div style={{display:"flex",gap:0,justifyContent:"center",borderTop:`1px solid ${BORDER}`,paddingTop:28,flexWrap:"wrap"}}>
+          {[["8+","Years GTA Experience"],["🏆","Master Sales Award"],["10","Mississauga Neighbourhoods"],["3","Languages: EN · UR · HI"]].map(([val,label],i)=>(
+            <div key={i} style={{padding:"0 28px",borderRight:i<3?`1px solid ${BORDER}`:"none",textAlign:"center",marginBottom:12}}>
+              <div className="mono" style={{fontSize:22,fontWeight:700,color:GOLD,marginBottom:4}}>{val}</div>
+              <div style={{fontSize:12,color:MUTED}}>{label}</div>
             </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
-};
+}
 
-// ─── SETTINGS ────────────────────────────────────────────────────────────────
-const SettingsPanel = ({settings,setSettings})=>{
-  const [saving,setSaving]=useState(false);
-  const save=async()=>{setSaving(true);await store.set("settings",settings);setSaving(false);alert("Settings saved ✓");};
-  const F=({label,field,type="text",options,hint})=>(
-    <div style={{marginBottom:13}}>
-      <label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:4}}>{label}</label>
-      {options?<select value={settings[field]||""} onChange={e=>setSettings(s=>({...s,[field]:e.target.value}))} className="input">{options.map(o=><option key={o}>{o}</option>)}</select>
-       :type==="textarea"?<textarea value={settings[field]||""} onChange={e=>setSettings(s=>({...s,[field]:e.target.value}))} className="input" style={{height:80,resize:"vertical"}}/>
-       :<input type={type} value={settings[field]||""} onChange={e=>setSettings(s=>({...s,[field]:e.target.value}))} className="input"/>}
-      {hint&&<div style={{fontSize:10,color:T.muted,marginTop:2}}>{hint}</div>}
-    </div>
-  );
+/* ─────────────────────────────────────────────
+   LISTINGS VIEW
+───────────────────────────────────────────── */
+function ListingsView({onOpenListing,filterHood,setFilterHood}){
+  const [propType,setPropType]=useState("All");
+  const [sort,setSort]=useState("score");
+  const [search,setSearch]=useState("");
+  const [chips,setChips]=useState(new Set());
+  const [showFilters,setShowFilters]=useState(false);
+  const [filters,setFilters]=useState({priceMin:400000,priceMax:2000000,bedsMin:0,domMax:999,priceDropMin:0});
+
+  const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
+
+  const filtered=useMemo(()=>{
+    let list=[...LISTINGS];
+    if(propType!=="All")list=list.filter(l=>l.type===propType);
+    if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
+    if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
+    if(chips.has("price-drop"))list=list.filter(l=>l.priceReduction>=5);
+    if(chips.has("cash-flow"))list=list.filter(l=>l.cashFlow>0);
+    if(chips.has("lrt"))list=list.filter(l=>l.lrtAccess);
+    if(chips.has("40-days"))list=list.filter(l=>l.dom>=40);
+    if(chips.has("under-800"))list=list.filter(l=>l.price<800000);
+    list=list.filter(l=>l.price>=filters.priceMin&&l.price<=filters.priceMax&&l.beds>=filters.bedsMin&&l.dom<=filters.domMax&&l.priceReduction>=filters.priceDropMin);
+    const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
+    list.sort(sortFns[sort]||sortFns.score);
+    return list;
+  },[propType,filterHood,search,chips,filters,sort]);
+
   return(
-    <div className="fade-in">
-      <div style={{display:"flex",justifyContent:"space-between",marginBottom:20}}>
-        <h2 style={{fontSize:20,fontWeight:700,color:T.text}}>Settings</h2>
-        <button onClick={save} disabled={saving} className="btn btn-gold" style={{padding:"10px 20px",borderRadius:9,fontSize:13,display:"flex",alignItems:"center",gap:7}}>{saving?<><Spinner size={14} color="#fff"/>Saving...</>:"💾 Save"}</button>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
-        <div className="card" style={{padding:18}}>
-          <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Agent Profile (RECO Mandatory)</div>
-          <F label="Registered Name" field="agentName"/><F label="Registration Category" field="title" options={["Sales Representative","Broker","Real Estate Salesperson"]}/>
-          <F label="Brokerage (exact RECO name)" field="brokerage" hint="Must include 'Brokerage'"/>
-          <F label="Phone" field="phone" type="tel"/><F label="Email" field="email" type="email"/><F label="Website" field="website" type="url"/>
-          <F label="Languages" field="languages"/><F label="Awards" field="awards"/>
-        </div>
+    <section aria-label="Property Listings" id="listings">
+      {/* TRREB/CREA Sample Data Banner — mandatory */}
+      <div role="alert" style={{background:"rgba(196,154,60,0.07)",border:"1px solid rgba(196,154,60,0.25)",borderRadius:12,padding:"12px 18px",marginBottom:22,display:"flex",alignItems:"flex-start",gap:12,flexWrap:"wrap"}}>
+        <span style={{fontSize:20,flexShrink:0}}>⚠️</span>
         <div>
-          <div className="card" style={{padding:18,marginBottom:14}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:12}}>Site Config</div>
-            <F label="Site Mode" field="siteMode" options={["demo","live"]} hint="Demo = sample data. Live = real TRREB listings only."/>
-            <F label="WhatsApp (no + or spaces)" field="whatsapp"/><F label="Calendly URL" field="calendly" type="url"/>
-            <div style={{marginBottom:13}}>
-              <label style={{display:"block",fontSize:11,color:T.muted,fontWeight:600,marginBottom:6}}>Brand Color</label>
-              <div style={{display:"flex",gap:10,alignItems:"center"}}>
-                <input type="color" value={settings.brandColor||"#C49A3C"} onChange={e=>setSettings(s=>({...s,brandColor:e.target.value}))} style={{width:44,height:34,border:`1px solid ${T.border}`,borderRadius:7,cursor:"pointer",background:"none"}}/>
-                <input value={settings.brandColor||"#C49A3C"} onChange={e=>setSettings(s=>({...s,brandColor:e.target.value}))} className="input" style={{flex:1}}/>
-              </div>
+          <span style={{fontSize:13,fontWeight:700,color:GOLD}}>Sample Listings — For Demonstration Purposes Only. </span>
+          <span style={{fontSize:13,color:MUTED}}>These are NOT real MLS® listings. Addresses and data are illustrative. The trademarks MLS®, Multiple Listing Service® are owned by CREA. Live TRREB data will display once MLS® feed is connected. For real listings: </span>
+          <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{fontSize:13,color:GOLD,fontWeight:600}}>hamzahomes.ca</a>
+          <span style={{fontSize:13,color:MUTED}}> · 647-609-1289</span>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div style={{marginBottom:20}}>
+        {/* Search */}
+        <div style={{position:"relative",marginBottom:14}}>
+          <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",color:MUTED,fontSize:16}} aria-hidden="true">🔍</span>
+          <input type="search" placeholder="Search address or neighbourhood..." value={search} onChange={e=>setSearch(e.target.value)}
+            style={{width:"100%",background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"11px 14px 11px 42px",color:TEXT,fontSize:14}}
+            aria-label="Search listings"/>
+        </div>
+
+        {/* Property type tabs */}
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          {["All","Detached","Semi-Detached","Townhouse","Condo"].map(t=>(
+            <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"8px 16px"}}>{t}</button>
+          ))}
+          {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:40,padding:"8px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>✕ {filterHood}</button>}
+        </div>
+
+        {/* Quick chips */}
+        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+          {[["price-drop","↓ 5%+ Drop"],["cash-flow","Cash Flow+"],["lrt","LRT Access"],["40-days","40+ DOM"],["under-800","Under $800K"]].map(([id,label])=>(
+            <button key={id} onClick={()=>toggleChip(id)} className={"chip"+(chips.has(id)?" active":"")} style={{padding:"7px 14px"}}>{label}</button>
+          ))}
+        </div>
+
+        {/* Sort + filter toggle */}
+        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+          <select value={sort} onChange={e=>setSort(e.target.value)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:"8px 14px",color:TEXT,fontSize:13}} aria-label="Sort listings by">
+            <option value="score">Sort: Hamza's Score</option>
+            <option value="price">Sort: Price ↑</option>
+            <option value="dom">Sort: Days on Market ↓</option>
+            <option value="drop">Sort: Biggest Price Drop</option>
+            <option value="cashflow">Sort: Cash Flow ↓</option>
+          </select>
+          <button onClick={()=>setShowFilters(!showFilters)} className="btn-ghost" style={{padding:"8px 16px",borderRadius:8,fontSize:13}}>
+            {showFilters?"▲ Hide":"▼ Filters"}
+          </button>
+          <span style={{fontSize:12,color:MUTED,marginLeft:"auto"}}>{filtered.length} properties</span>
+        </div>
+
+        {/* Advanced filters */}
+        {showFilters&&(
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"18px 20px",marginTop:14,animation:"slideDown .2s ease"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:16}}>
+              {[["Price Min","priceMin",300000,2000000,50000],["Price Max","priceMax",500000,3000000,50000],["Min Beds","bedsMin",0,6,1],["Max DOM","domMax",7,999,7],["Min Price Drop %","priceDropMin",0,20,1]].map(([label,key,min,max,step])=>(
+                <div key={key}>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+                    <label htmlFor={`filter-${key}`} style={{fontSize:12,color:MUTED}}>{label}</label>
+                    <span className="mono" style={{fontSize:12,color:GOLD}}>{key.includes("price")?fmtK(filters[key]):filters[key]}{key==="priceDropMin"?"%":key==="bedsMin"?"bd":""}</span>
+                  </div>
+                  <input id={`filter-${key}`} type="range" min={min} max={max} step={step} value={filters[key]} onChange={e=>setFilters(f=>({...f,[key]:Number(e.target.value)}))} style={{width:"100%"}} aria-label={label}/>
+                </div>
+              ))}
             </div>
           </div>
-          <div className="card" style={{padding:18}}>
-            <div style={{fontSize:13,fontWeight:700,color:T.gold,marginBottom:10}}>Compliance Status</div>
-            {[[true,"RECO category displayed"],[true,"Brokerage name on all pages"],[true,"CASL on all lead forms"],[true,"PIPEDA privacy policy"],[true,"TRREB sample data disclaimer"],[!!settings.calendly,"Calendly connected"]].map(([pass,label])=>(
-              <div key={label} style={{display:"flex",gap:8,marginBottom:7}}><span>{pass?"✅":"⚠️"}</span><span style={{fontSize:12,color:pass?T.text:T.muted}}>{label}</span></div>
-            ))}
+        )}
+      </div>
+
+      {/* Hamza's Pick Banner */}
+      {filtered.find(l=>l.hamzasPick)&&(
+        <div style={{background:"linear-gradient(135deg,rgba(196,154,60,0.1),rgba(196,154,60,0.05))",border:`1px solid rgba(196,154,60,0.3)`,borderRadius:14,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{fontSize:32}}>⭐</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:12,color:GOLD,fontWeight:700,letterSpacing:"0.05em",marginBottom:2}}>HAMZA'S PICK OF THE WEEK — Personal Selection</div>
+            <div style={{fontSize:15,fontWeight:700,color:TEXT}}>1590 Carolyn Rd, Erin Mills</div>
+            <div style={{fontSize:13,color:MUTED}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
           </div>
+          <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-primary" style={{padding:"10px 20px",borderRadius:8,fontSize:13}}>
+            View Analysis
+          </button>
+        </div>
+      )}
+
+      {/* Grid */}
+      {filtered.length===0?(
+        <div style={{textAlign:"center",padding:"60px 24px",color:MUTED}}>
+          <div style={{fontSize:40,marginBottom:12}}>🔍</div>
+          <p style={{fontSize:15}}>No listings match your filters.</p>
+          <button onClick={()=>{setPropType("All");setChips(new Set());setSearch("");setFilterHood&&setFilterHood(null);}} className="btn-ghost" style={{padding:"10px 20px",borderRadius:8,fontSize:13,marginTop:12}}>Clear Filters</button>
+        </div>
+      ):(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
+          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={true}/>)}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   AGENT BIO SECTION
+───────────────────────────────────────────── */
+function AgentBio({onContact}){
+  return(
+    <section aria-label="About Hamza" style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,padding:"28px 28px",marginBottom:32,display:"flex",gap:24,alignItems:"flex-start",flexWrap:"wrap"}}>
+      <img src="/hamza.jpg.JPG" onError={e=>{e.target.outerHTML='<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1E3A5F,#162032);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0;border:2px solid rgba(196,154,60,0.4)">👤</div>';}}
+        alt="Hamza Nouman, Sales Representative, Royal LePage Signature Realty" style={{width:80,height:80,borderRadius:"50%",objectFit:"cover",flexShrink:0,border:"2px solid rgba(196,154,60,0.4)"}}/>
+      <div style={{flex:1,minWidth:200}}>
+        <div style={{fontSize:18,fontWeight:700,color:TEXT,marginBottom:2,fontFamily:"'Playfair Display',serif"}}>Hamza Nouman</div>
+        <div style={{fontSize:13,color:GOLD,fontWeight:600,marginBottom:1}}>Sales Representative</div>
+        <div style={{fontSize:12,color:MUTED,marginBottom:10}}>Royal LePage Signature Realty, Brokerage</div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
+          <span style={{fontSize:11,color:GREEN,background:"rgba(52,211,153,0.08)",border:"1px solid rgba(52,211,153,0.2)",borderRadius:4,padding:"2px 8px"}}>🏆 Master Sales Award</span>
+          <span style={{fontSize:11,color:BLUE,background:"rgba(61,155,233,0.08)",border:"1px solid rgba(61,155,233,0.2)",borderRadius:4,padding:"2px 8px"}}>8+ Years GTA</span>
+          <span style={{fontSize:11,color:MUTED,background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:4,padding:"2px 8px"}}>EN · UR · HI</span>
+        </div>
+        <p style={{fontSize:13,color:MUTED,lineHeight:1.6,marginBottom:14}}>Specializing in Mississauga investment properties with deep expertise in cap rate analysis, BRRR strategies, and the Hurontario LRT corridor. Every listing scored and analyzed so you don't have to.</p>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>📞 647-609-1289</a>
+          <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(37,211,102,0.1)",color:"#25D366",border:"1px solid rgba(37,211,102,0.25)",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>💬 WhatsApp</a>
+          <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(196,154,60,0.08)",color:GOLD,border:`1px solid rgba(196,154,60,0.25)`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>🌐 hamzahomes.ca</a>
         </div>
       </div>
-    </div>
+    </section>
   );
-};
+}
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-const LoginScreen = ({onLogin})=>{
-  const [pass,setPass]=useState("");const [err,setErr]=useState("");
-  const attempt=async()=>{const stored=await store.get("dashpass")||"hamza2025";if(pass===stored)onLogin();else{setErr("Incorrect password.");setPass("");}};
-  return(
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:T.bg}}>
-      <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"40px 36px",width:"100%",maxWidth:380,textAlign:"center"}}>
-        <div style={{width:52,height:52,background:`linear-gradient(135deg,${T.gold},#A07820)`,borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,margin:"0 auto 16px",boxShadow:`0 0 30px rgba(196,154,60,0.3)`}}>◈</div>
-        <h1 style={{fontSize:20,fontWeight:700,color:T.text,marginBottom:4}}>Admin Dashboard</h1>
-        <p style={{fontSize:13,color:T.muted,marginBottom:24}}>mississaugainvestor.ca</p>
-        <input type="password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&attempt()} className="input" placeholder="Enter password" style={{marginBottom:12,textAlign:"center",letterSpacing:"0.1em"}} autoFocus/>
-        {err&&<div style={{color:T.red,fontSize:12,marginBottom:10}}>{err}</div>}
-        <button onClick={attempt} className="btn btn-gold" style={{width:"100%",padding:12,borderRadius:10,fontSize:15}}>Enter Dashboard</button>
-        <p style={{fontSize:11,color:T.muted,marginTop:12}}>Default: hamza2025 · Change in Settings</p>
-      </div>
-    </div>
-  );
-};
-
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
+/* ─────────────────────────────────────────────
+   MAIN APP
+───────────────────────────────────────────── */
 export default function App(){
-  const [loggedIn,setLoggedIn]=useState(false);
-  const [section,setSection]=useState("dashboard");
-  const [listings,setListings]=useState(DEFAULT_LISTINGS);
-  const [blogs,setBlogs]=useState(DEFAULT_BLOGS);
-  const [leads,setLeads]=useState(DEFAULT_LEADS);
-  const [seo,setSeo]=useState(DEFAULT_SEO);
-  const [settings,setSettings]=useState(DEFAULT_SETTINGS);
-  const [siteImages,setSiteImages]=useState(DEFAULT_SITE_IMAGES);
-  const [loading,setLoading]=useState(true);
+  const [activeNav,setActiveNav]=useState("listings");
+  const [selectedListing,setSelectedListing]=useState(null);
+  const [isRegistered,setIsRegistered]=useState(false);
+  const [freeViews,setFreeViews]=useState(1);
+  const [showRegModal,setShowRegModal]=useState(false);
+  const [pendingListing,setPendingListing]=useState(null);
+  const [showPrecon,setShowPrecon]=useState(false);
+  const [showSeller,setShowSeller]=useState(false);
+  const [showPrivacy,setShowPrivacy]=useState(false);
+  const [cookieConsent,setCookieConsent]=useState(null); // null=not answered, "all"/"essential"
+  const [seenDisclaimer,setSeenDisclaimer]=useState(false);
+  const [disclaimerCallback,setDisclaimerCallback]=useState(null);
+  const [filterHood,setFilterHood]=useState(null);
 
+  // Check stored cookie consent
   useEffect(()=>{
-    (async()=>{
-      const [sl,sb,sle,ss,sse,si]=await Promise.all([
-        store.get("listings"),store.get("blogs"),store.get("leads"),
-        store.get("settings"),store.get("seo"),store.get("siteImages")
-      ]);
-      if(sl)setListings(sl);if(sb)setBlogs(sb);if(sle)setLeads(sle);
-      if(ss)setSettings(ss);if(sse)setSeo(sse);if(si)setSiteImages(si);
-      setLoading(false);
-    })();
+    // Don't use localStorage (not allowed in Claude artifacts)
+    // In production, this would check a cookie
   },[]);
 
-  if(loading)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:T.bg}}><Spinner size={32}/></div>;
-  if(!loggedIn)return <><style>{G}</style><LoginScreen onLogin={()=>setLoggedIn(true)}/></>;
+  // Scroll to top on tab change
+  useEffect(()=>{window.scrollTo({top:0,behavior:"smooth"});},[activeNav]);
 
-  const NAV=[
-    {id:"dashboard",icon:"📊",label:"Dashboard"},
-    {id:"listings",icon:"🏠",label:"Listings",badge:listings.length},
-    {id:"blogs",icon:"✍️",label:"Blog",badge:blogs.filter(b=>b.status==="draft").length||null},
-    {id:"leads",icon:"👥",label:"Leads",badge:leads.length},
-    {id:"media",icon:"📸",label:"Site Images"},
-    {id:"seo",icon:"🔍",label:"SEO"},
-    {id:"settings",icon:"⚙️",label:"Settings"},
-  ];
+  const handleOpenListing=(l)=>{
+    if(!isRegistered&&freeViews<=0){
+      setPendingListing(l);setShowRegModal(true);return;
+    }
+    if(!isRegistered)setFreeViews(v=>v-1);
+    setSelectedListing(l);
+  };
+
+  const handleRegSuccess=(name)=>{
+    setIsRegistered(true);setShowRegModal(false);
+    if(pendingListing){setSelectedListing(pendingListing);setPendingListing(null);}
+  };
+
+  const handleShowDisclaimer=(cb)=>{
+    setDisclaimerCallback(()=>cb);
+    // Show disclaimer modal — we'll render it
+  };
+
+  const handleDisclaimerAccept=()=>{
+    setSeenDisclaimer(true);
+    if(disclaimerCallback){disclaimerCallback();setDisclaimerCallback(null);}
+  };
+
+  const handleFilterHood=(hood)=>{
+    setFilterHood(hood);
+    setActiveNav("listings");
+    setTimeout(()=>window.scrollTo({top:300,behavior:"smooth"}),100);
+  };
 
   return(
     <>
       <style>{G}</style>
-      <div style={{display:"flex",minHeight:"100vh",background:T.bg}}>
-        {/* Sidebar */}
-        <aside style={{width:210,background:T.surface,borderRight:`1px solid ${T.border}`,padding:"18px 10px",display:"flex",flexDirection:"column",position:"sticky",top:0,height:"100vh",overflowY:"auto",flexShrink:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:9,padding:"0 6px",marginBottom:24}}>
-            <div style={{width:30,height:30,background:`linear-gradient(135deg,${T.gold},#A07820)`,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>◈</div>
-            <div><div style={{fontSize:12,fontWeight:700,color:T.text,lineHeight:1.2}}>MI Admin</div><div style={{fontSize:10,color:T.muted}}>mississaugainvestor.ca</div></div>
-          </div>
-          <nav style={{flex:1}}>
-            {NAV.map(s=>(
-              <div key={s.id} className={`nav-item${section===s.id?" active":""}`} onClick={()=>setSection(s.id)}>
-                <span style={{fontSize:15}}>{s.icon}</span>
-                <span style={{flex:1}}>{s.label}</span>
-                {s.badge>0&&<span style={{background:section===s.id?T.gold:"rgba(255,255,255,0.1)",color:section===s.id?"#000":T.muted,fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:8,minWidth:18,textAlign:"center"}}>{s.badge}</span>}
-              </div>
-            ))}
-          </nav>
-          <div style={{borderTop:`1px solid ${T.border}`,paddingTop:12,marginTop:12}}>
-            <a href="https://mississauga-deals.vercel.app" target="_blank" rel="noreferrer" style={{display:"flex",alignItems:"center",gap:7,padding:"8px 10px",borderRadius:8,background:"rgba(52,211,153,0.06)",border:"1px solid rgba(52,211,153,0.15)",textDecoration:"none",marginBottom:6}}>
-              <span style={{fontSize:7,color:T.green}}>●</span><span style={{fontSize:12,color:T.green,fontWeight:600}}>View Live Site</span>
-            </a>
-            <div className="nav-item" onClick={()=>setLoggedIn(false)} style={{color:T.red}}><span>🚪</span><span>Log Out</span></div>
-          </div>
-        </aside>
-        {/* Main */}
-        <main style={{flex:1,padding:"26px 28px",overflow:"auto",minWidth:0}}>
-          {section==="dashboard"&&<DashboardHome listings={listings} blogs={blogs} leads={leads} settings={settings} siteImages={siteImages}/>}
-          {section==="listings"&&<ListingsManager listings={listings} setListings={setListings}/>}
-          {section==="blogs"&&<BlogManager blogs={blogs} setBlogs={setBlogs}/>}
-          {section==="leads"&&<LeadsManager leads={leads} setLeads={setLeads} settings={settings}/>}
-          {section==="media"&&<SiteImageManager siteImages={siteImages} setSiteImages={setSiteImages} listings={listings} setListings={setListings} blogs={blogs} setBlogs={setBlogs}/>}
-          {section==="seo"&&<SEOManager seo={seo} setSeo={setSeo}/>}
-          {section==="settings"&&<SettingsPanel settings={settings} setSettings={setSettings}/>}
-        </main>
+
+      {/* Animated mesh background */}
+      <div className="mesh-bg" aria-hidden="true">
+        <div className="mesh-orb" style={{width:600,height:600,background:"#C49A3C",top:"-20%",right:"-10%",animationDelay:"0s"}}/>
+        <div className="mesh-orb" style={{width:500,height:500,background:"#1E5A8A",bottom:"-15%",left:"-10%",animationDelay:"-6s"}}/>
+        <div className="mesh-orb" style={{width:400,height:400,background:"#3D9BE9",top:"40%",left:"40%",animationDelay:"-12s"}}/>
       </div>
+
+      {/* Cookie Consent */}
+      {cookieConsent===null&&(
+        <CookieBanner
+          onAccept={()=>setCookieConsent("all")}
+          onDecline={()=>setCookieConsent("essential")}
+        />
+      )}
+
+      {/* Modals */}
+      {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
+      {selectedListing&&(
+        <ListingModal
+          l={selectedListing}
+          onClose={()=>setSelectedListing(null)}
+          isRegistered={isRegistered}
+          onRequireReg={()=>{setPendingListing(selectedListing);setSelectedListing(null);setShowRegModal(true);}}
+          seenDisclaimer={seenDisclaimer}
+          onShowDisclaimer={handleShowDisclaimer}
+        />
+      )}
+      {disclaimerCallback&&!seenDisclaimer&&<InvDisclaimerModal onAccept={handleDisclaimerAccept}/>}
+      {showPrivacy&&<PrivacyModal onClose={()=>setShowPrivacy(false)}/>}
+      {showPrecon&&(
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setShowPrecon(false)}} role="dialog" aria-modal="true" aria-label="Pre-Construction VIP">
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,width:"100%",maxWidth:520,animation:"fadeUp .3s ease"}}>
+            <div style={{padding:"20px 28px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:TEXT}}>🏙️ Pre-Construction VIP Access</h2>
+              <button onClick={()=>setShowPrecon(false)} aria-label="Close" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:22}}>×</button>
+            </div>
+            <PreConForm onClose={()=>setShowPrecon(false)}/>
+          </div>
+        </div>
+      )}
+      {showSeller&&(
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setShowSeller(false)}} role="dialog" aria-modal="true" aria-label="Sell My Home">
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,width:"100%",maxWidth:520,animation:"fadeUp .3s ease"}}>
+            <div style={{padding:"20px 28px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <button onClick={()=>setShowSeller(false)} aria-label="Close" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:22,marginLeft:"auto"}}>×</button>
+            </div>
+            <SellerModal onClose={()=>setShowSeller(false)}/>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <Header activeNav={activeNav} setActiveNav={setActiveNav} onSeller={()=>setShowSeller(true)}/>
+
+      {/* Main */}
+      <main id="main-content" style={{maxWidth:1200,margin:"0 auto",padding:"0 24px 40px",position:"relative",zIndex:1}}>
+
+        {/* Hero (only on listings) */}
+        {activeNav==="listings"&&<Hero onCTA={()=>setShowRegModal(true)} setActiveNav={setActiveNav}/>}
+
+        {/* Agent bio */}
+        <AgentBio onContact={()=>setShowSeller(true)}/>
+
+        {/* Pre-con banner */}
+        {activeNav==="precon"?(
+          <div style={{padding:"40px 0"}}>
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:28,color:TEXT,marginBottom:8}}>🏙️ Pre-Construction VIP</h2>
+              <p style={{fontSize:14,color:MUTED,maxWidth:500,margin:"0 auto"}}>Get floor plans, pricing worksheets, and VIP access before public launch — directly from Hamza.</p>
+            </div>
+            <div style={{maxWidth:520,margin:"0 auto",background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,overflow:"hidden"}}>
+              <PreConForm onClose={()=>setActiveNav("listings")}/>
+            </div>
+          </div>
+        ):activeNav==="listings"?(
+          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood}/>
+        ):activeNav==="pulse"?(
+          <MarketPulse/>
+        ):activeNav==="hoods"?(
+          <HoodsView onFilterListings={handleFilterHood}/>
+        ):activeNav==="quiz"?(
+          <FindMyDeal/>
+        ):null}
+
+        {/* Registration status bar */}
+        {!isRegistered&&(
+          <div style={{background:"rgba(196,154,60,0.06)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:12,padding:"14px 20px",marginTop:28,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:600,color:TEXT,marginBottom:2}}>
+                🔓 {freeViews>0?`${freeViews} free view remaining — `:""}{isRegistered?"Full access unlocked":"Register for full access"}
+              </div>
+              <div style={{fontSize:12,color:MUTED}}>Unlock Hamza's investment scores, cash flow analysis, and AI-powered property reports</div>
+            </div>
+            <button onClick={()=>setShowRegModal(true)} className="btn-primary" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
+              Register Free
+            </button>
+          </div>
+        )}
+
+        {/* Sell / Book CTA */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14,marginTop:28}}>
+          {[
+            {emoji:"🏡",title:"What's My Home Worth?",desc:"Free market analysis, no obligation. Hamza will reach out within 24 hours.",btn:"Get Free Valuation",action:()=>setShowSeller(true)},
+            {emoji:"🏙️",title:"Pre-Construction VIP",desc:"Floor plans and pricing before public launch. Register for VIP access.",btn:"Join VIP List",action:()=>setShowPrecon(true)},
+            {emoji:"📞",title:"Book a Call",desc:"15-minute strategy call with Hamza to align your investment goals.",btn:"Book on Calendly",action:()=>window.open("https://calendly.com/hamzanouman","_blank")},
+          ].map(c=>(
+            <div key={c.title} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"22px"}}>
+              <div style={{fontSize:28,marginBottom:10}}>{c.emoji}</div>
+              <div style={{fontSize:15,fontWeight:700,color:TEXT,marginBottom:6,fontFamily:"'Playfair Display',serif"}}>{c.title}</div>
+              <p style={{fontSize:13,color:MUTED,lineHeight:1.6,marginBottom:16}}>{c.desc}</p>
+              <button onClick={c.action} className="btn-gold-outline" style={{padding:"9px 18px",borderRadius:8,fontSize:13,width:"100%"}}>{c.btn}</button>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <Footer onPrivacy={()=>setShowPrivacy(true)}/>
+
+      {/* WhatsApp FAB */}
+      <a href="https://wa.me/16476091289?text=Hi+Hamza+I+found+you+on+mississaugainvestor.ca" target="_blank" rel="noreferrer"
+        className="wa-fab" aria-label="Chat with Hamza on WhatsApp" title="WhatsApp Hamza">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
     </>
   );
 }
