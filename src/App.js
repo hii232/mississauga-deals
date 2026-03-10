@@ -1591,9 +1591,6 @@ export default function App(){
         {/* Hero (only on listings) */}
         {activeNav==="listings"&&<Hero onCTA={()=>setShowRegModal(true)} setActiveNav={setActiveNav}/>}
 
-        {/* Agent bio */}
-        <AgentBio onContact={()=>setShowSeller(true)}/>
-
         {/* Pre-con banner */}
         {activeNav==="precon"?(
           <div style={{padding:"40px 0"}}>
@@ -1629,6 +1626,9 @@ export default function App(){
             </button>
           </div>
         )}
+
+        {/* Agent bio — bottom of page */}
+        <AgentBio onContact={()=>setShowSeller(true)}/>
 
         {/* Sell / Book CTA */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14,marginTop:28}}>
