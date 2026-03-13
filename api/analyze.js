@@ -10,6 +10,8 @@ export default async function handler(req, res) {
   if (!apiKey) { res.status(500).json({ error: "API key not configured" }); return; }
 
   const { prompt, messages, system } = req.body || {};
+
+  // Build messages array — accept either {prompt} shorthand or full {messages} array
   const msgArray = messages || [{ role: "user", content: prompt || "" }];
 
   try {
@@ -21,12 +23,13 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
+        model: "claude-sonnet-4-5",
         max_tokens: 1024,
         ...(system ? { system } : {}),
         messages: msgArray
       })
     });
+
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
