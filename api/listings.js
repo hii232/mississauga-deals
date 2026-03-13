@@ -1,5 +1,5 @@
 // api/listings.js — Amplify Syndication RESO Web API (TRREB)
-// Fields verified against live schema — query.ampre.ca/odata/Property
+// Field names verified from live Amplify schema — NO $expand (images via separate endpoint)
 const BASE = 'https://query.ampre.ca/odata/Property';
 
 export default async function handler(req, res) {
@@ -11,7 +11,6 @@ export default async function handler(req, res) {
   const minPrice = parseInt(req.query.minPrice || '0');
   const maxPrice = parseInt(req.query.maxPrice || '5000000');
 
-  // All field names verified against live Amplify schema (439 fields)
   const select = [
     'ListingKey','ListingId','UnparsedAddress',
     'StreetNumber','StreetName','StreetSuffix','UnitNumber',
@@ -32,17 +31,12 @@ export default async function handler(req, res) {
     'VirtualTourURLBranded'
   ].join(',');
 
-  // No filter inside $expand — just get top 6 images ordered by Order
-  const expand = 'Media($select=MediaURL,Order;$orderby=Order;$top=6)';
-
-  // Filter: active listings in city within price range
   const filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
 
   const url = BASE
-    + '?$filter='   + encodeURIComponent(filter)
-    + '&$select='   + encodeURIComponent(select)
-    + '&$expand='   + expand
-    + '&$top='      + limit
+    + '?$filter='  + encodeURIComponent(filter)
+    + '&$select='  + encodeURIComponent(select)
+    + '&$top='     + limit
     + '&$orderby=ModificationTimestamp%20desc';
 
   try {
@@ -53,12 +47,11 @@ export default async function handler(req, res) {
     const raw = await apiRes.text();
 
     if (!apiRes.ok) {
-      console.error('Amplify error:', apiRes.status, raw.slice(0, 300));
-      return res.status(200).json({ listings: [], total: 0, error: raw, url });
+      console.error('Amplify error:', apiRes.status, raw.slice(0, 400));
+      return res.status(200).json({ listings: [], total: 0, error: raw });
     }
 
     const data = JSON.parse(raw);
-    // VOW: filter out listings where internet display is explicitly false
     const listings = (data.value || []).filter(l => l.InternetAddressDisplayYN !== false);
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
@@ -70,7 +63,6 @@ export default async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error('Amplify fetch failed:', err.message);
     return res.status(500).json({ listings: [], total: 0, error: err.message });
   }
 }
