@@ -149,7 +149,7 @@ const BORDER="rgba(255,255,255,0.07)";
 /* ─────────────────────────────────────────────
    LISTING DATA
 ───────────────────────────────────────────── */
-const LISTINGS = [
+let LISTINGS = [
   {id:"ML001",address:"2847 Folkway Dr",neighbourhood:"Erin Mills",price:849000,beds:4,baths:3,sqft:2100,dom:67,priceReduction:6.2,originalPrice:906000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Signature Realty",hamzaScore:8.4,hamzaNotes:"12.4% price reduction on a 4-bed det — seller has been sitting 67 days and is motivated. All brick detached basement suite potential. Best value in the neighbourhood right now.",cashFlow:310,capRate:5.1,walkScore:71,transitScore:64,schoolScore:88},
   {id:"ML002",address:"1203 Haig Blvd",neighbourhood:"Lakeview",price:1125000,beds:3,baths:2,sqft:1650,dom:8,priceReduction:0,originalPrice:1125000,estimatedRent:4400,type:"Semi-Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.1,hamzaNotes:"Lakeview is appreciating fast but this one is fresh to market at ask. No negotiating room yet. Watch for a 30+ day reduction before jumping.",cashFlow:-180,capRate:4.2,walkScore:68,transitScore:72,schoolScore:82},
   {id:"ML003",address:"5521 Glen Erin Dr",neighbourhood:"Churchill Meadows",price:799000,beds:3,baths:3,sqft:1800,dom:47,priceReduction:8.5,originalPrice:873000,estimatedRent:3900,type:"Townhouse",lrtAccess:false,brokerage:"Century 21 Miller Real Estate Ltd.",hamzaScore:7.8,hamzaNotes:"8.5% drop on a Churchill Meadows townhouse. Excellent school catchment. Top floor laundry, finished basement. Strong rental demand from hospital workers nearby.",cashFlow:120,capRate:4.7,walkScore:78,transitScore:70,schoolScore:94},
@@ -475,7 +475,7 @@ function ListingCard({l,onOpen,isSample=true}){
 
         {/* Tags top-left */}
         <div style={{position:"absolute",top:10,left:10,display:"flex",gap:5,flexWrap:"wrap"}}>
-          {}
+          {isSample&&<span style={{background:"rgba(5,9,26,0.8)",border:`1px solid rgba(255,255,255,0.12)`,borderRadius:4,padding:"2px 7px",fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:600,letterSpacing:"0.06em"}}>SAMPLE</span>}
           {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.5)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
           {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.18)",border:"1px solid rgba(59,130,246,0.45)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#93C5FD",fontWeight:600}}>LRT</span>}
           {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.14)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GREEN,fontWeight:700}}>↓{l.priceReduction}%</span>}
@@ -2334,8 +2334,7 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
-  const [liveListings,setLiveListings]=useState([]);
-  const [usingLiveFeed,setUsingLiveFeed]=useState(false);
+  const [_tick,_setTick]=useState(0);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2348,42 +2347,35 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
-  // Load live TRREB listings
   useEffect(()=>{
-    if(!isRegistered) return;
-    fetch('/api/listings?city=Mississauga&limit=100')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.listings && d.listings.length > 0){
-          setLiveListings(d.listings.map(l=>({
-            id: l.ListingKey,
-            address: [l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
-            neighbourhood: l.CityRegion||'Mississauga',
-            price: l.ListPrice, originalPrice: l.OriginalListPrice||l.ListPrice,
-            beds: l.BedroomsTotal||0, baths: l.BathroomsTotalInteger||0,
-            sqft: l.BuildingAreaTotal||null, sqftRange: l.LivingAreaRange||null,
-            dom: l.DaysOnMarket||0,
-            type: l.PropertySubType||l.PropertyType||'Residential',
-            brokerage: l.ListOfficeName||'',
-            description: l.PublicRemarks||'',
-            inclusions: l.Inclusions||'',
-            parking: l.ParkingTotal||0, garage: l.GarageType||'', locker: l.Locker||'',
-            tax: l.TaxAnnualAmount||null, condoFee: l.AssociationFee||null,
-            crossStreet: l.CrossStreet||'', age: l.ApproximateAge||'',
-            postalCode: l.PostalCode||'', images: [], isSample: false,
-            priceReduction: l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice ? +((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1) : 0,
-            estimatedRent: Math.round((l.ListPrice||0)*0.0042),
-            capRate: +(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
-            cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
-            walkScore:72, transitScore:65, schoolScore:76,
-            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false,
-          })));
-          setUsingLiveFeed(true);
-        }
-      })
-      .catch(e=>console.error('Feed error:',e));
+    if(!isRegistered)return;
+    fetch('/api/listings?city=Mississauga&limit=100').then(r=>r.json()).then(d=>{
+      if(d.listings&&d.listings.length>0){
+        LISTINGS.splice(0,LISTINGS.length,...d.listings.map(l=>({
+          id:l.ListingKey,
+          address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
+          neighbourhood:l.CityRegion||'Mississauga',price:l.ListPrice,
+          originalPrice:l.OriginalListPrice||l.ListPrice,
+          beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
+          sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
+          dom:l.DaysOnMarket||0,type:l.PropertySubType||l.PropertyType||'Residential',
+          brokerage:l.ListOfficeName||'',description:l.PublicRemarks||'',
+          inclusions:l.Inclusions||'',parking:l.ParkingTotal||0,
+          garage:l.GarageType||'',locker:l.Locker||'',
+          tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
+          crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
+          postalCode:l.PostalCode||'',images:[],isSample:false,
+          priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
+          estimatedRent:Math.round((l.ListPrice||0)*0.0042),
+          capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
+          cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
+          walkScore:72,transitScore:65,schoolScore:76,
+          hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
+        })));
+        _setTick(n=>n+1);
+      }
+    }).catch(e=>console.error('Feed:',e));
   },[isRegistered]);
-
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
