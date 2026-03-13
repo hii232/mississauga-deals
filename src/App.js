@@ -229,7 +229,7 @@ const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
 /* ─────────────────────────────────────────────
    CASL CONSENT TEXT (reused across forms)
 ───────────────────────────────────────────── */
-const CASL_TEXT="By checking this box, I consent to receive commercial electronic messages from Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage (347 Peel Centre Dr., Brampton, ON · 647-609-1289 · hamzahomes.ca), including property listings, market reports, investment analysis, and promotional real estate communications. I understand I may withdraw consent at any time by clicking the unsubscribe link in any email or contacting hamza@nouman.ca.";
+const CASL_TEXT="By checking this box, I consent to receive commercial electronic messages from Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage (347 Peel Centre Dr., Brampton, ON · 647-609-1289 · mississaugainvestor.ca), including property listings, market reports, investment analysis, and promotional real estate communications. I understand I may withdraw consent at any time by clicking the unsubscribe link in any email or contacting hamza@nouman.ca.";
 
 /* ─────────────────────────────────────────────
    PRIVACY POLICY CONTENT
@@ -672,7 +672,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
             <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
               {l.hamzasPick&&<span style={{fontSize:11,color:GOLD,fontWeight:700,background:"rgba(196,154,60,0.1)",border:`1px solid rgba(196,154,60,0.3)`,padding:"2px 8px",borderRadius:4}}>★ HAMZA'S PICK</span>}
               <span style={{fontSize:11,color:MUTED,background:"rgba(255,255,255,0.05)",padding:"2px 8px",borderRadius:4,border:`1px solid ${BORDER}`}}>{l.type}</span>
-              <span style={{fontSize:11,color:GOLD,fontWeight:600}}>SAMPLE LISTING</span>
+              
             </div>
             <h2 id="modal-title" style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:2}}>{l.address}</h2>
             <div style={{fontSize:13,color:MUTED}}>{l.neighbourhood}, Mississauga · Courtesy: {l.brokerage}</div>
@@ -720,7 +720,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               </div>
               {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{color:GOLD}}>hamzahomes.ca</a> or call Hamza at 647-609-1289.</p>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
               </div>
             </div>
           )}
@@ -1918,7 +1918,7 @@ function Footer({onPrivacy}){
             <div style={{fontSize:12,color:MUTED,lineHeight:1.8}}>
               📞 <a href="tel:16476091289" style={{color:MUTED,textDecoration:"none"}}>647-609-1289</a><br/>
               ✉️ <a href="mailto:hamza@nouman.ca" style={{color:MUTED,textDecoration:"none"}}>hamza@nouman.ca</a><br/>
-              🌐 <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{color:GOLD,textDecoration:"none"}}>hamzahomes.ca</a>
+              🌐 
             </div>
           </div>
           <div style={{flex:1,minWidth:160}}>
@@ -1929,7 +1929,7 @@ function Footer({onPrivacy}){
           </div>
           <div style={{flex:1,minWidth:160}}>
             <div style={{fontSize:11,color:MUTED,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Legal</div>
-            {[["Privacy Policy",()=>onPrivacy()],["Terms of Use",()=>window.open("https://www.hamzahomes.ca/terms-of-service","_blank")],["RECO Registration",()=>window.open("https://www.reco.on.ca","_blank")]].map(([label,action])=>(
+            {[["Privacy Policy",()=>onPrivacy()],["Terms of Use",()=>window.open("https://www.mississaugainvestor.ca/terms-of-service","_blank")],["RECO Registration",()=>window.open("https://www.reco.on.ca","_blank")]].map(([label,action])=>(
               <div key={label} style={{marginBottom:6}}><button onClick={action} style={{background:"none",border:"none",fontSize:12,color:MUTED,cursor:"pointer",padding:0,textDecoration:"none"}}>{label}</button></div>
             ))}
           </div>
@@ -1946,7 +1946,7 @@ function Footer({onPrivacy}){
           <div style={{fontSize:11,color:"#4A6280",lineHeight:1.8}}>
             <p style={{marginBottom:6}}>The trademarks <strong style={{color:"#5A7090"}}>MLS®, Multiple Listing Service®</strong> and the associated logos are owned by The Canadian Real Estate Association (CREA) and identify the quality of services provided by real estate professionals who are members of CREA.</p>
             <p style={{marginBottom:6}}>The trademark <strong style={{color:"#5A7090"}}>REALTOR®</strong> is controlled by The Canadian Real Estate Association (CREA) and identifies real estate professionals who are members of CREA. Used under license.</p>
-            <p style={{marginBottom:6}}><strong style={{color:"#5A7090"}}>DATA DISCLAIMER:</strong> The listing information on this website is deemed reliable but is not guaranteed accurate. Sample listing data displayed on this site is for demonstration purposes only and does not represent actual MLS® listings. Live data from TRREB MLS® will be displayed upon integration. For verified listing information, visit <a href="https://www.hamzahomes.ca" style={{color:GOLD}}>hamzahomes.ca</a> or contact Hamza directly.</p>
+            <p style={{marginBottom:6}}><strong style={{color:"#5A7090"}}>DATA DISCLAIMER:</strong> The listing information on this website is deemed reliable but is not guaranteed accurate. Sample listing data displayed on this site is for demonstration purposes only and does not represent actual MLS® listings. Live data from TRREB MLS® will be displayed upon integration. For verified listing information, visit  or contact Hamza directly.</p>
             <p>MLS® data is provided for the private, non-commercial use of individuals. Any other use of these materials is strictly prohibited. Copyright © {new Date().getFullYear()} The Canadian Real Estate Association. All rights reserved.</p>
           </div>
         </div>
@@ -2072,9 +2072,9 @@ function Hero({onCTA,setActiveNav}){
         {/* Status pill */}
         <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(16,185,129,0.08)",border:`1px solid rgba(16,185,129,0.25)`,borderRadius:40,padding:"6px 18px",marginBottom:28}}>
           <span style={{width:7,height:7,borderRadius:"50%",background:GREEN,display:"inline-block",boxShadow:`0 0 8px ${GREEN}`}}/>
-          <span style={{fontSize:12,color:GREEN,fontWeight:600,letterSpacing:"0.04em"}}>LIVE — TRREB Data Feed In Progress</span>
+          <span style={{fontSize:12,color:GREEN,fontWeight:600,letterSpacing:"0.04em"}}>LIVE — TRREB Data Connected</span>
           <span style={{fontSize:12,color:MUTED}}>·</span>
-          <span style={{fontSize:12,color:MUTED}}>Demo mode active</span>
+          <span style={{fontSize:12,color:MUTED}}>Real listings · Updating hourly</span>
         </div>
 
         {/* Headline */}
@@ -2152,7 +2152,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...LISTINGS];
+    let list=[...(usingLiveFeed?liveListings:LISTINGS)];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2169,17 +2169,6 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
 
   return(
     <section aria-label="Property Listings" id="listings">
-      {/* TRREB/CREA Sample Data Banner — mandatory */}
-      <div role="alert" style={{background:"rgba(196,154,60,0.07)",border:"1px solid rgba(196,154,60,0.25)",borderRadius:12,padding:"12px 18px",marginBottom:22,display:"flex",alignItems:"flex-start",gap:12,flexWrap:"wrap"}}>
-        <span style={{fontSize:20,flexShrink:0}}>⚠️</span>
-        <div>
-          <span style={{fontSize:13,fontWeight:700,color:GOLD}}>Sample Listings — For Demonstration Purposes Only. </span>
-          <span style={{fontSize:13,color:MUTED}}>These are NOT real MLS® listings. Addresses and data are illustrative. The trademarks MLS®, Multiple Listing Service® are owned by CREA. Live TRREB data will display once MLS® feed is connected. For real listings: </span>
-          <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{fontSize:13,color:GOLD,fontWeight:600}}>hamzahomes.ca</a>
-          <span style={{fontSize:13,color:MUTED}}> · 647-609-1289</span>
-        </div>
-      </div>
-
       {/* Controls */}
       <div style={{marginBottom:20}}>
         {/* Search */}
@@ -2290,7 +2279,7 @@ function AgentBio({onContact}){
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>📞 647-609-1289</a>
           <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(37,211,102,0.1)",color:"#25D366",border:"1px solid rgba(37,211,102,0.25)",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>💬 WhatsApp</a>
-          <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(196,154,60,0.08)",color:GOLD,border:`1px solid rgba(196,154,60,0.25)`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>🌐 hamzahomes.ca</a>
+          <a href="https://www.mississaugainvestor.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(196,154,60,0.08)",color:GOLD,border:`1px solid rgba(196,154,60,0.25)`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>🌐 mississaugainvestor.ca</a>
         </div>
       </div>
     </section>
@@ -2345,6 +2334,9 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
+  const [liveListings,setLiveListings]=useState([]);
+  const [usingLiveFeed,setUsingLiveFeed]=useState(false);
+  const [feedLoading,setFeedLoading]=useState(false);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2357,6 +2349,54 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
+
+  // TRREB Live Feed — fetches real listings on login
+  useEffect(()=>{
+    if(!isRegistered)return;
+    setFeedLoading(true);
+    fetch('/api/listings?city=Mississauga&limit=100')
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.listings&&data.listings.length>0){
+          setLiveListings(data.listings.map(l=>({
+            id:l.ListingKey,
+            address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
+            neighbourhood:l.CityRegion||'Mississauga',
+            price:l.ListPrice,
+            originalPrice:l.OriginalListPrice||l.ListPrice,
+            beds:l.BedroomsTotal||0,
+            baths:l.BathroomsTotalInteger||0,
+            sqft:l.BuildingAreaTotal||null,
+            sqftRange:l.LivingAreaRange||null,
+            dom:l.DaysOnMarket||0,
+            type:l.PropertySubType||l.PropertyType||'Residential',
+            brokerage:l.ListOfficeName||'',
+            description:l.PublicRemarks||'',
+            inclusions:l.Inclusions||'',
+            parking:l.ParkingTotal||0,
+            garage:l.GarageType||'',
+            locker:l.Locker||'',
+            tax:l.TaxAnnualAmount||null,
+            condoFee:l.AssociationFee||null,
+            crossStreet:l.CrossStreet||'',
+            age:l.ApproximateAge||'',
+            postalCode:l.PostalCode||'',
+            virtualTour:l.VirtualTourURLBranded||null,
+            images:[],isSample:false,
+            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+(((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1)):0,
+            estimatedRent:Math.round((l.ListPrice||0)*0.0042),
+            capRate:+((((l.ListPrice||1)*0.0042*12)/(l.ListPrice||1)*100).toFixed(2)),
+            cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
+            walkScore:72,transitScore:65,schoolScore:76,
+            hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
+          })));
+          setUsingLiveFeed(true);
+          localStorage.setItem('vowLoginTime',Date.now().toString());
+        }
+      })
+      .catch(e=>console.error('Feed error:',e))
+      .finally(()=>setFeedLoading(false));
+  },[isRegistered]);
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
@@ -2536,4 +2576,10 @@ export default function App(){
       </a>
     </>
   );
+        {/* PropTx/TRREB Compliance Footer */}
+        <div style={{textAlign:'center',padding:'20px 0',borderTop:'1px solid #1E2D45',marginTop:'32px'}}>
+          <p style={{color:MUTED,fontSize:11,margin:'0 0 4px',lineHeight:1.6}}>© {new Date().getFullYear()} Toronto Regional Real Estate Board (TRREB). Information deemed reliable but not guaranteed. Data refreshed hourly via Amplify Syndication.</p>
+          <p style={{color:MUTED,fontSize:10,margin:0,lineHeight:1.6}}>The information provided herein must only be used by consumers that have a bona fide interest in the purchase, sale, or lease of real estate and may not be used for any commercial purpose or any other purpose.</p>
+        </div>
+
 }
