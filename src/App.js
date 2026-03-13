@@ -2348,7 +2348,6 @@ export default function App(){
 
   // Check stored cookie consent
   useEffect(()=>{
-    if(!isRegistered)return;
     fetch('/api/listings?city=Mississauga&limit=100').then(r=>r.json()).then(d=>{
       if(d.listings&&d.listings.length>0){
         LISTINGS.splice(0,LISTINGS.length,...d.listings.map(l=>({
@@ -2375,7 +2374,7 @@ export default function App(){
         _setTick(n=>n+1);
       }
     }).catch(e=>console.error('Feed:',e));
-  },[isRegistered]);
+  },[]);
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
