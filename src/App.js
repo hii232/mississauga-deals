@@ -2349,10 +2349,8 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
-  // TRREB Live Feed
   useEffect(()=>{
     if(!isRegistered)return;
-    setFeedLoading(true);
     fetch('/api/listings?city=Mississauga&limit=100')
       .then(r=>r.json())
       .then(d=>{
@@ -2370,9 +2368,8 @@ export default function App(){
             garage:l.GarageType||'',locker:l.Locker||'',
             tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
             crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
-            postalCode:l.PostalCode||'',virtualTour:l.VirtualTourURLBranded||null,
-            images:[],isSample:false,
-            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+(((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1)):0,
+            postalCode:l.PostalCode||'',images:[],isSample:false,
+            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
             estimatedRent:Math.round((l.ListPrice||0)*0.0042),
             capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1)*100).toFixed(2)),
             cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
@@ -2380,10 +2377,9 @@ export default function App(){
             hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
           })));
           setUsingLiveFeed(true);
-          localStorage.setItem('vowLoginTime',Date.now().toString());
         }
       })
-      .catch(e=>console.error('Feed:',e))
+      .catch(e=>console.error(e))
       .finally(()=>setFeedLoading(false));
   },[isRegistered]);
 
@@ -2566,10 +2562,9 @@ export default function App(){
       </a>
     </>
   );
-        {/* PropTx TRREB VOW Footer */}
         <div style={{textAlign:'center',padding:'16px 0',borderTop:'1px solid #1E2D45',marginTop:'24px'}}>
-          <p style={{color:MUTED,fontSize:11,margin:'0 0 4px',lineHeight:1.6}}>Copyright {new Date().getFullYear()} Toronto Regional Real Estate Board (TRREB). Information deemed reliable but not guaranteed. Data refreshed hourly via Amplify Syndication.</p>
-          <p style={{color:MUTED,fontSize:10,margin:0,lineHeight:1.6}}>For use only by consumers with a bona fide interest in the purchase, sale, or lease of real estate. Not for commercial use.</p>
+          <p style={{color:MUTED,fontSize:11,margin:'0 0 4px'}}>Copyright {new Date().getFullYear()} Toronto Regional Real Estate Board. Information deemed reliable but not guaranteed. Data refreshed hourly.</p>
+          <p style={{color:MUTED,fontSize:10,margin:0}}>For use only by consumers with a bona fide interest in the purchase, sale, or lease of real estate.</p>
         </div>
 
 }
