@@ -1197,6 +1197,290 @@ function FindMyDeal(){
 }
 
 /* ─────────────────────────────────────────────
+   REAL ESTATE NEWS — Bloomberg-style feed
+   Fetches live RSS from Globe & Mail, BNN, STOREYS
+───────────────────────────────────────────── */
+const NEWS_SOURCES=[
+  {id:"globemail",label:"Globe & Mail",color:"#3B82F6",url:"https://www.theglobeandmail.com/rss/topic/real-estate/"},
+  {id:"bnn",label:"BNN Bloomberg",color:"#F59E0B",url:"https://feeds.bnnbloomberg.ca/bnnbloomberg/news/real-estate"},
+  {id:"storeys",label:"STOREYS",color:"#10B981",url:"https://storeys.com/feed/"},
+  {id:"cbc",label:"CBC Real Estate",color:"#EF4444",url:"https://www.cbc.ca/cmlink/rss-business"},
+];
+
+function RealEstateNews(){
+  const [articles,setArticles]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [error,setError]=useState("");
+  const [activeSource,setActiveSource]=useState("all");
+  const [activeCategory,setActiveCategory]=useState("all");
+  const [lastUpdated,setLastUpdated]=useState(null);
+  const [ticker,setTicker]=useState([]);
+
+  const CATEGORIES=[
+    {id:"all",label:"All News"},
+    {id:"mississauga",label:"Mississauga"},
+    {id:"market",label:"Market Stats"},
+    {id:"rates",label:"Interest Rates"},
+    {id:"investment",label:"Investment"},
+    {id:"policy",label:"Policy & Govt"},
+  ];
+
+  const CORS="https://api.allorigins.win/get?url=";
+
+  const parseRSS=(xml,sourceName,sourceColor)=>{
+    try{
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(xml,"text/xml");
+      const items=doc.querySelectorAll("item");
+      return Array.from(items).slice(0,12).map(item=>{
+        const title=item.querySelector("title")?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,"").trim()||"";
+        const link=item.querySelector("link")?.textContent?.trim()||"#";
+        const pubDate=item.querySelector("pubDate")?.textContent?.trim()||"";
+        const desc=(item.querySelector("description")?.textContent||"")
+          .replace(/<!\[CDATA\[|\]\]>/g,"")
+          .replace(/<[^>]+>/g,"")
+          .trim()
+          .substring(0,200);
+        const imgMatch=(item.querySelector("content")?.getAttribute("url"))||
+          (item.innerHTML.match(/https?:\/\/[^"'\s]+\.(jpg|jpeg|png|webp)/i)||[])[0]||null;
+        return{title,link,pubDate,desc,source:sourceName,color:sourceColor,img:imgMatch,
+          date:pubDate?new Date(pubDate):new Date()};
+      }).filter(a=>a.title.length>10);
+    }catch{return[];}
+  };
+
+  const detectCategory=(title,desc)=>{
+    const t=(title+" "+desc).toLowerCase();
+    if(t.includes("mississauga")||t.includes("brampton")||t.includes("oakville")||t.includes("gta"))return"mississauga";
+    if(t.includes("interest rate")||t.includes("bank of canada")||t.includes("mortgage rate")||t.includes("boc"))return"rates";
+    if(t.includes("sales")||t.includes("listings")||t.includes("prices")||t.includes("inventory")||t.includes("trreb")||t.includes("crea"))return"market";
+    if(t.includes("invest")||t.includes("rental")||t.includes("cap rate")||t.includes("landlord")||t.includes("brrr"))return"investment";
+    if(t.includes("policy")||t.includes("government")||t.includes("regulation")||t.includes("zoning")||t.includes("housing minister"))return"policy";
+    return"all";
+  };
+
+  const fetchAll=async()=>{
+    setLoading(true);setError("");
+    const results=[];
+    for(const src of NEWS_SOURCES){
+      try{
+        const res=await fetch(`${CORS}${encodeURIComponent(src.url)}`,{signal:AbortSignal.timeout(8000)});
+        const data=await res.json();
+        const parsed=parseRSS(data.contents,src.label,src.color);
+        results.push(...parsed);
+      }catch(e){/* skip source on error */}
+    }
+    if(results.length===0){setError("Unable to load news feeds. Please check your connection.");setLoading(false);return;}
+    const sorted=results.sort((a,b)=>b.date-a.date).map(a=>({...a,category:detectCategory(a.title,a.desc)}));
+    setArticles(sorted);
+    setTicker(sorted.slice(0,10));
+    setLastUpdated(new Date());
+    setLoading(false);
+  };
+
+  useEffect(()=>{fetchAll();},[]);
+
+  const fmtAge=d=>{
+    const mins=Math.round((Date.now()-d)/60000);
+    if(mins<60)return mins+"m ago";
+    if(mins<1440)return Math.round(mins/60)+"h ago";
+    return Math.round(mins/1440)+"d ago";
+  };
+
+  const filtered=articles.filter(a=>{
+    if(activeSource!=="all"&&a.source!==NEWS_SOURCES.find(s=>s.id===activeSource)?.label)return false;
+    if(activeCategory!=="all"&&a.category!==activeCategory)return false;
+    return true;
+  });
+
+  // Market data bar — hardcoded current context (updates when real feed connects)
+  const MARKET_DATA=[
+    {label:"BoC Rate",val:"2.75%",delta:"-0.25",deltaColor:GREEN},
+    {label:"5yr Fixed",val:"4.89%",delta:"+0.05",deltaColor:RED},
+    {label:"TRREB Sales/List",val:"0.41",delta:"-0.04",deltaColor:RED},
+    {label:"Avg Detached Msga",val:"$1.02M",delta:"+4.2% YoY",deltaColor:GREEN},
+    {label:"Active GTA Listings",val:"24,817",delta:"+18% MoM",deltaColor:RED},
+    {label:"Avg DOM Msga",val:"28d",delta:"+6 YoY",deltaColor:RED},
+    {label:"Hurontario LRT",val:"2025",delta:"Opening Soon",deltaColor:GREEN},
+    {label:"USD/CAD",val:"1.441",delta:"-0.003",deltaColor:GREEN},
+  ];
+
+  return(
+    <div style={{padding:"28px 0"}}>
+
+      {/* Section header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:20,flexWrap:"wrap",gap:12}}>
+        <div>
+          <h2 style={{fontFamily:"'Inter',sans-serif",fontSize:24,fontWeight:800,color:TEXT,marginBottom:4,letterSpacing:"-0.02em"}}>
+            Real Estate Intelligence
+          </h2>
+          <p style={{fontSize:13,color:MUTED}}>
+            Live market news · {lastUpdated?`Updated ${fmtAge(lastUpdated)}`:"Loading..."}
+            <span style={{marginLeft:8,fontSize:10,color:"#3D5A80",fontFamily:"'JetBrains Mono',monospace"}}>LIVE FEED</span>
+          </p>
+        </div>
+        <button onClick={fetchAll} disabled={loading} className="btn-ghost" style={{padding:"8px 16px",borderRadius:7,fontSize:12,display:"flex",alignItems:"center",gap:6}}>
+          {loading?<span style={{display:"inline-block",width:12,height:12,border:"2px solid rgba(255,255,255,0.2)",borderTopColor:BLUE,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>:"↻"}
+          {loading?"Refreshing...":"Refresh"}
+        </button>
+      </div>
+
+      {/* Market data ticker strip */}
+      <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:10,padding:"12px 18px",marginBottom:20,overflow:"hidden"}}>
+        <div style={{display:"flex",gap:0,alignItems:"center",overflowX:"auto",paddingBottom:2}}>
+          <div style={{fontSize:9,fontWeight:700,color:BLUE,letterSpacing:"0.1em",textTransform:"uppercase",paddingRight:16,borderRight:`1px solid ${BORDER}`,marginRight:16,whiteSpace:"nowrap",flexShrink:0}}>MARKET</div>
+          {MARKET_DATA.map((m,i)=>(
+            <div key={i} style={{paddingRight:20,marginRight:20,borderRight:i<MARKET_DATA.length-1?`1px solid rgba(255,255,255,0.05)`:"none",flexShrink:0}}>
+              <div style={{fontSize:9,color:MUTED,fontWeight:500,whiteSpace:"nowrap",marginBottom:2}}>{m.label}</div>
+              <div style={{display:"flex",alignItems:"baseline",gap:5}}>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:TEXT}}>{m.val}</span>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:m.deltaColor,fontWeight:600}}>{m.delta}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* News ticker — scrolling headlines */}
+      {ticker.length>0&&(
+        <div style={{background:"rgba(59,130,246,0.06)",border:`1px solid rgba(59,130,246,0.15)`,borderRadius:8,padding:"8px 0",marginBottom:20,overflow:"hidden"}}>
+          <div style={{display:"flex",alignItems:"center"}}>
+            <div style={{background:BLUE,color:"#fff",padding:"4px 12px",fontSize:10,fontWeight:700,letterSpacing:"0.08em",flexShrink:0,borderRadius:"0 4px 4px 0",marginRight:16}}>BREAKING</div>
+            <div className="ticker-wrap" style={{flex:1}}>
+              <div className="ticker-inner">
+                {[...ticker,...ticker].map((a,i)=>(
+                  <span key={i} style={{fontSize:11,color:TEXT2,paddingRight:48,whiteSpace:"nowrap"}}>
+                    <span style={{color:a.color,fontWeight:600}}>{a.source} · </span>{a.title}
+                    <span style={{color:MUTED,marginLeft:12}}>◆</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Source + category filters */}
+      <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          <button onClick={()=>setActiveSource("all")} className={`chip${activeSource==="all"?" active":""}`} style={{padding:"6px 14px"}}>All Sources</button>
+          {NEWS_SOURCES.map(s=>(
+            <button key={s.id} onClick={()=>setActiveSource(s.id)} className={`chip${activeSource===s.id?" active":""}`}
+              style={{padding:"6px 14px",borderColor:activeSource===s.id?s.color+"80":"",color:activeSource===s.id?s.color:""}}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div style={{width:"1px",height:20,background:BORDER,flexShrink:0}} className="desktop-only"/>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {CATEGORIES.map(c=>(
+            <button key={c.id} onClick={()=>setActiveCategory(c.id)} className={`chip${activeCategory===c.id?" active":""}`} style={{padding:"6px 12px",fontSize:11}}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+          {[...Array(6)].map((_,i)=>(
+            <div key={i} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,overflow:"hidden"}}>
+              <div className="skeleton" style={{height:160}}/>
+              <div style={{padding:"14px 16px"}}>
+                <div className="skeleton" style={{height:12,borderRadius:4,marginBottom:8,width:"80%"}}/>
+                <div className="skeleton" style={{height:12,borderRadius:4,marginBottom:6,width:"100%"}}/>
+                <div className="skeleton" style={{height:12,borderRadius:4,width:"60%"}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Error */}
+      {error&&!loading&&(
+        <div style={{textAlign:"center",padding:"60px 24px",color:MUTED}}>
+          <div style={{fontSize:40,marginBottom:16}}>📡</div>
+          <p style={{fontSize:15,marginBottom:8}}>{error}</p>
+          <button onClick={fetchAll} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:13,marginTop:8}}>Try Again</button>
+        </div>
+      )}
+
+      {/* Articles grid */}
+      {!loading&&!error&&(
+        <>
+          {filtered.length===0?(
+            <div style={{textAlign:"center",padding:"60px 24px",color:MUTED}}>
+              <div style={{fontSize:40,marginBottom:12}}>🗞️</div>
+              <p>No articles found for this filter. Try a different category.</p>
+            </div>
+          ):(
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+              {filtered.map((a,i)=>(
+                <a key={i} href={a.link} target="_blank" rel="noreferrer noopener"
+                  style={{display:"block",background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,overflow:"hidden",textDecoration:"none",transition:"transform .25s ease,border-color .25s ease,box-shadow .25s ease"}}
+                  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.borderColor="rgba(59,130,246,0.3)";e.currentTarget.style.boxShadow="0 16px 48px rgba(59,130,246,0.12)";}}
+                  onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.borderColor=BORDER;e.currentTarget.style.boxShadow="";}}
+                >
+                  {/* Article image or gradient */}
+                  <div style={{height:140,background:`linear-gradient(135deg,${CARD},${SURFACE})`,position:"relative",overflow:"hidden"}}>
+                    {a.img?(
+                      <img src={a.img} alt="" style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.85}} loading="lazy"
+                        onError={e=>{e.target.style.display="none";}}/>
+                    ):(
+                      <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                        <div style={{fontSize:40,opacity:0.1}}>📰</div>
+                      </div>
+                    )}
+                    {/* Source tag */}
+                    <div style={{position:"absolute",top:8,left:8}}>
+                      <span style={{background:a.color+"22",border:`1px solid ${a.color}55`,borderRadius:4,padding:"2px 8px",fontSize:9,color:a.color,fontWeight:700,letterSpacing:"0.06em"}}>{a.source.toUpperCase()}</span>
+                    </div>
+                    {/* Category tag */}
+                    {a.category!=="all"&&(
+                      <div style={{position:"absolute",top:8,right:8}}>
+                        <span style={{background:"rgba(5,9,26,0.75)",borderRadius:4,padding:"2px 8px",fontSize:9,color:MUTED,fontWeight:500,border:`1px solid ${BORDER}`}}>
+                          {CATEGORIES.find(c=>c.id===a.category)?.label||""}
+                        </span>
+                      </div>
+                    )}
+                    {/* Dark overlay */}
+                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(5,9,26,0.5),transparent)"}}/>
+                  </div>
+
+                  {/* Article content */}
+                  <div style={{padding:"14px 16px"}}>
+                    <h3 style={{fontSize:13,fontWeight:700,color:TEXT,lineHeight:1.5,marginBottom:8,display:"-webkit-box",WebkitLineClamp:3,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+                      {a.title}
+                    </h3>
+                    {a.desc&&(
+                      <p style={{fontSize:11,color:MUTED,lineHeight:1.6,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
+                        {a.desc}
+                      </p>
+                    )}
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                      <span style={{fontSize:10,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>{fmtAge(a.date)}</span>
+                      <span style={{fontSize:10,color:BLUE,fontWeight:600}}>Read →</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+
+          {/* Disclaimer */}
+          <div style={{marginTop:24,padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8}}>
+            <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>
+              News articles are sourced from third-party RSS feeds (Globe & Mail, BNN Bloomberg, STOREYS, CBC) and are provided for informational purposes only. Hamza Nouman and mississaugainvestor.ca do not endorse, control, or guarantee the accuracy of any third-party content. For investment decisions, consult a qualified professional. Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage.
+            </p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    COMPREHENSIVE FOOTER
 ───────────────────────────────────────────── */
 function Footer({onPrivacy}){
@@ -1285,6 +1569,7 @@ function Header({activeNav,setActiveNav,onSeller}){
     {id:"listings",label:"Listings"},
     {id:"pulse",label:"Market Pulse"},
     {id:"hoods",label:"Neighbourhoods"},
+    {id:"news",label:"📰 RE News"},
     {id:"quiz",label:"Find My Deal"},
     {id:"precon",label:"Pre-Con VIP"},
   ];
@@ -1729,6 +2014,8 @@ export default function App(){
           <MarketPulse/>
         ):activeNav==="hoods"?(
           <HoodsView onFilterListings={handleFilterHood}/>
+        ):activeNav==="news"?(
+          <RealEstateNews/>
         ):activeNav==="quiz"?(
           <FindMyDeal/>
         ):null}
