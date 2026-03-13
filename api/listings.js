@@ -1,4 +1,4 @@
-// api/listings.js — Amplify RESO debug build
+// api/listings.js — Amplify RESO Web API
 const BASE = 'https://query.ampre.ca/odata/Property';
 
 export default async function handler(req, res) {
@@ -6,59 +6,60 @@ export default async function handler(req, res) {
   if (!TOKEN) return res.status(503).json({ listings: [], total: 0, source: 'no-token' });
 
   const mode = req.query.mode || 'full';
-  const city = req.query.city || 'Mississauga';
-  const limit = Math.min(parseInt(req.query.limit || '10'), 100);
-  const minPrice = parseInt(req.query.minPrice || '300000');
-  const maxPrice = parseInt(req.query.maxPrice || '5000000');
 
-  // Build filter progressively based on mode for debugging
-  let filter = '';
-  if (mode === 'bare') {
-    // No filter — just get any property
-    filter = '';
-  } else if (mode === 'city') {
-    filter = `City eq '${city}'`;
-  } else if (mode === 'status') {
-    filter = `City eq '${city}' and StandardStatus eq 'Active'`;
-  } else if (mode === 'price') {
-    filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
-  } else {
-    // full mode
-    filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
+  // SCHEMA MODE: fetch 1 raw listing, no filter, no select — see every field name
+  if (mode === 'schema') {
+    try {
+      const r = await fetch(BASE + '?$top=1', {
+        headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' }
+      });
+      const raw = await r.text();
+      if (!r.ok) return res.status(200).json({ error: raw, status: r.status });
+      const d = JSON.parse(raw);
+      const sample = (d.value || [])[0] || {};
+      return res.status(200).json({ 
+        fields: Object.keys(sample).sort(), 
+        sample,
+        count: Object.keys(sample).length
+      });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
 
-  // Minimal select — just key fields
-  const select = 'ListingKey,StreetNumber,StreetName,City,ListPrice,BedroomsTotal,BathroomsTotal,LivingArea,StandardStatus,DaysOnMarket,ListOfficeName,PublicRemarks,ModificationTimestamp';
+  // FULL MODE
+  const city = req.query.city || 'Mississauga';
+  const limit = Math.min(parseInt(req.query.limit || '100'), 100);
+  const minPrice = parseInt(req.query.minPrice || '0');
+  const maxPrice = parseInt(req.query.maxPrice || '5000000');
 
-  let url = BASE + '?$top=' + limit;
-  if (filter) url += '&$filter=' + encodeURIComponent(filter);
-  url += '&$select=' + encodeURIComponent(select);
-  url += '&$orderby=ModificationTimestamp%20desc';
+  const filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
+
+  // Use verified field names (BathroomsTotalInteger, BuildingAreaTotal)
+  const select = [
+    'ListingKey','StreetNumber','StreetName','StreetSuffix','UnitNumber',
+    'City','PostalCode','ListPrice','OriginalListPrice',
+    'BedroomsTotal','BathroomsTotalInteger',
+    'BuildingAreaTotal','PropertyType','PropertySubType',
+    'StandardStatus','DaysOnMarket','ListOfficeName','ListAgentFullName',
+    'PublicRemarks','ModificationTimestamp',
+    'Latitude','Longitude','YearBuilt','ParkingTotal'
+  ].join(',');
+
+  const expand = 'Media($select=MediaURL,Order;$orderby=Order;$top=5)';
+  const url = BASE + '?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(select) + '&$expand=' + expand + '&$top=' + limit + '&$orderby=ModificationTimestamp%20desc';
 
   try {
     const apiRes = await fetch(url, {
       headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' }
     });
-
     const raw = await apiRes.text();
-    
-    if (!apiRes.ok) {
-      return res.status(200).json({ 
-        listings: [], total: 0, 
-        debug: { status: apiRes.status, url, error: raw, mode }
-      });
-    }
-
+    if (!apiRes.ok) return res.status(200).json({ listings: [], total: 0, error: raw, url });
     const data = JSON.parse(raw);
     const listings = data.value || [];
-    res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({ 
-      listings, total: listings.length, 
-      source: 'ampre-live', mode, url,
-      timestamp: new Date().toISOString()
-    });
-
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
+    return res.status(200).json({ listings, total: listings.length, source: 'ampre-live', timestamp: new Date().toISOString() });
   } catch (err) {
-    return res.status(500).json({ listings: [], total: 0, error: err.message, url });
+    return res.status(500).json({ listings: [], total: 0, error: err.message });
   }
 }
