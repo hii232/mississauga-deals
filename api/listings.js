@@ -1,12 +1,11 @@
 // api/listings.js — Amplify Syndication RESO Web API
 // Endpoint: https://query.ampre.ca/odata/
-// Auth: Bearer token via AMPRE_TOKEN env var (no OAuth2 needed)
+// Auth: Bearer token via AMPRE_TOKEN env var
 
 const BASE = 'https://query.ampre.ca/odata/Property';
 
 export default async function handler(req, res) {
   const TOKEN = process.env.AMPRE_TOKEN;
-
   if (!TOKEN) {
     return res.status(503).json({ listings: [], total: 0, source: 'no-token' });
   }
@@ -16,13 +15,8 @@ export default async function handler(req, res) {
   const maxPrice = parseInt(req.query.maxPrice || '5000000');
   const limit = Math.min(parseInt(req.query.limit || '100'), 100);
 
-  const filter = [
-    `City eq '${city}'`,
-    `StandardStatus eq 'Active'`,
-    `InternetAddressDisplayYN eq true`,
-    `ListPrice ge ${minPrice}`,
-    `ListPrice le ${maxPrice}`
-  ].join(' and ');
+  // Note: InternetAddressDisplayYN removed from OData filter — handled post-fetch
+  const filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
 
   const select = [
     'ListingKey','StreetNumber','StreetName','StreetSuffix','UnitNumber',
@@ -60,6 +54,7 @@ export default async function handler(req, res) {
     }
 
     const data = await apiRes.json();
+    // VOW compliance: filter out listings where internet display is explicitly false
     const listings = (data.value || []).filter(l => l.InternetAddressDisplayYN !== false);
 
     res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
