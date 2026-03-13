@@ -173,16 +173,30 @@ const LISTINGS = [
 ];
 
 const HOOD_DATA = {
-  "Clarkson":        {trend:"hot",  emoji:"🔥",avgPrice:1002000,priceYoY:8.2,avgDOM:38,inventory:"Low",   rentYield:5.1,note:"LRT corridor + GO station = best appreciation play 2025-2026"},
-  "Port Credit":     {trend:"hot",  emoji:"🔥",avgPrice:1198000,priceYoY:6.9,avgDOM:21,inventory:"Low",   rentYield:3.8,note:"Premium lifestyle. Appreciation play only — cap rate doesn't pencil"},
-  "Lakeview":        {trend:"warm", emoji:"📈",avgPrice:1089000,priceYoY:5.4,avgDOM:29,inventory:"Low",   rentYield:4.1,note:"Up-and-coming. Big redevelopment. Buy land, not condos"},
-  "Churchill Meadows":{trend:"warm",emoji:"📈",avgPrice:843000, priceYoY:4.1,avgDOM:47,inventory:"Medium",rentYield:4.7,note:"Top schools = stable family rental demand"},
-  "Streetsville":    {trend:"warm", emoji:"📈",avgPrice:921000, priceYoY:3.8,avgDOM:44,inventory:"Medium",rentYield:4.6,note:"Village charm + Credit River. Undervalued vs Port Credit"},
-  "Erin Mills":      {trend:"warm", emoji:"📈",avgPrice:862000, priceYoY:3.2,avgDOM:51,inventory:"Medium",rentYield:4.9,note:"Good schools, highways, affordability. Steady hold asset"},
-  "Cooksville":      {trend:"warm", emoji:"📊",avgPrice:731000, priceYoY:3.9,avgDOM:42,inventory:"Medium",rentYield:5.0,note:"LRT corridor sleeper. Under the radar, not for long"},
-  "Hurontario":      {trend:"warm", emoji:"📊",avgPrice:718000, priceYoY:3.5,avgDOM:45,inventory:"Medium",rentYield:4.8,note:"Hurontario LRT will reprice this corridor over next 3 years"},
-  "Meadowvale":      {trend:"cool", emoji:"🧊",avgPrice:764000, priceYoY:2.1,avgDOM:58,inventory:"High",  rentYield:4.9,note:"Steady but slow. Buy underpriced, cash flow it"},
-  "Malton":          {trend:"cool", emoji:"🧊",avgPrice:618000, priceYoY:1.8,avgDOM:62,inventory:"High",  rentYield:5.1,note:"Highest cash flow yields in the city. Appreciation is slow"}
+  "Clarkson":          {trend:"hot", emoji:"🔥",avgPrice:1002000,priceYoY:8.2,avgDOM:38,inventory:"Low",   rentYield:5.1,lat:43.5167,lng:-79.6239,note:"LRT corridor + GO station = best appreciation play 2025-2026"},
+  "Port Credit":       {trend:"hot", emoji:"🔥",avgPrice:1198000,priceYoY:6.9,avgDOM:21,inventory:"Low",   rentYield:3.8,lat:43.5503,lng:-79.5795,note:"Premium lifestyle. Appreciation play only — cap rate doesn't pencil"},
+  "Lakeview":          {trend:"hot", emoji:"🔥",avgPrice:1089000,priceYoY:5.4,avgDOM:29,inventory:"Low",   rentYield:4.1,lat:43.5657,lng:-79.5434,note:"Up-and-coming. Big redevelopment play. Buy land, not condos"},
+  "Lorne Park":        {trend:"hot", emoji:"🔥",avgPrice:1650000,priceYoY:5.1,avgDOM:24,inventory:"Low",   rentYield:2.9,lat:43.5318,lng:-79.6235,note:"Trophy asset territory. Appreciation only — yields are thin but equity compounding is elite"},
+  "Mineola":           {trend:"hot", emoji:"🔥",avgPrice:1420000,priceYoY:4.8,avgDOM:27,inventory:"Low",   rentYield:3.2,lat:43.5614,lng:-79.6021,note:"Mature trees, large lots, close to Port Credit GO. Long-term wealth play"},
+  "Lakeview Village":  {trend:"hot", emoji:"🔥",avgPrice:1120000,priceYoY:6.1,avgDOM:22,inventory:"Low",   rentYield:3.9,lat:43.5700,lng:-79.5320,note:"New waterfront master-plan community. Pre-con + resale both strong"},
+  "Churchill Meadows": {trend:"warm",emoji:"📈",avgPrice:843000, priceYoY:4.1,avgDOM:47,inventory:"Medium",rentYield:4.7,lat:43.5847,lng:-79.7519,note:"Top schools = stable family rental demand"},
+  "Streetsville":      {trend:"warm",emoji:"📈",avgPrice:921000, priceYoY:3.8,avgDOM:44,inventory:"Medium",rentYield:4.6,lat:43.5863,lng:-79.7180,note:"Village charm + Credit River. Undervalued vs Port Credit"},
+  "Erin Mills":        {trend:"warm",emoji:"📈",avgPrice:862000, priceYoY:3.2,avgDOM:51,inventory:"Medium",rentYield:4.9,lat:43.5575,lng:-79.7185,note:"Good schools, highways, affordability. Steady hold asset"},
+  "Central Erin Mills":{trend:"warm",emoji:"📈",avgPrice:891000, priceYoY:3.5,avgDOM:48,inventory:"Medium",rentYield:4.7,lat:43.5738,lng:-79.7152,note:"Slightly premium over Erin Mills. Strong family rental pool, high school ratings"},
+  "Cooksville":        {trend:"warm",emoji:"📊",avgPrice:731000, priceYoY:3.9,avgDOM:42,inventory:"Medium",rentYield:5.0,lat:43.5838,lng:-79.6163,note:"LRT corridor sleeper. Under the radar, not for long"},
+  "Hurontario":        {trend:"warm",emoji:"📊",avgPrice:718000, priceYoY:3.5,avgDOM:45,inventory:"Medium",rentYield:4.8,lat:43.5934,lng:-79.6403,note:"Hurontario LRT will reprice this corridor over next 3 years"},
+  "City Centre":       {trend:"warm",emoji:"📊",avgPrice:650000, priceYoY:2.9,avgDOM:50,inventory:"Medium",rentYield:4.5,lat:43.5934,lng:-79.6270,note:"Square One condos dominate. Rental demand very high from young professionals. Oversupply risk"},
+  "Mississauga Valleys":{trend:"warm",emoji:"📊",avgPrice:698000,priceYoY:3.1,avgDOM:46,inventory:"Medium",rentYield:4.7,lat:43.5779,lng:-79.6376,note:"Underrated. Mix of detached and semis. LRT access adds long-term upside"},
+  "East Credit":       {trend:"warm",emoji:"📊",avgPrice:878000, priceYoY:3.3,avgDOM:49,inventory:"Medium",rentYield:4.6,lat:43.5960,lng:-79.6982,note:"Family-oriented, top schools, good highway access. Reliable hold"},
+  "Erindale":          {trend:"warm",emoji:"📊",avgPrice:812000, priceYoY:3.0,avgDOM:52,inventory:"Medium",rentYield:4.5,lat:43.5499,lng:-79.6530,note:"UTM proximity drives student rental demand. Undervalued relative to neighbours"},
+  "Applewood":         {trend:"warm",emoji:"📊",avgPrice:765000, priceYoY:2.8,avgDOM:48,inventory:"Medium",rentYield:4.8,lat:43.5944,lng:-79.5592,note:"Older bungalows on big lots. BRRR and multiplex conversion potential is strong"},
+  "Dixie":             {trend:"warm",emoji:"📊",avgPrice:742000, priceYoY:2.6,avgDOM:51,inventory:"Medium",rentYield:4.9,lat:43.5934,lng:-79.5956,note:"Industrial and residential mix. Cash flow plays available. Close to airport"},
+  "Rathwood":          {trend:"warm",emoji:"📊",avgPrice:789000, priceYoY:2.7,avgDOM:53,inventory:"Medium",rentYield:4.6,lat:43.5784,lng:-79.5843,note:"Established, quiet, good schools. Stable but not exciting. Good hold"},
+  "Sheridan":          {trend:"cool",emoji:"🧊",avgPrice:831000, priceYoY:2.4,avgDOM:55,inventory:"High",  rentYield:4.4,lat:43.5490,lng:-79.6783,note:"Sheridan College drives rental demand but seasonal. Mixed asset quality"},
+  "Meadowvale":        {trend:"cool",emoji:"🧊",avgPrice:764000, priceYoY:2.1,avgDOM:58,inventory:"High",  rentYield:4.9,lat:43.6512,lng:-79.7356,note:"Steady but slow. Buy underpriced, cash flow it"},
+  "Lisgar":            {trend:"cool",emoji:"🧊",avgPrice:798000, priceYoY:1.9,avgDOM:60,inventory:"High",  rentYield:4.6,lat:43.6012,lng:-79.7632,note:"Newer builds, strong families but far from transit. Values lag western Mississauga"},
+  "Heartland":         {trend:"cool",emoji:"🧊",avgPrice:712000, priceYoY:1.5,avgDOM:64,inventory:"High",  rentYield:4.8,lat:43.6198,lng:-79.7189,note:"Big box retail area converting to mixed-use. Hold long-term but slow capital growth now"},
+  "Malton":            {trend:"cool",emoji:"🧊",avgPrice:618000, priceYoY:1.8,avgDOM:62,inventory:"High",  rentYield:5.1,lat:43.7123,lng:-79.6532,note:"Highest cash flow yields in the city. Appreciation is slow — pure income play"},
 };
 
 const QUIZ=[
@@ -402,16 +416,30 @@ function ScoreBar({label,value,max=100,color}){
 ───────────────────────────────────────────── */
 // Rich gradient palettes per neighbourhood — gives each card visual identity
 const HOOD_GRADIENTS={
-  "Clarkson":       ["#0C2340","#1A3F6E"],
-  "Port Credit":    ["#0A1F3A","#16406B"],
-  "Lakeview":       ["#0A2230","#114060"],
-  "Churchill Meadows":["#0A2318","#14422E"],
-  "Streetsville":   ["#1A1420","#2E2040"],
-  "Erin Mills":     ["#0D1A30","#1A3055"],
-  "Cooksville":     ["#151020","#26203A"],
-  "Hurontario":     ["#0C1A2C","#183050"],
-  "Meadowvale":     ["#0E1A10","#1C3020"],
-  "Malton":         ["#1A100E","#36201A"],
+  "Clarkson":           ["#0C2340","#1A3F6E"],
+  "Port Credit":        ["#0A1F3A","#16406B"],
+  "Lakeview":           ["#0A2230","#114060"],
+  "Lorne Park":         ["#1A1430","#2A1E50"],
+  "Mineola":            ["#0A2818","#123E28"],
+  "Lakeview Village":   ["#0A1E38","#143460"],
+  "Churchill Meadows":  ["#0A2318","#14422E"],
+  "Streetsville":       ["#1A1420","#2E2040"],
+  "Erin Mills":         ["#0D1A30","#1A3055"],
+  "Central Erin Mills": ["#0E1C32","#1C3458"],
+  "Cooksville":         ["#151020","#26203A"],
+  "Hurontario":         ["#0C1A2C","#183050"],
+  "City Centre":        ["#101828","#1C2E48"],
+  "Mississauga Valleys":["#0E1828","#1A2E44"],
+  "East Credit":        ["#0E1C2A","#1A3248"],
+  "Erindale":           ["#12101E","#201E38"],
+  "Applewood":          ["#101410","#1E2818"],
+  "Dixie":              ["#141010","#281E1E"],
+  "Rathwood":           ["#101418","#1C2430"],
+  "Sheridan":           ["#0E1C10","#1A3018"],
+  "Meadowvale":         ["#0E1A10","#1C3020"],
+  "Lisgar":             ["#0E181C","#1A2C30"],
+  "Heartland":          ["#181210","#2C201C"],
+  "Malton":             ["#1A100E","#36201A"],
 };
 
 function ListingCard({l,onOpen,isSample=true}){
@@ -1077,10 +1105,249 @@ function QuizView({onResult}){
 /* ─────────────────────────────────────────────
    MARKET PULSE TAB
 ───────────────────────────────────────────── */
+/* ─────────────────────────────────────────────
+   MARKET CONDITIONS — AI VERDICT
+   Calls /api/analyze once per month, caches in localStorage
+───────────────────────────────────────────── */
+const MARKET_INPUTS={
+  salesToListings:0.41,
+  avgDetachedPrice:1020000,
+  detachedPriceYoY:4.2,
+  activeListings:3847,
+  listingsChangeMonthly:18,
+  avgDOM:28,
+  avgDOMChangeYoY:6,
+  avgCondoPrice:621000,
+  condoPriceYoY:-2.1,
+  mortgageRate5yr:4.89,
+  bocRate:2.75,
+  monthlySupplyMonths:4.2,
+  newListingsMonthly:2847,
+  absorptionRate:38,
+  priceReductionRate:31,
+  lrtOpeningYear:2025,
+  region:"Mississauga, Ontario, Canada",
+  quarter:"Q1 2026",
+};
+
+const CACHE_KEY="msga_market_verdict";
+const CACHE_TTL=30*24*60*60*1000; // 30 days
+
+function AIMarketVerdict(){
+  const [verdict,setVerdict]=useState(null);  // {label, score, summary, signals, advice, ts}
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState("");
+  const [lastUpdated,setLastUpdated]=useState(null);
+
+  const loadCached=()=>{
+    try{
+      const raw=localStorage.getItem(CACHE_KEY);
+      if(!raw)return null;
+      const parsed=JSON.parse(raw);
+      if(Date.now()-parsed.ts>CACHE_TTL)return null;
+      return parsed;
+    }catch{return null;}
+  };
+
+  const runAnalysis=async(force=false)=>{
+    if(loading)return;
+    const cached=loadCached();
+    if(cached&&!force){setVerdict(cached);setLastUpdated(new Date(cached.ts));return;}
+    setLoading(true);setError("");
+    try{
+      const prompt=`You are a senior Canadian real estate market analyst specializing in Mississauga and GTA markets.
+
+Analyze the following current market data for Mississauga, Ontario (${MARKET_INPUTS.quarter}) and produce a structured market verdict:
+
+MARKET DATA:
+- Sales-to-Listings Ratio: ${MARKET_INPUTS.salesToListings} (below 0.40 = buyer's market, above 0.60 = seller's market)
+- Average Detached Price: $${(MARKET_INPUTS.avgDetachedPrice/1000).toFixed(0)}K (${MARKET_INPUTS.detachedPriceYoY>0?"+":""}${MARKET_INPUTS.detachedPriceYoY}% YoY)
+- Active Listings: ${MARKET_INPUTS.activeListings.toLocaleString()} (${MARKET_INPUTS.listingsChangeMonthly>0?"+":""}${MARKET_INPUTS.listingsChangeMonthly}% MoM)
+- Average Days on Market: ${MARKET_INPUTS.avgDOM} days (${MARKET_INPUTS.avgDOMChangeYoY>0?"+":""}${MARKET_INPUTS.avgDOMChangeYoY} days YoY)
+- Average Condo Price: $${(MARKET_INPUTS.avgCondoPrice/1000).toFixed(0)}K (${MARKET_INPUTS.condoPriceYoY}% YoY)
+- 5-Year Fixed Mortgage Rate: ${MARKET_INPUTS.mortgageRate5yr}%
+- Bank of Canada Policy Rate: ${MARKET_INPUTS.bocRate}%
+- Months of Supply: ${MARKET_INPUTS.monthlySupplyMonths} months
+- Absorption Rate: ${MARKET_INPUTS.absorptionRate}% of listings selling within 30 days
+- % of Listings with Price Reductions: ${MARKET_INPUTS.priceReductionRate}%
+- Hurontario LRT: opening ${MARKET_INPUTS.lrtOpeningYear}
+
+Respond ONLY with a valid JSON object in this exact format, no markdown, no extra text:
+{
+  "label": "Buyer's Market" | "Balanced Market" | "Seller's Market",
+  "score": number between 0 and 100 (0=extreme buyer's, 50=balanced, 100=extreme seller's),
+  "confidence": "High" | "Medium" | "Low",
+  "summary": "2-3 sentence plain-English verdict on current market conditions",
+  "signals": ["3-5 bullet point strings of key data signals driving this verdict"],
+  "buyerAdvice": "1-2 sentences of actionable advice for buyers right now",
+  "sellerAdvice": "1-2 sentences of actionable advice for sellers right now",
+  "investorTake": "1-2 sentences specifically for real estate investors in Mississauga"
+}`;
+
+      const res=await fetch("/api/analyze",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({prompt})
+      });
+      if(!res.ok)throw new Error(`API ${res.status}`);
+      const data=await res.json();
+      const rawText=(data.content||data.result||"").trim();
+      const jsonMatch=rawText.match(/\{[\s\S]*\}/);
+      if(!jsonMatch)throw new Error("No JSON in response");
+      const parsed=JSON.parse(jsonMatch[0]);
+      const result={...parsed,ts:Date.now()};
+      localStorage.setItem(CACHE_KEY,JSON.stringify(result));
+      setVerdict(result);
+      setLastUpdated(new Date(result.ts));
+    }catch(e){
+      setError("AI analysis unavailable. "+e.message);
+    }finally{setLoading(false);}
+  };
+
+  useEffect(()=>{runAnalysis();},[]);
+
+  const verdictColor=v=>{
+    if(!v)return BLUE;
+    if(v.label==="Buyer's Market")return"#3B82F6";
+    if(v.label==="Seller's Market")return"#EF4444";
+    return"#F59E0B";
+  };
+  const verdictEmoji=v=>{
+    if(!v)return"📊";
+    if(v.label==="Buyer's Market")return"🏠";
+    if(v.label==="Seller's Market")return"🔥";
+    return"⚖️";
+  };
+
+  const fmtAge=d=>{
+    if(!d)return"";
+    const days=Math.round((Date.now()-d)/86400000);
+    if(days===0)return"Updated today";
+    if(days===1)return"Updated yesterday";
+    return`Updated ${days} days ago · Next refresh in ${30-days} days`;
+  };
+
+  const col=verdictColor(verdict);
+  const score=verdict?.score??50;
+  // 0=buyers, 100=sellers — needle position
+  const needlePct=Math.max(2,Math.min(98,score));
+
+  return(
+    <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.2)`,borderRadius:16,overflow:"hidden",marginBottom:24}}>
+      {/* Header bar */}
+      <div style={{background:`linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.06))`,borderBottom:`1px solid ${BORDER}`,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+        <div>
+          <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:2}}>AI Market Analysis · Mississauga</div>
+          <div style={{fontSize:11,color:MUTED}}>{fmtAge(lastUpdated)}</div>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          {verdict&&<span style={{fontSize:10,color:col,background:`${col}18`,border:`1px solid ${col}40`,borderRadius:4,padding:"2px 8px",fontWeight:700}}>{verdict.confidence} Confidence</span>}
+          <button onClick={()=>runAnalysis(true)} disabled={loading}
+            style={{background:"rgba(255,255,255,0.04)",border:`1px solid ${BORDER}`,borderRadius:7,padding:"6px 14px",fontSize:11,color:MUTED,cursor:loading?"not-allowed":"pointer",display:"flex",alignItems:"center",gap:6,fontWeight:500}}>
+            {loading
+              ?<><span style={{display:"inline-block",width:10,height:10,border:"2px solid rgba(255,255,255,0.1)",borderTopColor:BLUE,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>Analyzing…</>
+              :"↻ Refresh"}
+          </button>
+        </div>
+      </div>
+
+      <div style={{padding:"22px 22px 20px"}}>
+        {/* Loading skeleton */}
+        {loading&&!verdict&&(
+          <div>
+            <div className="skeleton" style={{height:28,borderRadius:6,width:"40%",marginBottom:16}}/>
+            <div className="skeleton" style={{height:14,borderRadius:4,width:"100%",marginBottom:8}}/>
+            <div className="skeleton" style={{height:14,borderRadius:4,width:"80%",marginBottom:20}}/>
+            <div className="skeleton" style={{height:18,borderRadius:4,marginBottom:6}}/>
+            <div className="skeleton" style={{height:18,borderRadius:4,marginBottom:6,width:"90%"}}/>
+            <div className="skeleton" style={{height:18,borderRadius:4,width:"70%"}}/>
+          </div>
+        )}
+
+        {/* Error */}
+        {error&&!loading&&(
+          <div style={{textAlign:"center",padding:"20px 0",color:MUTED}}>
+            <div style={{fontSize:28,marginBottom:8}}>⚠️</div>
+            <p style={{fontSize:13,marginBottom:12}}>{error}</p>
+            <button onClick={()=>runAnalysis(true)} className="btn-primary" style={{padding:"8px 20px",borderRadius:8,fontSize:12}}>Try Again</button>
+          </div>
+        )}
+
+        {/* VERDICT */}
+        {verdict&&(
+          <>
+            {/* Main verdict + gauge */}
+            <div style={{display:"flex",alignItems:"center",gap:20,marginBottom:20,flexWrap:"wrap"}}>
+              <div style={{flex:1,minWidth:200}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                  <span style={{fontSize:28}}>{verdictEmoji(verdict)}</span>
+                  <div style={{fontFamily:"'Inter',sans-serif",fontSize:26,fontWeight:800,color:col,letterSpacing:"-0.02em"}}>{verdict.label}</div>
+                </div>
+                <p style={{fontSize:13,color:TEXT2,lineHeight:1.75}}>{verdict.summary}</p>
+              </div>
+              {/* Gauge */}
+              <div style={{minWidth:180,textAlign:"center"}}>
+                <div style={{fontSize:10,color:MUTED,marginBottom:6,letterSpacing:"0.06em",textTransform:"uppercase"}}>Market Score</div>
+                <div style={{position:"relative",height:80,width:180}}>
+                  {/* Arc background */}
+                  <svg width="180" height="80" viewBox="0 0 180 80">
+                    <path d="M10,75 A80,80 0 0,1 170,75" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="12" strokeLinecap="round"/>
+                    <path d="M10,75 A80,80 0 0,1 170,75" fill="none" stroke={col} strokeWidth="12" strokeLinecap="round"
+                      strokeDasharray={`${needlePct*2.51} 251`} opacity="0.8"/>
+                    <text x="90" y="68" textAnchor="middle" fontSize="22" fontWeight="800" fill={col} fontFamily="JetBrains Mono,monospace">{score}</text>
+                    <text x="90" y="78" textAnchor="middle" fontSize="9" fill="#64748B">/100</text>
+                    <text x="14" y="78" textAnchor="middle" fontSize="8" fill="#3B82F6">BUY</text>
+                    <text x="166" y="78" textAnchor="middle" fontSize="8" fill="#EF4444">SELL</text>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Market signals */}
+            <div style={{marginBottom:18}}>
+              <div style={{fontSize:11,fontWeight:700,color:MUTED,letterSpacing:"0.07em",textTransform:"uppercase",marginBottom:8}}>Key Market Signals</div>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {(verdict.signals||[]).map((s,i)=>(
+                  <div key={i} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                    <span style={{color:col,fontSize:12,flexShrink:0,marginTop:2}}>◆</span>
+                    <span style={{fontSize:13,color:TEXT2,lineHeight:1.6}}>{s}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Advice cards */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:10}}>
+              {[
+                {icon:"🏠",label:"For Buyers",text:verdict.buyerAdvice,color:"#3B82F6"},
+                {icon:"🏷️",label:"For Sellers",text:verdict.sellerAdvice,color:"#EF4444"},
+                {icon:"💼",label:"For Investors",text:verdict.investorTake,color:"#F59E0B"},
+              ].map(card=>(
+                <div key={card.label} style={{background:SURFACE,border:`1px solid ${card.color}20`,borderRadius:10,padding:"12px 14px"}}>
+                  <div style={{fontSize:12,fontWeight:700,color:card.color,marginBottom:6,display:"flex",gap:6,alignItems:"center"}}>
+                    <span>{card.icon}</span>{card.label}
+                  </div>
+                  <p style={{fontSize:12,color:TEXT2,lineHeight:1.65,margin:0}}>{card.text}</p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div style={{borderTop:`1px solid ${BORDER}`,padding:"10px 22px"}}>
+        <p style={{fontSize:10,color:MUTED,lineHeight:1.5,margin:0}}>
+          AI-generated analysis using Claude (Anthropic). Based on manually curated market inputs — not live TRREB data. Refreshes automatically once per month. Not financial or legal advice. Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function MarketPulse(){
   const stats=[
-    {label:"Avg Detached Price",value:"$1.02M",sub:"Mississauga · Q1 2025",delta:"+4.2% YoY"},
-    {label:"Active Listings",value:"3,847",sub:"GTA West · Feb 2025",delta:"+18% MoM"},
+    {label:"Avg Detached Price",value:"$1.02M",sub:"Mississauga · Q1 2026",delta:"+4.2% YoY"},
+    {label:"Active Listings",value:"3,847",sub:"GTA West · Feb 2026",delta:"+18% MoM"},
     {label:"Sales-to-Listings",value:"0.41",sub:"Below 0.40 = buyer's mkt",delta:"↓ Cooling"},
     {label:"Avg Days on Market",value:"28",sub:"All property types",delta:"+6 days YoY"},
     {label:"Avg Condo Price",value:"$621K",sub:"Mississauga City Centre",delta:"-2.1% YoY"},
@@ -1089,10 +1356,15 @@ function MarketPulse(){
 
   return(
     <div style={{padding:"24px 0"}}>
-      <div style={{marginBottom:28}}>
+      <div style={{marginBottom:24}}>
         <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Mississauga Market Pulse</h2>
-        <p style={{fontSize:13,color:MUTED}}>Hamza's read on the market as of Q1 2025. Personal analysis — not TRREB data.</p>
+        <p style={{fontSize:13,color:MUTED}}>Hamza's read on the market as of Q1 2026. Personal analysis — not TRREB data.</p>
       </div>
+
+      {/* AI VERDICT — top of page, most prominent */}
+      <AIMarketVerdict/>
+
+      {/* Stats grid */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14,marginBottom:28}}>
         {stats.map(s=>(
           <div key={s.label} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"16px 18px"}}>
@@ -1103,8 +1375,9 @@ function MarketPulse(){
           </div>
         ))}
       </div>
+
       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"20px 22px",marginBottom:20}}>
-        <h3 style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:12}}>Hamza's Q1 2025 Market Read</h3>
+        <h3 style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:12}}>Hamza's Q1 2026 Market Read</h3>
         <p style={{fontSize:14,color:MUTED,lineHeight:1.8}}>
           We're in a transitional buyer's market. The sales-to-listing ratio has dropped below 0.45 in Mississauga, giving buyers real negotiating power for the first time since 2020. <strong style={{color:TEXT}}>My strategy: target properties 40+ days on market in Clarkson and Churchill Meadows with 5%+ price reductions.</strong> Detached under $950K is the sweet spot — institutional money is avoiding condos. The Hurontario LRT corridor is the single best infrastructure play in the GTA over the next 3 years.
         </p>
@@ -1121,61 +1394,196 @@ function MarketPulse(){
 ───────────────────────────────────────────── */
 function HoodsView({onFilterListings}){
   const [active,setActive]=useState(null);
-  const trendColor={hot:RED,warm:GOLD,cool:BLUE};
+  const [mapReady,setMapReady]=useState(false);
+  const [filter,setFilter]=useState("all");
+  const mapRef=useRef(null);
+  const mapInstanceRef=useRef(null);
+  const markersRef=useRef({});
+  const trendColor={hot:"#EF4444",warm:"#F59E0B",cool:"#3B82F6"};
+  const trendPinColor={hot:"#FF3B3B",warm:"#F59E0B",cool:"#3B82F6"};
+
+  const filteredHoods=Object.entries(HOOD_DATA).filter(([,h])=>{
+    if(filter==="all") return true;
+    return h.trend===filter;
+  });
+
+  // Load Leaflet from CDN once
+  useEffect(()=>{
+    if(window.L){setMapReady(true);return;}
+    const link=document.createElement("link");
+    link.rel="stylesheet";link.href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    document.head.appendChild(link);
+    const script=document.createElement("script");
+    script.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload=()=>setMapReady(true);
+    document.head.appendChild(script);
+  },[]);
+
+  // Init map once Leaflet loaded
+  useEffect(()=>{
+    if(!mapReady||!mapRef.current||mapInstanceRef.current)return;
+    const L=window.L;
+    const map=L.map(mapRef.current,{
+      center:[43.5890,-79.6441],zoom:11,
+      zoomControl:true,attributionControl:true,
+    });
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+      attribution:'© <a href="https://carto.com/">CARTO</a>',
+      maxZoom:19,subdomains:"abcd"
+    }).addTo(map);
+    mapInstanceRef.current=map;
+
+    // Add markers for every neighbourhood
+    Object.entries(HOOD_DATA).forEach(([name,h])=>{
+      const color=trendPinColor[h.trend];
+      const svgIcon=L.divIcon({
+        className:"",
+        html:`<div style="
+          width:32px;height:32px;border-radius:50% 50% 50% 0;
+          background:${color};border:2px solid #fff;
+          transform:rotate(-45deg);cursor:pointer;
+          box-shadow:0 2px 8px rgba(0,0,0,0.5);
+          display:flex;align-items:center;justify-content:center;
+        "><span style="transform:rotate(45deg);font-size:10px;font-weight:700;color:#fff;display:block;text-align:center;line-height:28px;">${h.rentYield}%</span></div>`,
+        iconSize:[32,32],iconAnchor:[16,32],popupAnchor:[0,-36]
+      });
+      const marker=L.marker([h.lat,h.lng],{icon:svgIcon})
+        .addTo(map)
+        .bindPopup(`
+          <div style="font-family:Inter,sans-serif;min-width:180px;background:#111D32;color:#E2E8F0;padding:2px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:4px">${name}</div>
+            <div style="font-size:11px;color:${color};font-weight:600;text-transform:uppercase;margin-bottom:8px">${h.emoji} ${h.trend.toUpperCase()} · ${h.inventory} Inventory</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px">
+              <div><span style="color:#64748B">Yield</span><br/><b>${h.rentYield}%</b></div>
+              <div><span style="color:#64748B">Avg Price</span><br/><b>$${(h.avgPrice/1000).toFixed(0)}K</b></div>
+              <div><span style="color:#64748B">YoY</span><br/><b style="color:${h.priceYoY>4?"#10B981":h.priceYoY>2?"#F59E0B":"#64748B"}">+${h.priceYoY}%</b></div>
+              <div><span style="color:#64748B">DOM</span><br/><b>${h.avgDOM}d</b></div>
+            </div>
+            <button onclick="window._hoodFilter('${name}')" style="margin-top:10px;width:100%;background:#3B82F6;color:#fff;border:none;border-radius:5px;padding:6px;font-size:11px;font-weight:600;cursor:pointer">View Listings →</button>
+          </div>
+        `,{maxWidth:220});
+      marker.on("click",()=>setActive(name));
+      markersRef.current[name]=marker;
+    });
+
+    // Global hook for popup button
+    window._hoodFilter=(name)=>{onFilterListings(name);};
+    return()=>{if(mapInstanceRef.current){mapInstanceRef.current.remove();mapInstanceRef.current=null;}};
+  },[mapReady]);
+
+  // Fly to neighbourhood when active changes
+  useEffect(()=>{
+    if(!active||!mapInstanceRef.current)return;
+    const h=HOOD_DATA[active];
+    if(!h)return;
+    mapInstanceRef.current.flyTo([h.lat,h.lng],13,{duration:0.8});
+    markersRef.current[active]?.openPopup();
+  },[active]);
 
   return(
     <div style={{padding:"24px 0"}}>
-      <div style={{marginBottom:28}}>
-        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Neighbourhood Intelligence</h2>
-        <p style={{fontSize:13,color:MUTED}}>Hamza's personal ratings across 10 Mississauga neighbourhoods. Personal opinion — not MLS® data.</p>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:12,marginBottom:20}}>
+        <div>
+          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:4}}>Neighbourhood Intelligence</h2>
+          <p style={{fontSize:13,color:MUTED}}>All {Object.keys(HOOD_DATA).length} Mississauga neighbourhoods — click any pin or card to explore. Personal professional opinion, not MLS® data.</p>
+        </div>
+        {/* Heat filter */}
+        <div style={{display:"flex",gap:6}}>
+          {[["all","All"],["hot","🔥 Hot"],["warm","📈 Warm"],["cool","🧊 Cool"]].map(([val,label])=>(
+            <button key={val} onClick={()=>setFilter(val)}
+              className={`chip${filter===val?" active":""}`}
+              style={{padding:"6px 14px",fontSize:11,
+                borderColor:filter===val?(val==="hot"?"#EF4444":val==="warm"?"#F59E0B":val==="cool"?"#3B82F6":""):undefined,
+                color:filter===val?(val==="hot"?"#EF4444":val==="warm"?"#F59E0B":val==="cool"?"#3B82F6":undefined):undefined
+              }}>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-        {Object.entries(HOOD_DATA).map(([name,h])=>(
+
+      {/* MAP */}
+      <div style={{borderRadius:14,overflow:"hidden",border:`1px solid rgba(59,130,246,0.2)`,marginBottom:20,position:"relative"}}>
+        {!mapReady&&(
+          <div style={{height:420,background:CARD,display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+            <div style={{width:16,height:16,border:"2px solid rgba(255,255,255,0.1)",borderTopColor:BLUE,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+            <span style={{color:MUTED,fontSize:13}}>Loading map…</span>
+          </div>
+        )}
+        <div ref={mapRef} style={{height:420,display:mapReady?"block":"none"}}/>
+        {/* Map legend */}
+        <div style={{position:"absolute",bottom:12,left:12,zIndex:1000,background:"rgba(5,9,26,0.88)",backdropFilter:"blur(8px)",borderRadius:8,padding:"8px 12px",border:`1px solid ${BORDER}`,display:"flex",gap:12}}>
+          {[["#EF4444","Hot"],["#F59E0B","Warm"],["#3B82F6","Cool"]].map(([c,l])=>(
+            <div key={l} style={{display:"flex",alignItems:"center",gap:5}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:c}}/>
+              <span style={{fontSize:10,color:TEXT2,fontWeight:500}}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Cards grid */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+        {filteredHoods.map(([name,h])=>(
           <div key={name} className="card-hover"
-            style={{background:CARD,border:`1px solid ${active===name?"rgba(196,154,60,0.4)":BORDER}`,borderRadius:14,padding:"18px 20px",cursor:"pointer"}}
+            style={{background:CARD,
+              border:`1px solid ${active===name?"rgba(59,130,246,0.45)":BORDER}`,
+              borderRadius:14,padding:"18px 20px",cursor:"pointer",
+              boxShadow:active===name?"0 0 0 1px rgba(59,130,246,0.2),0 8px 32px rgba(59,130,246,0.1)":"none",
+              transition:"all .2s ease"
+            }}
             onClick={()=>setActive(active===name?null:name)}
-            role="button" tabIndex={0} aria-expanded={active===name} aria-label={`${name} neighbourhood details`}
+            role="button" tabIndex={0}
             onKeyDown={e=>e.key==="Enter"&&setActive(active===name?null:name)}
           >
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
               <div>
-                <div style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:2}}>{name}</div>
+                <div style={{fontSize:15,fontWeight:700,color:TEXT,marginBottom:3}}>{name}</div>
                 <div style={{display:"flex",gap:6,alignItems:"center"}}>
                   <span style={{fontSize:11}}>{h.emoji}</span>
                   <span style={{fontSize:11,color:trendColor[h.trend],fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em"}}>{h.trend}</span>
                   <span style={{fontSize:11,color:MUTED}}>· {h.inventory} inventory</span>
                 </div>
               </div>
-              <div className="mono" style={{fontSize:20,fontWeight:700,color:GOLD}}>{h.rentYield}%<div style={{fontSize:10,color:MUTED,fontWeight:400,textAlign:"right"}}>yield</div></div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:20,fontWeight:700,color:GOLD,lineHeight:1}}>{h.rentYield}%</div>
+                <div style={{fontSize:10,color:MUTED,fontWeight:400}}>yield</div>
+              </div>
             </div>
+
             <div style={{display:"flex",gap:8,marginBottom:12}}>
-              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
-                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Avg Price</div>
-                <div className="mono" style={{fontSize:14,fontWeight:600,color:TEXT}}>{fmtK(h.avgPrice)}</div>
-              </div>
-              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
-                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>YoY Change</div>
-                <div className="mono" style={{fontSize:14,fontWeight:600,color:h.priceYoY>4?GREEN:h.priceYoY>2?GOLD:MUTED}}>+{h.priceYoY}%</div>
-              </div>
-              <div style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
-                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Avg DOM</div>
-                <div className="mono" style={{fontSize:14,fontWeight:600,color:h.avgDOM>50?RED:TEXT}}>{h.avgDOM}d</div>
-              </div>
+              {[["Avg Price",fmtK(h.avgPrice),TEXT],["YoY",`+${h.priceYoY}%`,h.priceYoY>4?GREEN:h.priceYoY>2?GOLD:MUTED],["Avg DOM",`${h.avgDOM}d`,h.avgDOM>50?RED:TEXT]].map(([label,val,col])=>(
+                <div key={label} style={{flex:1,background:SURFACE,borderRadius:8,padding:"8px 10px"}}>
+                  <div style={{fontSize:10,color:MUTED,marginBottom:2}}>{label}</div>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:600,color:col}}>{val}</div>
+                </div>
+              ))}
             </div>
-            {active===name&&(
+
+            {active===name?(
               <div style={{animation:"fadeIn .2s ease"}}>
-                <p style={{fontSize:13,color:TEXT,lineHeight:1.7,marginBottom:12,fontStyle:"italic"}}>"{h.note}"</p>
-                <button onClick={e=>{e.stopPropagation();onFilterListings(name);}} className="btn-gold-outline" style={{padding:"8px 16px",borderRadius:8,fontSize:12,width:"100%"}}>
-                  View {name} Sample Listings →
-                </button>
+                <p style={{fontSize:12,color:TEXT2,lineHeight:1.7,marginBottom:12,fontStyle:"italic"}}>"{h.note}"</p>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={e=>{e.stopPropagation();onFilterListings(name);}}
+                    className="btn-gold-outline" style={{flex:1,padding:"8px 12px",borderRadius:8,fontSize:11}}>
+                    View {name} Listings →
+                  </button>
+                  <button onClick={e=>{e.stopPropagation();mapInstanceRef.current?.flyTo([h.lat,h.lng],14,{duration:0.8});markersRef.current[name]?.openPopup();}}
+                    style={{background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:8,padding:"8px 12px",fontSize:11,color:BLUE,cursor:"pointer",fontWeight:600}}>
+                    📍 Map
+                  </button>
+                </div>
               </div>
+            ):(
+              <div style={{fontSize:11,color:MUTED}}>Click to expand →</div>
             )}
-            {active!==name&&<div style={{fontSize:11,color:MUTED}}>Click to expand →</div>}
           </div>
         ))}
       </div>
+
       <div style={{marginTop:16,padding:"10px 14px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8}}>
-        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Neighbourhood data represents Hamza Nouman's personal professional opinion based on market experience. Not sourced from TRREB or MLS®. Verify all data independently. Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage.</p>
+        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Neighbourhood data represents Hamza Nouman's personal professional opinion based on market experience. Not sourced from TRREB or MLS®. Verify all data independently. Map © OpenStreetMap contributors, tiles © CARTO. Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage.</p>
       </div>
     </div>
   );
