@@ -149,7 +149,7 @@ const BORDER="rgba(255,255,255,0.07)";
 /* ─────────────────────────────────────────────
    LISTING DATA
 ───────────────────────────────────────────── */
-let LISTINGS = [
+const LISTINGS = [
   {id:"ML001",address:"2847 Folkway Dr",neighbourhood:"Erin Mills",price:849000,beds:4,baths:3,sqft:2100,dom:67,priceReduction:6.2,originalPrice:906000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Signature Realty",hamzaScore:8.4,hamzaNotes:"12.4% price reduction on a 4-bed det — seller has been sitting 67 days and is motivated. All brick detached basement suite potential. Best value in the neighbourhood right now.",cashFlow:310,capRate:5.1,walkScore:71,transitScore:64,schoolScore:88},
   {id:"ML002",address:"1203 Haig Blvd",neighbourhood:"Lakeview",price:1125000,beds:3,baths:2,sqft:1650,dom:8,priceReduction:0,originalPrice:1125000,estimatedRent:4400,type:"Semi-Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.1,hamzaNotes:"Lakeview is appreciating fast but this one is fresh to market at ask. No negotiating room yet. Watch for a 30+ day reduction before jumping.",cashFlow:-180,capRate:4.2,walkScore:68,transitScore:72,schoolScore:82},
   {id:"ML003",address:"5521 Glen Erin Dr",neighbourhood:"Churchill Meadows",price:799000,beds:3,baths:3,sqft:1800,dom:47,priceReduction:8.5,originalPrice:873000,estimatedRent:3900,type:"Townhouse",lrtAccess:false,brokerage:"Century 21 Miller Real Estate Ltd.",hamzaScore:7.8,hamzaNotes:"8.5% drop on a Churchill Meadows townhouse. Excellent school catchment. Top floor laundry, finished basement. Strong rental demand from hospital workers nearby.",cashFlow:120,capRate:4.7,walkScore:78,transitScore:70,schoolScore:94},
@@ -2152,7 +2152,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...LISTINGS];
+    let list=[...liveListings];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2165,7 +2165,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
     const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
-  },[propType,filterHood,search,chips,filters,sort,_tick]);
+  },[propType,filterHood,search,chips,filters,sort,liveListings]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2334,7 +2334,7 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
-  const [_tick,_setTick]=useState(0);
+  const [liveListings,setLiveListings]=useState(LISTINGS);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2350,7 +2350,7 @@ export default function App(){
   useEffect(()=>{
     fetch('/api/listings?city=Mississauga&limit=100').then(r=>r.json()).then(d=>{
       if(d.listings&&d.listings.length>0){
-        LISTINGS.splice(0,LISTINGS.length,...d.listings.map(l=>({
+        setLiveListings(d.listings.map(l=>({
           id:l.ListingKey,
           address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
           neighbourhood:l.CityRegion||'Mississauga',price:l.ListPrice,
@@ -2371,7 +2371,6 @@ export default function App(){
           walkScore:72,transitScore:65,schoolScore:76,
           hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
         })));
-        _setTick(n=>n+1);
       }
     }).catch(e=>console.error('Feed:',e));
   },[]);
