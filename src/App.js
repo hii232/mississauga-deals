@@ -1664,7 +1664,7 @@ function Hero({onCTA,setActiveNav}){
 
         {/* Sub */}
         <p style={{fontSize:"clamp(15px,2vw,19px)",color:TEXT2,maxWidth:580,margin:"0 auto 36px",lineHeight:1.75,fontWeight:400}}>
-          AI-powered cap rate analysis, cash flow projections, and Hamza's personal conviction scores — before your competition even opens Realtor.ca.
+          AI-powered cap rate analysis, cash flow projections, and personal conviction scores on every deal — before your competition even opens Realtor.ca.
         </p>
 
         {/* CTAs */}
