@@ -2141,7 +2141,7 @@ function Hero({onCTA,setActiveNav}){
 /* ─────────────────────────────────────────────
    LISTINGS VIEW
 ───────────────────────────────────────────── */
-function ListingsView({onOpenListing,filterHood,setFilterHood}){
+function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}){
   const [propType,setPropType]=useState("All");
   const [sort,setSort]=useState("score");
   const [search,setSearch]=useState("");
@@ -2152,7 +2152,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...LISTINGS];
+    let list=[...listings];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2334,6 +2334,7 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
+  const [liveListings,setLiveListings]=useState(null);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2346,6 +2347,39 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
+  useEffect(()=>{
+    fetch('/api/listings?city=Mississauga&limit=100')
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.listings&&d.listings.length>0){
+          setLiveListings(d.listings.map(l=>({
+            id:l.ListingKey,
+            address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
+            neighbourhood:l.CityRegion||'Mississauga',
+            price:l.ListPrice,originalPrice:l.OriginalListPrice||l.ListPrice,
+            beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
+            sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
+            dom:l.DaysOnMarket||0,
+            type:l.PropertySubType||l.PropertyType||'Residential',
+            brokerage:l.ListOfficeName||'',
+            description:l.PublicRemarks||'',
+            inclusions:l.Inclusions||'',
+            parking:l.ParkingTotal||0,garage:l.GarageType||'',locker:l.Locker||'',
+            tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
+            crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
+            postalCode:l.PostalCode||'',images:[],isSample:false,
+            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice
+              ?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
+            estimatedRent:Math.round((l.ListPrice||0)*0.0042),
+            capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
+            cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
+            walkScore:72,transitScore:65,schoolScore:76,
+            hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
+          })));
+        }
+      })
+      .catch(e=>console.error('TRREB feed error:',e));
+  },[]);
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
@@ -2460,7 +2494,7 @@ export default function App(){
             </div>
           </div>
         ):activeNav==="listings"?(
-          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood}/>
+          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings||LISTINGS}/>
         ):activeNav==="pulse"?(
           <MarketPulse/>
         ):activeNav==="hoods"?(
