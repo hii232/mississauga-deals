@@ -2152,7 +2152,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...(usingLiveFeed?liveListings:LISTINGS)];
+    let list=[...LISTINGS];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2334,9 +2334,6 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
-  const [liveListings,setLiveListings]=useState([]);
-  const [usingLiveFeed,setUsingLiveFeed]=useState(false);
-  const [feedLoading,setFeedLoading]=useState(false);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2349,40 +2346,6 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
-  useEffect(()=>{
-    if(!isRegistered)return;
-    fetch('/api/listings?city=Mississauga&limit=100')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.listings&&d.listings.length>0){
-          setLiveListings(d.listings.map(l=>({
-            id:l.ListingKey,
-            address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
-            neighbourhood:l.CityRegion||'Mississauga',
-            price:l.ListPrice,originalPrice:l.OriginalListPrice||l.ListPrice,
-            beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
-            sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
-            dom:l.DaysOnMarket||0,type:l.PropertySubType||l.PropertyType||'Residential',
-            brokerage:l.ListOfficeName||'',description:l.PublicRemarks||'',
-            inclusions:l.Inclusions||'',parking:l.ParkingTotal||0,
-            garage:l.GarageType||'',locker:l.Locker||'',
-            tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
-            crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
-            postalCode:l.PostalCode||'',images:[],isSample:false,
-            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
-            estimatedRent:Math.round((l.ListPrice||0)*0.0042),
-            capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1)*100).toFixed(2)),
-            cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
-            walkScore:72,transitScore:65,schoolScore:76,
-            hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
-          })));
-          setUsingLiveFeed(true);
-        }
-      })
-      .catch(e=>console.error(e))
-      .finally(()=>setFeedLoading(false));
-  },[isRegistered]);
-
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
@@ -2562,9 +2525,4 @@ export default function App(){
       </a>
     </>
   );
-        <div style={{textAlign:'center',padding:'16px 0',borderTop:'1px solid #1E2D45',marginTop:'24px'}}>
-          <p style={{color:MUTED,fontSize:11,margin:'0 0 4px'}}>Copyright {new Date().getFullYear()} Toronto Regional Real Estate Board. Information deemed reliable but not guaranteed. Data refreshed hourly.</p>
-          <p style={{color:MUTED,fontSize:10,margin:0}}>For use only by consumers with a bona fide interest in the purchase, sale, or lease of real estate.</p>
-        </div>
-
 }
