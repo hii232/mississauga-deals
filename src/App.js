@@ -1658,7 +1658,7 @@ function Hero({onCTA,setActiveNav}){
 
         {/* Headline */}
         <h1 style={{fontSize:"clamp(34px,5.5vw,64px)",fontWeight:800,color:TEXT,lineHeight:1.1,marginBottom:20,letterSpacing:"-0.03em",fontFamily:"'Inter',sans-serif"}}>
-          Every Mississauga Deal.<br/>
+          Every Mississauga Investment Property.<br/>
           <span style={{background:"linear-gradient(135deg,#3B82F6,#8B5CF6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Scored. Analyzed. Ranked.</span>
         </h1>
 
