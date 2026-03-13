@@ -4,107 +4,122 @@ import { useState, useMemo, useEffect, useRef } from "react";
    GLOBAL STYLES
 ───────────────────────────────────────────── */
 const G = `
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:#070B14;font-family:'Outfit',sans-serif;color:#E8EDF4;overflow-x:hidden}
+body{background:#05091A;font-family:'Inter',sans-serif;color:#E2E8F0;overflow-x:hidden}
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:#070B14}
-::-webkit-scrollbar-thumb{background:#1E3A5F;border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:#C49A3C}
+::-webkit-scrollbar-track{background:#05091A}
+::-webkit-scrollbar-thumb{background:#1E3060;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#3B82F6}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(196,154,60,0.5)}70%{box-shadow:0 0 0 14px rgba(196,154,60,0)}}
+@keyframes pulseWA{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 14px rgba(37,211,102,0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-@keyframes meshMove{0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(30px,-20px) rotate(120deg)}66%{transform:translate(-20px,30px) rotate(240deg)}}
-@keyframes borderGlow{0%,100%{opacity:0.5}50%{opacity:1}}
-@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+@keyframes meshMove{0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(40px,-30px) rotate(120deg)}66%{transform:translate(-30px,40px) rotate(240deg)}}
+@keyframes borderPulse{0%,100%{opacity:0.4}50%{opacity:1}}
+@keyframes logoGlow{0%,100%{filter:drop-shadow(0 0 8px rgba(59,130,246,0.4))}50%{filter:drop-shadow(0 0 16px rgba(59,130,246,0.7))}}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-.animate-fadeUp{animation:fadeUp .5s ease forwards}
+.animate-fadeUp{animation:fadeUp .55s cubic-bezier(.22,1,.36,1) forwards}
 .animate-fadeIn{animation:fadeIn .4s ease forwards}
 
-/* Card hover */
+/* Premium card hover — blue lift */
 .card-hover{transition:transform .28s cubic-bezier(.22,1,.36,1),box-shadow .28s ease,border-color .28s ease}
-.card-hover:hover{transform:translateY(-4px)!important;box-shadow:0 20px 60px rgba(196,154,60,0.12),0 4px 20px rgba(0,0,0,0.5)!important;border-color:rgba(196,154,60,0.3)!important}
+.card-hover:hover{transform:translateY(-6px)!important;box-shadow:0 24px 80px rgba(59,130,246,0.15),0 4px 24px rgba(0,0,0,0.6)!important;border-color:rgba(59,130,246,0.35)!important}
 
 /* Buttons */
-.btn-primary{background:linear-gradient(135deg,#C49A3C,#A07820);color:#fff;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;letter-spacing:0.02em;transition:all .22s ease}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(196,154,60,0.35)}
+.btn-primary{background:linear-gradient(135deg,#3B82F6,#1D4ED8);color:#fff;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:0.01em;transition:all .22s ease}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(59,130,246,0.45)}
 .btn-primary:active{transform:translateY(0)}
-.btn-ghost{background:rgba(255,255,255,0.05);color:#E8EDF4;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;transition:all .2s ease}
-.btn-ghost:hover{background:rgba(255,255,255,0.09);border-color:rgba(196,154,60,0.4)}
-.btn-gold-outline{background:transparent;color:#C49A3C;border:1px solid rgba(196,154,60,0.5);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;transition:all .2s ease}
-.btn-gold-outline:hover{background:rgba(196,154,60,0.1);border-color:#C49A3C}
+.btn-gold{background:linear-gradient(135deg,#F59E0B,#D97706);color:#000;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:700;letter-spacing:0.01em;transition:all .22s ease}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(245,158,11,0.4)}
+.btn-ghost{background:rgba(255,255,255,0.04);color:#E2E8F0;border:1px solid rgba(255,255,255,0.1);cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;transition:all .2s ease}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);border-color:rgba(59,130,246,0.5);color:#93C5FD}
+.btn-blue-outline{background:transparent;color:#3B82F6;border:1px solid rgba(59,130,246,0.45);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s ease}
+.btn-blue-outline:hover{background:rgba(59,130,246,0.1);border-color:#3B82F6}
+.btn-gold-outline{background:transparent;color:#F59E0B;border:1px solid rgba(245,158,11,0.45);cursor:pointer;font-family:'Inter',sans-serif;font-weight:600;transition:all .2s ease}
+.btn-gold-outline:hover{background:rgba(245,158,11,0.08);border-color:#F59E0B}
 
-/* Tab buttons */
-.tab-btn{background:transparent;border:none;cursor:pointer;font-family:'Outfit',sans-serif;font-weight:500;font-size:13px;color:#7A8BA0;padding:10px 18px;border-bottom:2px solid transparent;transition:all .2s ease;white-space:nowrap}
-.tab-btn:hover{color:#E8EDF4}
-.tab-btn.active{color:#C49A3C;border-bottom-color:#C49A3C}
+/* Nav tab buttons */
+.tab-btn{background:transparent;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;font-size:13px;color:#64748B;padding:10px 18px;border-bottom:2px solid transparent;transition:all .2s ease;white-space:nowrap;letter-spacing:0.01em}
+.tab-btn:hover{color:#E2E8F0}
+.tab-btn.active{color:#3B82F6;border-bottom-color:#3B82F6;font-weight:600}
 
-/* Chips */
-.chip{cursor:pointer;border:1px solid rgba(255,255,255,0.1);background:transparent;color:#7A8BA0;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;padding:6px 14px;border-radius:40px;transition:all .18s ease;white-space:nowrap}
-.chip:hover{border-color:rgba(196,154,60,0.4);color:#C49A3C}
-.chip.active{background:rgba(196,154,60,0.12);border-color:rgba(196,154,60,0.6);color:#C49A3C}
+/* Filter chips */
+.chip{cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);color:#64748B;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;padding:6px 14px;border-radius:6px;transition:all .18s ease;white-space:nowrap;letter-spacing:0.01em}
+.chip:hover{border-color:rgba(59,130,246,0.4);color:#93C5FD;background:rgba(59,130,246,0.06)}
+.chip.active{background:rgba(59,130,246,0.12);border-color:rgba(59,130,246,0.6);color:#93C5FD;font-weight:600}
 
 /* Inputs */
-input,select,textarea{font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
-input:focus,select:focus,textarea:focus{border-color:rgba(196,154,60,0.7)!important;box-shadow:0 0 0 3px rgba(196,154,60,0.1)!important}
+input,select,textarea{font-family:'Inter',sans-serif;outline:none;transition:border-color .2s ease,box-shadow .2s ease}
+input:focus,select:focus,textarea:focus{border-color:rgba(59,130,246,0.6)!important;box-shadow:0 0 0 3px rgba(59,130,246,0.12)!important}
 
 /* Checkbox */
-input[type=checkbox]{accent-color:#C49A3C;width:16px;height:16px;cursor:pointer}
+input[type=checkbox]{accent-color:#3B82F6;width:16px;height:16px;cursor:pointer}
 
 /* Score badge */
-.score-badge{font-family:'JetBrains Mono',monospace;font-weight:600}
+.score-badge{font-family:'JetBrains Mono',monospace;font-weight:700}
 
 /* Number font */
 .mono{font-family:'JetBrains Mono',monospace}
 
 /* Mesh gradient background */
 .mesh-bg{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
-.mesh-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.07;animation:meshMove 18s ease-in-out infinite}
+.mesh-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.06;animation:meshMove 22s ease-in-out infinite}
 
 /* Glass card */
-.glass{background:rgba(13,22,40,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.06)}
+.glass{background:rgba(10,18,40,0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.05)}
 
 /* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,8,0.88);backdrop-filter:blur(10px);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto}
 
 /* Scrollable modal body */
 .modal-scroll{max-height:calc(100vh - 100px);overflow-y:auto;overflow-x:hidden}
 .modal-scroll::-webkit-scrollbar{width:3px}
-.modal-scroll::-webkit-scrollbar-thumb{background:#1E3A5F}
+.modal-scroll::-webkit-scrollbar-thumb{background:#1E3060}
 
 /* Range input */
-input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,0.1);outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#C49A3C;cursor:pointer;transition:transform .15s ease}
-input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:rgba(255,255,255,0.08);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#3B82F6;cursor:pointer;transition:transform .15s ease;box-shadow:0 0 8px rgba(59,130,246,0.6)}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 
 /* WA FAB */
-.wa-fab{position:fixed;bottom:28px;right:28px;z-index:90;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(37,211,102,0.45);animation:pulse 2.5s infinite;transition:transform .2s ease}
+.wa-fab{position:fixed;bottom:28px;right:28px;z-index:90;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(37,211,102,0.45);animation:pulseWA 2.5s infinite;transition:transform .2s ease}
 .wa-fab:hover{transform:scale(1.1)!important}
 
 /* Skeleton loader */
-.skeleton{background:linear-gradient(90deg,#0D1628 25%,#162032 50%,#0D1628 75%);background-size:400px 100%;animation:shimmer 1.5s infinite}
+.skeleton{background:linear-gradient(90deg,#0D1830 25%,#162240 50%,#0D1830 75%);background-size:600px 100%;animation:shimmer 1.8s infinite}
 
 /* Compliance badge */
-.compliance-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#4A7A5C;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:4px;padding:2px 7px;font-family:'JetBrains Mono',monospace}
+.compliance-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#3D8B6A;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);border-radius:4px;padding:2px 7px;font-family:'JetBrains Mono',monospace}
 
-/* Star rating */
-.star{color:#C49A3C;font-size:14px}
-.star.empty{color:rgba(196,154,60,0.2)}
+/* Score colour system */
+.score-green{color:#10B981}
+.score-blue{color:#3B82F6}
+.score-amber{color:#F59E0B}
+.score-red{color:#EF4444}
 
-/* WCAG focus visible */
-:focus-visible{outline:2px solid #C49A3C;outline-offset:3px}
+/* WCAG focus */
+:focus-visible{outline:2px solid #3B82F6;outline-offset:3px}
 
-/* Accessible skip link */
-.skip-link{position:absolute;top:-40px;left:0;background:#C49A3C;color:#000;padding:8px 16px;z-index:999;font-weight:600;text-decoration:none}
+/* Skip link */
+.skip-link{position:absolute;top:-40px;left:0;background:#3B82F6;color:#fff;padding:8px 16px;z-index:999;font-weight:600;text-decoration:none}
 .skip-link:focus{top:0}
 
-/* Mobile responsive */
+/* Live ticker */
+.ticker-wrap{overflow:hidden;white-space:nowrap}
+.ticker-inner{display:inline-flex;animation:tickerScroll 30s linear infinite}
+.ticker-inner:hover{animation-play-state:paused}
+
+/* Divider gradient */
+.divider-grad{height:1px;background:linear-gradient(90deg,transparent,rgba(59,130,246,0.3),transparent)}
+
+/* Mobile */
 @media(max-width:768px){
   .desktop-only{display:none!important}
   .mobile-stack{flex-direction:column!important}
@@ -116,11 +131,20 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
 `;
 
 /* ─────────────────────────────────────────────
-   CONSTANTS & COLORS
+   CONSTANTS & COLORS — v10 Premium Palette
 ───────────────────────────────────────────── */
-const GOLD="#C49A3C", GOLD2="#A07820", NAVY="#070B14", SURFACE="#0D1628";
-const CARD="#162032", BORDER="rgba(255,255,255,0.07)", GOLD_BORDER="rgba(196,154,60,0.2)";
-const TEXT="#E8EDF4", MUTED="#7A8BA0", GREEN="#34D399", RED="#F87171", BLUE="#3D9BE9";
+// Primary — Electric Blue (institutional, Bloomberg-style)
+const BLUE="#3B82F6", BLUE2="#1D4ED8", BLUE_DIM="rgba(59,130,246,0.15)";
+// Accent — Amber Gold (premium, refined)
+const GOLD="#F59E0B", GOLD2="#D97706", GOLD_BORDER="rgba(245,158,11,0.2)";
+// Background layers
+const NAVY="#05091A", SURFACE="#0C1429", CARD="#111D32";
+// Typography
+const TEXT="#E2E8F0", MUTED="#64748B", TEXT2="#94A3B8";
+// Status
+const GREEN="#10B981", RED="#EF4444";
+// Legacy aliases for compat
+const BORDER="rgba(255,255,255,0.07)";
 
 /* ─────────────────────────────────────────────
    LISTING DATA
@@ -185,7 +209,7 @@ const calcMonthly=(price,downPct,rate,years)=>{
   if(r===0)return Math.round(p/n);
   return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 };
-const scoreColor=s=>s>=8.5?GREEN:s>=7?"#60A5FA":s>=5.5?GOLD:RED;
+const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
 const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
 
 /* ─────────────────────────────────────────────
@@ -290,7 +314,7 @@ function PrivacyModal({onClose}){
           <button onClick={onClose} aria-label="Close" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:22,lineHeight:1}}>×</button>
         </div>
         <div className="modal-scroll" style={{padding:"24px 28px"}}>
-          <pre style={{fontSize:12,color:MUTED,lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"'Outfit',sans-serif"}}>{PRIVACY_TEXT}</pre>
+          <pre style={{fontSize:12,color:MUTED,lineHeight:1.7,whiteSpace:"pre-wrap",fontFamily:"'Inter',sans-serif"}}>{PRIVACY_TEXT}</pre>
         </div>
         <div style={{padding:"16px 28px",borderTop:`1px solid ${BORDER}`,textAlign:"right"}}>
           <button onClick={onClose} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>Close</button>
@@ -313,7 +337,7 @@ function InvDisclaimerModal({onAccept}){
           <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:GOLD}}>Investment Analysis Disclaimer</h2>
         </div>
         <div style={{padding:"24px 28px"}}>
-          <pre style={{fontSize:12,color:MUTED,lineHeight:1.75,whiteSpace:"pre-wrap",fontFamily:"'Outfit',sans-serif"}}>{INV_DISCLAIMER}</pre>
+          <pre style={{fontSize:12,color:MUTED,lineHeight:1.75,whiteSpace:"pre-wrap",fontFamily:"'Inter',sans-serif"}}>{INV_DISCLAIMER}</pre>
           <label style={{display:"flex",gap:10,alignItems:"flex-start",marginTop:20,cursor:"pointer"}}>
             <input type="checkbox" checked={checked} onChange={e=>setChecked(e.target.checked)} style={{marginTop:2,flexShrink:0}} aria-required="true"/>
             <span style={{fontSize:13,color:MUTED,lineHeight:1.5}}>I understand that these are estimates only and agree to use these tools for informational purposes. I will consult qualified professionals before making investment decisions.</span>
@@ -376,64 +400,106 @@ function ScoreBar({label,value,max=100,color}){
 /* ─────────────────────────────────────────────
    LISTING CARD
 ───────────────────────────────────────────── */
+// Rich gradient palettes per neighbourhood — gives each card visual identity
+const HOOD_GRADIENTS={
+  "Clarkson":       ["#0C2340","#1A3F6E"],
+  "Port Credit":    ["#0A1F3A","#16406B"],
+  "Lakeview":       ["#0A2230","#114060"],
+  "Churchill Meadows":["#0A2318","#14422E"],
+  "Streetsville":   ["#1A1420","#2E2040"],
+  "Erin Mills":     ["#0D1A30","#1A3055"],
+  "Cooksville":     ["#151020","#26203A"],
+  "Hurontario":     ["#0C1A2C","#183050"],
+  "Meadowvale":     ["#0E1A10","#1C3020"],
+  "Malton":         ["#1A100E","#36201A"],
+};
+
 function ListingCard({l,onOpen,isSample=true}){
   const cf=fmtCF(l.cashFlow);
+  const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
+  const scoreCol=scoreColor(l.hamzaScore);
+
   return(
     <div
       className="card-hover"
       onClick={()=>onOpen(l)}
       role="button"
       tabIndex={0}
-      aria-label={`View details for ${l.address}`}
+      aria-label={`View investment analysis for ${l.address}`}
       onKeyDown={e=>e.key==="Enter"&&onOpen(l)}
-      style={{background:CARD,border:`1px solid ${l.hamzasPick?"rgba(196,154,60,0.35)":BORDER}`,borderRadius:14,overflow:"hidden",cursor:"pointer",position:"relative",
-        ...(l.hamzasPick?{boxShadow:"0 0 0 1px rgba(196,154,60,0.2), 0 8px 40px rgba(196,154,60,0.08)"}:{})}}
+      style={{
+        background:CARD,
+        border:`1px solid ${l.hamzasPick?"rgba(245,158,11,0.35)":BORDER}`,
+        borderRadius:12,
+        overflow:"hidden",
+        cursor:"pointer",
+        position:"relative",
+        ...(l.hamzasPick?{boxShadow:"0 0 0 1px rgba(245,158,11,0.15), 0 12px 48px rgba(245,158,11,0.08)"}:{})
+      }}
     >
-      {/* Image placeholder */}
-      <div style={{height:160,background:`linear-gradient(135deg,#0D1F35,#162840)`,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <div style={{fontSize:48,opacity:0.15}}>{l.type==="Detached"?"🏠":l.type==="Condo"?"🏢":l.type==="Townhouse"?"🏘️":"🏡"}</div>
+      {/* Rich image area — gradient with data overlay */}
+      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
+        {/* Subtle grid pattern overlay */}
+        <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
+
+        {/* Neighbourhood name watermark */}
+        <div style={{position:"absolute",bottom:10,left:12,fontFamily:"'Inter',sans-serif",fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.12)",letterSpacing:"0.12em",textTransform:"uppercase"}}>{l.neighbourhood}</div>
+
+        {/* Tags top-left */}
+        <div style={{position:"absolute",top:10,left:10,display:"flex",gap:5,flexWrap:"wrap"}}>
+          {isSample&&<span style={{background:"rgba(5,9,26,0.8)",border:`1px solid rgba(255,255,255,0.12)`,borderRadius:4,padding:"2px 7px",fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:600,letterSpacing:"0.06em"}}>SAMPLE</span>}
+          {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.5)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
+          {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.18)",border:"1px solid rgba(59,130,246,0.45)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#93C5FD",fontWeight:600}}>LRT</span>}
+          {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.14)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GREEN,fontWeight:700}}>↓{l.priceReduction}%</span>}
+          {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.35)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#FCA5A5",fontWeight:600}}>{l.dom}d</span>}
         </div>
-        {/* Tags */}
-        <div style={{position:"absolute",top:10,left:10,display:"flex",gap:6,flexWrap:"wrap"}}>
-          {isSample&&<span style={{background:"rgba(196,154,60,0.15)",border:"1px solid rgba(196,154,60,0.4)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>SAMPLE</span>}
-          {l.hamzasPick&&<span style={{background:"rgba(196,154,60,0.2)",border:"1px solid rgba(196,154,60,0.5)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GOLD,fontWeight:700}}>★ HAMZA'S PICK</span>}
-          {l.lrtAccess&&<span style={{background:"rgba(61,155,233,0.15)",border:"1px solid rgba(61,155,233,0.4)",borderRadius:5,padding:"2px 8px",fontSize:10,color:BLUE}}>LRT</span>}
-          {l.priceReduction>=5&&<span style={{background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.3)",borderRadius:5,padding:"2px 8px",fontSize:10,color:GREEN}}>↓{l.priceReduction}%</span>}
-          {l.dom>=40&&<span style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:5,padding:"2px 8px",fontSize:10,color:RED}}>{l.dom}d</span>}
-        </div>
-        {/* Score */}
+
+        {/* Score badge top-right — redesigned */}
         <div style={{position:"absolute",top:10,right:10}}>
-          <ScoreBadge score={l.hamzaScore}/>
+          <div style={{
+            width:44,height:44,borderRadius:"50%",
+            background:`radial-gradient(circle at 30% 30%,${scoreCol}22,${scoreCol}08)`,
+            border:`2px solid ${scoreCol}`,
+            display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+            boxShadow:`0 0 12px ${scoreCol}30`
+          }}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore.toFixed(1)}</div>
+            <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
+          </div>
         </div>
-        {/* Type badge */}
-        <div style={{position:"absolute",bottom:10,right:10,background:"rgba(7,11,20,0.7)",borderRadius:6,padding:"3px 8px",fontSize:11,color:MUTED}}>{l.type}</div>
+
+        {/* Property type — bottom right */}
+        <div style={{position:"absolute",bottom:10,right:10,background:"rgba(5,9,26,0.75)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:500,border:`1px solid rgba(255,255,255,0.08)`}}>{l.type}</div>
       </div>
 
-      <div style={{padding:"14px 16px"}}>
-        <div style={{fontSize:15,fontWeight:600,color:TEXT,marginBottom:2,lineHeight:1.3}}>{l.address}</div>
-        <div style={{fontSize:12,color:MUTED,marginBottom:12}}>{l.neighbourhood}, Mississauga</div>
+      {/* Card body */}
+      <div style={{padding:"14px 16px 12px"}}>
+        {/* Address + neighbourhood */}
+        <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2,lineHeight:1.3,letterSpacing:"-0.01em"}}>{l.address}</div>
+        <div style={{fontSize:11,color:MUTED,marginBottom:12,fontWeight:500}}>{l.neighbourhood}, Mississauga</div>
 
         {/* Price row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
           <div>
-            <div className="mono" style={{fontSize:20,fontWeight:700,color:TEXT}}>{fmtK(l.price)}</div>
-            {l.priceReduction>0&&<div style={{fontSize:11,color:MUTED,textDecoration:"line-through"}}>{fmtK(l.originalPrice)}</div>}
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:19,fontWeight:700,color:TEXT,letterSpacing:"-0.02em"}}>{fmtK(l.price)}</div>
+            {l.priceReduction>0&&<div style={{fontSize:10,color:MUTED,textDecoration:"line-through",marginTop:1}}>{fmtK(l.originalPrice)}</div>}
           </div>
-          <div className="mono" style={{fontSize:13,color:cf.color,fontWeight:600}}>{cf.label}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:cf.color,fontWeight:600,background:l.cashFlow>0?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)",padding:"3px 8px",borderRadius:5,border:`1px solid ${l.cashFlow>0?"rgba(16,185,129,0.2)":"rgba(239,68,68,0.2)"}`}}>{cf.label}</div>
         </div>
 
         {/* Specs */}
-        <div style={{display:"flex",gap:12,marginBottom:10}}>
-          {[["🛏️",l.beds,"bd"],["🛁",l.baths,"ba"],["📐",l.sqft.toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
-            <div key={unit} style={{fontSize:12,color:MUTED,display:"flex",gap:3,alignItems:"center"}}>
-              <span>{icon}</span><span className="mono" style={{color:TEXT}}>{val}</span><span>{unit}</span>
+        <div style={{display:"flex",gap:14,marginBottom:10}}>
+          {[["🛏",l.beds,"bd"],["🚿",l.baths,"ba"],["▭",l.sqft.toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
+            <div key={unit} style={{fontSize:11,color:TEXT2,display:"flex",gap:3,alignItems:"center"}}>
+              <span style={{fontSize:10,opacity:0.6}}>{icon}</span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:600,fontSize:12}}>{val}</span>
+              <span style={{color:MUTED}}>{unit}</span>
             </div>
           ))}
         </div>
 
         {/* Brokerage — TRREB required */}
-        <div style={{fontSize:10,color:"#4A6280",borderTop:`1px solid ${BORDER}`,paddingTop:8,fontStyle:"italic"}}>
+        <div style={{fontSize:9.5,color:"#3A4E68",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8,fontStyle:"italic",fontWeight:500}}>
           Courtesy: {l.brokerage}
         </div>
       </div>
@@ -764,7 +830,7 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
               )}
               {aiResult&&(
                 <div style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:12,padding:"18px 20px"}}>
-                  <pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"'Outfit',sans-serif"}}>{aiResult}</pre>
+                  <pre style={{whiteSpace:"pre-wrap",fontSize:13,lineHeight:1.8,color:TEXT,fontFamily:"'Inter',sans-serif"}}>{aiResult}</pre>
                 </div>
               )}
             </div>
@@ -1224,45 +1290,65 @@ function Header({activeNav,setActiveNav,onSeller}){
   ];
 
   return(
-    <header role="banner" style={{position:"sticky",top:0,zIndex:80,background:"rgba(7,11,20,0.92)",backdropFilter:"blur(20px)",borderBottom:`1px solid ${BORDER}`,padding:"0 24px"}}>
-      {/* Skip link for accessibility */}
+    <header role="banner" style={{position:"sticky",top:0,zIndex:80,background:"rgba(5,9,26,0.94)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:`1px solid rgba(59,130,246,0.12)`}}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
 
-      {/* Brokerage bar — RECO mandatory */}
-      <div style={{background:"rgba(196,154,60,0.06)",borderBottom:`1px solid rgba(196,154,60,0.1)`,padding:"4px 0",textAlign:"center"}}>
-        <span style={{fontSize:11,color:"#8A7040"}}>Hamza Nouman · <strong>Sales Representative</strong> · Royal LePage Signature Realty, Brokerage · 647-609-1289</span>
+      {/* RECO compliance bar */}
+      <div style={{background:"rgba(59,130,246,0.06)",borderBottom:`1px solid rgba(59,130,246,0.1)`,padding:"4px 0",textAlign:"center"}}>
+        <span style={{fontSize:11,color:"#4B6899",letterSpacing:"0.02em"}}>Hamza Nouman · <strong style={{color:"#5A80BB"}}>Sales Representative</strong> · Royal LePage Signature Realty, Brokerage · 647-609-1289</span>
       </div>
 
-      <div style={{maxWidth:1200,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:58}}>
-        {/* Logo */}
-        <button onClick={()=>setActiveNav("listings")} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10}} aria-label="Go to home">
-          <div style={{width:34,height:34,background:`linear-gradient(135deg,${GOLD},${GOLD2})`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,boxShadow:`0 0 16px rgba(196,154,60,0.4)`}}>◈</div>
+      <div style={{maxWidth:1240,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:60,padding:"0 24px"}}>
+        {/* NEW LOGO */}
+        <button onClick={()=>setActiveNav("listings")} style={{background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:11}} aria-label="Mississauga Investor — Home">
+          {/* SVG Monogram Logo */}
+          <div style={{width:38,height:38,position:"relative",flexShrink:0}}>
+            <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" style={{animation:"logoGlow 4s ease-in-out infinite"}}>
+              {/* Outer hexagon */}
+              <path d="M19 2L34.5885 11V29L19 38L3.4115 29V11L19 2Z" fill="url(#grad1)" stroke="rgba(59,130,246,0.6)" strokeWidth="0.5"/>
+              {/* Inner geometric frame */}
+              <path d="M19 6L31 13.5V26.5L19 34L7 26.5V13.5L19 6Z" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5"/>
+              {/* MI monogram — clean geometric letterforms */}
+              {/* M */}
+              <path d="M9 25V13L13.5 19L18 13V25" stroke="#E2E8F0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              {/* I */}
+              <path d="M21 13V25" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M19.5 13H22.5" stroke="#3B82F6" strokeWidth="1.6" strokeLinecap="round"/>
+              <path d="M19.5 25H22.5" stroke="#3B82F6" strokeWidth="1.6" strokeLinecap="round"/>
+              {/* Accent dot */}
+              <circle cx="26" cy="19" r="1.5" fill="#F59E0B"/>
+              <defs>
+                <linearGradient id="grad1" x1="3" y1="2" x2="35" y2="38" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#0A1530"/>
+                  <stop offset="100%" stopColor="#0D1E42"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
           <div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:TEXT,lineHeight:1.1}}>Mississauga<span style={{color:GOLD}}> Investor</span></div>
-            <div style={{fontSize:9,color:MUTED,letterSpacing:"0.1em",textTransform:"uppercase"}}>Investment Property Intelligence</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:15,fontWeight:800,color:TEXT,lineHeight:1.1,letterSpacing:"-0.02em"}}>
+              Mississauga<span style={{color:BLUE}}> Investor</span>
+            </div>
+            <div style={{fontSize:8.5,color:MUTED,letterSpacing:"0.14em",textTransform:"uppercase",fontWeight:500,marginTop:1}}>Investment Property Intelligence</div>
           </div>
         </button>
 
         {/* Desktop nav */}
-        <nav role="navigation" aria-label="Main navigation" style={{display:"flex",gap:2}} className="desktop-only">
+        <nav role="navigation" aria-label="Main navigation" style={{display:"flex",gap:0}} className="desktop-only">
           {navItems.map(n=>(
-            <button key={n.id} onClick={()=>setActiveNav(n.id)} className="tab-btn" style={{...(activeNav===n.id?{color:GOLD,borderColor:GOLD}:{})}}>{n.label}</button>
+            <button key={n.id} onClick={()=>setActiveNav(n.id)} className={`tab-btn${activeNav===n.id?" active":""}`}>{n.label}</button>
           ))}
         </nav>
 
-        {/* CTA buttons */}
+        {/* CTAs */}
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={onSeller} className="btn-ghost desktop-only" style={{padding:"8px 16px",borderRadius:8,fontSize:13}}>
+          <button onClick={onSeller} className="btn-ghost desktop-only" style={{padding:"8px 16px",borderRadius:7,fontSize:13,fontWeight:500}}>
             Sell My Home
           </button>
           <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer"
-            style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:600,textDecoration:"none"}}>
+            style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#25D366,#1aab55)",color:"#fff",padding:"8px 16px",borderRadius:7,fontSize:13,fontWeight:600,textDecoration:"none",boxShadow:"0 2px 12px rgba(37,211,102,0.3)"}}>
             <span>💬</span><span className="desktop-only">WhatsApp</span>
           </a>
-          {/* Mobile menu */}
-          <button onClick={()=>setMobileOpen(!mobileOpen)} className="btn-ghost" style={{padding:"8px 10px",borderRadius:8,display:"none"}} aria-label="Menu" aria-expanded={mobileOpen}
-            // Show on mobile via CSS override — simplified here
-          >☰</button>
         </div>
       </div>
     </header>
@@ -1274,36 +1360,70 @@ function Header({activeNav,setActiveNav,onSeller}){
 ───────────────────────────────────────────── */
 function Hero({onCTA,setActiveNav}){
   return(
-    <section aria-label="Hero" style={{padding:"60px 24px 48px",maxWidth:1200,margin:"0 auto",position:"relative",zIndex:1}}>
-      <div style={{textAlign:"center",animation:"fadeUp .6s ease both"}}>
-        {/* Sample notice */}
-        <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(196,154,60,0.08)",border:`1px solid rgba(196,154,60,0.25)`,borderRadius:40,padding:"6px 16px",marginBottom:24}}>
-          <span style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>⚠️ SAMPLE DATA — DEMO MODE</span>
-          <span style={{fontSize:11,color:MUTED}}>Live TRREB data coming soon</span>
+    <section aria-label="Hero" style={{padding:"64px 24px 52px",maxWidth:1240,margin:"0 auto",position:"relative",zIndex:1}}>
+      <div style={{textAlign:"center",animation:"fadeUp .65s cubic-bezier(.22,1,.36,1) both"}}>
+
+        {/* Status pill */}
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(16,185,129,0.08)",border:`1px solid rgba(16,185,129,0.25)`,borderRadius:40,padding:"6px 18px",marginBottom:28}}>
+          <span style={{width:7,height:7,borderRadius:"50%",background:GREEN,display:"inline-block",boxShadow:`0 0 8px ${GREEN}`}}/>
+          <span style={{fontSize:12,color:GREEN,fontWeight:600,letterSpacing:"0.04em"}}>LIVE — TRREB Data Feed In Progress</span>
+          <span style={{fontSize:12,color:MUTED}}>·</span>
+          <span style={{fontSize:12,color:MUTED}}>Demo mode active</span>
         </div>
 
-        <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,56px)",fontWeight:900,color:TEXT,lineHeight:1.15,marginBottom:16}}>
-          Mississauga Investment<br/><span style={{color:GOLD}}>Property Intelligence</span>
+        {/* Headline */}
+        <h1 style={{fontSize:"clamp(34px,5.5vw,64px)",fontWeight:800,color:TEXT,lineHeight:1.1,marginBottom:20,letterSpacing:"-0.03em",fontFamily:"'Inter',sans-serif"}}>
+          Every Mississauga Deal.<br/>
+          <span style={{background:"linear-gradient(135deg,#3B82F6,#8B5CF6)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Scored. Analyzed. Ranked.</span>
         </h1>
-        <p style={{fontSize:"clamp(15px,2vw,18px)",color:MUTED,maxWidth:600,margin:"0 auto 32px",lineHeight:1.7}}>
-          Expert investment analysis from Hamza Nouman, your Mississauga real estate specialist. Cap rates, cash flow, and Hamza's personal scores — all in one place.
+
+        {/* Sub */}
+        <p style={{fontSize:"clamp(15px,2vw,19px)",color:TEXT2,maxWidth:580,margin:"0 auto 36px",lineHeight:1.75,fontWeight:400}}>
+          AI-powered cap rate analysis, cash flow projections, and Hamza's personal conviction scores — before your competition even opens Realtor.ca.
         </p>
 
-        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:48}}>
-          <button onClick={()=>setActiveNav("listings")} className="btn-primary" style={{padding:"13px 28px",borderRadius:10,fontSize:15}}>
-            Browse Sample Listings
+        {/* CTAs */}
+        <div style={{display:"flex",gap:14,justifyContent:"center",flexWrap:"wrap",marginBottom:52}}>
+          <button onClick={()=>setActiveNav("listings")} className="btn-primary" style={{padding:"14px 32px",borderRadius:9,fontSize:15,fontWeight:700}}>
+            View Investment Deals →
           </button>
-          <button onClick={()=>setActiveNav("quiz")} className="btn-ghost" style={{padding:"13px 28px",borderRadius:10,fontSize:15}}>
+          <button onClick={()=>setActiveNav("quiz")} className="btn-ghost" style={{padding:"14px 32px",borderRadius:9,fontSize:15}}>
             Find My Ideal Deal
           </button>
         </div>
 
+        {/* Social proof ticker */}
+        <div style={{display:"flex",gap:24,justifyContent:"center",alignItems:"center",marginBottom:36,flexWrap:"wrap"}}>
+          {[
+            {icon:"★",val:"4.9/5",label:"Investor Rating"},
+            {icon:"✓",val:"8+",label:"Years GTA Experience"},
+            {icon:"⚡",val:"20+",label:"Properties Scored"},
+            {icon:"🏆",val:"Master Sales",label:"Award Winner"},
+          ].map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",background:"rgba(255,255,255,0.03)",border:`1px solid rgba(255,255,255,0.07)`,borderRadius:8}}>
+              <span style={{fontSize:14,color:GOLD}}>{s.icon}</span>
+              <div>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:TEXT,lineHeight:1}}>{s.val}</div>
+                <div style={{fontSize:10,color:MUTED,marginTop:1}}>{s.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className="divider-grad"/>
+
         {/* Stats bar */}
-        <div style={{display:"flex",gap:0,justifyContent:"center",borderTop:`1px solid ${BORDER}`,paddingTop:28,flexWrap:"wrap"}}>
-          {[["8+","Years GTA Experience"],["🏆","Master Sales Award"],["10","Mississauga Neighbourhoods"],["3","Languages: EN · UR · HI"]].map(([val,label],i)=>(
-            <div key={i} style={{padding:"0 28px",borderRight:i<3?`1px solid ${BORDER}`:"none",textAlign:"center",marginBottom:12}}>
-              <div className="mono" style={{fontSize:22,fontWeight:700,color:GOLD,marginBottom:4}}>{val}</div>
-              <div style={{fontSize:12,color:MUTED}}>{label}</div>
+        <div style={{display:"flex",gap:0,justifyContent:"center",paddingTop:28,flexWrap:"wrap"}}>
+          {[
+            ["$1.02M","Avg Detached Price, Mississauga"],
+            ["5.4%","Max Cap Rate — Current Deals"],
+            ["67d","Longest DOM in Dataset"],
+            ["3","Languages: EN · UR · HI"],
+          ].map(([val,label],i,arr)=>(
+            <div key={i} style={{padding:"0 32px",borderRight:i<arr.length-1?`1px solid rgba(255,255,255,0.06)`:"none",textAlign:"center",marginBottom:12}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:22,fontWeight:700,color:BLUE,marginBottom:4,letterSpacing:"-0.01em"}}>{val}</div>
+              <div style={{fontSize:11,color:MUTED,fontWeight:500}}>{label}</div>
             </div>
           ))}
         </div>
@@ -1369,7 +1489,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
           {["All","Detached","Semi-Detached","Townhouse","Condo"].map(t=>(
             <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"8px 16px"}}>{t}</button>
           ))}
-          {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:40,padding:"8px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Outfit',sans-serif"}}>✕ {filterHood}</button>}
+          {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:40,padding:"8px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>✕ {filterHood}</button>}
         </div>
 
         {/* Quick chips */}
@@ -1414,15 +1534,15 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
 
       {/* Hamza's Pick Banner */}
       {filtered.find(l=>l.hamzasPick)&&(
-        <div style={{background:"linear-gradient(135deg,rgba(196,154,60,0.1),rgba(196,154,60,0.05))",border:`1px solid rgba(196,154,60,0.3)`,borderRadius:14,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
-          <div style={{fontSize:32}}>⭐</div>
+        <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.06))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>★</div>
           <div style={{flex:1}}>
-            <div style={{fontSize:12,color:GOLD,fontWeight:700,letterSpacing:"0.05em",marginBottom:2}}>HAMZA'S PICK OF THE WEEK — Personal Selection</div>
-            <div style={{fontSize:15,fontWeight:700,color:TEXT}}>1590 Carolyn Rd, Erin Mills</div>
-            <div style={{fontSize:13,color:MUTED}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
+            <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Pick of the Week — Personal Selection</div>
+            <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>1590 Carolyn Rd, Erin Mills</div>
+            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
           </div>
-          <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-primary" style={{padding:"10px 20px",borderRadius:8,fontSize:13}}>
-            View Analysis
+          <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
+            View Analysis →
           </button>
         </div>
       )}
@@ -1531,11 +1651,12 @@ export default function App(){
     <>
       <style>{G}</style>
 
-      {/* Animated mesh background */}
+      {/* Animated mesh background — premium indigo/blue */}
       <div className="mesh-bg" aria-hidden="true">
-        <div className="mesh-orb" style={{width:600,height:600,background:"#C49A3C",top:"-20%",right:"-10%",animationDelay:"0s"}}/>
-        <div className="mesh-orb" style={{width:500,height:500,background:"#1E5A8A",bottom:"-15%",left:"-10%",animationDelay:"-6s"}}/>
-        <div className="mesh-orb" style={{width:400,height:400,background:"#3D9BE9",top:"40%",left:"40%",animationDelay:"-12s"}}/>
+        <div className="mesh-orb" style={{width:700,height:700,background:"#1D4ED8",top:"-25%",right:"-15%",animationDelay:"0s"}}/>
+        <div className="mesh-orb" style={{width:550,height:550,background:"#4338CA",bottom:"-20%",left:"-12%",animationDelay:"-7s"}}/>
+        <div className="mesh-orb" style={{width:450,height:450,background:"#0EA5E9",top:"35%",left:"35%",animationDelay:"-14s"}}/>
+        <div className="mesh-orb" style={{width:300,height:300,background:"#D97706",top:"60%",right:"20%",animationDelay:"-5s",opacity:0.04}}/>
       </div>
 
       {/* Cookie Consent */}
@@ -1586,7 +1707,7 @@ export default function App(){
       <Header activeNav={activeNav} setActiveNav={setActiveNav} onSeller={()=>setShowSeller(true)}/>
 
       {/* Main */}
-      <main id="main-content" style={{maxWidth:1200,margin:"0 auto",padding:"0 24px 40px",position:"relative",zIndex:1}}>
+      <main id="main-content" style={{maxWidth:1240,margin:"0 auto",padding:"0 24px 48px",position:"relative",zIndex:1}}>
 
         {/* Hero (only on listings) */}
         {activeNav==="listings"&&<Hero onCTA={()=>setShowRegModal(true)} setActiveNav={setActiveNav}/>}
@@ -1614,10 +1735,11 @@ export default function App(){
 
         {/* Registration status bar */}
         {!isRegistered&&(
-          <div style={{background:"rgba(196,154,60,0.06)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:12,padding:"14px 20px",marginTop:28,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style={{background:"rgba(59,130,246,0.06)",border:`1px solid rgba(59,130,246,0.2)`,borderRadius:12,padding:"16px 20px",marginTop:28,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+            <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(59,130,246,0.1)",border:`1px solid rgba(59,130,246,0.3)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>🔓</div>
             <div style={{flex:1}}>
               <div style={{fontSize:13,fontWeight:600,color:TEXT,marginBottom:2}}>
-                🔓 {freeViews>0?`${freeViews} free view remaining — `:""}{isRegistered?"Full access unlocked":"Register for full access"}
+                {freeViews>0?`${freeViews} free view remaining — `:""}{isRegistered?"Full access unlocked":"Register free for full access"}
               </div>
               <div style={{fontSize:12,color:MUTED}}>Unlock Hamza's investment scores, cash flow analysis, and AI-powered property reports</div>
             </div>
@@ -1633,15 +1755,18 @@ export default function App(){
         {/* Sell / Book CTA */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14,marginTop:28}}>
           {[
-            {emoji:"🏡",title:"What's My Home Worth?",desc:"Free market analysis, no obligation. Hamza will reach out within 24 hours.",btn:"Get Free Valuation",action:()=>setShowSeller(true)},
-            {emoji:"🏙️",title:"Pre-Construction VIP",desc:"Floor plans and pricing before public launch. Register for VIP access.",btn:"Join VIP List",action:()=>setShowPrecon(true)},
-            {emoji:"📞",title:"Book a Call",desc:"15-minute strategy call with Hamza to align your investment goals.",btn:"Book on Calendly",action:()=>window.open("https://calendly.com/hamzanouman","_blank")},
+            {icon:"🏡",title:"What's My Home Worth?",desc:"Free market analysis, no obligation. Hamza will reach out within 24 hours.",btn:"Get Free Valuation",action:()=>setShowSeller(true)},
+            {icon:"🏙️",title:"Pre-Construction VIP",desc:"Floor plans and pricing before public launch. Register for VIP access.",btn:"Join VIP List",action:()=>setShowPrecon(true)},
+            {icon:"📞",title:"Book a Strategy Call",desc:"15-minute call with Hamza to build your investment roadmap.",btn:"Book on Calendly",action:()=>window.open("https://calendly.com/hamzanouman","_blank")},
           ].map(c=>(
-            <div key={c.title} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"22px"}}>
-              <div style={{fontSize:28,marginBottom:10}}>{c.emoji}</div>
-              <div style={{fontSize:15,fontWeight:700,color:TEXT,marginBottom:6,fontFamily:"'Playfair Display',serif"}}>{c.title}</div>
-              <p style={{fontSize:13,color:MUTED,lineHeight:1.6,marginBottom:16}}>{c.desc}</p>
-              <button onClick={c.action} className="btn-gold-outline" style={{padding:"9px 18px",borderRadius:8,fontSize:13,width:"100%"}}>{c.btn}</button>
+            <div key={c.title} style={{background:CARD,border:`1px solid rgba(59,130,246,0.12)`,borderRadius:12,padding:"22px",transition:"border-color .2s ease"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(59,130,246,0.35)"}
+              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(59,130,246,0.12)"}
+            >
+              <div style={{fontSize:26,marginBottom:10}}>{c.icon}</div>
+              <div style={{fontSize:15,fontWeight:700,color:TEXT,marginBottom:6,letterSpacing:"-0.01em"}}>{c.title}</div>
+              <p style={{fontSize:13,color:MUTED,lineHeight:1.65,marginBottom:16}}>{c.desc}</p>
+              <button onClick={c.action} className="btn-blue-outline" style={{padding:"9px 18px",borderRadius:7,fontSize:13,width:"100%"}}>{c.btn} →</button>
             </div>
           ))}
         </div>
