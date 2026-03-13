@@ -475,7 +475,7 @@ function ListingCard({l,onOpen,isSample=true}){
 
         {/* Tags top-left */}
         <div style={{position:"absolute",top:10,left:10,display:"flex",gap:5,flexWrap:"wrap"}}>
-          {isSample&&<span style={{background:"rgba(5,9,26,0.8)",border:`1px solid rgba(255,255,255,0.12)`,borderRadius:4,padding:"2px 7px",fontSize:9,color:"rgba(255,255,255,0.5)",fontWeight:600,letterSpacing:"0.06em"}}>SAMPLE</span>}
+          {}
           {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.5)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
           {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.18)",border:"1px solid rgba(59,130,246,0.45)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#93C5FD",fontWeight:600}}>LRT</span>}
           {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.14)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GREEN,fontWeight:700}}>↓{l.priceReduction}%</span>}
@@ -2334,6 +2334,8 @@ export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
+  const [liveListings,setLiveListings]=useState([]);
+  const [usingLiveFeed,setUsingLiveFeed]=useState(false);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2346,6 +2348,42 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
+  // Load live TRREB listings
+  useEffect(()=>{
+    if(!isRegistered) return;
+    fetch('/api/listings?city=Mississauga&limit=100')
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.listings && d.listings.length > 0){
+          setLiveListings(d.listings.map(l=>({
+            id: l.ListingKey,
+            address: [l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
+            neighbourhood: l.CityRegion||'Mississauga',
+            price: l.ListPrice, originalPrice: l.OriginalListPrice||l.ListPrice,
+            beds: l.BedroomsTotal||0, baths: l.BathroomsTotalInteger||0,
+            sqft: l.BuildingAreaTotal||null, sqftRange: l.LivingAreaRange||null,
+            dom: l.DaysOnMarket||0,
+            type: l.PropertySubType||l.PropertyType||'Residential',
+            brokerage: l.ListOfficeName||'',
+            description: l.PublicRemarks||'',
+            inclusions: l.Inclusions||'',
+            parking: l.ParkingTotal||0, garage: l.GarageType||'', locker: l.Locker||'',
+            tax: l.TaxAnnualAmount||null, condoFee: l.AssociationFee||null,
+            crossStreet: l.CrossStreet||'', age: l.ApproximateAge||'',
+            postalCode: l.PostalCode||'', images: [], isSample: false,
+            priceReduction: l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice ? +((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1) : 0,
+            estimatedRent: Math.round((l.ListPrice||0)*0.0042),
+            capRate: +(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
+            cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
+            walkScore:72, transitScore:65, schoolScore:76,
+            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false,
+          })));
+          setUsingLiveFeed(true);
+        }
+      })
+      .catch(e=>console.error('Feed error:',e));
+  },[isRegistered]);
+
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
