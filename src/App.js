@@ -1201,11 +1201,13 @@ function FindMyDeal(){
    Fetches live RSS from Globe & Mail, BNN, STOREYS
 ───────────────────────────────────────────── */
 const NEWS_SOURCES=[
-  {id:"globemail",label:"Globe & Mail",color:"#3B82F6",url:"https://www.theglobeandmail.com/rss/topic/real-estate/"},
-  {id:"bnn",label:"BNN Bloomberg",color:"#F59E0B",url:"https://feeds.bnnbloomberg.ca/bnnbloomberg/news/real-estate"},
   {id:"storeys",label:"STOREYS",color:"#10B981",url:"https://storeys.com/feed/"},
-  {id:"cbc",label:"CBC Real Estate",color:"#EF4444",url:"https://www.cbc.ca/cmlink/rss-business"},
+  {id:"rem",label:"REM",color:"#3B82F6",url:"https://realestatemagazine.ca/feed/"},
+  {id:"fp",label:"Financial Post",color:"#F59E0B",url:"https://financialpost.com/category/real-estate/feed/"},
+  {id:"cbc",label:"CBC Business",color:"#EF4444",url:"https://www.cbc.ca/cmlink/rss-business"},
 ];
+
+const RSS2JSON="https://api.rss2json.com/v1/api.json?rss_url=";
 
 function RealEstateNews(){
   const [articles,setArticles]=useState([]);
@@ -1225,37 +1227,13 @@ function RealEstateNews(){
     {id:"policy",label:"Policy & Govt"},
   ];
 
-  const CORS="https://api.allorigins.win/get?url=";
-
-  const parseRSS=(xml,sourceName,sourceColor)=>{
-    try{
-      const parser=new DOMParser();
-      const doc=parser.parseFromString(xml,"text/xml");
-      const items=doc.querySelectorAll("item");
-      return Array.from(items).slice(0,12).map(item=>{
-        const title=item.querySelector("title")?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,"").trim()||"";
-        const link=item.querySelector("link")?.textContent?.trim()||"#";
-        const pubDate=item.querySelector("pubDate")?.textContent?.trim()||"";
-        const desc=(item.querySelector("description")?.textContent||"")
-          .replace(/<!\[CDATA\[|\]\]>/g,"")
-          .replace(/<[^>]+>/g,"")
-          .trim()
-          .substring(0,200);
-        const imgMatch=(item.querySelector("content")?.getAttribute("url"))||
-          (item.innerHTML.match(/https?:\/\/[^"'\s]+\.(jpg|jpeg|png|webp)/i)||[])[0]||null;
-        return{title,link,pubDate,desc,source:sourceName,color:sourceColor,img:imgMatch,
-          date:pubDate?new Date(pubDate):new Date()};
-      }).filter(a=>a.title.length>10);
-    }catch{return[];}
-  };
-
   const detectCategory=(title,desc)=>{
     const t=(title+" "+desc).toLowerCase();
-    if(t.includes("mississauga")||t.includes("brampton")||t.includes("oakville")||t.includes("gta"))return"mississauga";
-    if(t.includes("interest rate")||t.includes("bank of canada")||t.includes("mortgage rate")||t.includes("boc"))return"rates";
-    if(t.includes("sales")||t.includes("listings")||t.includes("prices")||t.includes("inventory")||t.includes("trreb")||t.includes("crea"))return"market";
-    if(t.includes("invest")||t.includes("rental")||t.includes("cap rate")||t.includes("landlord")||t.includes("brrr"))return"investment";
-    if(t.includes("policy")||t.includes("government")||t.includes("regulation")||t.includes("zoning")||t.includes("housing minister"))return"policy";
+    if(t.includes("mississauga")||t.includes("brampton")||t.includes("oakville")||t.includes("gta")||t.includes("toronto"))return"mississauga";
+    if(t.includes("interest rate")||t.includes("bank of canada")||t.includes("mortgage rate")||t.includes("boc")||t.includes("rate cut")||t.includes("rate hike"))return"rates";
+    if(t.includes("sales")||t.includes("listings")||t.includes("prices")||t.includes("inventory")||t.includes("trreb")||t.includes("crea")||t.includes("home price"))return"market";
+    if(t.includes("invest")||t.includes("rental")||t.includes("cap rate")||t.includes("landlord")||t.includes("brrr")||t.includes("cash flow"))return"investment";
+    if(t.includes("policy")||t.includes("government")||t.includes("regulation")||t.includes("zoning")||t.includes("housing minister")||t.includes("federal"))return"policy";
     return"all";
   };
 
@@ -1264,13 +1242,25 @@ function RealEstateNews(){
     const results=[];
     for(const src of NEWS_SOURCES){
       try{
-        const res=await fetch(`${CORS}${encodeURIComponent(src.url)}`,{signal:AbortSignal.timeout(8000)});
+        const res=await fetch(`${RSS2JSON}${encodeURIComponent(src.url)}`,{signal:AbortSignal.timeout(12000)});
+        if(!res.ok) continue;
         const data=await res.json();
-        const parsed=parseRSS(data.contents,src.label,src.color);
+        if(data.status!=="ok"||!data.items) continue;
+        const parsed=data.items.slice(0,12).map(item=>{
+          const title=(item.title||"").trim();
+          const link=item.link||item.guid||"#";
+          const pubDate=item.pubDate||"";
+          const desc=(item.description||item.content||"")
+            .replace(/<[^>]+>/g,"").replace(/&[a-z]+;/g," ").trim().substring(0,220);
+          const img=item.thumbnail||item.enclosure?.link||
+            (item.content||"").match(/src="([^"]+\.(jpg|jpeg|png|webp)[^"]*)"/i)?.[1]||null;
+          return{title,link,pubDate,desc,source:src.label,color:src.color,img,
+            date:pubDate?new Date(pubDate):new Date()};
+        }).filter(a=>a.title.length>10);
         results.push(...parsed);
-      }catch(e){/* skip source on error */}
+      }catch(e){/* skip this source, try next */}
     }
-    if(results.length===0){setError("Unable to load news feeds. Please check your connection.");setLoading(false);return;}
+    if(results.length===0){setError("Unable to load news feeds. Please try again in a moment.");setLoading(false);return;}
     const sorted=results.sort((a,b)=>b.date-a.date).map(a=>({...a,category:detectCategory(a.title,a.desc)}));
     setArticles(sorted);
     setTicker(sorted.slice(0,10));
@@ -1569,7 +1559,7 @@ function Header({activeNav,setActiveNav,onSeller}){
     {id:"listings",label:"Listings"},
     {id:"pulse",label:"Market Pulse"},
     {id:"hoods",label:"Neighbourhoods"},
-    {id:"news",label:"📰 RE News"},
+    {id:"news",label:"News"},
     {id:"quiz",label:"Find My Deal"},
     {id:"precon",label:"Pre-Con VIP"},
   ];
