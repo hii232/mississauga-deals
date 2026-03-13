@@ -223,7 +223,7 @@ const calcMonthly=(price,downPct,rate,years)=>{
   if(r===0)return Math.round(p/n);
   return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 };
-const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
+const scoreColor=s=>!s?MUTED:s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
 const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
 
 /* ─────────────────────────────────────────────
@@ -491,7 +491,7 @@ function ListingCard({l,onOpen,isSample=true}){
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
             boxShadow:`0 0 12px ${scoreCol}30`
           }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore.toFixed(1)}</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore!=null?l.hamzaScore.toFixed(1):"—"}</div>
             <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
           </div>
         </div>
@@ -678,7 +678,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
             <div style={{fontSize:13,color:MUTED}}>{l.neighbourhood}, Mississauga · Courtesy: {l.brokerage}</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
-            <ScoreBadge score={l.hamzaScore} size="lg"/>
+            <ScoreBadge score={l.hamzaScore||0} size="lg"/>
             <button onClick={onClose} aria-label="Close listing" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:24,lineHeight:1,padding:"4px"}}>×</button>
           </div>
         </div>
@@ -2165,7 +2165,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
     const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
-  },[propType,filterHood,search,chips,filters,sort,listings]);
+  },[propType,filterHood,search,chips,filters,sort]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2234,7 +2234,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
           <div style={{flex:1}}>
             <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Pick of the Week — Personal Selection</div>
             <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>1590 Carolyn Rd, Erin Mills</div>
-            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
+            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10</div>
           </div>
           <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
             View Analysis →
@@ -2251,7 +2251,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
         </div>
       ):(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={true}/>)}
+          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample!==false}/>)}
         </div>
       )}
     </section>
