@@ -1,63 +1,77 @@
-let cachedToken = null;
-let tokenExpiry = 0;
+// api/listings.js — Amplify Syndication RESO Web API
+// Endpoint: https://query.ampre.ca/odata/
+// Auth: Bearer token via AMPRE_TOKEN env var (no OAuth2 needed)
 
-async function getAccessToken() {
-  if (cachedToken && Date.now() < tokenExpiry) return cachedToken;
-  const CLIENT_ID = process.env.TRREB_CLIENT_ID;
-  const CLIENT_SECRET = process.env.TRREB_CLIENT_SECRET;
-  if (!CLIENT_ID || !CLIENT_SECRET) return null;
-  const res = await fetch('https://oauth.proptx.ca/oauth2/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'client_credentials',
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      scope: 'DDFApi_Read'
-    })
-  });
-  const data = await res.json();
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + ((data.expires_in || 3600) - 60) * 1000;
-  return cachedToken;
-}
+const BASE = 'https://query.ampre.ca/odata/Property';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  if (req.method === 'OPTIONS') { res.status(200).end(); return; }
+  const TOKEN = process.env.AMPRE_TOKEN;
 
-  const CLIENT_ID = process.env.TRREB_CLIENT_ID;
-  const CLIENT_SECRET = process.env.TRREB_CLIENT_SECRET;
-  if (!CLIENT_ID || !CLIENT_SECRET) {
-    return res.status(503).json({ error: 'Feed not yet configured', listings: [] });
+  if (!TOKEN) {
+    return res.status(503).json({ listings: [], total: 0, source: 'no-token' });
   }
 
+  const city = req.query.city || 'Mississauga';
+  const minPrice = parseInt(req.query.minPrice || '0');
+  const maxPrice = parseInt(req.query.maxPrice || '5000000');
+  const limit = Math.min(parseInt(req.query.limit || '100'), 100);
+
+  const filter = [
+    `City eq '${city}'`,
+    `StandardStatus eq 'Active'`,
+    `InternetAddressDisplayYN eq true`,
+    `ListPrice ge ${minPrice}`,
+    `ListPrice le ${maxPrice}`
+  ].join(' and ');
+
+  const select = [
+    'ListingKey','StreetNumber','StreetName','StreetSuffix','UnitNumber',
+    'City','PostalCode','ListPrice','OriginalListPrice',
+    'BedroomsTotal','BathroomsTotal',
+    'LivingArea','PropertyType','PropertySubType',
+    'StandardStatus','DaysOnMarket','ListOfficeName','ListAgentFullName',
+    'PublicRemarks','InternetAddressDisplayYN','ModificationTimestamp',
+    'Latitude','Longitude','MlsStatus','YearBuilt','ParkingTotal'
+  ].join(',');
+
+  const expand = "Media($select=MediaURL,MediaType,Order;$filter=MediaType eq 'image/jpeg';$orderby=Order;$top=10)";
+
+  const params = new URLSearchParams();
+  params.set('$filter', filter);
+  params.set('$select', select);
+  params.set('$expand', expand);
+  params.set('$top', limit.toString());
+  params.set('$orderby', 'ModificationTimestamp desc');
+
+  const url = `${BASE}?${params.toString()}`;
+
   try {
-    const token = await getAccessToken();
-    if (!token) return res.status(401).json({ error: 'Auth failed', listings: [] });
-
-    const { city = 'Mississauga', minPrice = 400000, maxPrice = 2000000, limit = 100 } = req.query;
-
-    const params = new URLSearchParams({
-      '$filter': `City eq '${city}' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice} and StandardStatus eq 'Active' and InternetAddressDisplayYN eq true`,
-      '$top': String(Math.min(parseInt(limit) || 100, 100)),
-      '$select': 'ListingKey,ListPrice,OriginalListPrice,StreetNumber,StreetName,StreetSuffix,UnitNumber,City,PostalCode,BedroomsTotal,BathroomsTotal,LivingArea,PropertyType,PropertySubType,PublicRemarks,ListOfficeName,DaysOnMarket,Media,InternetAddressDisplayYN,Latitude,Longitude',
-      '$orderby': 'ListPrice asc'
+    const apiRes = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${TOKEN}`,
+        'Accept': 'application/json'
+      }
     });
 
-    const listingsRes = await fetch(`https://ddfapi.proptx.ca/odata/v1/Property?${params}`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
-    });
+    if (!apiRes.ok) {
+      const errText = await apiRes.text();
+      console.error('Amplify API error:', apiRes.status, errText);
+      return res.status(apiRes.status).json({ listings: [], total: 0, error: errText });
+    }
 
-    const data = await listingsRes.json();
+    const data = await apiRes.json();
     const listings = (data.value || []).filter(l => l.InternetAddressDisplayYN !== false);
 
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-    res.json({ listings, total: listings.length, timestamp: new Date().toISOString() });
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
+    return res.status(200).json({
+      listings,
+      total: listings.length,
+      timestamp: new Date().toISOString(),
+      source: 'ampre-live'
+    });
 
   } catch (err) {
-    console.error('PropTx listings error:', err);
-    res.status(500).json({ error: 'Feed error', listings: [] });
+    console.error('Amplify fetch failed:', err.message);
+    return res.status(500).json({ listings: [], total: 0, error: err.message });
   }
 }
