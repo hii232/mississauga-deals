@@ -442,7 +442,7 @@ const HOOD_GRADIENTS={
   "Malton":             ["#1A100E","#36201A"],
 };
 
-function ListingCard({l,onOpen,isSample=true}){
+function ListingCard({l,onOpen,isSample=false}){
   const cf=fmtCF(l.cashFlow);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
   const scoreCol=scoreColor(l.hamzaScore);
@@ -466,7 +466,7 @@ function ListingCard({l,onOpen,isSample=true}){
       }}
     >
       {/* Rich image area — gradient with data overlay */}
-      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
+      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>{l.photos&&l.photos.length>0&&<img src={l.photos[0]} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",cursor:"zoom-in"}} onError={function(e){e.target.style.display="none";}} onClick={function(e){e.stopPropagation();_setLb({photos:l.photos,i:0});}}/>}
         {/* Subtle grid pattern overlay */}
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
 
@@ -2331,7 +2331,7 @@ function Testimonials(){
    MAIN APP
 ───────────────────────────────────────────── */
 export default function App(){
-  const [_lb,_setLb]=React.useState(null);
+  const [_lb,_setLb]=useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
@@ -2428,7 +2428,6 @@ export default function App(){
 
       {/* Animated mesh background — premium indigo/blue */}
       <div className="mesh-bg" aria-hidden="true">
-        {l.photos&&l.photos.length>0&&<div style={{position:"relative",width:"100%",paddingBottom:"56.25%",overflow:"hidden",borderRadius:"8px 8px 0 0",background:"#0D1F35",marginBottom:8}}><img src={l.photos[0]} alt={l.address} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover",cursor:"zoom-in"}} onError={function(e){e.target.parentNode.style.display="none";}} onClick={function(e){e.stopPropagation();_setLb({photos:l.photos,i:0});}}/>{l.photos.length>1&&<span style={{position:"absolute",bottom:6,right:8,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,borderRadius:4,padding:"2px 6px"}}>{l.photos.length+" photos"}</span>}</div>}
         <div className="mesh-orb" style={{width:700,height:700,background:"#1D4ED8",top:"-25%",right:"-15%",animationDelay:"0s"}}/>
         <div className="mesh-orb" style={{width:550,height:550,background:"#4338CA",bottom:"-20%",left:"-12%",animationDelay:"-7s"}}/>
         <div className="mesh-orb" style={{width:450,height:450,background:"#0EA5E9",top:"35%",left:"35%",animationDelay:"-14s"}}/>
@@ -2445,8 +2444,8 @@ export default function App(){
 
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
-            {_lb&&<div onClick={function(){_setLb(null);}} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><button onClick={function(){_setLb(null);}} style={{position:"fixed",top:16,right:16,background:"transparent",border:"none",color:"#fff",fontSize:30,cursor:"pointer",lineHeight:1}}>×</button><div style={{display:"flex",alignItems:"center",gap:16,maxWidth:"92vw"}}>{ _lb.i>0&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>‹</button>}<img src={_lb.photos[_lb.i]} alt="" style={{maxWidth:"85vw",maxHeight:"82vh",objectFit:"contain",borderRadius:6,display:"block"}} onError={function(e){e.target.style.opacity=0.3;}}/>{_lb.i<_lb.photos.length-1&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>›</button>}</div><div style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:8}}>{(_lb.i+1)+" / "+_lb.photos.length}</div></div>}
-{selectedListing&&(
+      {_lb&&<div onClick={function(){_setLb(null);}} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><button onClick={function(){_setLb(null);}} style={{position:"fixed",top:16,right:16,background:"transparent",border:"none",color:"#fff",fontSize:30,cursor:"pointer",lineHeight:1}}>×</button><div style={{display:"flex",alignItems:"center",gap:16,maxWidth:"92vw"}}>{_lb.i>0&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>‹</button>}<img src={_lb.photos[_lb.i]} alt="" style={{maxWidth:"85vw",maxHeight:"82vh",objectFit:"contain",borderRadius:6,display:"block"}} onError={function(e){e.target.style.opacity=0.3;}}/>{_lb.i<_lb.photos.length-1&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>›</button>}</div><div style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:8}}>{(_lb.i+1)+" / "+_lb.photos.length}</div></div>}
+      {selectedListing&&(
         <ListingModal
           l={selectedListing}
           onClose={()=>setSelectedListing(null)}
