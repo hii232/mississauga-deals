@@ -1,68 +1,76 @@
-// api/listings.js — Amplify Syndication RESO Web API (TRREB)
-// Field names verified from live Amplify schema — NO $expand (images via separate endpoint)
-const BASE = 'https://query.ampre.ca/odata/Property';
-
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   const TOKEN = process.env.AMPRE_TOKEN;
-  if (!TOKEN) return res.status(503).json({ listings: [], total: 0, source: 'no-token' });
+  if (!TOKEN) return res.status(500).json({ error: 'AMPRE_TOKEN not set' });
 
-  const city     = req.query.city     || 'Mississauga';
-  const limit    = Math.min(parseInt(req.query.limit    || '100'), 100);
-  const minPrice = parseInt(req.query.minPrice || '0');
-  const maxPrice = parseInt(req.query.maxPrice || '5000000');
-
-  const select = [
-    'ListingKey','ListingId','UnparsedAddress',
-    'StreetNumber','StreetName','StreetSuffix','UnitNumber',
-    'City','CityRegion','PostalCode',
-    'ListPrice','OriginalListPrice',
-    'BedroomsTotal','BedroomsAboveGrade','BedroomsBelowGrade',
-    'BathroomsTotalInteger',
-    'BuildingAreaTotal','LivingAreaRange',
-    'PropertyType','PropertySubType','TransactionType',
-    'StandardStatus','ContractStatus','DaysOnMarket',
-    'ListOfficeName',
-    'PublicRemarks','PublicRemarksExtras','Inclusions',
-    'ModificationTimestamp','OriginalEntryTimestamp',
-    'ParkingTotal','GarageType','Locker',
-    'ApproximateAge','AssociationFee','AssociationFeeIncludes',
-    'TaxAnnualAmount','CrossStreet',
-    'InternetAddressDisplayYN','InternetEntireListingDisplayYN',
-    'VirtualTourURLBranded'
-  ].join(',');
-
-  const filter = `City eq '${city}' and StandardStatus eq 'Active' and ListPrice ge ${minPrice} and ListPrice le ${maxPrice}`;
-
-  const url = BASE
-    + '?$filter='  + encodeURIComponent(filter)
-    + '&$select='  + encodeURIComponent(select)
-    + '&$top='     + limit
-    + '&$orderby=ModificationTimestamp%20desc';
+  const { city = 'Mississauga', limit = 50, offset = 0 } = req.query;
 
   try {
-    const apiRes = await fetch(url, {
-      headers: { 'Authorization': `Bearer ${TOKEN}`, 'Accept': 'application/json' }
+    // Build filter
+    const cityFilter = `City eq '${city}' and InternetAddressDisplayYN eq true and StandardStatus eq 'Active'`;
+    const top = Math.min(parseInt(limit) || 50, 100);
+    const skip = parseInt(offset) || 0;
+
+    const url = `https://query.ampre.ca/odata/Property?$filter=${encodeURIComponent(cityFilter)}&$top=${top}&$skip=${skip}&$orderby=ModificationTimestamp desc&$select=ListingKey,StreetNumber,StreetName,StreetSuffix,UnitNumber,City,CityRegion,ListPrice,OriginalListPrice,BedroomsTotal,BathroomsTotalInteger,PropertyType,PropertySubType,LivingAreaRange,BuildingAreaTotal,DaysOnMarket,ListOfficeName,PublicRemarks,PublicRemarksExtras,Inclusions,ParkingTotal,GarageType,Locker,TaxAnnualAmount,AssociationFee,AssociationFeeIncludes,CrossStreet,PostalCode,ApproximateAge,VirtualTourURLBranded,InternetAddressDisplayYN,InternetEntireListingDisplayYN,OriginalEntryTimestamp,ModificationTimestamp,TransactionType,StandardStatus,ContractStatus,ListingId`;
+
+    const propRes = await fetch(url, {
+      headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/json' }
     });
 
-    const raw = await apiRes.text();
-
-    if (!apiRes.ok) {
-      console.error('Amplify error:', apiRes.status, raw.slice(0, 400));
-      return res.status(200).json({ listings: [], total: 0, error: raw });
+    if (!propRes.ok) {
+      const errText = await propRes.text();
+      return res.status(propRes.status).json({ error: 'Ampre API error', detail: errText });
     }
 
-    const data = JSON.parse(raw);
+    const data = await propRes.json();
     const listings = (data.value || []).filter(l => l.InternetAddressDisplayYN !== false);
 
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=600');
+    if (listings.length === 0) {
+      return res.status(200).json({ listings: [], total: 0, source: 'ampre-live', timestamp: new Date().toISOString() });
+    }
+
+    // ── Fetch photos in ONE batch call ──
+    const keys = listings.map(l => l.ListingKey).filter(Boolean);
+    const mediaFilter = keys.map(k => `ResourceRecordKey eq '${k}'`).join(' or ');
+    let mediaMap = {};
+
+    try {
+      const mediaUrl = `https://query.ampre.ca/odata/Media?$filter=${encodeURIComponent(mediaFilter)}&$select=ResourceRecordKey,MediaURL,Order,MediaCategory&$orderby=ResourceRecordKey,Order asc&$top=${keys.length * 5}`;
+      const mediaRes = await fetch(mediaUrl, {
+        headers: { Authorization: `Bearer ${TOKEN}`, Accept: 'application/json' }
+      });
+      if (mediaRes.ok) {
+        const mediaData = await mediaRes.json();
+        for (const m of (mediaData.value || [])) {
+          if (m.MediaURL && m.ResourceRecordKey) {
+            if (!mediaMap[m.ResourceRecordKey]) mediaMap[m.ResourceRecordKey] = [];
+            if (mediaMap[m.ResourceRecordKey].length < 5) {
+              mediaMap[m.ResourceRecordKey].push(m.MediaURL);
+            }
+          }
+        }
+      }
+    } catch(e) {
+      // Photos failed — continue without them
+    }
+
+    // Attach photos to listings
+    const enriched = listings.map(l => ({
+      ...l,
+      images: mediaMap[l.ListingKey] || []
+    }));
+
+    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
     return res.status(200).json({
-      listings,
-      total: listings.length,
+      listings: enriched,
+      total: enriched.length,
       source: 'ampre-live',
       timestamp: new Date().toISOString()
     });
 
   } catch (err) {
-    return res.status(500).json({ listings: [], total: 0, error: err.message });
+    return res.status(500).json({ error: 'Server error', detail: err.message });
   }
 }
