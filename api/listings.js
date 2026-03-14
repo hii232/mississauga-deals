@@ -9,6 +9,17 @@ const MISSISSAUGA_CITIES = [
   'Erin Mills','Churchill Meadows','Cooksville','Hurontario','Meadowvale','Malton',
 ];
 
+
+function mapType(sub, prop) {
+  const s = (sub||'').toLowerCase();
+  const p = (prop||'').toLowerCase();
+  if(s.includes('semi')) return 'Semi-Detached';
+  if(s.includes('att')||s.includes('row')||s.includes('town')) return 'Townhouse';
+  if(p.includes('condo')||s.includes('condo')||s.includes('apt')) return 'Condo';
+  if(s.includes('duplex')) return 'Duplex';
+  return 'Detached';
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -23,7 +34,8 @@ export default async function handler(req, res) {
     const take = Math.min(parseInt(limit) || 50, 100);
     const skip = (parseInt(page) - 1) * take;
 
-    const filters = ["StandardStatus eq 'Active'"];
+    const filters = ["StandardStatus eq 'Active'",
+      "ListPrice ge 200000"];
 
     if (minPrice) filters.push(`ListPrice ge ${parseInt(minPrice)}`);
     if (maxPrice) filters.push(`ListPrice le ${parseInt(maxPrice)}`);
@@ -96,7 +108,7 @@ export default async function handler(req, res) {
         baths:            l.BathroomsTotalInteger || 0,
         halfBaths:        0,
         sqft:             null,
-        type:             l.PropertyType || '',
+        type:             mapType(l.PropertySubType, l.PropertyType),
         subType:          l.PropertySubType || '',
         yearBuilt:        l.YearBuilt,
         daysOnMarket:     l.DaysOnMarket || 0,
