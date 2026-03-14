@@ -445,7 +445,7 @@ const HOOD_GRADIENTS={
 function ListingCard({l,onOpen,isSample}){
   const cf=fmtCF(l.cashFlow);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
-  const scoreCol=scoreColor(l.hamzaScore);
+  const scoreCol=scoreColor(l.hamzaScore??5);
 
   return(
     <div
@@ -491,7 +491,7 @@ function ListingCard({l,onOpen,isSample}){
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
             boxShadow:`0 0 12px ${scoreCol}30`
           }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore.toFixed(1)}</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore!=null?l.hamzaScore.toFixed(1):"—"}</div>
             <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
           </div>
         </div>
