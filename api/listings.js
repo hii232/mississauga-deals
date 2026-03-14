@@ -51,13 +51,15 @@ module.exports = async function handler(req, res) {
     }
 
     // Only request fields that exist in PropTx schema
+    // ListingContractDate = date listing was signed (used to calculate real DOM)
     var sel = [
       'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
       'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
       'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
       'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
-      'Latitude', 'Longitude', 'ModificationTimestamp'
+      'Latitude', 'Longitude', 'ModificationTimestamp',
+      'ListingContractDate', 'OriginalEntryTimestamp'
     ].join(',');
 
     // Use $expand=Media to get photos inline (per AMPRE docs)
@@ -73,13 +75,33 @@ module.exports = async function handler(req, res) {
       headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
     });
 
-    // If $expand fails, fall back to no photos
+    // Fallback chain: if $expand or date fields fail, try simpler queries
     if (!resp.ok) {
+      // Try without $expand but keep date fields
+      var selBasic = sel;
       var urlNoExpand = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-        + '&$select=' + encodeURIComponent(sel)
+        + '&$select=' + encodeURIComponent(selBasic)
         + '&$top=' + limit + '&$skip=' + skip
         + '&$orderby=ModificationTimestamp desc&$count=true';
       resp = await fetch(urlNoExpand, {
+        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
+      });
+    }
+    if (!resp.ok) {
+      // Try without date fields (they may not exist in schema)
+      var selSafe = [
+        'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
+        'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
+        'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
+        'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
+        'StandardStatus', 'ListOfficeName', 'PublicRemarks',
+        'Latitude', 'Longitude', 'ModificationTimestamp'
+      ].join(',');
+      var urlSafe = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
+        + '&$select=' + encodeURIComponent(selSafe)
+        + '&$top=' + limit + '&$skip=' + skip
+        + '&$orderby=ModificationTimestamp desc&$count=true';
+      resp = await fetch(urlSafe, {
         headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
       });
       if (!resp.ok) {
@@ -101,7 +123,15 @@ module.exports = async function handler(req, res) {
       var drop = (l.OriginalListPrice && l.OriginalListPrice > price)
         ? Math.round((l.OriginalListPrice - price) / l.OriginalListPrice * 100) : 0;
       var rem = l.PublicRemarks || '';
+      // Calculate DOM: use DaysOnMarket if available, else calculate from dates
       var dom = l.DaysOnMarket || 0;
+      if (dom === 0) {
+        var listDate = l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
+        if (listDate) {
+          var diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
+          if (diff > 0 && diff < 1000) dom = diff;
+        }
+      }
 
       // Extract photos from expanded Media
       var ph = [];
