@@ -710,7 +710,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
                 <StatBox label="Beds" value={l.beds}/>
                 <StatBox label="Baths" value={l.baths}/>
-                <StatBox label="Sq Ft" value={l.sqft.toLocaleString()}/>
+                <StatBox label="Sq Ft" value={l.sqft?(l.sqft).toLocaleString():"—"}/>
                 <StatBox label="LRT Access" value={l.lrtAccess?"✓ Yes":"—"} accent={l.lrtAccess?GREEN:MUTED}/>
               </div>
               {/* Walkability */}
