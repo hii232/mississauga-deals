@@ -115,7 +115,6 @@ export default async function handler(req, res) {
       'UnitNumber',
       'BedroomsTotal',
       'BathroomsTotalInteger',
-      'BathroomsHalf',
       'PropertyType',
       'PropertySubType',
       'LivingArea',
