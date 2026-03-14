@@ -1,4 +1,4 @@
-// api/listings.js - PropTx VOW Datafeed — all Mississauga residential
+// api/listings.js - PropTx VOW Datafeed — fast, no photo calls
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_TOKEN;
 const CITIES = ['Mississauga','Port Credit','Streetsville','Clarkson','Lakeview',
@@ -19,7 +19,6 @@ function mapType(sub, prop) {
 function estimateRent(price, beds, city, type) {
   var base = ({ 0: 1850, 1: 2100, 2: 2700, 3: 3200, 4: 3800, 5: 4400 })[Math.min(beds || 0, 5)] || 2500;
   var adj = type === 'Detached' ? 250 : type === 'Condo' ? -150 : 0;
-  // Multi-unit types get rental premium
   if (type === 'Duplex' || type === 'Triplex' || type === 'Fourplex' || type === 'Multiplex') adj += 800;
   if ((city || '').toLowerCase().indexOf('port credit') > -1) adj += 200;
   return Math.round(((price || 0) * 0.0042 * 0.4 + (base + adj) * 0.6) / 50) * 50;
@@ -57,43 +56,29 @@ module.exports = async function handler(req, res) {
       'PropertyType', 'PropertySubType', 'YearBuilt',
       'DaysOnMarket', 'CumulativeDaysOnMarket', 'OnMarketDate',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
-      'Latitude', 'Longitude', 'ModificationTimestamp', 'Media'
+      'Latitude', 'Longitude', 'ModificationTimestamp'
     ].join(',');
 
     var url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
       + '&$select=' + encodeURIComponent(sel)
       + '&$top=' + limit + '&$skip=' + skip
-      + '&$orderby=ModificationTimestamp desc&$count=true'
-      + '&$expand=Media($select=MediaURL,Order;$orderby=Order asc;$top=30)';
+      + '&$orderby=ModificationTimestamp desc&$count=true';
 
     var resp = await fetch(url, {
       headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
     });
 
-    // If $expand fails (some ODATA providers don't support it), fall back without photos
-    var data;
     if (!resp.ok) {
-      // Try without $expand
-      var url2 = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-        + '&$select=' + encodeURIComponent(sel.replace(',Media', ''))
-        + '&$top=' + limit + '&$skip=' + skip
-        + '&$orderby=ModificationTimestamp desc&$count=true';
-      var resp2 = await fetch(url2, {
-        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
-      });
-      if (!resp2.ok) {
-        var e = await resp2.text();
-        return res.status(resp2.status).json({ error: 'PropTx ' + resp2.status, detail: e.substring(0, 400) });
-      }
-      data = await resp2.json();
-    } else {
-      data = await resp.json();
+      var e = await resp.text();
+      return res.status(resp.status).json({ error: 'PropTx ' + resp.status, detail: e.substring(0, 400) });
     }
 
+    var data = await resp.json();
     var items = data.value || [];
     var total = data['@odata.count'] || items.length;
 
-    var listings = items.map(function(l, i) {
+    // NO photo fetching here — photos load lazily on the frontend via /api/photos
+    var listings = items.map(function(l) {
       var price = l.ListPrice || 0;
       var beds = l.BedroomsTotal || 0;
       var city = l.City || 'Mississauga';
@@ -102,21 +87,10 @@ module.exports = async function handler(req, res) {
       var drop = (l.OriginalListPrice && l.OriginalListPrice > price)
         ? Math.round((l.OriginalListPrice - price) / l.OriginalListPrice * 100) : 0;
       var rem = l.PublicRemarks || '';
-
-      // DOM: try DaysOnMarket, then CumulativeDaysOnMarket, then calculate from OnMarketDate
       var dom = l.DaysOnMarket || l.CumulativeDaysOnMarket || 0;
       if (dom === 0 && l.OnMarketDate) {
         var onDate = new Date(l.OnMarketDate);
-        var now = new Date();
-        dom = Math.max(0, Math.round((now - onDate) / (1000 * 60 * 60 * 24)));
-      }
-
-      // Photos from $expand or empty (frontend will lazy-load via /api/photos)
-      var ph = [];
-      if (l.Media && Array.isArray(l.Media)) {
-        ph = l.Media.map(function(m) { return m.MediaURL || m.MediaUrl || ''; }).filter(Boolean);
-        // Deduplicate
-        ph = ph.filter(function(url, idx, arr) { return arr.indexOf(url) === idx; });
+        dom = Math.max(0, Math.round((Date.now() - onDate) / 86400000));
       }
 
       return {
@@ -129,19 +103,15 @@ module.exports = async function handler(req, res) {
         postalCode: l.PostalCode,
         beds: beds,
         baths: l.BathroomsTotalInteger || 0,
-        sqft: null,
         type: type,
         subType: l.PropertySubType || '',
         yearBuilt: l.YearBuilt,
         dom: dom,
         daysOnMarket: dom,
         status: l.StandardStatus,
-        listingBrokerage: l.ListOfficeName || '',
         brokerage: l.ListOfficeName || '',
         remarks: rem,
-        notes: rem,
-        photos: ph,
-        images: ph,
+        photos: [],
         lat: l.Latitude,
         lng: l.Longitude,
         originalPrice: l.OriginalListPrice || price,
@@ -149,8 +119,7 @@ module.exports = async function handler(req, res) {
         priceReduction: drop,
         estimatedRent: rent,
         rent: rent,
-        isSample: false,
-        hasSuite: /separate entrance|in-law|basement apt|2nd kitchen|second kitchen|legal basement|finished basement|accessory|duplex|rental income|two unit|2 unit/i.test(rem)
+        hasSuite: /separate entrance|in-law|basement apt|2nd kitchen|second kitchen|legal basement|finished basement|accessory|rental income|two unit|2 unit/i.test(rem)
       };
     });
 
@@ -160,11 +129,10 @@ module.exports = async function handler(req, res) {
       page: page,
       limit: limit,
       pages: Math.ceil(total / limit),
-      copyright: 'Listing data provided by PropTx/TRREB. Deemed reliable but not guaranteed.',
       timestamp: new Date().toISOString()
     });
   } catch (err) {
-    console.error('err:', err.message);
+    console.error('listings err:', err.message);
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
 };

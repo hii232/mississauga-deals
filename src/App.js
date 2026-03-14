@@ -468,8 +468,9 @@ function ListingCard({l,onOpen,isSample=true}){
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
   const score=l.hamzaScore||0;
   const scoreCol=scoreColor(score);
-  const hasPhotos=l.photos&&l.photos.length>0;
   const [imgErr,setImgErr]=useState(false);
+  const cardPhoto=(l.photos&&l.photos.length>0)?l.photos[0]:l._thumbUrl||null;
+  const hasPhotos=!!cardPhoto&&!imgErr;
 
   return(
     <div
@@ -491,8 +492,8 @@ function ListingCard({l,onOpen,isSample=true}){
     >
       {/* Image area — real photos or gradient fallback */}
       <div style={{height:180,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
-        {hasPhotos&&!imgErr?(
-          <img src={l.photos[0]} alt={l.address} loading="lazy"
+        {hasPhotos?(
+          <img src={cardPhoto} alt={l.address} loading="lazy"
             onError={()=>setImgErr(true)}
             style={{width:"100%",height:"100%",objectFit:"cover"}}/>
         ):(
@@ -502,10 +503,10 @@ function ListingCard({l,onOpen,isSample=true}){
           </>
         )}
         {/* Dark gradient overlay for text readability on photos */}
-        {hasPhotos&&!imgErr&&<div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(5,9,26,0.7) 0%,rgba(5,9,26,0.1) 40%,transparent 60%)"}}/>}
+        {hasPhotos&&<div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(5,9,26,0.7) 0%,rgba(5,9,26,0.1) 40%,transparent 60%)"}}/>}
 
         {/* Photo count badge */}
-        {hasPhotos&&l.photos.length>1&&(
+        {l.photos&&l.photos.length>1&&(
           <div style={{position:"absolute",bottom:10,left:10,background:"rgba(5,9,26,0.8)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:600,border:"1px solid rgba(255,255,255,0.1)"}}>
             {l.photos.length} photos
           </div>
@@ -675,17 +676,16 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const [photoIdx,setPhotoIdx]=useState(0);
   const [lightboxOpen,setLightboxOpen]=useState(false);
   const [lazyPhotos,setLazyPhotos]=useState(null);
-  const basePhotos=l.photos||l.images||[];
-  // Lazy-load photos if none came from API
+  // Always load full photo set when modal opens
   useEffect(()=>{
-    if(basePhotos.length===0&&l.id){
+    if(l.id){
       fetch('/api/photos?id='+encodeURIComponent(l.id))
         .then(r=>r.json())
         .then(d=>{if(d.photos&&d.photos.length>0)setLazyPhotos(d.photos);})
         .catch(()=>{});
     }
-  },[l.id,basePhotos.length]);
-  const uniquePhotos=[...new Set(lazyPhotos||basePhotos)];
+  },[l.id]);
+  const uniquePhotos=lazyPhotos||(l.photos&&l.photos.length>0?[...new Set(l.photos)]:[]);
 
   const monthly=calcMonthly(l.price,down,rate,amort);
   const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
@@ -2793,15 +2793,34 @@ export default function App(){
           if(d.listings&&d.listings.length>0){
             allListings=allListings.concat(d.listings);
             totalPages=d.pages||1;
-            // Show listings incrementally as they load
-            processListings(allListings);
+            // Show listings IMMEDIATELY as data arrives
+            const processed=processListings(allListings);
+            // Load photos in background batches of 20
+            loadPhotosBatch(processed.filter(p=>!p.photos||p.photos.length===0));
           }else{break;}
         }catch(e){console.error('Feed page '+page+' error:',e);break;}
         page++;
       }
     }
+    async function loadPhotosBatch(listings){
+      for(let i=0;i<listings.length;i+=20){
+        const batch=listings.slice(i,i+20);
+        const ids=batch.map(l=>l.id).filter(Boolean);
+        if(ids.length===0)continue;
+        try{
+          const r=await fetch('/api/photos-batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
+          const d=await r.json();
+          if(d.photos){
+            setLiveListings(prev=>prev.map(l=>{
+              if(d.photos[l.id]){return{...l,_thumbUrl:d.photos[l.id]};}
+              return l;
+            }));
+          }
+        }catch(e){/* photo batch failed, cards show gradient */}
+      }
+    }
     function processListings(allRaw){
-      setLiveListings(allRaw.map((l,i)=>{
+      const result=allRaw.map((l,i)=>{
             const price=l.price||0;
             const beds=l.beds||0;
             const rent=l.estimatedRent||l.rent||Math.round(price*0.0042);
@@ -2866,8 +2885,10 @@ export default function App(){
               hasSuite:hasSuiteDetected,
               isSample:false,
             };
-          }));
-          setUsingLiveFeed(true);
+          });
+      setLiveListings(result);
+      setUsingLiveFeed(true);
+      return result;
     }
     fetchAllListings();
   },[]);
