@@ -17,7 +17,7 @@ body{background:#05091A;font-family:'Inter',sans-serif;color:#E2E8F0;overflow-x:
 @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulseWA{0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 14px rgba(37,211,102,0)}}
+@keyframes pulseCTA{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.4)}70%{box-shadow:0 0 0 12px rgba(59,130,246,0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
 @keyframes meshMove{0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(40px,-30px) rotate(120deg)}66%{transform:translate(-30px,40px) rotate(240deg)}}
@@ -89,8 +89,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 
 /* WA FAB */
-.wa-fab{position:fixed;bottom:28px;right:28px;z-index:90;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 24px rgba(37,211,102,0.45);animation:pulseWA 2.5s infinite;transition:transform .2s ease}
-.wa-fab:hover{transform:scale(1.1)!important}
 
 /* Skeleton loader */
 .skeleton{background:linear-gradient(90deg,#0D1830 25%,#162240 50%,#0D1830 75%);background-size:600px 100%;animation:shimmer 1.8s infinite}
@@ -584,18 +582,38 @@ function ListingCard({l,onOpen,isSample=true}){
    REGISTRATION WALL MODAL
 ───────────────────────────────────────────── */
 function RegModal({onClose,onSuccess}){
-  const [form,setForm]=useState({name:"",phone:"",email:"",casl:false});
+  const [form,setForm]=useState({name:"",email:"",phone:"",casl:false});
   const [err,setErr]=useState("");
   const [submitting,setSubmitting]=useState(false);
+  const [done,setDone]=useState(false);
 
-  const handleSubmit=()=>{
-    if(!form.name.trim()||!form.phone.trim()){setErr("Name and phone are required.");return;}
+  const handleSubmit=async()=>{
+    if(!form.name.trim()){setErr("Name is required.");return;}
+    if(!form.email.trim()||!form.email.includes("@")){setErr("A valid email is required.");return;}
     if(!form.casl){setErr("Please accept the consent checkbox to continue.");return;}
-    setSubmitting(true);
-    const msg=encodeURIComponent(`🔔 New MississaugaInvestor Registration\n\nName: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email||"—"}\nCARL Consent: YES\n\nReach out within 24 hours!`);
-    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
-    setTimeout(()=>{setSubmitting(false);onSuccess(form.name);},1000);
+    setSubmitting(true);setErr("");
+    try{
+      await fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:form.name,email:form.email,phone:form.phone||"",source:"registration",timestamp:new Date().toISOString()})});
+      setDone(true);
+      setTimeout(()=>onSuccess(form.name),2500);
+    }catch(e){setErr("Something went wrong. Please try again.");setSubmitting(false);}
   };
+
+  if(done)return(
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div style={{background:CARD,border:`1px solid ${GOLD_BORDER}`,borderRadius:16,width:"100%",maxWidth:480,animation:"fadeUp .3s ease",textAlign:"center",padding:"48px 32px"}}>
+        <div style={{fontSize:48,marginBottom:16}}>✓</div>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:TEXT,marginBottom:10}}>Welcome, {form.name.split(" ")[0]}!</h2>
+        <p style={{fontSize:15,color:GREEN,fontWeight:600,marginBottom:8}}>You now have full access to all listings and analysis.</p>
+        <p style={{fontSize:13,color:MUTED,lineHeight:1.7,marginBottom:16}}>Hamza will reach out to you shortly with exclusive off-market deals and investment opportunities tailored to your goals.</p>
+        <div style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:10,padding:"14px 18px",marginBottom:16}}>
+          <div style={{fontSize:11,color:MUTED,marginBottom:4}}>Your account</div>
+          <div style={{fontSize:14,color:TEXT,fontWeight:600}}>{form.email}</div>
+        </div>
+        <p style={{fontSize:11,color:MUTED}}>Hamza Nouman, Sales Representative · Royal LePage Signature Realty, Brokerage</p>
+      </div>
+    </div>
+  );
 
   return(
     <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose()}} role="dialog" aria-modal="true" aria-labelledby="reg-title">
@@ -603,16 +621,16 @@ function RegModal({onClose,onSuccess}){
         <div style={{padding:"28px 28px 20px",borderBottom:`1px solid ${BORDER}`}}>
           <div style={{fontSize:28,marginBottom:8}}>🔓</div>
           <h2 id="reg-title" style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:6}}>Unlock Full Access</h2>
-          <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>Register free to unlock Hamza's investment scores, cash flow analysis, and detailed notes on every listing. No spam — you'll only hear about deals worth your time.</p>
+          <p style={{fontSize:13,color:MUTED,lineHeight:1.6}}>Sign up free to unlock Hamza's investment scores, cash flow analysis, and detailed notes on every listing.</p>
         </div>
         <div style={{padding:"20px 28px"}}>
-          {[["Full Name *","name","text","John Smith"],["Phone Number *","phone","tel","647-555-1234"],["Email (optional)","email","email","you@email.com"]].map(([label,key,type,placeholder])=>(
+          {[["Full Name *","name","text","John Smith"],["Email *","email","email","you@email.com"],["Phone (optional)","phone","tel","647-555-1234"]].map(([label,key,type,placeholder])=>(
             <div key={key} style={{marginBottom:14}}>
               <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5,letterSpacing:"0.03em"}} htmlFor={`reg-${key}`}>{label}</label>
               <input id={`reg-${key}`} type={type} placeholder={placeholder} value={form[key]}
                 onChange={e=>setForm(f=>({...f,[key]:e.target.value}))}
                 style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}
-                aria-required={key!=="email"?"true":"false"}
+                aria-required={key!=="phone"?"true":"false"}
               />
             </div>
           ))}
@@ -628,7 +646,7 @@ function RegModal({onClose,onSuccess}){
           {err&&<div role="alert" style={{color:RED,fontSize:12,marginBottom:12}}>{err}</div>}
 
           <button onClick={handleSubmit} disabled={submitting} className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15}}>
-            {submitting?"Sending...":"Get Full Access — Free"}
+            {submitting?"Creating your account...":"Sign Up — Free"}
           </button>
           <p style={{fontSize:11,color:MUTED,textAlign:"center",marginTop:10,lineHeight:1.5}}>
             Your information is protected under PIPEDA. We will never sell your data.<br/>
@@ -656,9 +674,18 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const [opex,setOpex]=useState(30);
   const [photoIdx,setPhotoIdx]=useState(0);
   const [lightboxOpen,setLightboxOpen]=useState(false);
-  const photos=l.photos||l.images||[];
-  // Deduplicate photos in frontend too
-  const uniquePhotos=[...new Set(photos)];
+  const [lazyPhotos,setLazyPhotos]=useState(null);
+  const basePhotos=l.photos||l.images||[];
+  // Lazy-load photos if none came from API
+  useEffect(()=>{
+    if(basePhotos.length===0&&l.id){
+      fetch('/api/photos?id='+encodeURIComponent(l.id))
+        .then(r=>r.json())
+        .then(d=>{if(d.photos&&d.photos.length>0)setLazyPhotos(d.photos);})
+        .catch(()=>{});
+    }
+  },[l.id,basePhotos.length]);
+  const uniquePhotos=[...new Set(lazyPhotos||basePhotos)];
 
   const monthly=calcMonthly(l.price,down,rate,amort);
   const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
@@ -969,9 +996,9 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:11,color:MUTED}}>📍 {l.isSample?"Sample data":"Live listing"} · Courtesy: {l.brokerage||"Listing Brokerage"}</div>
           <div style={{display:"flex",gap:8}}>
-            <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
-              style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
-              💬 WhatsApp
+            <a href={`mailto:hamza@nouman.ca?subject=Inquiry: ${encodeURIComponent(l.address)}&body=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price)+". Please send me more details.")}`}
+              style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#3B82F6,#2563EB)",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
+              ✉ Email Hamza
             </a>
             <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
               📞 Call
@@ -993,9 +1020,8 @@ function PreConForm({onClose}){
   const areaList=["Square One / City Centre","Port Credit","Cooksville","Churchill Meadows","Erin Mills","Clarkson","Streetsville","No Preference"];
 
   const handleSubmit=()=>{
-    if(!form.name||!form.phone||!form.casl)return;
-    const msg=encodeURIComponent(`🏙️ Pre-Con VIP Registration\n\nName: ${form.name}\nPhone: ${form.phone}\nEmail: ${form.email||"—"}\nBudget: ${form.budget}\nAreas: ${form.areas.join(", ")||"Any"}\nCARL Consent: YES`);
-    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    if(!form.name||!form.email||!form.casl)return;
+    fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:form.name,email:form.email,phone:form.phone,source:"precon-vip",listingAddress:"Budget: "+form.budget+", Areas: "+(form.areas.join(", ")||"Any"),timestamp:new Date().toISOString()})});
     setSent(true);
   };
 
@@ -1058,9 +1084,8 @@ function SellerModal({onClose}){
   const [sent,setSent]=useState(false);
 
   const handleSubmit=()=>{
-    if(!form.name||!form.phone||!form.address||!form.casl)return;
-    const msg=encodeURIComponent(`🏡 Home Valuation Request\n\nName: ${form.name}\nPhone: ${form.phone}\nAddress: ${form.address}\nType: ${form.type}\nBeds: ${form.beds}\nCARL Consent: YES`);
-    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    if(!form.name||!form.address||!form.casl)return;
+    fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:form.name,email:form.phone,phone:form.phone,source:"seller-valuation",listingAddress:form.address+" ("+form.type+", "+form.beds+"bd)",timestamp:new Date().toISOString()})});
     setSent(true);
   };
 
@@ -1089,7 +1114,7 @@ function SellerModal({onClose}){
         <div style={{flex:2}}>
           <label style={{display:"block",fontSize:12,color:MUTED,fontWeight:600,marginBottom:5}}>Property Type</label>
           <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}>
-            {["Detached","Semi-Detached","Townhouse","Condo","Other"].map(t=><option key={t}>{t}</option>)}
+            {["Detached","Semi-Detached","Townhouse","Condo","Duplex","Triplex","Fourplex","Multiplex","Other"].map(t=><option key={t}>{t}</option>)}
           </select>
         </div>
         <div style={{flex:1}}>
@@ -1134,9 +1159,8 @@ function QuizView({onResult}){
   };
 
   const handleLead=()=>{
-    if(!leadForm.name||!leadForm.phone||!leadForm.casl)return;
-    const msg=encodeURIComponent(`🎯 Investor Quiz Lead\n\nProfile: ${result.title}\nName: ${leadForm.name}\nPhone: ${leadForm.phone}\nCARL Consent: YES`);
-    window.open(`https://wa.me/16476091289?text=${msg}`,"_blank");
+    if(!leadForm.name||!leadForm.casl)return;
+    fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:leadForm.name,email:leadForm.phone||leadForm.email||"",phone:leadForm.phone,source:"investor-quiz",listingAddress:"Profile: "+(result?result.title:"Unknown"),timestamp:new Date().toISOString()})});
     setSent(true);
   };
 
@@ -2262,9 +2286,9 @@ function Header({activeNav,setActiveNav,onSeller}){
           <button onClick={onSeller} className="btn-ghost desktop-only" style={{padding:"8px 16px",borderRadius:7,fontSize:13,fontWeight:500}}>
             Sell My Home
           </button>
-          <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer"
-            style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#25D366,#1aab55)",color:"#fff",padding:"8px 16px",borderRadius:7,fontSize:13,fontWeight:600,textDecoration:"none",boxShadow:"0 2px 12px rgba(37,211,102,0.3)"}}>
-            <span>💬</span><span className="desktop-only">WhatsApp</span>
+          <a href="mailto:hamza@nouman.ca"
+            style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#3B82F6,#2563EB)",color:"#fff",padding:"8px 16px",borderRadius:7,fontSize:13,fontWeight:600,textDecoration:"none",boxShadow:"0 2px 12px rgba(59,130,246,0.3)"}}>
+            <span>✉</span><span className="desktop-only">Contact</span>
           </a>
         </div>
       </div>
@@ -2475,7 +2499,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
 
         {/* Property type tabs */}
         <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
-          {["All","Detached","Semi-Detached","Townhouse","Condo","Duplex"].map(t=>(
+          {["All","Detached","Semi-Detached","Townhouse","Condo","Duplex","Triplex","Fourplex","Multiplex"].map(t=>(
             <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"7px 14px",fontSize:12}}>{t}</button>
           ))}
           {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:6,padding:"7px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontWeight:600}}>✕ {filterHood}</button>}
@@ -2686,7 +2710,7 @@ function AgentBio({onContact}){
         <p style={{fontSize:13,color:MUTED,lineHeight:1.6,marginBottom:14}}>Specializing in Mississauga investment properties with deep expertise in cap rate analysis, BRRR strategies, and the Hurontario LRT corridor. Every listing scored and analyzed so you don't have to.</p>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>📞 647-609-1289</a>
-          <a href="https://wa.me/16476091289" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(37,211,102,0.1)",color:"#25D366",border:"1px solid rgba(37,211,102,0.25)",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>💬 WhatsApp</a>
+          <a href="mailto:hamza@nouman.ca" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(59,130,246,0.1)",color:BLUE,border:"1px solid rgba(59,130,246,0.25)",padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>✉ hamza@nouman.ca</a>
           <a href="https://www.mississaugainvestor.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(196,154,60,0.08)",color:GOLD,border:`1px solid rgba(196,154,60,0.25)`,padding:"8px 16px",borderRadius:8,fontSize:13,fontWeight:500,textDecoration:"none"}}>🌐 mississaugainvestor.ca</a>
         </div>
       </div>
@@ -2744,7 +2768,7 @@ export default function App(){
   const [isRegistered,setIsRegistered]=useState(false);
   const [liveListings,setLiveListings]=useState([]);
   const [usingLiveFeed,setUsingLiveFeed]=useState(false);
-  const [freeViews,setFreeViews]=useState(1);
+  const [freeViews,setFreeViews]=useState(5);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
   const [showPrecon,setShowPrecon]=useState(false);
@@ -2979,7 +3003,7 @@ export default function App(){
             <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(59,130,246,0.1)",border:`1px solid rgba(59,130,246,0.3)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>🔓</div>
             <div style={{flex:1}}>
               <div style={{fontSize:13,fontWeight:600,color:TEXT,marginBottom:2}}>
-                {freeViews>0?`${freeViews} free view remaining — `:""}{isRegistered?"Full access unlocked":"Register free for full access"}
+                {freeViews>0?`${freeViews} free views remaining — `:""}{isRegistered?"Full access unlocked":"Sign up free for full access"}
               </div>
               <div style={{fontSize:12,color:MUTED}}>Unlock Hamza's investment scores, cash flow analysis, and AI-powered property reports</div>
             </div>
@@ -3018,13 +3042,13 @@ export default function App(){
       {/* Footer */}
       <Footer onPrivacy={()=>setShowPrivacy(true)}/>
 
-      {/* WhatsApp FAB */}
-      <a href="https://wa.me/16476091289?text=Hi+Hamza+I+found+you+on+mississaugainvestor.ca" target="_blank" rel="noreferrer"
-        className="wa-fab" aria-label="Chat with Hamza on WhatsApp" title="WhatsApp Hamza">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-      </a>
+      {/* Sign up CTA - bottom right */}
+      {!isRegistered&&(
+        <button onClick={()=>setShowRegModal(true)}
+          style={{position:"fixed",bottom:24,right:24,zIndex:999,background:"linear-gradient(135deg,#3B82F6,#2563EB)",border:"none",borderRadius:14,padding:"14px 20px",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 20px rgba(59,130,246,0.4)",display:"flex",alignItems:"center",gap:8,animation:"fadeUp .5s ease"}}>
+          🔓 Sign Up — Free Access
+        </button>
+      )}
     </>
   );
 }
