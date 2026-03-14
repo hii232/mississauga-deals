@@ -469,8 +469,18 @@ function ListingCard({l,onOpen,isSample=true}){
   const score=l.hamzaScore||0;
   const scoreCol=scoreColor(score);
   const [imgErr,setImgErr]=useState(false);
-  const hasPhotos=l.photos&&l.photos.length>0&&!imgErr;
-  const cardPhoto=hasPhotos?l.photos[0]:null;
+  const [fetchedPhoto,setFetchedPhoto]=useState(null);
+  // If no photos from batch, fetch individually (only 24 cards visible per page)
+  useEffect(()=>{
+    if((!l.photos||l.photos.length===0)&&l.id&&!fetchedPhoto){
+      fetch('/api/photos?id='+encodeURIComponent(l.id))
+        .then(r=>r.json())
+        .then(d=>{if(d.photos&&d.photos.length>0)setFetchedPhoto(d.photos[0]);})
+        .catch(()=>{});
+    }
+  },[l.id,l.photos,fetchedPhoto]);
+  const cardPhoto=(l.photos&&l.photos.length>0)?l.photos[0]:fetchedPhoto;
+  const hasPhotos=!!cardPhoto&&!imgErr;
 
   return(
     <div
