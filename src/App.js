@@ -2389,7 +2389,7 @@ function Hero({onCTA,setActiveNav}){
 function ListingsMap({listings,onOpenListing}){
   const mapRef=useRef(null);
   const mapObjRef=useRef(null);
-  const markersRef=useRef(null);
+  const clusterRef=useRef(null);
   const listingsRef=useRef(listings);
   const [selectedPin,setSelectedPin]=useState(null);
   const setSelectedPinRef=useRef(setSelectedPin);
@@ -2397,21 +2397,24 @@ function ListingsMap({listings,onOpenListing}){
   listingsRef.current=listings;
 
   function addMarkers(){
-    if(!mapObjRef.current||!markersRef.current||!window.L)return;
+    if(!mapObjRef.current||!clusterRef.current||!window.L)return;
     const L=window.L;
     const data=listingsRef.current;
-    markersRef.current.clearLayers();
+    clusterRef.current.clearLayers();
     const withCoords=(data||[]).filter(l=>l.lat&&l.lng);
+    const markers=[];
     withCoords.forEach(l=>{
       const sc=l.hamzaScore||0;const col=sc>=8.5?'#10B981':sc>=7?'#3B82F6':sc>=5.5?'#F59E0B':'#EF4444';
       const icon=L.divIcon({
         className:'',
-        html:'<div style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:JetBrains Mono,monospace;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer">'+sc.toFixed(1)+'</div>',
-        iconSize:[28,28],iconAnchor:[14,14]
+        html:'<div style="width:26px;height:26px;border-radius:50%;background:'+col+';border:2px solid rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;font-family:JetBrains Mono,monospace;box-shadow:0 2px 6px rgba(0,0,0,0.5);cursor:pointer">'+sc.toFixed(1)+'</div>',
+        iconSize:[26,26],iconAnchor:[13,13]
       });
-      const marker=L.marker([l.lat,l.lng],{icon}).addTo(markersRef.current);
+      const marker=L.marker([l.lat,l.lng],{icon});
       marker.on('click',function(){setSelectedPinRef.current(l);});
+      markers.push(marker);
     });
+    clusterRef.current.addLayers(markers);
     if(withCoords.length>0){
       const bounds=L.latLngBounds(withCoords.map(l=>[l.lat,l.lng]));
       mapObjRef.current.fitBounds(bounds,{padding:[30,30],maxZoom:14});
@@ -2419,27 +2422,53 @@ function ListingsMap({listings,onOpenListing}){
   }
 
   useEffect(()=>{
-    // Load Leaflet CSS + JS dynamically
+    // Load Leaflet CSS + JS + MarkerCluster dynamically
     if(!document.getElementById('leaflet-css')){
       const css=document.createElement('link');css.id='leaflet-css';css.rel='stylesheet';
       css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
     }
+    if(!document.getElementById('mc-css')){
+      const mc1=document.createElement('link');mc1.id='mc-css';mc1.rel='stylesheet';
+      mc1.href='https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css';document.head.appendChild(mc1);
+    }
+    // Custom cluster styles (dark theme)
+    if(!document.getElementById('mc-custom-css')){
+      const st=document.createElement('style');st.id='mc-custom-css';
+      st.textContent='.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(59,130,246,0.25);border-radius:50%;}.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(59,130,246,0.85);color:#fff;border-radius:50%;font-family:JetBrains Mono,monospace;font-size:12px;font-weight:700;width:36px;height:36px;line-height:36px;text-align:center;margin-left:4px;margin-top:4px;}.marker-cluster-medium{background:rgba(245,158,11,0.25);}.marker-cluster-medium div{background:rgba(245,158,11,0.85);}.marker-cluster-large{background:rgba(239,68,68,0.25);}.marker-cluster-large div{background:rgba(239,68,68,0.85);}';
+      document.head.appendChild(st);
+    }
     function initMap(){
-      if(!mapRef.current||mapObjRef.current)return;
+      if(!mapRef.current||mapObjRef.current||!window.L||!window.L.markerClusterGroup)return;
       const L=window.L;
       const map=L.map(mapRef.current,{zoomControl:true}).setView([43.589,-79.644],12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
         attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19
       }).addTo(map);
       mapObjRef.current=map;
-      markersRef.current=L.layerGroup().addTo(map);
+      clusterRef.current=L.markerClusterGroup({
+        maxClusterRadius:50,
+        spiderfyOnMaxZoom:true,
+        showCoverageOnHover:false,
+        zoomToBoundsOnClick:true,
+        chunkedLoading:true
+      });
+      map.addLayer(clusterRef.current);
       addMarkers();
     }
-    if(!window.L){
-      const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload=function(){initMap();};document.head.appendChild(s);
-    }else{initMap();}
-    return()=>{if(mapObjRef.current){mapObjRef.current.remove();mapObjRef.current=null;markersRef.current=null;}};
+    function loadScripts(){
+      if(!window.L){
+        const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload=function(){
+          const mc=document.createElement('script');mc.src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+          mc.onload=function(){initMap();};document.head.appendChild(mc);
+        };document.head.appendChild(s);
+      }else if(!window.L.markerClusterGroup){
+        const mc=document.createElement('script');mc.src='https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js';
+        mc.onload=function(){initMap();};document.head.appendChild(mc);
+      }else{initMap();}
+    }
+    loadScripts();
+    return()=>{if(mapObjRef.current){mapObjRef.current.remove();mapObjRef.current=null;clusterRef.current=null;}};
   },[]);
 
   useEffect(()=>{addMarkers();},[listings]);
@@ -2447,7 +2476,6 @@ function ListingsMap({listings,onOpenListing}){
   return(
     <div style={{position:"relative"}}>
       <div ref={mapRef} style={{width:"100%",height:600,borderRadius:12,border:`1px solid ${BORDER}`,overflow:"hidden"}}/>
-      {/* Floating listing card when pin clicked */}
       {selectedPin&&(
         <div style={{position:"absolute",top:12,right:12,width:320,background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,overflow:"hidden",boxShadow:"0 12px 40px rgba(0,0,0,0.6)",zIndex:1000,animation:"fadeUp .2s ease"}}>
           <button onClick={()=>setSelectedPin(null)} style={{position:"absolute",top:8,right:8,background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"50%",width:28,height:28,color:"#fff",fontSize:14,cursor:"pointer",zIndex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
