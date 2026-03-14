@@ -442,7 +442,7 @@ const HOOD_GRADIENTS={
   "Malton":             ["#1A100E","#36201A"],
 };
 
-function ListingCard({l,onOpen,isSample=true}){
+function ListingCard(){
   const cf=fmtCF(l.cashFlow);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
   const scoreCol=scoreColor(l.hamzaScore);
@@ -719,9 +719,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
                 <ScoreBar label="School Score" value={l.schoolScore} color={GOLD}/>
               </div>
               {/* TRREB disclaimer */}
-              <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
-              </div>
+              
             </div>
           )}
 
@@ -1105,162 +1103,12 @@ function QuizView({onResult}){
         <div style={{fontSize:12,color:MUTED,marginBottom:8}}>Question {step+1} of {QUIZ.length}</div>
         <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:TEXT,lineHeight:1.4}}>{QUIZ[step].q}</h2>
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
-        {QUIZ[step].opts.map(opt=>(
-          <button key={opt} onClick={()=>handleAnswer(opt)} className="btn-ghost" style={{padding:"14px 20px",borderRadius:10,fontSize:14,textAlign:"left",width:"100%"}}>
-            {opt}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   MARKET PULSE TAB
-───────────────────────────────────────────── */
-/* ─────────────────────────────────────────────
-   MARKET CONDITIONS — AI VERDICT
-   Calls /api/analyze once per month, caches in localStorage
-───────────────────────────────────────────── */
-const MARKET_INPUTS={
-  salesToListings:0.41,
-  avgDetachedPrice:1020000,
-  detachedPriceYoY:4.2,
-  activeListings:3847,
-  listingsChangeMonthly:18,
-  avgDOM:28,
-  avgDOMChangeYoY:6,
-  avgCondoPrice:621000,
-  condoPriceYoY:-2.1,
-  mortgageRate5yr:4.89,
-  bocRate:2.75,
-  monthlySupplyMonths:4.2,
-  newListingsMonthly:2847,
-  absorptionRate:38,
-  priceReductionRate:31,
-  lrtOpeningYear:2025,
-  region:"Mississauga, Ontario, Canada",
-  quarter:"Q1 2026",
-};
-
-const CACHE_KEY="msga_market_verdict";
-const CACHE_TTL=30*24*60*60*1000; // 30 days
-
-function AIMarketVerdict(){
-  const [verdict,setVerdict]=useState(null);  // {label, score, summary, signals, advice, ts}
-  const [loading,setLoading]=useState(false);
-  const [error,setError]=useState("");
-  const [lastUpdated,setLastUpdated]=useState(null);
-
-  const loadCached=()=>{
-    try{
-      const raw=localStorage.getItem(CACHE_KEY);
-      if(!raw)return null;
-      const parsed=JSON.parse(raw);
-      if(Date.now()-parsed.ts>CACHE_TTL)return null;
-      return parsed;
-    }catch{return null;}
-  };
-
-  const runAnalysis=async(force=false)=>{
-    if(loading)return;
-    const cached=loadCached();
-    if(cached&&!force){setVerdict(cached);setLastUpdated(new Date(cached.ts));return;}
-    setLoading(true);setError("");
-    try{
-      const prompt=`You are a senior Canadian real estate market analyst specializing in Mississauga and GTA markets.
-
-Analyze the following current market data for Mississauga, Ontario (${MARKET_INPUTS.quarter}) and produce a structured market verdict:
-
-MARKET DATA:
-- Sales-to-Listings Ratio: ${MARKET_INPUTS.salesToListings} (below 0.40 = buyer's market, above 0.60 = seller's market)
-- Average Detached Price: $${(MARKET_INPUTS.avgDetachedPrice/1000).toFixed(0)}K (${MARKET_INPUTS.detachedPriceYoY>0?"+":""}${MARKET_INPUTS.detachedPriceYoY}% YoY)
-- Active Listings: ${MARKET_INPUTS.activeListings.toLocaleString()} (${MARKET_INPUTS.listingsChangeMonthly>0?"+":""}${MARKET_INPUTS.listingsChangeMonthly}% MoM)
-- Average Days on Market: ${MARKET_INPUTS.avgDOM} days (${MARKET_INPUTS.avgDOMChangeYoY>0?"+":""}${MARKET_INPUTS.avgDOMChangeYoY} days YoY)
-- Average Condo Price: $${(MARKET_INPUTS.avgCondoPrice/1000).toFixed(0)}K (${MARKET_INPUTS.condoPriceYoY}% YoY)
-- 5-Year Fixed Mortgage Rate: ${MARKET_INPUTS.mortgageRate5yr}%
-- Bank of Canada Policy Rate: ${MARKET_INPUTS.bocRate}%
-- Months of Supply: ${MARKET_INPUTS.monthlySupplyMonths} months
-- Absorption Rate: ${MARKET_INPUTS.absorptionRate}% of listings selling within 30 days
-- % of Listings with Price Reductions: ${MARKET_INPUTS.priceReductionRate}%
-- Hurontario LRT: opening ${MARKET_INPUTS.lrtOpeningYear}
-
-Respond ONLY with a valid JSON object in this exact format, no markdown, no extra text:
-{
-  "label": "Buyer's Market" | "Balanced Market" | "Seller's Market",
-  "score": number between 0 and 100 (0=extreme buyer's, 50=balanced, 100=extreme seller's),
-  "confidence": "High" | "Medium" | "Low",
-  "summary": "2-3 sentence plain-English verdict on current market conditions",
-  "signals": ["3-5 bullet point strings of key data signals driving this verdict"],
-  "buyerAdvice": "1-2 sentences of actionable advice for buyers right now",
-  "sellerAdvice": "1-2 sentences of actionable advice for sellers right now",
-  "investorTake": "1-2 sentences specifically for real estate investors in Mississauga"
-}`;
-
-      const res=await fetch("/api/analyze",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({prompt})
-      });
-      if(!res.ok)throw new Error(`API ${res.status}`);
-      const data=await res.json();
-      // Anthropic returns content as array [{type:"text",text:"..."}]
-      let rawText="";
-      if(Array.isArray(data.content)){
-        rawText=data.content.filter(b=>b.type==="text").map(b=>b.text).join("").trim();
-      } else if(typeof data.content==="string"){
-        rawText=data.content.trim();
-      } else if(data.result){
-        rawText=String(data.result).trim();
-      }
-      if(!rawText)throw new Error("Empty response from API");
-      const jsonMatch=rawText.match(/\{[\s\S]*\}/);
-      if(!jsonMatch)throw new Error("No JSON in response");
-      const parsed=JSON.parse(jsonMatch[0]);
-      const result={...parsed,ts:Date.now()};
-      localStorage.setItem(CACHE_KEY,JSON.stringify(result));
-      setVerdict(result);
-      setLastUpdated(new Date(result.ts));
-    }catch(e){
-      setError("AI analysis unavailable. "+e.message);
-    }finally{setLoading(false);}
-  };
-
-  useEffect(()=>{runAnalysis();},[]);
-
-  const verdictColor=v=>{
-    if(!v)return BLUE;
-    if(v.label==="Buyer's Market")return"#3B82F6";
-    if(v.label==="Seller's Market")return"#EF4444";
-    return"#F59E0B";
-  };
-  const verdictEmoji=v=>{
-    if(!v)return"📊";
-    if(v.label==="Buyer's Market")return"🏠";
-    if(v.label==="Seller's Market")return"🔥";
-    return"⚖️";
-  };
-
-  const fmtAge=d=>{
-    if(!d)return"";
-    const days=Math.round((Date.now()-d)/86400000);
-    if(days===0)return"Updated today";
-    if(days===1)return"Updated yesterday";
-    return`Updated ${days} days ago · Next refresh in ${30-days} days`;
-  };
-
-  const col=verdictColor(verdict);
-  const score=verdict?.score??50;
-  // 0=buyers, 100=sellers — needle position
-  const needlePct=Math.max(2,Math.min(98,score));
-
-  return(
-    <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.2)`,borderRadius:16,overflow:"hidden",marginBottom:24}}>
-      {/* Header bar */}
-      <div style={{background:`linear-gradient(135deg,rgba(59,130,246,0.08),rgba(139,92,246,0.06))`,borderBottom:`1px solid ${BORDER}`,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-        <div>
-          <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:2}}>AI Market Analysis · Mississauga</div>
+      <div style={{position:'relative',overflow:'hidden',borderRadius:'12px 12px 0 0',height:200,background:'linear-gradient(135deg,#0D2137,#1E3A5F)',flexShrink:0}}>
+                {listing.photos && listing.photos.length > 0
+                  ? <img src={listing.photos[0]} alt={listing.address} onError={e=>{e.target.style.display='none'}} style={{width:'100%',height:'100%',objectFit:'cover',display:'block',cursor:'pointer'}} onClick={e=>{e.stopPropagation();setLightbox({photos:listing.photos,index:0});}}/>
+                  : <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:40,opacity:0.2}}>🏠</span></div>
+                }
+              </div>
           <div style={{fontSize:11,color:MUTED}}>{fmtAge(lastUpdated)}</div>
         </div>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
@@ -2330,7 +2178,40 @@ function Testimonials(){
 /* ─────────────────────────────────────────────
    MAIN APP
 ───────────────────────────────────────────── */
+
+function Lightbox({photos,index,onClose}){
+  const [idx,setIdx]=useState(index||0);
+  useEffect(()=>{
+    const h=e=>{
+      if(e.key==='Escape')onClose();
+      if(e.key==='ArrowRight')setIdx(i=>(i+1)%photos.length);
+      if(e.key==='ArrowLeft')setIdx(i=>(i-1+photos.length)%photos.length);
+    };
+    window.addEventListener('keydown',h);
+    return()=>window.removeEventListener('keydown',h);
+  },[photos.length,onClose]);
+  return(
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:99999,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+      <button onClick={onClose} style={{position:'fixed',top:16,right:20,background:'transparent',border:'none',color:'#fff',fontSize:32,cursor:'pointer',opacity:.7,lineHeight:1}}>✕</button>
+      <div onClick={e=>e.stopPropagation()} style={{display:'flex',flexDirection:'column',alignItems:'center',maxWidth:'92vw'}}>
+        <img src={photos[idx]} alt={'Photo '+(idx+1)} style={{maxWidth:'90vw',maxHeight:'80vh',objectFit:'contain',borderRadius:8,display:'block'}} onError={e=>{e.target.style.opacity='.2';}}/>
+        {photos.length>1&&(
+          <>
+            <button onClick={()=>setIdx(i=>(i-1+photos.length)%photos.length)} style={{position:'fixed',left:16,top:'50%',transform:'translateY(-50%)',background:'rgba(255,255,255,0.12)',border:'none',borderRadius:'50%',width:48,height:48,color:'#fff',fontSize:26,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>‹</button>
+            <button onClick={()=>setIdx(i=>(i+1)%photos.length)} style={{position:'fixed',right:16,top:'50%',transform:'translateY(-50%)',background:'rgba(255,255,255,0.12)',border:'none',borderRadius:'50%',width:48,height:48,color:'#fff',fontSize:26,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>›</button>
+            <div style={{display:'flex',gap:6,marginTop:10,overflowX:'auto',maxWidth:'90vw',padding:'4px 0'}}>
+              {photos.map((p,i)=>(<img key={i} src={p} alt={''} onClick={()=>setIdx(i)} style={{width:56,height:40,objectFit:'cover',borderRadius:4,cursor:'pointer',border:i===idx?'2px solid #3B82F6':'2px solid transparent',opacity:i===idx?1:.55,flexShrink:0}}/>))}
+            </div>
+          </>
+        )}
+        <div style={{color:'rgba(255,255,255,0.4)',fontSize:12,marginTop:8}}>{idx+1} / {photos.length} · ← → navigate · Esc close</div>
+      </div>
+    </div>
+  );
+}
+
 export default function App(){
+  const [lightbox, setLightbox] = useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
@@ -2444,7 +2325,8 @@ export default function App(){
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
       {selectedListing&&(
-        <ListingModal
+        {lightbox && <Lightbox photos={lightbox.photos} index={lightbox.index} onClose={()=>setLightbox(null)}/>}
+      <ListingModal
           l={selectedListing}
           onClose={()=>setSelectedListing(null)}
           isRegistered={isRegistered}
