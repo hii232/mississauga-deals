@@ -479,7 +479,7 @@ function ListingCard({l,onOpen,isSample}){
           {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.5)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
           {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.18)",border:"1px solid rgba(59,130,246,0.45)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#93C5FD",fontWeight:600}}>LRT</span>}
           {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.14)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GREEN,fontWeight:700}}>↓{l.priceReduction}%</span>}
-          {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.35)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#FCA5A5",fontWeight:600}}>{l.dom}d</span>}
+          {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.35)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#FCA5A5",fontWeight:600}}>{l.dom??0}d</span>}
         </div>
 
         {/* Score badge top-right — redesigned */}
@@ -517,7 +517,7 @@ function ListingCard({l,onOpen,isSample}){
 
         {/* Specs */}
         <div style={{display:"flex",gap:14,marginBottom:10}}>
-          {[["🛏",l.beds,"bd"],["🚿",l.baths,"ba"],["▭",l.sqft.toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
+          {[["🛏",l.beds,"bd"],["🚿",l.baths,"ba"],["▭",(l.sqft||0).toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
             <div key={unit} style={{fontSize:11,color:TEXT2,display:"flex",gap:3,alignItems:"center"}}>
               <span style={{fontSize:10,opacity:0.6}}>{icon}</span>
               <span style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:600,fontSize:12}}>{val}</span>
@@ -2156,13 +2156,13 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
-    if(chips.has("price-drop"))list=list.filter(l=>l.priceReduction>=5);
+    if(chips.has("price-drop"))list=list.filter(l=>(l.priceReduction||0)>=5);
     if(chips.has("cash-flow"))list=list.filter(l=>l.cashFlow>0);
     if(chips.has("lrt"))list=list.filter(l=>l.lrtAccess);
-    if(chips.has("40-days"))list=list.filter(l=>l.dom>=40);
+    if(chips.has("40-days"))list=list.filter(l=>(l.dom||0)>=40);
     if(chips.has("under-800"))list=list.filter(l=>l.price<800000);
-    list=list.filter(l=>l.price>=filters.priceMin&&l.price<=filters.priceMax&&l.beds>=filters.bedsMin&&l.dom<=filters.domMax&&l.priceReduction>=filters.priceDropMin);
-    const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
+    list=list.filter(l=>l.price>=filters.priceMin&&l.price<=filters.priceMax&&l.beds>=filters.bedsMin&&(l.dom||0)<=filters.domMax&&l.priceReduction>=filters.priceDropMin);
+    const sortFns={score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),price:(a,b)=>a.price-b.price,dom:(a,b)=>(b.dom||0)-(a.dom||0),drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0)};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
   },[propType,filterHood,search,chips,filters,sort,listings]);
@@ -2228,7 +2228,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
       </div>
 
       {/* Hamza's Pick Banner */}
-      {filtered.find(l=>l.hamzasPick)&&(
+      {filtered.find(l=>l.hamzasPick===true)&&(
         <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.06))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
           <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>★</div>
           <div style={{flex:1}}>
