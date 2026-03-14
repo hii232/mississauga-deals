@@ -3,7 +3,7 @@
 // Required env vars: PROPTX_BEARER_TOKEN (from syndication.ampre.ca → Tokens → Show Bearer Token)
 
 const ODATA_BASE = 'https://query.ampre.ca/odata';
-const BEARER_TOKEN = process.env.PROPTX_BEARER_TOKEN;
+const BEARER_TOKEN = process.env.AMPRE_TOKEN;
 
 // VOW Compliance: max 100 results per request
 const MAX_RESULTS = 100;
