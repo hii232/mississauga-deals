@@ -2197,7 +2197,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
     const sortFns={score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),price:(a,b)=>(a.price||0)-(b.price||0),dom:(a,b)=>(b.dom||0)-(a.dom||0),drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0)};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
-  },[propType,filterHood,search,chips,filters,sort]);
+  },[listings,propType,filterHood,search,chips,filters,sort]);
 
   return(
     <section aria-label="Property Listings" id="listings">
