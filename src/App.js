@@ -1237,7 +1237,7 @@ Respond ONLY with a valid JSON object in this exact format, no markdown, no extr
   };
   const verdictEmoji=v=>{
     if(!v)return"📊";
-              listing.photos && listing.photos.length > 0 ? React.createElement('img', {src: listing.photos[0], style: {width:'100%', height:'100%', objectFit:'cover', borderRadius: 8}, onError: function(e){e.target.style.display='none'}}) : React.createElement('span', {style:{fontSize:32,opacity:0.3}}, '🏠')
+    listing.photos && listing.photos.length > 0 ? React.createElement('img',{src:listing.photos[0],alt:'',style:{width:'100%',height:'100%',objectFit:'cover',cursor:'pointer'},onClick:function(e){e.stopPropagation();_setLb({photos:listing.photos,i:0});}}) : React.createElement('span',{style:{fontSize:32,opacity:0.25}},'🏠')
     if(v.label==="Seller's Market")return"🔥";
     return"⚖️";
   };
@@ -2331,7 +2331,7 @@ function Testimonials(){
    MAIN APP
 ───────────────────────────────────────────── */
 export default function App(){
-  const [_lb, _setLb] = useState(null);
+  var [_lb, _setLb] = useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
@@ -2444,9 +2444,9 @@ export default function App(){
 
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
-            {_lb && React.createElement("div", {onClick: function(){_setLb(null);}, style:{position:"fixed",inset:"0",background:"rgba(0,0,0,0.95)",zIndex:99999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}, React.createElement("img", {src:_lb, onClick:function(e){e.stopPropagation();}, style:{maxWidth:"90vw",maxHeight:"88vh",objectFit:"contain",borderRadius:"8px",display:"block"}}), React.createElement("button", {onClick:function(){_setLb(null);}, style:{position:"fixed",top:"16px",right:"20px",background:"transparent",border:"none",color:"white",fontSize:"30px",cursor:"pointer",lineHeight:"1"}}, "✕"))}
+            {_lb && React.createElement("div",{onClick:function(){_setLb(null);},style:{position:"fixed",inset:"0",background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}},React.createElement("button",{onClick:function(){_setLb(null);},style:{position:"fixed",top:"16px",right:"16px",background:"transparent",border:"none",color:"#fff",fontSize:"28px",cursor:"pointer",lineHeight:"1",zIndex:100000}},"✕"),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"16px"}},_lb.i>0&&React.createElement("button",{onClick:function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});},style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",color:"#fff",fontSize:"24px",cursor:"pointer"}},"‹"),React.createElement("img",{src:_lb.photos[_lb.i],alt:"",style:{maxWidth:"88vw",maxHeight:"85vh",objectFit:"contain",borderRadius:"6px",display:"block"}}),_lb.i<_lb.photos.length-1&&React.createElement("button",{onClick:function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});},style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",color:"#fff",fontSize:"24px",cursor:"pointer"}},"›")),React.createElement("div",{style:{color:"rgba(255,255,255,0.5)",fontSize:"12px",marginTop:"8px"}},(_lb.i+1)+" / "+_lb.photos.length+" · Esc to close")}
 {selectedListing&&(
-      <ListingModal
+        <ListingModal
           l={selectedListing}
           onClose={()=>setSelectedListing(null)}
           isRegistered={isRegistered}
