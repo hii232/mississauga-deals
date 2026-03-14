@@ -607,6 +607,7 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const [reno,setReno]=useState(50000);
   const [arv,setArv]=useState(Math.round(l.price*1.2));
   const [aiLoading,setAiLoading]=useState(false);
+  const [lightboxIdx,setLightboxIdx]=useState(null);
   const [aiResult,setAiResult]=useState("");
   const [vacancy,setVacancy]=useState(5);
   const [opex,setOpex]=useState(30);
@@ -699,7 +700,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           {/* OVERVIEW */}
           {tab==="overview"&&(
             <div>
-              {l.images&&l.images.length>0&&(<div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:4}}>{l.images.slice(0,5).map((img,i)=>(<img key={i} src={img} alt={l.address} style={{height:150,width:220,objectFit:"cover",borderRadius:8,flexShrink:0,border:"1px solid rgba(255,255,255,0.08)"}} loading="lazy" onError={e=>e.target.style.display="none"}/>))}</div>)}
+              {l.images&&l.images.length>0&&(<div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:4}}>{l.images.map((img,i)=>(<img key={i} src={img} alt={l.address} style={{height:150,width:220,objectFit:"cover",borderRadius:8,flexShrink:0,border:"1px solid rgba(255,255,255,0.08)"}} loading="lazy" onError={e=>e.target.style.display="none"}/>))}</div>)}
           {/* Stats grid */}
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
                 <StatBox label="List Price" value={fmtK(l.price)} accent={TEXT}/>
@@ -882,9 +883,18 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           )}
         </div>
 
-        {/* Footer CTA */}
+        {lightboxIdx!==null&&(
+      <div onClick={()=>setLightboxIdx(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",cursor:"zoom-out"}}>
+        <button onClick={e=>{e.stopPropagation();setLightboxIdx(i=>Math.max(0,i-1));}} style={{position:"absolute",left:20,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+        <img src={l.images[lightboxIdx]} alt="" style={{maxWidth:"90vw",maxHeight:"90vh",objectFit:"contain",borderRadius:8}} onError={e=>{e.target.style.display="none"}}/>
+        <button onClick={e=>{e.stopPropagation();setLightboxIdx(i=>Math.min(l.images.length-1,i+1));}} style={{position:"absolute",right:20,top:"50%",transform:"translateY(-50%)",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",width:44,height:44,borderRadius:"50%",cursor:"pointer",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        <div style={{position:"absolute",bottom:20,left:"50%",transform:"translateX(-50%)",color:"rgba(255,255,255,0.6)",fontSize:13}}>{lightboxIdx+1} / {l.images.length}</div>
+        <button onClick={()=>setLightboxIdx(null)} style={{position:"absolute",top:16,right:20,background:"none",border:"none",color:"#fff",fontSize:28,cursor:"pointer",lineHeight:1}}>×</button>
+      </div>
+    )}
+    {/* Footer CTA */}
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontSize:11,color:MUTED}}>📍 Sample data · Courtesy: {l.brokerage}</div>
+          <div style={{fontSize:11,color:MUTED}}>📍 Courtesy: {l.brokerage}</div>
           <div style={{display:"flex",gap:8}}>
             <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
               style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
@@ -2155,7 +2165,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...listings];
+    let list=[...listings].filter(l=>l.type!=='Sale Of Business'&&!(l.type||'').includes('Commercial'));
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2360,7 +2370,7 @@ export default function App(){
           originalPrice:l.OriginalListPrice||l.ListPrice,
           beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
           sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
-          dom:l.DaysOnMarket||0,type:l.PropertySubType||l.PropertyType||'Residential',
+          dom:l.DaysOnMarket||0,type:(()=>{const raw=(l.PropertySubType||l.PropertyType||'').trim();if(raw.includes('Detached')&&!raw.includes('Semi'))return 'Detached';if(raw.includes('Semi-Detached')||raw.includes('Semi Detached'))return 'Semi-Detached';if(raw.includes('Townhouse')||raw.includes('Town House')||raw.includes('Condo Townhouse')||raw.includes('Row House'))return 'Townhouse';if(raw.includes('Condo')||raw.includes('Apartment')||raw.includes('Co-Op')||raw.includes('Co Op'))return 'Condo';return 'Detached';})(),
           brokerage:l.ListOfficeName||'',description:l.PublicRemarks||'',
           inclusions:l.Inclusions||'',parking:l.ParkingTotal||0,
           garage:l.GarageType||'',locker:l.Locker||'',
