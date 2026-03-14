@@ -2444,8 +2444,8 @@ export default function App(){
 
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
-      {selectedListing&&(
-        {_lb ? React.createElement("div", {onClick: function(){_setLb(null)}, style:{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:99999,display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("img", {src:_lb, style:{maxWidth:"90vw",maxHeight:"90vh",objectFit:"contain"}, onClick:function(e){e.stopPropagation()}}), React.createElement("button", {onClick:function(){_setLb(null)}, style:{position:"fixed",top:16,right:20,background:"transparent",border:"none",color:"white",fontSize:30,cursor:"pointer"}}, "X")) : null}
+            {_lb && React.createElement("div", {onClick: function(){_setLb(null);}, style:{position:"fixed",inset:"0",background:"rgba(0,0,0,0.95)",zIndex:99999,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}, React.createElement("img", {src:_lb, onClick:function(e){e.stopPropagation();}, style:{maxWidth:"90vw",maxHeight:"88vh",objectFit:"contain",borderRadius:"8px",display:"block"}}), React.createElement("button", {onClick:function(){_setLb(null);}, style:{position:"fixed",top:"16px",right:"20px",background:"transparent",border:"none",color:"white",fontSize:"30px",cursor:"pointer",lineHeight:"1"}}, "✕"))}
+{selectedListing&&(
       <ListingModal
           l={selectedListing}
           onClose={()=>setSelectedListing(null)}
