@@ -1,8 +1,8 @@
-// api/listings.js â PropTx VOW Datafeed
-// Requires AMPRE_TOKEN in Vercel environment variables
+// api/listings.js — PropTx VOW Datafeed
+// Env var: AMPRE_TOKEN (Vercel environment variables)
 
 const ODATA_BASE = 'https://query.ampre.ca/odata';
-const BEARER_TOKEN = process.env.AMPRE_TOKEN;
+const TOKEN = process.env.AMPRE_TOKEN;
 
 const CITIES = [
   'Mississauga','Port Credit','Streetsville','Clarkson','Lakeview',
@@ -19,37 +19,43 @@ function mapType(sub, prop) {
   return 'Detached';
 }
 
-function extractPhotos(media) {
-  if (!media || !Array.isArray(media)) return [];
-  return media
-    .filter(function(m) { return m && (m.MediaURL || m.MediaUrl); })
-    .sort(function(a, b) { return (a.Order || a.MediaOrder || 0) - (b.Order || b.MediaOrder || 0); })
-    .map(function(m) { return m.MediaURL || m.MediaUrl; })
-    .filter(Boolean)
-    .slice(0, 25);
-}
-
 function estimateRent(price, beds, city, type) {
-  var bedRents = { 0: 1850, 1: 2100, 2: 2700, 3: 3200, 4: 3800, 5: 4400 };
-  var base = bedRents[Math.min(beds || 0, 5)] || 2500;
-  var adj = 0;
+  const bedRents = { 0: 1850, 1: 2100, 2: 2700, 3: 3200, 4: 3800, 5: 4400 };
+  const base = bedRents[Math.min(beds || 0, 5)] || 2500;
+  let adj = 0;
   if (type === 'Detached') adj += 250;
   if (type === 'Condo') adj -= 150;
-  var c = (city || '').toLowerCase();
+  const c = (city || '').toLowerCase();
   if (c.includes('port credit') || c.includes('lakeview')) adj += 200;
-  var fromPrice = (price || 0) * 0.0042;
-  var blended = fromPrice * 0.4 + (base + adj) * 0.6;
-  return Math.round(blended / 50) * 50;
+  return Math.round(((price || 0) * 0.0042 * 0.4 + (base + adj) * 0.6) / 50) * 50;
 }
 
 function formatAddress(l) {
-  var parts = [
+  return [
     l.UnitNumber ? l.UnitNumber + '-' : '',
     l.StreetNumber || '',
     l.StreetName || '',
     l.StreetSuffix || '',
-  ].filter(Boolean);
-  return parts.join(' ').trim() || l.UnparsedAddress || 'Address on Request';
+  ].filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
+}
+
+// Fetch photos for a listing from the Media endpoint
+async function fetchPhotos(listingKey) {
+  try {
+    const url = ODATA_BASE + '/Property(\'' + listingKey + '\')/Media?$orderby=Order asc&$top=20&$select=MediaURL,MediaUrl,Order,MediaCategory';
+    const r = await fetch(url, {
+      headers: { Authorization: 'Bearer ' + TOKEN, Accept: 'application/json' }
+    });
+    if (!r.ok) return [];
+    const data = await r.json();
+    const items = data.value || [];
+    return items
+      .filter(m => m && (m.MediaURL || m.MediaUrl))
+      .map(m => m.MediaURL || m.MediaUrl)
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
 }
 
 module.exports = async function handler(req, res) {
@@ -58,36 +64,29 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  if (!BEARER_TOKEN) {
-    return res.status(500).json({ error: 'AMPRE_TOKEN not set in Vercel env vars' });
-  }
+  if (!TOKEN) return res.status(500).json({ error: 'AMPRE_TOKEN not set' });
 
   try {
-    var page = parseInt(req.query.page) || 1;
-    var limit = Math.min(parseInt(req.query.limit) || 50, 100);
-    var skip = (page - 1) * limit;
-    var minPrice = req.query.minPrice;
-    var maxPrice = req.query.maxPrice;
-    var beds = req.query.beds;
-    var city = req.query.city;
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+    const skip  = (page - 1) * limit;
 
-    var filters = [
+    const filters = [
       "StandardStatus eq 'Active'",
       "ListPrice ge 300000",
     ];
 
-    if (minPrice) filters.push('ListPrice ge ' + parseInt(minPrice));
-    if (maxPrice) filters.push('ListPrice le ' + parseInt(maxPrice));
-    if (beds) filters.push('BedroomsTotal ge ' + parseInt(beds));
+    if (req.query.minPrice) filters.push('ListPrice ge ' + parseInt(req.query.minPrice));
+    if (req.query.maxPrice) filters.push('ListPrice le ' + parseInt(req.query.maxPrice));
+    if (req.query.beds)     filters.push('BedroomsTotal ge ' + parseInt(req.query.beds));
 
-    if (city) {
-      filters.push("City eq '" + city + "'");
+    if (req.query.city) {
+      filters.push("City eq '" + req.query.city + "'");
     } else {
-      var cf = CITIES.map(function(c) { return "City eq '" + c + "'"; }).join(' or ');
-      filters.push('(' + cf + ')');
+      filters.push('(' + CITIES.map(c => "City eq '" + c + "'").join(' or ') + ')');
     }
 
-    var select = [
+    const select = [
       'ListingKey','ListingId','ListPrice','OriginalListPrice',
       'City','PostalCode',
       'UnparsedAddress','StreetNumber','StreetName','StreetSuffix','UnitNumber',
@@ -98,97 +97,93 @@ module.exports = async function handler(req, res) {
       'PublicRemarks',
       'Latitude','Longitude',
       'ModificationTimestamp',
-      'Media',
     ].join(',');
 
-    var filterStr = filters.join(' and ');
-    var url = ODATA_BASE + '/Property?$filter=' + encodeURIComponent(filterStr) +
-      '&$select=' + encodeURIComponent(select) +
-      '&$top=' + limit + '&$skip=' + skip +
-      '&$orderby=ModificationTimestamp desc&$count=true';
+    const url = ODATA_BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
+      + '&$select=' + encodeURIComponent(select)
+      + '&$top=' + limit + '&$skip=' + skip
+      + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    var response = await fetch(url, {
-      headers: {
-        Authorization: 'Bearer ' + BEARER_TOKEN,
-        Accept: 'application/json',
-      },
+    const response = await fetch(url, {
+      headers: { Authorization: 'Bearer ' + TOKEN, Accept: 'application/json' }
     });
 
     if (!response.ok) {
-      var errText = await response.text();
-      console.error('PropTx error:', response.status, errText.substring(0, 500));
-      return res.status(response.status).json({ error: 'PropTx API returned ' + response.status, detail: errText.substring(0, 500) });
+      const err = await response.text();
+      return res.status(response.status).json({ error: 'PropTx ' + response.status, detail: err.substring(0, 500) });
     }
 
-    var data = await response.json();
-    var listings = data.value || [];
-    var totalCount = data['@odata.count'] || listings.length;
+    const data   = await response.json();
+    const items  = data.value || [];
+    const total  = data['@odata.count'] || items.length;
 
-    var enriched = listings.map(function(l) {
-      var price = l.ListPrice || 0;
-      var beds2 = l.BedroomsTotal || 0;
-      var city2 = l.City || 'Mississauga';
-      var fType = mapType(l.PropertySubType, l.PropertyType);
-      var rent = estimateRent(price, beds2, city2, fType);
-      var priceDrop = (l.OriginalListPrice && l.OriginalListPrice > price)
+    // Fetch photos for ALL listings in parallel
+    const photosArr = await Promise.all(
+      items.map(l => fetchPhotos(l.ListingKey))
+    );
+
+    const listings = items.map((l, i) => {
+      const price    = l.ListPrice || 0;
+      const beds     = l.BedroomsTotal || 0;
+      const city     = l.City || 'Mississauga';
+      const fType    = mapType(l.PropertySubType, l.PropertyType);
+      const rent     = estimateRent(price, beds, city, fType);
+      const priceDrop = (l.OriginalListPrice && l.OriginalListPrice > price)
         ? Math.round(((l.OriginalListPrice - price) / l.OriginalListPrice) * 100) : 0;
-      var photos = extractPhotos(l.Media);
-      var remarks = l.PublicRemarks || '';
+      const remarks  = l.PublicRemarks || '';
+      const photos   = photosArr[i] || [];
 
       return {
-        id: l.ListingKey,
-        mlsId: l.ListingId,
-        price: price,
-        address: formatAddress(l),
-        city: city2,
-        neighbourhood: city2,
-        postalCode: l.PostalCode,
-        beds: beds2,
-        baths: l.BathroomsTotalInteger || 0,
-        halfBaths: 0,
-        sqft: null,
-        type: fType,
-        subType: l.PropertySubType || '',
-        yearBuilt: l.YearBuilt,
-        daysOnMarket: l.DaysOnMarket || 0,
-        dom: l.DaysOnMarket || 0,
-        status: l.StandardStatus,
+        id:               l.ListingKey,
+        mlsId:            l.ListingId,
+        price,
+        address:          formatAddress(l),
+        city,
+        neighbourhood:    city,
+        postalCode:       l.PostalCode,
+        beds,
+        baths:            l.BathroomsTotalInteger || 0,
+        sqft:             null,
+        type:             fType,
+        subType:          l.PropertySubType || '',
+        yearBuilt:        l.YearBuilt,
+        dom:              l.DaysOnMarket || 0,
+        daysOnMarket:     l.DaysOnMarket || 0,
+        status:           l.StandardStatus,
         listingBrokerage: l.ListOfficeName || '',
-        brokerage: l.ListOfficeName || '',
-        remarks: remarks,
-        notes: remarks,
-        photos: photos,
-        images: photos,
-        lat: l.Latitude,
-        lng: l.Longitude,
-        originalPrice: l.OriginalListPrice || price,
-        priceReduction: priceDrop,
-        priceDrop: priceDrop,
-        lastModified: l.ModificationTimestamp,
-        estimatedRent: rent,
-        rent: rent,
-        isSample: false,
-        hamzasPick: false,
-        hasSuite: remarks.toLowerCase().includes('separate entrance') ||
-                  remarks.toLowerCase().includes('basement suite') ||
-                  remarks.toLowerCase().includes('in-law suite') ||
-                  remarks.toLowerCase().includes('legal suite') ||
-                  remarks.toLowerCase().includes('second unit'),
+        brokerage:        l.ListOfficeName || '',
+        remarks,
+        notes:            remarks,
+        photos,
+        images:           photos,
+        lat:              l.Latitude,
+        lng:              l.Longitude,
+        originalPrice:    l.OriginalListPrice || price,
+        priceDrop,
+        priceReduction:   priceDrop,
+        estimatedRent:    rent,
+        rent,
+        isSample:         false,
+        hasSuite: remarks.toLowerCase().includes('separate entrance')
+                || remarks.toLowerCase().includes('basement suite')
+                || remarks.toLowerCase().includes('in-law suite')
+                || remarks.toLowerCase().includes('legal suite')
+                || remarks.toLowerCase().includes('second unit'),
       };
     });
 
     return res.status(200).json({
-      listings: enriched,
-      total: totalCount,
-      page: page,
-      limit: limit,
-      pages: Math.ceil(totalCount / limit),
+      listings,
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
       copyright: 'Listing data provided by PropTx / TRREB. Deemed reliable but not guaranteed.',
       timestamp: new Date().toISOString(),
     });
 
   } catch (err) {
-    console.error('listings.js crash:', err.message);
+    console.error('listings.js error:', err.message);
     return res.status(500).json({ error: 'Server error', detail: err.message });
   }
-}
+};
