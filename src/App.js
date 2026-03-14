@@ -150,26 +150,26 @@ const BORDER="rgba(255,255,255,0.07)";
    LISTING DATA
 ───────────────────────────────────────────── */
 const LISTINGS = [
-  {id:"ML001",address:"2847 Folkway Dr",neighbourhood:"Erin Mills",price:849000,beds:4,baths:3,sqft:2100,dom:67,priceReduction:6.2,originalPrice:906000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Signature Realty",hamzaScore:8.4,hamzaNotes:"12.4% price reduction on a 4-bed det — seller has been sitting 67 days and is motivated. All brick detached basement suite potential. Best value in the neighbourhood right now.",cashFlow:310,capRate:5.1,walkScore:71,transitScore:64,schoolScore:88},
-  {id:"ML002",address:"1203 Haig Blvd",neighbourhood:"Lakeview",price:1125000,beds:3,baths:2,sqft:1650,dom:8,priceReduction:0,originalPrice:1125000,estimatedRent:4400,type:"Semi-Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.1,hamzaNotes:"Lakeview is appreciating fast but this one is fresh to market at ask. No negotiating room yet. Watch for a 30+ day reduction before jumping.",cashFlow:-180,capRate:4.2,walkScore:68,transitScore:72,schoolScore:82},
-  {id:"ML003",address:"5521 Glen Erin Dr",neighbourhood:"Churchill Meadows",price:799000,beds:3,baths:3,sqft:1800,dom:47,priceReduction:8.5,originalPrice:873000,estimatedRent:3900,type:"Townhouse",lrtAccess:false,brokerage:"Century 21 Miller Real Estate Ltd.",hamzaScore:7.8,hamzaNotes:"8.5% drop on a Churchill Meadows townhouse. Excellent school catchment. Top floor laundry, finished basement. Strong rental demand from hospital workers nearby.",cashFlow:120,capRate:4.7,walkScore:78,transitScore:70,schoolScore:94},
-  {id:"ML004",address:"3318 Redpath Cir",neighbourhood:"Meadowvale",price:689000,beds:3,baths:2,sqft:1450,dom:22,priceReduction:3.1,originalPrice:711000,estimatedRent:3500,type:"Townhouse",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.8,hamzaNotes:"Decent price point for Meadowvale. Needs kitchen update. Conservative buy — not a home run but solid hold asset if you get it under $670K.",cashFlow:40,capRate:4.3,walkScore:82,transitScore:75,schoolScore:86},
-  {id:"ML005",address:"915 Inverhouse Dr",neighbourhood:"Clarkson",price:975000,beds:4,baths:3,sqft:2300,dom:61,priceReduction:11.2,originalPrice:1099000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Sutton Group Quantum Realty Inc.",hamzaScore:9.1,hamzaNotes:"This is the one. 11.2% off, LRT access, 61 DOM — seller is cooked. 4-bed with in-law suite potential. Clarkson GO + future LRT stop walking distance. Cash flow positive from day one if you put 25% down.",cashFlow:480,capRate:5.4,walkScore:76,transitScore:88,schoolScore:79},
-  {id:"ML006",address:"4402 Tahoe Blvd",neighbourhood:"Malton",price:599000,beds:3,baths:2,sqft:1300,dom:15,priceReduction:0,originalPrice:599000,estimatedRent:3200,type:"Townhouse",lrtAccess:false,brokerage:"Homelife/Miracle Realty Ltd.",hamzaScore:5.9,hamzaNotes:"Malton entry-level. Rents are decent but appreciation is slow here. Only buy if you have a very long time horizon or strong cash flow strategy.",cashFlow:60,capRate:4.6,walkScore:74,transitScore:80,schoolScore:71},
-  {id:"ML007",address:"1876 Lakeshore Rd W",neighbourhood:"Port Credit",price:1380000,beds:3,baths:3,sqft:1550,dom:29,priceReduction:4.8,originalPrice:1450000,estimatedRent:5400,type:"Semi-Detached",lrtAccess:true,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:7.3,hamzaNotes:"Port Credit premium. LRT access is the story here — buy the location. Numbers are thin today but appreciation play over 5 years is strong. Not for cash flow investors.",cashFlow:-210,capRate:3.8,walkScore:91,transitScore:86,schoolScore:83},
-  {id:"ML008",address:"6634 Ninth Line",neighbourhood:"Streetsville",price:1049000,beds:4,baths:3,sqft:2450,dom:53,priceReduction:7.3,originalPrice:1131000,estimatedRent:4700,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Meadowtowne Realty",hamzaScore:7.6,hamzaNotes:"7.3% drop in Streetsville village — very sellable area. Credit River trail access, heritage character streets. BRRR candidate with legal second suite conversion.",cashFlow:240,capRate:4.8,walkScore:84,transitScore:65,schoolScore:91},
-  {id:"ML009",address:"345 Rathburn Rd W",neighbourhood:"Cooksville",price:729000,beds:3,baths:2,sqft:1600,dom:38,priceReduction:5.5,originalPrice:771000,estimatedRent:3700,type:"Condo",lrtAccess:true,brokerage:"Keller Williams Real Estate Associates",hamzaScore:7.1,hamzaNotes:"Hurontario LRT corridor play. Condo but freehold feel. 5.5% drop, 38 DOM. Ideal for a first investment — low maintenance, solid rental demand from young professionals.",cashFlow:150,capRate:5.0,walkScore:87,transitScore:91,schoolScore:78},
-  {id:"ML010",address:"2211 Hurontario St",neighbourhood:"Cooksville",price:649000,beds:2,baths:2,sqft:1100,dom:19,priceReduction:2.8,originalPrice:668000,estimatedRent:3300,type:"Condo",lrtAccess:true,brokerage:"RE/MAX Aboutowne Realty Corp.",hamzaScore:6.5,hamzaNotes:"Hurontario corridor. Fresh drop but 19 days is still early. Good LRT story but wait another 2-3 weeks to see if they drop again before making a move.",cashFlow:80,capRate:4.8,walkScore:89,transitScore:93,schoolScore:75},
-  {id:"ML011",address:"7789 Magistrate Terr",neighbourhood:"Meadowvale",price:775000,beds:4,baths:3,sqft:1950,dom:44,priceReduction:9.1,originalPrice:853000,estimatedRent:4000,type:"Townhouse",lrtAccess:false,brokerage:"Cityscape Real Estate Ltd.",hamzaScore:8.0,hamzaNotes:"9.1% drop is significant for this price point. Meadowvale Business Park nearby = strong rental demand from tech workers. Walkout basement adds legal unit potential.",cashFlow:290,capRate:5.2,walkScore:79,transitScore:71,schoolScore:89},
-  {id:"ML012",address:"432 Queen St S",neighbourhood:"Streetsville",price:899000,beds:2,baths:2,sqft:1750,dom:11,priceReduction:0,originalPrice:899000,estimatedRent:4000,type:"Detached",lrtAccess:false,brokerage:"Harvey Kalles Real Estate Ltd.",hamzaScore:5.7,hamzaNotes:"Streetsville main drag. Character home but asking full price 11 days in. I want to see 30+ days before engaging. No urgency here.",cashFlow:-60,capRate:4.0,walkScore:88,transitScore:67,schoolScore:87},
-  {id:"ML013",address:"1590 Carolyn Rd",neighbourhood:"Erin Mills",price:869000,beds:4,baths:3,sqft:2050,dom:67,priceReduction:12.4,originalPrice:992000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Intercity Realty Inc.",hamzaScore:9.0,hamzaNotes:"HAMZA'S PICK. 12.4% price reduction on a 4-bed detached — seller has been sitting 67 days and is motivated. All brick, basement suite potential. Best value in the neighbourhood right now.",cashFlow:460,capRate:5.6,walkScore:73,transitScore:68,schoolScore:92,hamzasPick:true},
-  {id:"ML014",address:"88 Port St E",neighbourhood:"Port Credit",price:1195000,beds:2,baths:2,sqft:1200,dom:5,priceReduction:0,originalPrice:1195000,estimatedRent:4800,type:"Condo",lrtAccess:true,brokerage:"Chestnut Park Real Estate Ltd.",hamzaScore:5.4,hamzaNotes:"Port Credit condo, fresh listing. Numbers don't work for investors at this price. Pure lifestyle buy. Pass.",cashFlow:-320,capRate:3.5,walkScore:94,transitScore:85,schoolScore:80},
-  {id:"ML015",address:"3956 Tomken Rd",neighbourhood:"Malton",price:629000,beds:3,baths:2,sqft:1380,dom:31,priceReduction:4.4,originalPrice:658000,estimatedRent:3400,type:"Semi-Detached",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.2,hamzaNotes:"Malton semi, modest drop. Decent cash flow but limited appreciation upside. Buy only if cash flow is your primary goal.",cashFlow:95,capRate:4.9,walkScore:76,transitScore:82,schoolScore:73},
-  {id:"ML016",address:"1122 Clarkson Rd N",neighbourhood:"Clarkson",price:1025000,beds:4,baths:3,sqft:2200,dom:42,priceReduction:6.8,originalPrice:1100000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Royal LePage Signature Realty",hamzaScore:8.7,hamzaNotes:"LRT access + 6.8% reduction + 42 DOM. Clarkson is my top neighbourhood for 2025-2026. This hits the trifecta. Strong buy.",cashFlow:380,capRate:5.3,walkScore:77,transitScore:86,schoolScore:85},
-  {id:"ML017",address:"671 Bristol Rd W",neighbourhood:"Hurontario",price:699000,beds:3,baths:2,sqft:1500,dom:26,priceReduction:3.7,originalPrice:726000,estimatedRent:3500,type:"Townhouse",lrtAccess:true,brokerage:"Sutton Group Elite Realty Inc.",hamzaScore:7.0,hamzaNotes:"Hurontario corridor townhouse with LRT access. Small drop, early days. Watch it another 2 weeks — if still sitting, make an aggressive offer.",cashFlow:110,capRate:4.5,walkScore:83,transitScore:94,schoolScore:77},
-  {id:"ML018",address:"2445 Burnhamthorpe Rd",neighbourhood:"Churchill Meadows",price:819000,beds:4,baths:3,sqft:1920,dom:55,priceReduction:0.9,originalPrice:827000,estimatedRent:4100,type:"Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.7,hamzaNotes:"Churchill Meadows detached but the drop is tiny. 55 days suggests overpricing. Needs a 5%+ reduction before I would touch this.",cashFlow:170,capRate:4.6,walkScore:80,transitScore:69,schoolScore:93},
-  {id:"ML019",address:"509 Lakeshore Rd E",neighbourhood:"Lakeview",price:1250000,beds:3,baths:2,sqft:1700,dom:14,priceReduction:1.5,originalPrice:1269000,estimatedRent:5000,type:"Detached",lrtAccess:false,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:6.3,hamzaNotes:"Lakeview bungalow on a large lot. Redevelopment play long-term but cap rate today is weak. Patient money only.",cashFlow:-150,capRate:3.9,walkScore:69,transitScore:66,schoolScore:81},
-  {id:"ML020",address:"4123 Periwinkle Cres",neighbourhood:"Hurontario",price:749000,beds:3,baths:3,sqft:1680,dom:39,priceReduction:5.9,originalPrice:796000,estimatedRent:3800,type:"Townhouse",lrtAccess:true,brokerage:"Right At Home Realty Inc.",hamzaScore:7.9,hamzaNotes:"LRT access + 5.9% drop + 39 DOM. Townhouse in the Hurontario corridor is a strong medium-term hold. Cash flow positive and the LRT story isn't priced in yet.",cashFlow:220,capRate:4.9,walkScore:85,transitScore:92,schoolScore:79}
+  {id:"ML001",address:"2847 Folkway Dr",neighbourhood:"Erin Mills",price:849000,beds:4,baths:3,sqft:2100,dom:67,priceReduction:6.2,originalPrice:906000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Signature Realty",hamzaScore:8.4,hamzaNotes:"12.4% price reduction on a 4-bed det — seller has been sitting 67 days and is motivated. All brick detached basement suite potential. Best value in the neighbourhood right now.",cashFlow:310,capRate:5.1,walkScore:71,transitScore:64,schoolScore:88,isSample:true},
+  {id:"ML002",address:"1203 Haig Blvd",neighbourhood:"Lakeview",price:1125000,beds:3,baths:2,sqft:1650,dom:8,priceReduction:0,originalPrice:1125000,estimatedRent:4400,type:"Semi-Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.1,hamzaNotes:"Lakeview is appreciating fast but this one is fresh to market at ask. No negotiating room yet. Watch for a 30+ day reduction before jumping.",cashFlow:-180,capRate:4.2,walkScore:68,transitScore:72,schoolScore:82,isSample:true},
+  {id:"ML003",address:"5521 Glen Erin Dr",neighbourhood:"Churchill Meadows",price:799000,beds:3,baths:3,sqft:1800,dom:47,priceReduction:8.5,originalPrice:873000,estimatedRent:3900,type:"Townhouse",lrtAccess:false,brokerage:"Century 21 Miller Real Estate Ltd.",hamzaScore:7.8,hamzaNotes:"8.5% drop on a Churchill Meadows townhouse. Excellent school catchment. Top floor laundry, finished basement. Strong rental demand from hospital workers nearby.",cashFlow:120,capRate:4.7,walkScore:78,transitScore:70,schoolScore:94,isSample:true},
+  {id:"ML004",address:"3318 Redpath Cir",neighbourhood:"Meadowvale",price:689000,beds:3,baths:2,sqft:1450,dom:22,priceReduction:3.1,originalPrice:711000,estimatedRent:3500,type:"Townhouse",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.8,hamzaNotes:"Decent price point for Meadowvale. Needs kitchen update. Conservative buy — not a home run but solid hold asset if you get it under $670K.",cashFlow:40,capRate:4.3,walkScore:82,transitScore:75,schoolScore:86,isSample:true},
+  {id:"ML005",address:"915 Inverhouse Dr",neighbourhood:"Clarkson",price:975000,beds:4,baths:3,sqft:2300,dom:61,priceReduction:11.2,originalPrice:1099000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Sutton Group Quantum Realty Inc.",hamzaScore:9.1,hamzaNotes:"This is the one. 11.2% off, LRT access, 61 DOM — seller is cooked. 4-bed with in-law suite potential. Clarkson GO + future LRT stop walking distance. Cash flow positive from day one if you put 25% down.",cashFlow:480,capRate:5.4,walkScore:76,transitScore:88,schoolScore:79,isSample:true},
+  {id:"ML006",address:"4402 Tahoe Blvd",neighbourhood:"Malton",price:599000,beds:3,baths:2,sqft:1300,dom:15,priceReduction:0,originalPrice:599000,estimatedRent:3200,type:"Townhouse",lrtAccess:false,brokerage:"Homelife/Miracle Realty Ltd.",hamzaScore:5.9,hamzaNotes:"Malton entry-level. Rents are decent but appreciation is slow here. Only buy if you have a very long time horizon or strong cash flow strategy.",cashFlow:60,capRate:4.6,walkScore:74,transitScore:80,schoolScore:71,isSample:true},
+  {id:"ML007",address:"1876 Lakeshore Rd W",neighbourhood:"Port Credit",price:1380000,beds:3,baths:3,sqft:1550,dom:29,priceReduction:4.8,originalPrice:1450000,estimatedRent:5400,type:"Semi-Detached",lrtAccess:true,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:7.3,hamzaNotes:"Port Credit premium. LRT access is the story here — buy the location. Numbers are thin today but appreciation play over 5 years is strong. Not for cash flow investors.",cashFlow:-210,capRate:3.8,walkScore:91,transitScore:86,schoolScore:83,isSample:true},
+  {id:"ML008",address:"6634 Ninth Line",neighbourhood:"Streetsville",price:1049000,beds:4,baths:3,sqft:2450,dom:53,priceReduction:7.3,originalPrice:1131000,estimatedRent:4700,type:"Detached",lrtAccess:false,brokerage:"Royal LePage Meadowtowne Realty",hamzaScore:7.6,hamzaNotes:"7.3% drop in Streetsville village — very sellable area. Credit River trail access, heritage character streets. BRRR candidate with legal second suite conversion.",cashFlow:240,capRate:4.8,walkScore:84,transitScore:65,schoolScore:91,isSample:true},
+  {id:"ML009",address:"345 Rathburn Rd W",neighbourhood:"Cooksville",price:729000,beds:3,baths:2,sqft:1600,dom:38,priceReduction:5.5,originalPrice:771000,estimatedRent:3700,type:"Condo",lrtAccess:true,brokerage:"Keller Williams Real Estate Associates",hamzaScore:7.1,hamzaNotes:"Hurontario LRT corridor play. Condo but freehold feel. 5.5% drop, 38 DOM. Ideal for a first investment — low maintenance, solid rental demand from young professionals.",cashFlow:150,capRate:5.0,walkScore:87,transitScore:91,schoolScore:78,isSample:true},
+  {id:"ML010",address:"2211 Hurontario St",neighbourhood:"Cooksville",price:649000,beds:2,baths:2,sqft:1100,dom:19,priceReduction:2.8,originalPrice:668000,estimatedRent:3300,type:"Condo",lrtAccess:true,brokerage:"RE/MAX Aboutowne Realty Corp.",hamzaScore:6.5,hamzaNotes:"Hurontario corridor. Fresh drop but 19 days is still early. Good LRT story but wait another 2-3 weeks to see if they drop again before making a move.",cashFlow:80,capRate:4.8,walkScore:89,transitScore:93,schoolScore:75,isSample:true},
+  {id:"ML011",address:"7789 Magistrate Terr",neighbourhood:"Meadowvale",price:775000,beds:4,baths:3,sqft:1950,dom:44,priceReduction:9.1,originalPrice:853000,estimatedRent:4000,type:"Townhouse",lrtAccess:false,brokerage:"Cityscape Real Estate Ltd.",hamzaScore:8.0,hamzaNotes:"9.1% drop is significant for this price point. Meadowvale Business Park nearby = strong rental demand from tech workers. Walkout basement adds legal unit potential.",cashFlow:290,capRate:5.2,walkScore:79,transitScore:71,schoolScore:89,isSample:true},
+  {id:"ML012",address:"432 Queen St S",neighbourhood:"Streetsville",price:899000,beds:2,baths:2,sqft:1750,dom:11,priceReduction:0,originalPrice:899000,estimatedRent:4000,type:"Detached",lrtAccess:false,brokerage:"Harvey Kalles Real Estate Ltd.",hamzaScore:5.7,hamzaNotes:"Streetsville main drag. Character home but asking full price 11 days in. I want to see 30+ days before engaging. No urgency here.",cashFlow:-60,capRate:4.0,walkScore:88,transitScore:67,schoolScore:87,isSample:true},
+  {id:"ML013",address:"1590 Carolyn Rd",neighbourhood:"Erin Mills",price:869000,beds:4,baths:3,sqft:2050,dom:67,priceReduction:12.4,originalPrice:992000,estimatedRent:4300,type:"Detached",lrtAccess:false,brokerage:"Intercity Realty Inc.",hamzaScore:9.0,hamzaNotes:"HAMZA'S PICK. 12.4% price reduction on a 4-bed detached — seller has been sitting 67 days and is motivated. All brick, basement suite potential. Best value in the neighbourhood right now.",cashFlow:460,capRate:5.6,walkScore:73,transitScore:68,schoolScore:92,hamzasPick:true,isSample:true},
+  {id:"ML014",address:"88 Port St E",neighbourhood:"Port Credit",price:1195000,beds:2,baths:2,sqft:1200,dom:5,priceReduction:0,originalPrice:1195000,estimatedRent:4800,type:"Condo",lrtAccess:true,brokerage:"Chestnut Park Real Estate Ltd.",hamzaScore:5.4,hamzaNotes:"Port Credit condo, fresh listing. Numbers don't work for investors at this price. Pure lifestyle buy. Pass.",cashFlow:-320,capRate:3.5,walkScore:94,transitScore:85,schoolScore:80,isSample:true},
+  {id:"ML015",address:"3956 Tomken Rd",neighbourhood:"Malton",price:629000,beds:3,baths:2,sqft:1380,dom:31,priceReduction:4.4,originalPrice:658000,estimatedRent:3400,type:"Semi-Detached",lrtAccess:false,brokerage:"iPro Realty Ltd.",hamzaScore:6.2,hamzaNotes:"Malton semi, modest drop. Decent cash flow but limited appreciation upside. Buy only if cash flow is your primary goal.",cashFlow:95,capRate:4.9,walkScore:76,transitScore:82,schoolScore:73,isSample:true},
+  {id:"ML016",address:"1122 Clarkson Rd N",neighbourhood:"Clarkson",price:1025000,beds:4,baths:3,sqft:2200,dom:42,priceReduction:6.8,originalPrice:1100000,estimatedRent:4600,type:"Detached",lrtAccess:true,brokerage:"Royal LePage Signature Realty",hamzaScore:8.7,hamzaNotes:"LRT access + 6.8% reduction + 42 DOM. Clarkson is my top neighbourhood for 2025-2026. This hits the trifecta. Strong buy.",cashFlow:380,capRate:5.3,walkScore:77,transitScore:86,schoolScore:85,isSample:true},
+  {id:"ML017",address:"671 Bristol Rd W",neighbourhood:"Hurontario",price:699000,beds:3,baths:2,sqft:1500,dom:26,priceReduction:3.7,originalPrice:726000,estimatedRent:3500,type:"Townhouse",lrtAccess:true,brokerage:"Sutton Group Elite Realty Inc.",hamzaScore:7.0,hamzaNotes:"Hurontario corridor townhouse with LRT access. Small drop, early days. Watch it another 2 weeks — if still sitting, make an aggressive offer.",cashFlow:110,capRate:4.5,walkScore:83,transitScore:94,schoolScore:77,isSample:true},
+  {id:"ML018",address:"2445 Burnhamthorpe Rd",neighbourhood:"Churchill Meadows",price:819000,beds:4,baths:3,sqft:1920,dom:55,priceReduction:0.9,originalPrice:827000,estimatedRent:4100,type:"Detached",lrtAccess:false,brokerage:"RE/MAX Realty Specialists Inc.",hamzaScore:6.7,hamzaNotes:"Churchill Meadows detached but the drop is tiny. 55 days suggests overpricing. Needs a 5%+ reduction before I would touch this.",cashFlow:170,capRate:4.6,walkScore:80,transitScore:69,schoolScore:93,isSample:true},
+  {id:"ML019",address:"509 Lakeshore Rd E",neighbourhood:"Lakeview",price:1250000,beds:3,baths:2,sqft:1700,dom:14,priceReduction:1.5,originalPrice:1269000,estimatedRent:5000,type:"Detached",lrtAccess:false,brokerage:"Sotheby's Intl Realty Canada",hamzaScore:6.3,hamzaNotes:"Lakeview bungalow on a large lot. Redevelopment play long-term but cap rate today is weak. Patient money only.",cashFlow:-150,capRate:3.9,walkScore:69,transitScore:66,schoolScore:81,isSample:true},
+  {id:"ML020",address:"4123 Periwinkle Cres",neighbourhood:"Hurontario",price:749000,beds:3,baths:3,sqft:1680,dom:39,priceReduction:5.9,originalPrice:796000,estimatedRent:3800,type:"Townhouse",lrtAccess:true,brokerage:"Right At Home Realty Inc.",hamzaScore:7.9,hamzaNotes:"LRT access + 5.9% drop + 39 DOM. Townhouse in the Hurontario corridor is a strong medium-term hold. Cash flow positive and the LRT story isn't priced in yet.",cashFlow:220,capRate:4.9,walkScore:85,transitScore:92,schoolScore:79,isSample:true}
 ];
 
 const HOOD_DATA = {
@@ -223,7 +223,7 @@ const calcMonthly=(price,downPct,rate,years)=>{
   if(r===0)return Math.round(p/n);
   return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 };
-const scoreColor=s=>!s?MUTED:s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
+const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
 const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
 
 /* ─────────────────────────────────────────────
@@ -442,10 +442,10 @@ const HOOD_GRADIENTS={
   "Malton":             ["#1A100E","#36201A"],
 };
 
-function ListingCard({l,onOpen,isSample=true}){
+function ListingCard({l,onOpen,isSample}){
   const cf=fmtCF(l.cashFlow);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
-  const scoreCol=scoreColor(l.hamzaScore??5);
+  const scoreCol=scoreColor(l.hamzaScore);
 
   return(
     <div
@@ -491,7 +491,7 @@ function ListingCard({l,onOpen,isSample=true}){
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
             boxShadow:`0 0 12px ${scoreCol}30`
           }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore!=null?l.hamzaScore.toFixed(1):"—"}</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore.toFixed(1)}</div>
             <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
           </div>
         </div>
@@ -678,7 +678,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
             <div style={{fontSize:13,color:MUTED}}>{l.neighbourhood}, Mississauga · Courtesy: {l.brokerage}</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
-            <ScoreBadge score={l.hamzaScore||0} size="lg"/>
+            <ScoreBadge score={l.hamzaScore} size="lg"/>
             <button onClick={onClose} aria-label="Close listing" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:24,lineHeight:1,padding:"4px"}}>×</button>
           </div>
         </div>
@@ -720,7 +720,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               </div>
               {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>{l.isSample?"⚠️ SAMPLE DATA — For demonstration only. ":""}Data courtesy of TRREB MLS®. These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
               </div>
             </div>
           )}
@@ -881,7 +881,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
 
         {/* Footer CTA */}
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontSize:11,color:MUTED}}>📍 {l.isSample?"Sample · ":""}Courtesy: {l.brokerage}</div>
+          <div style={{fontSize:11,color:MUTED}}>📍 Sample data · Courtesy: {l.brokerage}</div>
           <div style={{display:"flex",gap:8}}>
             <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
               style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
@@ -2165,7 +2165,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
     const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
-  },[propType,filterHood,search,chips,filters,sort]);
+  },[propType,filterHood,search,chips,filters,sort,listings]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2234,7 +2234,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
           <div style={{flex:1}}>
             <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Pick of the Week — Personal Selection</div>
             <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>1590 Carolyn Rd, Erin Mills</div>
-            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10</div>
+            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
           </div>
           <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
             View Analysis →
@@ -2251,7 +2251,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=LISTINGS}
         </div>
       ):(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample!==false}/>)}
+          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={!!l.isSample}/>)}
         </div>
       )}
     </section>
@@ -2348,37 +2348,31 @@ export default function App(){
 
   // Check stored cookie consent
   useEffect(()=>{
-    fetch('/api/listings?city=Mississauga&limit=100')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.listings&&d.listings.length>0){
-          setLiveListings(d.listings.map(l=>({
-            id:l.ListingKey,
-            address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
-            neighbourhood:l.CityRegion||'Mississauga',
-            price:l.ListPrice,originalPrice:l.OriginalListPrice||l.ListPrice,
-            beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
-            sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
-            dom:l.DaysOnMarket||0,
-            type:l.PropertySubType||l.PropertyType||'Residential',
-            brokerage:l.ListOfficeName||'',
-            description:l.PublicRemarks||'',
-            inclusions:l.Inclusions||'',
-            parking:l.ParkingTotal||0,garage:l.GarageType||'',locker:l.Locker||'',
-            tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
-            crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
-            postalCode:l.PostalCode||'',images:[],isSample:false,
-            priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice
-              ?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
-            estimatedRent:Math.round((l.ListPrice||0)*0.0042),
-            capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
-            cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
-            walkScore:72,transitScore:65,schoolScore:76,
-            hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
-          })));
-        }
-      })
-      .catch(e=>console.error('TRREB feed error:',e));
+    fetch('/api/listings?city=Mississauga&limit=100').then(r=>r.json()).then(d=>{
+      if(d.listings&&d.listings.length>0){
+        setLiveListings(d.listings.map(l=>({
+          id:l.ListingKey,
+          address:[l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
+          neighbourhood:l.CityRegion||'Mississauga',price:l.ListPrice,
+          originalPrice:l.OriginalListPrice||l.ListPrice,
+          beds:l.BedroomsTotal||0,baths:l.BathroomsTotalInteger||0,
+          sqft:l.BuildingAreaTotal||null,sqftRange:l.LivingAreaRange||null,
+          dom:l.DaysOnMarket||0,type:l.PropertySubType||l.PropertyType||'Residential',
+          brokerage:l.ListOfficeName||'',description:l.PublicRemarks||'',
+          inclusions:l.Inclusions||'',parking:l.ParkingTotal||0,
+          garage:l.GarageType||'',locker:l.Locker||'',
+          tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
+          crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
+          postalCode:l.PostalCode||'',images:[],isSample:false,
+          priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
+          estimatedRent:Math.round((l.ListPrice||0)*0.0042),
+          capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
+          cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
+          walkScore:72,transitScore:65,schoolScore:76,
+          hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
+        })));
+      }
+    }).catch(e=>console.error('TRREB:',e));
   },[]);
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
