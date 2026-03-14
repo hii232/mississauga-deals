@@ -445,7 +445,7 @@ const HOOD_GRADIENTS={
 function ListingCard({l,onOpen,isSample=true}){
   const cf=fmtCF(l.cashFlow);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
-  const scoreCol=scoreColor(l.hamzaScore);
+  const scoreCol=scoreColor(l.hamzaScore??5);
 
   return(
     <div
@@ -720,7 +720,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               </div>
               {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>{l.isSample?"⚠️ SAMPLE DATA — For demonstration only. ":""}Data courtesy of TRREB MLS®. These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
               </div>
             </div>
           )}
@@ -881,7 +881,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
 
         {/* Footer CTA */}
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontSize:11,color:MUTED}}>📍 Sample data · Courtesy: {l.brokerage}</div>
+          <div style={{fontSize:11,color:MUTED}}>📍 {l.isSample?"Sample · ":""}Courtesy: {l.brokerage}</div>
           <div style={{display:"flex",gap:8}}>
             <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
               style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
