@@ -467,6 +467,7 @@ function ListingCard({l,onOpen,isSample}){
     >
       {/* Rich image area — gradient with data overlay */}
       <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
+      {l.images&&l.images[0]&&<img src={l.images[0]} alt={l.address} loading="lazy" onError={e=>e.target.style.display="none"} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.9,zIndex:0}}/>}
         {/* Subtle grid pattern overlay */}
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
 
@@ -698,7 +699,8 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           {/* OVERVIEW */}
           {tab==="overview"&&(
             <div>
-              {/* Stats grid */}
+              {l.images&&l.images.length>0&&(<div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:4}}>{l.images.slice(0,5).map((img,i)=>(<img key={i} src={img} alt={l.address} style={{height:150,width:220,objectFit:"cover",borderRadius:8,flexShrink:0,border:"1px solid rgba(255,255,255,0.08)"}} loading="lazy" onError={e=>e.target.style.display="none"}/>))}</div>)}
+          {/* Stats grid */}
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
                 <StatBox label="List Price" value={fmtK(l.price)} accent={TEXT}/>
                 <StatBox label="Price Drop" value={l.priceReduction>0?`-${l.priceReduction}%`:"—"} accent={l.priceReduction>0?GREEN:MUTED}/>
@@ -718,7 +720,8 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
                 <ScoreBar label="Transit Score" value={l.transitScore} color={GREEN}/>
                 <ScoreBar label="School Score" value={l.schoolScore} color={GOLD}/>
               </div>
-              {/* TRREB disclaimer */}
+              {l.description&&l.description.length>10&&(<div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"14px 16px",marginBottom:12}}><div style={{fontSize:11,color:"#64748B",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:8}}>Listing Description</div><p style={{fontSize:12,color:"#94A3B8",lineHeight:1.75,margin:0}}>{l.description}</p>{l.inclusions&&l.inclusions.length>3&&<p style={{fontSize:11,color:"#64748B",marginTop:8}}><strong style={{color:"#94A3B8"}}>Inclusions:</strong> {l.inclusions}</p>}</div>)}
+          {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
                 <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
               </div>
@@ -2369,7 +2372,7 @@ export default function App(){
           capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
           cashFlow:Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
           walkScore:72,transitScore:65,schoolScore:76,
-          hamzaScore:null,hamzaNotes:'',hamzasPick:false,lrtAccess:false,
+          hamzaScore:(()=>{let s=5.0;const drop=l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?((1-l.ListPrice/l.OriginalListPrice)*100):0;const dom=l.DaysOnMarket||0;if(drop>=10)s+=2.5;else if(drop>=7)s+=1.8;else if(drop>=5)s+=1.2;else if(drop>=3)s+=0.6;if(dom>=60)s+=2.0;else if(dom>=40)s+=1.4;else if(dom>=25)s+=0.8;const pt=l.PropertySubType||l.PropertyType||'';if(pt.toLowerCase().includes('detached'))s+=0.5;if((l.ListPrice||0)<700000)s+=0.4;const lrtH=['Cooksville','Hurontario','Port Credit','Clarkson'];if(lrtH.some(h=>(l.CityRegion||'').includes(h)))s+=0.4;return Math.min(9.8,Math.max(4.5,Math.round(s*10)/10));})(),hamzaNotes:'AI-scored: '+((l.DaysOnMarket||0)>40?'High DOM — motivated seller. ':'')+(l.OriginalListPrice>l.ListPrice?((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1)+'% price drop. ':'')+'Live TRREB listing.',hamzasPick:false,lrtAccess:['Cooksville','Hurontario','Port Credit','Clarkson'].some(h=>(l.CityRegion||'').includes(h)),
         })));
       }
     }).catch(e=>console.error('TRREB:',e));
