@@ -54,7 +54,7 @@ module.exports = async function handler(req, res) {
       'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
       'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
       'PropertyType', 'PropertySubType', 'YearBuilt',
-      'DaysOnMarket', 'CumulativeDaysOnMarket', 'OnMarketDate',
+      'DaysOnMarket', 'OnMarketDate',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
       'Latitude', 'Longitude', 'ModificationTimestamp'
     ].join(',');
@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
       var drop = (l.OriginalListPrice && l.OriginalListPrice > price)
         ? Math.round((l.OriginalListPrice - price) / l.OriginalListPrice * 100) : 0;
       var rem = l.PublicRemarks || '';
-      var dom = l.DaysOnMarket || l.CumulativeDaysOnMarket || 0;
+      var dom = l.DaysOnMarket || 0;
       if (dom === 0 && l.OnMarketDate) {
         var onDate = new Date(l.OnMarketDate);
         dom = Math.max(0, Math.round((Date.now() - onDate) / 86400000));
