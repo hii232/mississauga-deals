@@ -2333,11 +2333,15 @@ export default function App(){
   // Load live TRREB listings
   useEffect(()=>{
     if(!isRegistered) return;
-    fetch('/api/listings?city=Mississauga&limit=100')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.listings && d.listings.length > 0){
-          setLiveListings(d.listings.map(l=>({
+    let cancelled=false;
+    const loadAll=async()=>{
+      let page=1,all=[];
+      while(!cancelled){
+        try{
+          const r=await fetch('/api/listings?city=Mississauga&limit=100&page='+page);
+          const d=await r.json();
+          if(!d.listings||d.listings.length===0) break;
+          const mapped=d.listings.map(l=>({
             id: l.ListingKey,
             address: [l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
             neighbourhood: l.CityRegion||'Mississauga',
@@ -2359,11 +2363,16 @@ export default function App(){
             cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
             walkScore:72, transitScore:65, schoolScore:76,
             hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false, photos:l.photos||[], images:l.photos||[],
-          })));
-          setUsingLiveFeed(true);
-        }
-      })
-      .catch(e=>console.error('Feed error:',e));
+          }));
+          all=[...all,...mapped];
+          if(!cancelled){setLiveListings([...all]);setUsingLiveFeed(true);}
+          if(d.listings.length<100||page>=22) break;
+          page++;
+        }catch(e){console.error('page '+page,e);break;}
+      }
+    };
+    loadAll();
+    return()=>{cancelled=true;};
   },[isRegistered]);
 
   useEffect(()=>{
