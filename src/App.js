@@ -469,8 +469,8 @@ function ListingCard({l,onOpen,isSample=true}){
   const score=l.hamzaScore||0;
   const scoreCol=scoreColor(score);
   const [imgErr,setImgErr]=useState(false);
-  const cardPhoto=(l.photos&&l.photos.length>0)?l.photos[0]:l._thumbUrl||null;
-  const hasPhotos=!!cardPhoto&&!imgErr;
+  const hasPhotos=l.photos&&l.photos.length>0&&!imgErr;
+  const cardPhoto=hasPhotos?l.photos[0]:null;
 
   return(
     <div
@@ -2793,30 +2793,11 @@ export default function App(){
           if(d.listings&&d.listings.length>0){
             allListings=allListings.concat(d.listings);
             totalPages=d.pages||1;
-            // Show listings IMMEDIATELY as data arrives
-            const processed=processListings(allListings);
-            // Load photos in background batches of 20
-            loadPhotosBatch(processed.filter(p=>!p.photos||p.photos.length===0));
+            // Show listings IMMEDIATELY as each page arrives
+            processListings(allListings);
           }else{break;}
         }catch(e){console.error('Feed page '+page+' error:',e);break;}
         page++;
-      }
-    }
-    async function loadPhotosBatch(listings){
-      for(let i=0;i<listings.length;i+=20){
-        const batch=listings.slice(i,i+20);
-        const ids=batch.map(l=>l.id).filter(Boolean);
-        if(ids.length===0)continue;
-        try{
-          const r=await fetch('/api/photos-batch',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})});
-          const d=await r.json();
-          if(d.photos){
-            setLiveListings(prev=>prev.map(l=>{
-              if(d.photos[l.id]){return{...l,_thumbUrl:d.photos[l.id]};}
-              return l;
-            }));
-          }
-        }catch(e){/* photo batch failed, cards show gradient */}
       }
     }
     function processListings(allRaw){

@@ -1,4 +1,5 @@
-// api/listings.js - PropTx VOW Datafeed — fast, no photo calls
+// api/listings.js - PropTx/AMPRE VOW Datafeed
+// Uses $expand=Media to get photos inline — confirmed by AMPRE docs
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_TOKEN;
 const CITIES = ['Mississauga','Port Credit','Streetsville','Clarkson','Lakeview',
@@ -49,18 +50,22 @@ module.exports = async function handler(req, res) {
       filters.push('(' + CITIES.map(function(c) { return "City eq '" + c + "'"; }).join(' or ') + ')');
     }
 
+    // Only request fields that exist in PropTx schema
     var sel = [
       'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
       'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
       'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
-      'PropertyType', 'PropertySubType', 'YearBuilt',
-      'DaysOnMarket',
+      'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
       'Latitude', 'Longitude', 'ModificationTimestamp'
     ].join(',');
 
+    // Use $expand=Media to get photos inline (per AMPRE docs)
+    var expand = "Media($select=MediaURL,MediaKey;$orderby=Order)";
+
     var url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
       + '&$select=' + encodeURIComponent(sel)
+      + '&$expand=' + encodeURIComponent(expand)
       + '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
@@ -68,16 +73,25 @@ module.exports = async function handler(req, res) {
       headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
     });
 
+    // If $expand fails, fall back to no photos
     if (!resp.ok) {
-      var e = await resp.text();
-      return res.status(resp.status).json({ error: 'PropTx ' + resp.status, detail: e.substring(0, 400) });
+      var urlNoExpand = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
+        + '&$select=' + encodeURIComponent(sel)
+        + '&$top=' + limit + '&$skip=' + skip
+        + '&$orderby=ModificationTimestamp desc&$count=true';
+      resp = await fetch(urlNoExpand, {
+        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' }
+      });
+      if (!resp.ok) {
+        var e = await resp.text();
+        return res.status(resp.status).json({ error: 'PropTx ' + resp.status, detail: e.substring(0, 400) });
+      }
     }
 
     var data = await resp.json();
     var items = data.value || [];
     var total = data['@odata.count'] || items.length;
 
-    // NO photo fetching here — photos load lazily on the frontend via /api/photos
     var listings = items.map(function(l) {
       var price = l.ListPrice || 0;
       var beds = l.BedroomsTotal || 0;
@@ -88,6 +102,16 @@ module.exports = async function handler(req, res) {
         ? Math.round((l.OriginalListPrice - price) / l.OriginalListPrice * 100) : 0;
       var rem = l.PublicRemarks || '';
       var dom = l.DaysOnMarket || 0;
+
+      // Extract photos from expanded Media
+      var ph = [];
+      if (l.Media && Array.isArray(l.Media)) {
+        var seen = {};
+        for (var m = 0; m < l.Media.length; m++) {
+          var u = l.Media[m].MediaURL || '';
+          if (u && !seen[u]) { seen[u] = true; ph.push(u); }
+        }
+      }
 
       return {
         id: l.ListingKey,
@@ -107,7 +131,8 @@ module.exports = async function handler(req, res) {
         status: l.StandardStatus,
         brokerage: l.ListOfficeName || '',
         remarks: rem,
-        photos: [],
+        photos: ph,
+        images: ph,
         lat: l.Latitude,
         lng: l.Longitude,
         originalPrice: l.OriginalListPrice || price,
