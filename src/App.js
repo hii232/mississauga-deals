@@ -1237,7 +1237,7 @@ Respond ONLY with a valid JSON object in this exact format, no markdown, no extr
   };
   const verdictEmoji=v=>{
     if(!v)return"📊";
-    listing.photos && listing.photos.length > 0 ? React.createElement('img',{src:listing.photos[0],alt:'',style:{width:'100%',height:'100%',objectFit:'cover',cursor:'pointer'},onClick:function(e){e.stopPropagation();_setLb({photos:listing.photos,i:0});}}) : React.createElement('span',{style:{fontSize:32,opacity:0.25}},'🏠')
+    if(v.label==="Buyer's Market")return"🏠";
     if(v.label==="Seller's Market")return"🔥";
     return"⚖️";
   };
@@ -2331,7 +2331,7 @@ function Testimonials(){
    MAIN APP
 ───────────────────────────────────────────── */
 export default function App(){
-  var [_lb, _setLb] = useState(null);
+  const [_lb,_setLb]=React.useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
@@ -2428,6 +2428,7 @@ export default function App(){
 
       {/* Animated mesh background — premium indigo/blue */}
       <div className="mesh-bg" aria-hidden="true">
+        {l.photos&&l.photos.length>0&&<div style={{position:"relative",width:"100%",paddingBottom:"56.25%",overflow:"hidden",borderRadius:"8px 8px 0 0",background:"#0D1F35",marginBottom:8}}><img src={l.photos[0]} alt={l.address} style={{position:"absolute",top:0,left:0,width:"100%",height:"100%",objectFit:"cover",cursor:"zoom-in"}} onError={function(e){e.target.parentNode.style.display="none";}} onClick={function(e){e.stopPropagation();_setLb({photos:l.photos,i:0});}}/>{l.photos.length>1&&<span style={{position:"absolute",bottom:6,right:8,background:"rgba(0,0,0,0.6)",color:"#fff",fontSize:11,borderRadius:4,padding:"2px 6px"}}>{l.photos.length+" photos"}</span>}</div>}
         <div className="mesh-orb" style={{width:700,height:700,background:"#1D4ED8",top:"-25%",right:"-15%",animationDelay:"0s"}}/>
         <div className="mesh-orb" style={{width:550,height:550,background:"#4338CA",bottom:"-20%",left:"-12%",animationDelay:"-7s"}}/>
         <div className="mesh-orb" style={{width:450,height:450,background:"#0EA5E9",top:"35%",left:"35%",animationDelay:"-14s"}}/>
@@ -2444,7 +2445,7 @@ export default function App(){
 
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
-            {_lb && React.createElement("div",{onClick:function(){_setLb(null);},style:{position:"fixed",inset:"0",background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}},React.createElement("button",{onClick:function(){_setLb(null);},style:{position:"fixed",top:"16px",right:"16px",background:"transparent",border:"none",color:"#fff",fontSize:"28px",cursor:"pointer",lineHeight:"1",zIndex:100000}},"✕"),React.createElement("div",{style:{display:"flex",alignItems:"center",gap:"16px"}},_lb.i>0&&React.createElement("button",{onClick:function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});},style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",color:"#fff",fontSize:"24px",cursor:"pointer"}},"‹"),React.createElement("img",{src:_lb.photos[_lb.i],alt:"",style:{maxWidth:"88vw",maxHeight:"85vh",objectFit:"contain",borderRadius:"6px",display:"block"}}),_lb.i<_lb.photos.length-1&&React.createElement("button",{onClick:function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});},style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:"44px",height:"44px",color:"#fff",fontSize:"24px",cursor:"pointer"}},"›")),React.createElement("div",{style:{color:"rgba(255,255,255,0.5)",fontSize:"12px",marginTop:"8px"}},(_lb.i+1)+" / "+_lb.photos.length+" · Esc to close")}
+            {_lb&&<div onClick={function(){_setLb(null);}} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><button onClick={function(){_setLb(null);}} style={{position:"fixed",top:16,right:16,background:"transparent",border:"none",color:"#fff",fontSize:30,cursor:"pointer",lineHeight:1}}>×</button><div style={{display:"flex",alignItems:"center",gap:16,maxWidth:"92vw"}}>{ _lb.i>0&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>‹</button>}<img src={_lb.photos[_lb.i]} alt="" style={{maxWidth:"85vw",maxHeight:"82vh",objectFit:"contain",borderRadius:6,display:"block"}} onError={function(e){e.target.style.opacity=0.3;}}/>{_lb.i<_lb.photos.length-1&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:26,cursor:"pointer"}}>›</button>}</div><div style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:8}}>{(_lb.i+1)+" / "+_lb.photos.length}</div></div>}
 {selectedListing&&(
         <ListingModal
           l={selectedListing}
