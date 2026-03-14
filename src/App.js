@@ -2365,9 +2365,9 @@ export default function App(){
           }));
           all=[...all,...mapped];
           if(!cancelled){setLiveListings([...all]);setUsingLiveFeed(true);}
-          if(d.listings.length<100||page>=22) break;
+          if(d.listings.length<100) break;
           page++;
-        }catch(e){console.error('page '+page,e);break;}
+        }catch(e){console.error(e);break;}
       }
     };
     loadAll();
