@@ -1,4 +1,4 @@
-// api/listings.js — PropTx VOW Datafeed
+// api/listings.js â PropTx VOW Datafeed
 // Requires AMPRE_TOKEN in Vercel environment variables
 
 const ODATA_BASE = 'https://query.ampre.ca/odata';
@@ -52,7 +52,7 @@ function formatAddress(l) {
   return parts.join(' ').trim() || l.UnparsedAddress || 'Address on Request';
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
