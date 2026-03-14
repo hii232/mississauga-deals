@@ -2332,7 +2332,6 @@ export default function App(){
   // Check stored cookie consent
   // Load live TRREB listings
   useEffect(()=>{
-    if(!isRegistered) return;
     let cancelled=false;
     const loadAll=async()=>{
       let page=1,all=[];
@@ -2373,7 +2372,7 @@ export default function App(){
     };
     loadAll();
     return()=>{cancelled=true;};
-  },[isRegistered]);
+  },[]);
 
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
