@@ -203,7 +203,7 @@ const calcMonthly=(price,downPct,rate,years)=>{
   return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 };
 const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
-const fmtCF=n=>({color:n>0?GREEN:n<0?RED:MUTED,label:fmtNum(n)});
+const fmtCF=n=>({color:n>=-300?GREEN:n>=-600?GOLD:RED,label:fmtNum(n)});
 
 /* ─────────────────────────────────────────────
    CASL CONSENT TEXT (reused across forms)
@@ -475,6 +475,7 @@ function ListingCard({l,onOpen,isSample=true}){
           {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:600}}>LRT</span>}
           {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:700}}>↓{l.priceReduction}%</span>}
           {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:600}}>{l.dom}d</span>}
+          {l.hasSuite&&<span style={{background:"rgba(168,85,247,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:700}}>SUITE</span>}
         </div>
 
         {/* Score badge top-right */}
@@ -2179,7 +2180,8 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   const [search,setSearch]=useState("");
   const [chips,setChips]=useState(new Set());
   const [showFilters,setShowFilters]=useState(false);
-  const [filters,setFilters]=useState({priceMin:300000,priceMax:3000000,bedsMin:0,domMax:999,priceDropMin:0});
+  const [viewMode,setViewMode]=useState("grid"); // grid | table
+  const [filters,setFilters]=useState({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});
 
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
@@ -2187,71 +2189,209 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
     let list=[...listings];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
-    if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
-    if(chips.has("price-drop"))list=list.filter(l=>l.priceReduction>=5);
-    if(chips.has("cash-flow"))list=list.filter(l=>l.cashFlow>0);
+    if(search){const q=search.toLowerCase();list=list.filter(l=>(l.address||'').toLowerCase().includes(q)||(l.neighbourhood||'').toLowerCase().includes(q)||(l.postalCode||'').toLowerCase().includes(q)||(l.brokerage||'').toLowerCase().includes(q));}
+    // Smart investor chips
+    if(chips.has("price-drop"))list=list.filter(l=>(l.priceReduction||0)>=5);
+    if(chips.has("cash-flow"))list=list.filter(l=>(l.cashFlow||0)>0);
     if(chips.has("lrt"))list=list.filter(l=>l.lrtAccess);
-    if(chips.has("40-days"))list=list.filter(l=>l.dom>=40);
-    if(chips.has("under-800"))list=list.filter(l=>l.price<800000);
-    list=list.filter(l=>l.price>=filters.priceMin&&l.price<=filters.priceMax&&l.beds>=filters.bedsMin&&l.dom<=filters.domMax&&l.priceReduction>=filters.priceDropMin);
-    const sortFns={score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),price:(a,b)=>(a.price||0)-(b.price||0),dom:(a,b)=>(b.dom||0)-(a.dom||0),drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0)};
+    if(chips.has("motivated"))list=list.filter(l=>(l.dom||0)>=30&&(l.priceReduction||0)>=3);
+    if(chips.has("under-800"))list=list.filter(l=>(l.price||0)<800000);
+    if(chips.has("under-600"))list=list.filter(l=>(l.price||0)<600000);
+    if(chips.has("brrr"))list=list.filter(l=>(l.dom||0)>=40&&(l.priceReduction||0)>=5);
+    if(chips.has("high-yield"))list=list.filter(l=>(l.capRate||0)>=4);
+    if(chips.has("suite"))list=list.filter(l=>l.hasSuite);
+    if(chips.has("new-listing"))list=list.filter(l=>(l.dom||0)<=3);
+    // Range filters
+    list=list.filter(l=>{
+      const p=l.price||0,b=l.beds||0,ba=l.baths||0,d=l.dom||0,dr=l.priceReduction||0,cr=l.capRate||0,sc=l.hamzaScore||0;
+      return p>=filters.priceMin&&p<=filters.priceMax&&b>=filters.bedsMin&&b<=filters.bedsMax&&ba>=filters.bathsMin&&d>=filters.domMin&&d<=filters.domMax&&dr>=filters.priceDropMin&&cr>=filters.capRateMin&&sc>=filters.scoreMin;
+    });
+    const sortFns={
+      score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),
+      price:(a,b)=>(a.price||0)-(b.price||0),
+      priceDesc:(a,b)=>(b.price||0)-(a.price||0),
+      dom:(a,b)=>(b.dom||0)-(a.dom||0),
+      domAsc:(a,b)=>(a.dom||0)-(b.dom||0),
+      drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),
+      cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0),
+      caprate:(a,b)=>(b.capRate||0)-(a.capRate||0),
+      rent:(a,b)=>(b.estimatedRent||0)-(a.estimatedRent||0),
+      ppsqft:(a,b)=>{const pa=(a.price||1)/(a.beds||1),pb=(b.price||1)/(b.beds||1);return pa-pb;},
+    };
     list.sort(sortFns[sort]||sortFns.score);
     return list;
   },[listings,propType,filterHood,search,chips,filters,sort]);
 
+  // Portfolio analytics — computed from filtered results
+  const analytics=useMemo(()=>{
+    if(filtered.length===0)return null;
+    const prices=filtered.map(l=>l.price||0);
+    const caps=filtered.map(l=>l.capRate||0).filter(c=>c>0);
+    const cfs=filtered.map(l=>l.cashFlow||0);
+    const doms=filtered.map(l=>l.dom||0);
+    const cfPositive=cfs.filter(c=>c>0).length;
+    const avgPrice=prices.reduce((a,b)=>a+b,0)/prices.length;
+    const avgCap=caps.length>0?caps.reduce((a,b)=>a+b,0)/caps.length:0;
+    const avgDOM=doms.reduce((a,b)=>a+b,0)/doms.length;
+    const maxCap=caps.length>0?Math.max(...caps):0;
+    const bestDeal=filtered.reduce((best,l)=>(l.hamzaScore||0)>(best.hamzaScore||0)?l:best,filtered[0]);
+    const totalValue=prices.reduce((a,b)=>a+b,0);
+    const priceDrops=filtered.filter(l=>(l.priceReduction||0)>0).length;
+    return{avgPrice,avgCap,avgDOM,maxCap,cfPositive,total:filtered.length,bestDeal,totalValue,priceDrops,cfNegative:filtered.length-cfPositive};
+  },[filtered]);
+
+  const activeFilters=chips.size+(propType!=="All"?1:0)+(filterHood?1:0)+(search?1:0)+(filters.priceMin>0||filters.priceMax<5000000||filters.bedsMin>0||filters.capRateMin>0||filters.scoreMin>0?1:0);
+  const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});};
+
   return(
     <section aria-label="Property Listings" id="listings">
-      {/* Controls */}
+
+      {/* ═══ PORTFOLIO ANALYTICS DASHBOARD ═══ */}
+      {analytics&&(
+        <div style={{background:`linear-gradient(135deg,${CARD},rgba(59,130,246,0.03))`,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:14,padding:"0",marginBottom:20,overflow:"hidden"}}>
+          {/* Terminal header */}
+          <div style={{background:"rgba(59,130,246,0.06)",borderBottom:`1px solid rgba(59,130,246,0.12)`,padding:"8px 18px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:GREEN,boxShadow:"0 0 8px rgba(16,185,129,0.6)"}}/>
+              <span style={{fontSize:10,fontWeight:700,color:BLUE,letterSpacing:"0.1em",fontFamily:"'JetBrains Mono',monospace"}}>DEAL SCREENER</span>
+              <span style={{fontSize:10,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>MSGA · {new Date().toLocaleDateString('en-CA')}</span>
+            </div>
+            <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <span style={{fontSize:10,color:GREEN,fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>LIVE</span>
+              <span style={{fontSize:10,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>{listings.length} FEEDS</span>
+            </div>
+          </div>
+
+          {/* Analytics grid */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:0}}>
+            {[
+              {label:"SHOWING",value:analytics.total,sub:`of ${listings.length}`,color:TEXT},
+              {label:"AVG PRICE",value:fmtK(analytics.avgPrice),sub:"filtered avg",color:TEXT},
+              {label:"AVG CAP RATE",value:analytics.avgCap.toFixed(2)+"%",sub:"net yield",color:analytics.avgCap>=4?GREEN:analytics.avgCap>=3?GOLD:RED},
+              {label:"MAX CAP",value:analytics.maxCap.toFixed(1)+"%",sub:"best yield",color:GREEN},
+              {label:"CF POSITIVE",value:analytics.cfPositive,sub:`of ${analytics.total}`,color:analytics.cfPositive>0?GREEN:RED},
+              {label:"AVG DOM",value:Math.round(analytics.avgDOM)+"d",sub:"days on mkt",color:analytics.avgDOM>=40?RED:TEXT},
+              {label:"PRICE DROPS",value:analytics.priceDrops,sub:"reduced",color:analytics.priceDrops>0?GREEN:MUTED},
+              {label:"TOTAL VALUE",value:analytics.totalValue>=1e9?"$"+(analytics.totalValue/1e9).toFixed(1)+"B":"$"+(analytics.totalValue/1e6).toFixed(0)+"M",sub:"portfolio",color:GOLD},
+            ].map((s,i)=>(
+              <div key={i} style={{padding:"12px 14px",borderRight:i<7?`1px solid rgba(255,255,255,0.04)`:"none",borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
+                <div style={{fontSize:9,color:MUTED,fontWeight:600,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace",marginBottom:4}}>{s.label}</div>
+                <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,fontWeight:700,color:s.color,lineHeight:1}}>{s.value}</div>
+                <div style={{fontSize:9,color:MUTED,marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{s.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ SEARCH + CONTROLS ═══ */}
       <div style={{marginBottom:20}}>
         {/* Search */}
         <div style={{position:"relative",marginBottom:14}}>
-          <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",color:MUTED,fontSize:16}} aria-hidden="true">🔍</span>
-          <input type="search" placeholder="Search address or neighbourhood..." value={search} onChange={e=>setSearch(e.target.value)}
-            style={{width:"100%",background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"11px 14px 11px 42px",color:TEXT,fontSize:14}}
+          <span style={{position:"absolute",left:14,top:"50%",transform:"translateY(-50%)",color:MUTED,fontSize:14,fontFamily:"'JetBrains Mono',monospace"}} aria-hidden="true">&gt;_</span>
+          <input type="search" placeholder="Search address, neighbourhood, postal code, brokerage..." value={search} onChange={e=>setSearch(e.target.value)}
+            style={{width:"100%",background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:"12px 14px 12px 42px",color:TEXT,fontSize:13,fontFamily:"'JetBrains Mono',monospace"}}
             aria-label="Search listings"/>
+          {search&&<button onClick={()=>setSearch("")} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:16}}>×</button>}
         </div>
 
         {/* Property type tabs */}
-        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-          {["All","Detached","Semi-Detached","Townhouse","Condo"].map(t=>(
-            <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"8px 16px"}}>{t}</button>
+        <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
+          {["All","Detached","Semi-Detached","Townhouse","Condo","Duplex"].map(t=>(
+            <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"7px 14px",fontSize:12}}>{t}</button>
           ))}
-          {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:40,padding:"8px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Inter',sans-serif"}}>✕ {filterHood}</button>}
+          {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:6,padding:"7px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontWeight:600}}>✕ {filterHood}</button>}
         </div>
 
-        {/* Quick chips */}
-        <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-          {[["price-drop","↓ 5%+ Drop"],["cash-flow","Cash Flow+"],["lrt","LRT Access"],["40-days","40+ DOM"],["under-800","Under $800K"]].map(([id,label])=>(
-            <button key={id} onClick={()=>toggleChip(id)} className={"chip"+(chips.has(id)?" active":"")} style={{padding:"7px 14px"}}>{label}</button>
-          ))}
+        {/* ═══ INVESTOR STRATEGY CHIPS ═══ */}
+        <div style={{marginBottom:14}}>
+          <div style={{fontSize:10,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginBottom:6,fontFamily:"'JetBrains Mono',monospace"}}>INVESTOR FILTERS</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {[
+              ["cash-flow","CF+","Cash Flow Positive","#10B981"],
+              ["high-yield","4%+ CAP","Cap Rate 4%+","#F59E0B"],
+              ["motivated","MOTIVATED","DOM 30+ & Price Cut","#EF4444"],
+              ["brrr","BRRR","DOM 40+ & 5%+ Drop","#8B5CF6"],
+              ["price-drop","REDUCED","5%+ Price Drop","#10B981"],
+              ["new-listing","NEW","Listed 0-3 Days","#3B82F6"],
+              ["under-800","<$800K","Under $800K","#3B82F6"],
+              ["under-600","<$600K","Under $600K","#3B82F6"],
+              ["suite","SUITE","Basement Suite Potential","#F59E0B"],
+            ].map(([id,tag,desc,col])=>(
+              <button key={id} onClick={()=>toggleChip(id)}
+                title={desc}
+                style={{
+                  padding:"5px 10px",borderRadius:4,fontSize:10,fontWeight:700,
+                  fontFamily:"'JetBrains Mono',monospace",letterSpacing:"0.04em",
+                  cursor:"pointer",transition:"all .15s ease",
+                  background:chips.has(id)?`${col}20`:"rgba(255,255,255,0.03)",
+                  border:`1px solid ${chips.has(id)?`${col}80`:"rgba(255,255,255,0.08)"}`,
+                  color:chips.has(id)?col:MUTED,
+                }}>{tag}</button>
+            ))}
+          </div>
         </div>
 
-        {/* Sort + filter toggle */}
-        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-          <select value={sort} onChange={e=>setSort(e.target.value)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:"8px 14px",color:TEXT,fontSize:13}} aria-label="Sort listings by">
-            <option value="score">Sort: Hamza's Score</option>
-            <option value="price">Sort: Price ↑</option>
-            <option value="dom">Sort: Days on Market ↓</option>
-            <option value="drop">Sort: Biggest Price Drop</option>
-            <option value="cashflow">Sort: Cash Flow ↓</option>
+        {/* Sort + View + Active filters */}
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <select value={sort} onChange={e=>setSort(e.target.value)} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:6,padding:"7px 12px",color:TEXT,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}} aria-label="Sort listings by">
+            <option value="score">SORT: SCORE ↓</option>
+            <option value="caprate">SORT: CAP RATE ↓</option>
+            <option value="cashflow">SORT: CASH FLOW ↓</option>
+            <option value="price">SORT: PRICE ↑</option>
+            <option value="priceDesc">SORT: PRICE ↓</option>
+            <option value="dom">SORT: DOM ↓</option>
+            <option value="domAsc">SORT: DOM ↑ (newest)</option>
+            <option value="drop">SORT: PRICE DROP ↓</option>
+            <option value="rent">SORT: RENT ↓</option>
+            <option value="ppsqft">SORT: $/BEDROOM ↑</option>
           </select>
-          <button onClick={()=>setShowFilters(!showFilters)} className="btn-ghost" style={{padding:"8px 16px",borderRadius:8,fontSize:13}}>
-            {showFilters?"▲ Hide":"▼ Filters"}
+
+          {/* View toggle */}
+          <div style={{display:"flex",border:`1px solid ${BORDER}`,borderRadius:6,overflow:"hidden"}}>
+            <button onClick={()=>setViewMode("grid")} style={{padding:"6px 10px",background:viewMode==="grid"?"rgba(59,130,246,0.15)":"transparent",border:"none",color:viewMode==="grid"?BLUE:MUTED,cursor:"pointer",fontSize:12,fontWeight:600}}>Grid</button>
+            <button onClick={()=>setViewMode("table")} style={{padding:"6px 10px",background:viewMode==="table"?"rgba(59,130,246,0.15)":"transparent",border:"none",borderLeft:`1px solid ${BORDER}`,color:viewMode==="table"?BLUE:MUTED,cursor:"pointer",fontSize:12,fontWeight:600}}>Table</button>
+          </div>
+
+          <button onClick={()=>setShowFilters(!showFilters)} className="btn-ghost" style={{padding:"7px 14px",borderRadius:6,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>
+            {showFilters?"▲ FILTERS":"▼ FILTERS"}
           </button>
-          <span style={{fontSize:12,color:MUTED,marginLeft:"auto"}}>{filtered.length} properties</span>
+
+          {activeFilters>0&&(
+            <button onClick={resetAll} style={{padding:"6px 12px",borderRadius:6,fontSize:11,background:"rgba(239,68,68,0.08)",border:"1px solid rgba(239,68,68,0.3)",color:RED,cursor:"pointer",fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>
+              CLEAR ALL ({activeFilters})
+            </button>
+          )}
+
+          <span style={{fontSize:11,color:MUTED,marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{filtered.length}<span style={{color:"#3A5070"}}> / {listings.length}</span></span>
         </div>
 
-        {/* Advanced filters */}
+        {/* ═══ ADVANCED FILTER PANEL ═══ */}
         {showFilters&&(
-          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"18px 20px",marginTop:14,animation:"slideDown .2s ease"}}>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:16}}>
-              {[["Price Min","priceMin",300000,2000000,50000],["Price Max","priceMax",500000,3000000,50000],["Min Beds","bedsMin",0,6,1],["Max DOM","domMax",7,999,7],["Min Price Drop %","priceDropMin",0,20,1]].map(([label,key,min,max,step])=>(
+          <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:10,padding:"18px 20px",marginTop:14,animation:"slideDown .2s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+              <div style={{fontSize:10,fontWeight:700,color:BLUE,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>ADVANCED SCREENING</div>
+              <button onClick={()=>setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0})} style={{fontSize:10,color:MUTED,background:"none",border:"none",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>RESET</button>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:14}}>
+              {[
+                ["Price Min","priceMin",0,2000000,25000,v=>fmtK(v)],
+                ["Price Max","priceMax",200000,5000000,50000,v=>fmtK(v)],
+                ["Min Beds","bedsMin",0,6,1,v=>v+"bd"],
+                ["Max Beds","bedsMax",1,10,1,v=>v===99?"Any":v+"bd"],
+                ["Min Baths","bathsMin",0,5,1,v=>v+"ba"],
+                ["Min DOM","domMin",0,120,5,v=>v+"d"],
+                ["Max DOM","domMax",7,999,7,v=>v>=999?"Any":v+"d"],
+                ["Min Price Drop","priceDropMin",0,25,1,v=>v+"%"],
+                ["Min Cap Rate","capRateMin",0,8,0.5,v=>v.toFixed(1)+"%"],
+                ["Min Score","scoreMin",0,9,0.5,v=>v.toFixed(1)+"/10"],
+              ].map(([label,key,min,max,step,fmt])=>(
                 <div key={key}>
-                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-                    <label htmlFor={`filter-${key}`} style={{fontSize:12,color:MUTED}}>{label}</label>
-                    <span className="mono" style={{fontSize:12,color:GOLD}}>{key.includes("price")?fmtK(filters[key]):filters[key]}{key==="priceDropMin"?"%":key==="bedsMin"?"bd":""}</span>
+                  <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <label htmlFor={`f-${key}`} style={{fontSize:10,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>{label}</label>
+                    <span style={{fontSize:10,color:GOLD,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>{fmt(filters[key])}</span>
                   </div>
-                  <input id={`filter-${key}`} type="range" min={min} max={max} step={step} value={filters[key]} onChange={e=>setFilters(f=>({...f,[key]:Number(e.target.value)}))} style={{width:"100%"}} aria-label={label}/>
+                  <input id={`f-${key}`} type="range" min={min} max={max} step={step} value={filters[key]} onChange={e=>setFilters(f=>({...f,[key]:Number(e.target.value)}))} style={{width:"100%"}} aria-label={label}/>
                 </div>
               ))}
             </div>
@@ -2259,25 +2399,23 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
         )}
       </div>
 
-      {/* Hamza's Pick Banner */}
+      {/* ═══ HAMZA'S TOP PICK ═══ */}
       {filtered.find(l=>l.hamzasPick)&&(()=>{
         const pick=filtered.find(l=>l.hamzasPick);
         return(
-        <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.06))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
-          <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>★</div>
-          <div style={{flex:1}}>
-            <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Top Pick — Highest Score</div>
-            <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>{pick.address}</div>
-            <div style={{fontSize:12,color:MUTED,marginTop:2}}>{pick.priceReduction>0?pick.priceReduction+"% price reduction · ":""}{pick.dom}d DOM · Score: {(pick.hamzaScore||0).toFixed(1)}/10 · {fmtK(pick.price)}</div>
+        <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.04))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:10,padding:"14px 18px",marginBottom:18,display:"flex",gap:14,alignItems:"center",flexWrap:"wrap",cursor:"pointer"}} onClick={()=>onOpenListing(pick)}>
+          <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>★</div>
+          <div style={{flex:1,minWidth:200}}>
+            <div style={{fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>TOP PICK</div>
+            <div style={{fontSize:14,fontWeight:700,color:TEXT,marginTop:2}}>{pick.address}</div>
+            <div style={{fontSize:11,color:MUTED,marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{fmtK(pick.price)} · {(pick.capRate||0).toFixed(1)}% CAP · {pick.dom}d DOM · {(pick.hamzaScore||0).toFixed(1)}/10</div>
           </div>
-          <button onClick={()=>onOpenListing(pick)} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
-            View Analysis →
-          </button>
+          <span style={{fontSize:12,color:GOLD,fontWeight:600}}>VIEW →</span>
         </div>
         );
       })()}
 
-      {/* Loading skeleton */}
+      {/* ═══ LOADING ═══ */}
       {loading&&listings.length===0&&(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
           {[...Array(8)].map((_,i)=>(
@@ -2294,23 +2432,54 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
         </div>
       )}
 
-      {/* Live feed indicator */}
-      {!loading&&listings.length>0&&(
-        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,padding:"10px 16px",background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:8}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:GREEN,boxShadow:"0 0 8px rgba(16,185,129,0.6)"}}/>
-          <span style={{fontSize:12,color:GREEN,fontWeight:600}}>LIVE FEED</span>
-          <span style={{fontSize:11,color:MUTED}}>· {listings.length} active PropTx/TRREB listings · Updated in real-time</span>
-        </div>
-      )}
-
-      {/* Grid */}
+      {/* ═══ RESULTS ═══ */}
       {!loading&&filtered.length===0?(
         <div style={{textAlign:"center",padding:"60px 24px",color:MUTED}}>
           <div style={{fontSize:40,marginBottom:12}}>🔍</div>
-          <p style={{fontSize:15}}>{listings.length===0?"Connecting to TRREB feed...":"No listings match your filters."}</p>
-          {listings.length>0&&<button onClick={()=>{setPropType("All");setChips(new Set());setSearch("");setFilterHood&&setFilterHood(null);}} className="btn-ghost" style={{padding:"10px 20px",borderRadius:8,fontSize:13,marginTop:12}}>Clear Filters</button>}
+          <p style={{fontSize:15,marginBottom:4}}>{listings.length===0?"Connecting to TRREB feed...":"No deals match your screening criteria."}</p>
+          {listings.length>0&&<p style={{fontSize:12,color:"#3A5070",marginBottom:16}}>Try adjusting your filters or clearing the active screens.</p>}
+          {listings.length>0&&<button onClick={resetAll} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:13}}>Reset All Filters</button>}
+        </div>
+      ):viewMode==="table"?(
+        /* ═══ TABLE VIEW — Bloomberg terminal style ═══ */
+        <div style={{borderRadius:10,overflow:"hidden",border:`1px solid ${BORDER}`}}>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontFamily:"'JetBrains Mono',monospace",fontSize:11}}>
+              <thead>
+                <tr style={{background:"rgba(59,130,246,0.06)"}}>
+                  {["SCORE","ADDRESS","TYPE","PRICE","DROP","BD","BA","DOM","EST RENT","CF/MO","CAP%","BROKERAGE"].map(h=>(
+                    <th key={h} style={{padding:"8px 10px",textAlign:"left",color:MUTED,fontWeight:600,fontSize:9,letterSpacing:"0.08em",borderBottom:`1px solid ${BORDER}`,whiteSpace:"nowrap"}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(l=>{
+                  const sc=l.hamzaScore||0;const scCol=scoreColor(sc);
+                  return(
+                    <tr key={l.id} onClick={()=>onOpenListing(l)} style={{cursor:"pointer",borderBottom:`1px solid rgba(255,255,255,0.03)`,transition:"background .15s ease"}}
+                      onMouseEnter={e=>e.currentTarget.style.background="rgba(59,130,246,0.06)"}
+                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                      <td style={{padding:"8px 10px"}}><span style={{color:scCol,fontWeight:700}}>{sc.toFixed(1)}</span></td>
+                      <td style={{padding:"8px 10px",color:TEXT,fontWeight:600,maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}{l.hamzasPick?<span style={{color:GOLD,marginLeft:4}}>★</span>:""}</td>
+                      <td style={{padding:"8px 10px",color:MUTED}}>{l.type}</td>
+                      <td style={{padding:"8px 10px",color:TEXT,fontWeight:600}}>{fmtK(l.price)}</td>
+                      <td style={{padding:"8px 10px",color:(l.priceReduction||0)>0?GREEN:MUTED}}>{(l.priceReduction||0)>0?"-"+l.priceReduction+"%":"—"}</td>
+                      <td style={{padding:"8px 10px",color:TEXT}}>{l.beds}</td>
+                      <td style={{padding:"8px 10px",color:TEXT}}>{l.baths}</td>
+                      <td style={{padding:"8px 10px",color:(l.dom||0)>=40?RED:TEXT}}>{l.dom||0}</td>
+                      <td style={{padding:"8px 10px",color:GREEN}}>${(l.estimatedRent||0).toLocaleString()}</td>
+                      <td style={{padding:"8px 10px",color:(l.cashFlow||0)>=-300?GREEN:(l.cashFlow||0)>=-600?GOLD:RED,fontWeight:600}}>{(l.cashFlow||0)>0?"+":""}{l.cashFlow||0}</td>
+                      <td style={{padding:"8px 10px",color:(l.capRate||0)>=4?GREEN:(l.capRate||0)>=3?GOLD:MUTED,fontWeight:600}}>{(l.capRate||0).toFixed(1)}%</td>
+                      <td style={{padding:"8px 10px",color:MUTED,maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9}}>{l.brokerage||"—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ):(
+        /* ═══ GRID VIEW ═══ */
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
           {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample}/>)}
         </div>
@@ -2427,12 +2596,18 @@ export default function App(){
             const drop=l.priceDrop||l.priceReduction||0;
             const hood=l.city||l.neighbourhood||'Mississauga';
             const hoodData=HOOD_DATA[hood];
-            // Score: weighted formula based on cash flow, DOM, price drop, yield
-            const cfScore=Math.min(10,Math.max(0,(cashFlow+500)/100));
+            // Score: Mississauga-calibrated — break-even is GOOD (7-8 range)
+            // In Mississauga nobody cashflows unless there's a legal basement suite
+            const remarks=(l.remarks||l.notes||'').toLowerCase();
+            const suiteKeywords=/\b(suite|basement apt|in-law|separate entrance|2nd kitchen|second kitchen|legal basement|finished basement|accessory|duplex|rental income|income potential|two unit|2 unit)\b/i;
+            const hasSuiteDetected=suiteKeywords.test(remarks)||l.hasSuite||false;
+            // CF scoring: $0/mo = 7.5, +$500 = 10, -$500 = 5, -$1000 = 2.5
+            const cfScore=Math.min(10,Math.max(0,7.5+(cashFlow/200)));
             const domScore=Math.min(10,dom/10);
             const dropScore=Math.min(10,drop);
-            const yieldScore=Math.min(10,capRate*2);
-            const hamzaScore=+Math.min(10,Math.max(1,(cfScore*0.3+domScore*0.25+dropScore*0.25+yieldScore*0.2))).toFixed(1);
+            const yieldScore=Math.min(10,capRate*2.5);
+            const suiteBonus=hasSuiteDetected?1.0:0;
+            const hamzaScore=+Math.min(10,Math.max(1,(cfScore*0.30+domScore*0.25+dropScore*0.20+yieldScore*0.25)+suiteBonus)).toFixed(1);
             const lrtCorridorHoods=['Cooksville','Hurontario','Port Credit','City Centre','Mississauga Valleys'];
             return{
               id:l.id||l.mlsId||('live-'+i),
@@ -2472,7 +2647,7 @@ export default function App(){
               hamzaNotes:hoodData?hoodData.note:'Investment analysis available — click for details.',
               hamzasPick:hamzaScore>=8.5&&i<3,
               lrtAccess:lrtCorridorHoods.includes(hood),
-              hasSuite:l.hasSuite||false,
+              hasSuite:hasSuiteDetected,
               isSample:false,
             };
           }));
