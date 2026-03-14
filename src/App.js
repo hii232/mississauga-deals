@@ -206,6 +206,50 @@ const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
 const fmtCF=n=>({color:n>=-300?GREEN:n>=-600?GOLD:RED,label:fmtNum(n)});
 
 /* ─────────────────────────────────────────────
+   FULLSCREEN PHOTO LIGHTBOX
+───────────────────────────────────────────── */
+function PhotoLightbox({photos,startIdx,onClose}){
+  const [idx,setIdx]=useState(startIdx||0);
+  useEffect(()=>{
+    const onKey=e=>{
+      if(e.key==='Escape')onClose();
+      if(e.key==='ArrowRight')setIdx(i=>i<photos.length-1?i+1:0);
+      if(e.key==='ArrowLeft')setIdx(i=>i>0?i-1:photos.length-1);
+    };
+    window.addEventListener('keydown',onKey);
+    document.body.style.overflow='hidden';
+    return()=>{window.removeEventListener('keydown',onKey);document.body.style.overflow='';};
+  },[onClose,photos.length]);
+  return(
+    <div onClick={onClose} style={{position:'fixed',inset:0,zIndex:99999,background:'rgba(0,0,0,0.95)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',animation:'fadeIn .2s ease'}}>
+      {/* Close button */}
+      <button onClick={onClose} style={{position:'absolute',top:16,right:20,background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',borderRadius:8,width:40,height:40,color:'#fff',fontSize:20,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',zIndex:10}}>✕</button>
+      {/* Counter */}
+      <div style={{position:'absolute',top:20,left:'50%',transform:'translateX(-50%)',fontFamily:"'JetBrains Mono',monospace",fontSize:13,color:'rgba(255,255,255,0.7)',zIndex:10}}>{idx+1} / {photos.length}</div>
+      {/* Main image */}
+      <div onClick={e=>e.stopPropagation()} style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',width:'100%',padding:'60px 80px 20px',minHeight:0}}>
+        <img src={photos[idx]} alt="" style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain',borderRadius:8}}/>
+      </div>
+      {/* Nav buttons */}
+      {photos.length>1&&(
+        <>
+          <button onClick={e=>{e.stopPropagation();setIdx(i=>i>0?i-1:photos.length-1);}} style={{position:'absolute',left:16,top:'50%',transform:'translateY(-50%)',width:48,height:48,borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',color:'#fff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(8px)'}}>‹</button>
+          <button onClick={e=>{e.stopPropagation();setIdx(i=>i<photos.length-1?i+1:0);}} style={{position:'absolute',right:16,top:'50%',transform:'translateY(-50%)',width:48,height:48,borderRadius:'50%',background:'rgba(255,255,255,0.1)',border:'1px solid rgba(255,255,255,0.2)',color:'#fff',fontSize:22,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(8px)'}}>›</button>
+        </>
+      )}
+      {/* Thumbnail strip */}
+      <div onClick={e=>e.stopPropagation()} style={{display:'flex',gap:4,padding:'12px 20px',overflowX:'auto',maxWidth:'100%',flexShrink:0}}>
+        {photos.map((p,i)=>(
+          <img key={i} src={p} alt="" onClick={()=>setIdx(i)}
+            style={{width:64,height:44,objectFit:'cover',borderRadius:4,cursor:'pointer',opacity:i===idx?1:0.4,border:i===idx?'2px solid #3B82F6':'2px solid transparent',transition:'all .15s',flexShrink:0}}
+            onError={e=>{e.target.style.display='none';}}/>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    CASL CONSENT TEXT (reused across forms)
 ───────────────────────────────────────────── */
 const CASL_TEXT="By checking this box, I consent to receive commercial electronic messages from Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage (347 Peel Centre Dr., Brampton, ON · 647-609-1289 · mississaugainvestor.ca), including property listings, market reports, investment analysis, and promotional real estate communications. I understand I may withdraw consent at any time by clicking the unsubscribe link in any email or contacting hamza@nouman.ca.";
@@ -611,7 +655,10 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const [vacancy,setVacancy]=useState(5);
   const [opex,setOpex]=useState(30);
   const [photoIdx,setPhotoIdx]=useState(0);
+  const [lightboxOpen,setLightboxOpen]=useState(false);
   const photos=l.photos||l.images||[];
+  // Deduplicate photos in frontend too
+  const uniquePhotos=[...new Set(photos)];
 
   const monthly=calcMonthly(l.price,down,rate,amort);
   const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
@@ -704,21 +751,25 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           {tab==="overview"&&(
             <div>
               {/* Photo gallery */}
-              {photos.length>0&&(
+              {uniquePhotos.length>0&&(
                 <div style={{marginBottom:20,borderRadius:12,overflow:"hidden",position:"relative"}}>
-                  <img src={photos[photoIdx]} alt={l.address} style={{width:"100%",height:320,objectFit:"cover",display:"block"}}
+                  <img src={uniquePhotos[photoIdx]} alt={l.address}
+                    onClick={()=>setLightboxOpen(true)}
+                    style={{width:"100%",height:320,objectFit:"cover",display:"block",cursor:"zoom-in"}}
                     onError={e=>{e.target.style.display="none";}}/>
-                  {photos.length>1&&(
+                  {/* Click to enlarge hint */}
+                  <div style={{position:"absolute",top:10,right:10,background:"rgba(5,9,26,0.7)",backdropFilter:"blur(4px)",borderRadius:6,padding:"4px 10px",fontSize:10,color:"rgba(255,255,255,0.7)",cursor:"pointer",border:"1px solid rgba(255,255,255,0.1)"}} onClick={()=>setLightboxOpen(true)}>⛶ Enlarge</div>
+                  {uniquePhotos.length>1&&(
                     <div style={{position:"absolute",bottom:12,left:"50%",transform:"translateX(-50%)",display:"flex",gap:8,alignItems:"center"}}>
-                      <button onClick={()=>setPhotoIdx(i=>i>0?i-1:photos.length-1)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>‹</button>
-                      <span style={{fontSize:11,color:"#fff",fontFamily:"'JetBrains Mono',monospace",background:"rgba(5,9,26,0.6)",padding:"4px 10px",borderRadius:12,backdropFilter:"blur(4px)"}}>{photoIdx+1}/{photos.length}</span>
-                      <button onClick={()=>setPhotoIdx(i=>i<photos.length-1?i+1:0)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>›</button>
+                      <button onClick={()=>setPhotoIdx(i=>i>0?i-1:uniquePhotos.length-1)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>‹</button>
+                      <span style={{fontSize:11,color:"#fff",fontFamily:"'JetBrains Mono',monospace",background:"rgba(5,9,26,0.6)",padding:"4px 10px",borderRadius:12,backdropFilter:"blur(4px)"}}>{photoIdx+1}/{uniquePhotos.length}</span>
+                      <button onClick={()=>setPhotoIdx(i=>i<uniquePhotos.length-1?i+1:0)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>›</button>
                     </div>
                   )}
-                  {/* Thumbnail strip */}
-                  {photos.length>1&&(
+                  {/* Thumbnail strip — ALL photos */}
+                  {uniquePhotos.length>1&&(
                     <div style={{display:"flex",gap:4,padding:"8px",background:"rgba(5,9,26,0.9)",overflowX:"auto"}}>
-                      {photos.slice(0,12).map((p,i)=>(
+                      {uniquePhotos.map((p,i)=>(
                         <img key={i} src={p} alt="" onClick={()=>setPhotoIdx(i)}
                           style={{width:56,height:40,objectFit:"cover",borderRadius:4,cursor:"pointer",opacity:i===photoIdx?1:0.5,border:i===photoIdx?`2px solid ${BLUE}`:"2px solid transparent",transition:"all .15s ease",flexShrink:0}}
                           onError={e=>{e.target.style.display="none";}}/>
@@ -727,6 +778,8 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
                   )}
                 </div>
               )}
+              {/* Fullscreen lightbox */}
+              {lightboxOpen&&uniquePhotos.length>0&&<PhotoLightbox photos={uniquePhotos} startIdx={photoIdx} onClose={()=>setLightboxOpen(false)}/>}
 
               {/* Stats grid */}
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
@@ -1401,45 +1454,170 @@ Respond ONLY with a valid JSON object in this exact format, no markdown, no extr
 }
 
 function MarketPulse(){
-  const stats=[
-    {label:"Avg Detached Price",value:"$1.02M",sub:"Mississauga · Q1 2026",delta:"+4.2% YoY"},
-    {label:"Active Listings",value:"3,847",sub:"GTA West · Feb 2026",delta:"+18% MoM"},
-    {label:"Sales-to-Listings",value:"0.41",sub:"Below 0.40 = buyer's mkt",delta:"↓ Cooling"},
-    {label:"Avg Days on Market",value:"28",sub:"All property types",delta:"+6 days YoY"},
-    {label:"Avg Condo Price",value:"$621K",sub:"Mississauga City Centre",delta:"-2.1% YoY"},
-    {label:"Hurontario LRT",value:"2025",sub:"Expected opening",delta:"9 LRT stops"},
-  ];
+  const [mkt,setMkt]=useState(null);
+  useEffect(()=>{fetch('/api/market-stats').then(r=>r.json()).then(setMkt).catch(()=>{});},[]);
+
+  // Simple SVG sparkline
+  const Sparkline=({data,color,height=60,width=280})=>{
+    if(!data||data.length<2)return null;
+    const vals=data.map(d=>d.avg||d.sales);
+    const min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
+    const pts=vals.map((v,i)=>[i/(vals.length-1)*width,(1-(v-min)/range)*height]);
+    const path='M'+pts.map(p=>p.join(',')).join(' L');
+    return(<svg width={width} height={height+4} style={{display:'block'}}><path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"/>{pts.map((p,i)=>i===pts.length-1?<circle key={i} cx={p[0]} cy={p[1]} r={3} fill={color}/>:null)}</svg>);
+  };
 
   return(
     <div style={{padding:"24px 0"}}>
       <div style={{marginBottom:24}}>
-        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Mississauga Market Pulse</h2>
-        <p style={{fontSize:13,color:MUTED}}>Hamza's read on the market as of Q1 2026. Personal analysis — not TRREB data.</p>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:26,color:TEXT,marginBottom:6}}>Mississauga Market Intelligence</h2>
+        <p style={{fontSize:13,color:MUTED}}>TRREB market data + Hamza's analysis · {mkt?mkt.lastUpdated:'Loading...'}</p>
       </div>
 
-      {/* AI VERDICT — top of page, most prominent */}
+      {/* AI VERDICT */}
       <AIMarketVerdict/>
 
-      {/* Stats grid */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:14,marginBottom:28}}>
-        {stats.map(s=>(
-          <div key={s.label} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:"16px 18px"}}>
-            <div style={{fontSize:11,color:MUTED,fontWeight:500,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:6}}>{s.label}</div>
-            <div className="mono" style={{fontSize:24,fontWeight:700,color:TEXT,marginBottom:2}}>{s.value}</div>
-            <div style={{fontSize:11,color:MUTED,marginBottom:6}}>{s.sub}</div>
-            <div style={{fontSize:11,color:GOLD,fontWeight:600}}>{s.delta}</div>
+      {mkt?(
+        <>
+          {/* Market condition banner */}
+          <div style={{background:'rgba(59,130,246,0.06)',border:`1px solid rgba(59,130,246,0.2)`,borderRadius:12,padding:'16px 20px',marginBottom:20,display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:BLUE,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase'}}>MARKET STATUS</div>
+            <div style={{fontSize:18,fontWeight:700,color:GOLD}}>{mkt.marketType}</div>
+            <div style={{fontSize:12,color:MUTED}}>Sales Forecast 2026: <strong style={{color:GREEN}}>{mkt.salesForecast2026}</strong></div>
+            <div style={{fontSize:12,color:MUTED}}>Pent-up Demand: <strong style={{color:TEXT}}>{mkt.pentUpDemand}</strong></div>
           </div>
-        ))}
-      </div>
 
+          {/* Avg prices by type */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:13,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:10}}>Average Prices by Property Type — Mississauga</div>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12}}>
+              {Object.values(mkt.avgPrices).map(p=>(
+                <div key={p.label} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'16px 18px'}}>
+                  <div style={{fontSize:11,color:MUTED,fontWeight:500,textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>{p.label}</div>
+                  <div className="mono" style={{fontSize:22,fontWeight:700,color:TEXT,marginBottom:2}}>${(p.avg/1000).toFixed(0)}K</div>
+                  <div style={{fontSize:12,fontWeight:600,color:p.yoyChange<0?RED:GREEN}}>{p.yoyChange>0?'+':''}{p.yoyChange}% YoY</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Key metrics grid */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12,marginBottom:20}}>
+            {[
+              {label:'Avg DOM',value:mkt.avgDOM+'d',color:TEXT},
+              {label:'Sales/List Ratio',value:mkt.salesToListRatio.toFixed(2),color:mkt.salesToListRatio<0.4?RED:GOLD},
+              {label:'Months of Inventory',value:mkt.monthsOfInventory.toFixed(1),color:mkt.monthsOfInventory>3?GREEN:RED},
+              {label:'New Listings YoY',value:(mkt.newListingsYoy>0?'+':'')+mkt.newListingsYoy+'%',color:mkt.newListingsYoy<0?RED:GREEN},
+              {label:'Sales YoY',value:(mkt.salesYoy>0?'+':'')+mkt.salesYoy+'%',color:mkt.salesYoy<0?RED:GREEN},
+              {label:'GTA Avg Price',value:'$'+Math.round(mkt.gtaAvgPrice/1000)+'K',color:TEXT},
+            ].map(m=>(
+              <div key={m.label} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:'14px 16px'}}>
+                <div style={{fontSize:10,color:MUTED,fontWeight:500,textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:6}}>{m.label}</div>
+                <div className="mono" style={{fontSize:20,fontWeight:700,color:m.color}}>{m.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Price & Sales trends with sparklines */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'18px 20px'}}>
+              <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:4}}>Avg Price Trend (12mo)</div>
+              <div className="mono" style={{fontSize:18,fontWeight:700,color:TEXT,marginBottom:8}}>${(mkt.priceTrend[mkt.priceTrend.length-1].avg/1000).toFixed(0)}K</div>
+              <Sparkline data={mkt.priceTrend} color={BLUE} width={260}/>
+              <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                <span style={{fontSize:9,color:MUTED}}>{mkt.priceTrend[0].month}</span>
+                <span style={{fontSize:9,color:MUTED}}>{mkt.priceTrend[mkt.priceTrend.length-1].month}</span>
+              </div>
+            </div>
+            <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'18px 20px'}}>
+              <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:4}}>Sales Volume Trend (12mo)</div>
+              <div className="mono" style={{fontSize:18,fontWeight:700,color:TEXT,marginBottom:8}}>{mkt.salesTrend[mkt.salesTrend.length-1].sales} sales</div>
+              <Sparkline data={mkt.salesTrend} color={GREEN} width={260}/>
+              <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
+                <span style={{fontSize:9,color:MUTED}}>{mkt.salesTrend[0].month}</span>
+                <span style={{fontSize:9,color:MUTED}}>{mkt.salesTrend[mkt.salesTrend.length-1].month}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Mortgage rates */}
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'18px 20px',marginBottom:20}}>
+            <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:12}}>Current Mortgage Rates</div>
+            <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+              {[
+                {label:'Variable',rate:mkt.rates.variable},
+                {label:'3-Year Fixed',rate:mkt.rates.fixed3yr},
+                {label:'5-Year Fixed',rate:mkt.rates.fixed5yr},
+                {label:'Stress Test',rate:mkt.rates.stressTest},
+              ].map(r=>(
+                <div key={r.label}>
+                  <div style={{fontSize:10,color:MUTED,marginBottom:2}}>{r.label}</div>
+                  <div className="mono" style={{fontSize:18,fontWeight:700,color:r.label==='5-Year Fixed'?GREEN:TEXT}}>{r.rate}%</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hot neighbourhoods */}
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'18px 20px',marginBottom:20}}>
+            <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:12}}>Top Mississauga Neighbourhoods — 2026 Outlook</div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {mkt.hotNeighbourhoods.map((h,i)=>(
+                <div key={h.name} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:SURFACE,borderRadius:8,border:`1px solid ${BORDER}`}}>
+                  <div className="mono" style={{fontSize:14,fontWeight:700,color:GOLD,width:24}}>#{i+1}</div>
+                  <div style={{flex:1}}>
+                    <div style={{fontSize:14,fontWeight:600,color:TEXT}}>{h.name}</div>
+                    <div style={{fontSize:11,color:MUTED}}>{h.reason}</div>
+                  </div>
+                  <div className="mono" style={{fontSize:14,fontWeight:700,color:GREEN}}>${(h.avgPrice/1000).toFixed(0)}K</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rental market */}
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,padding:'18px 20px',marginBottom:20}}>
+            <div style={{fontSize:12,color:MUTED,fontWeight:600,letterSpacing:'0.06em',textTransform:'uppercase',marginBottom:12}}>Mississauga Rental Market</div>
+            <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+              {[
+                {label:'1-Bed Avg',rent:mkt.rental.avg1Bed},
+                {label:'2-Bed Avg',rent:mkt.rental.avg2Bed},
+                {label:'3-Bed Avg',rent:mkt.rental.avg3Bed},
+              ].map(r=>(
+                <div key={r.label}>
+                  <div style={{fontSize:10,color:MUTED,marginBottom:2}}>{r.label}</div>
+                  <div className="mono" style={{fontSize:18,fontWeight:700,color:GREEN}}>${r.rent.toLocaleString()}/mo</div>
+                </div>
+              ))}
+              <div>
+                <div style={{fontSize:10,color:MUTED,marginBottom:2}}>Rent YoY</div>
+                <div className="mono" style={{fontSize:18,fontWeight:700,color:RED}}>{mkt.rental.rentalYoyChange}%</div>
+              </div>
+            </div>
+          </div>
+        </>
+      ):(
+        <div style={{textAlign:'center',padding:'40px',color:MUTED}}>Loading TRREB market data...</div>
+      )}
+
+      {/* Hamza's take */}
       <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:14,padding:"20px 22px",marginBottom:20}}>
         <h3 style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:12}}>Hamza's Q1 2026 Market Read</h3>
         <p style={{fontSize:14,color:MUTED,lineHeight:1.8}}>
           We're in a transitional buyer's market. The sales-to-listing ratio has dropped below 0.45 in Mississauga, giving buyers real negotiating power for the first time since 2020. <strong style={{color:TEXT}}>My strategy: target properties 40+ days on market in Clarkson and Churchill Meadows with 5%+ price reductions.</strong> Detached under $950K is the sweet spot — institutional money is avoiding condos. The Hurontario LRT corridor is the single best infrastructure play in the GTA over the next 3 years.
         </p>
       </div>
+
+      {/* TRREB source link */}
+      <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
+        <a href="https://trreb.ca/market-data/" target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'10px 16px',background:'rgba(59,130,246,0.08)',border:`1px solid rgba(59,130,246,0.25)`,borderRadius:8,fontSize:12,color:BLUE,fontWeight:600,textDecoration:'none'}}>TRREB Market Watch →</a>
+        <a href="https://trreb.ca/market-data/condo-market-report/" target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'10px 16px',background:'rgba(59,130,246,0.08)',border:`1px solid rgba(59,130,246,0.25)`,borderRadius:8,fontSize:12,color:BLUE,fontWeight:600,textDecoration:'none'}}>Condo Report →</a>
+        <a href="https://trreb.ca/market-data/rental-market-report/" target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'10px 16px',background:'rgba(59,130,246,0.08)',border:`1px solid rgba(59,130,246,0.25)`,borderRadius:8,fontSize:12,color:BLUE,fontWeight:600,textDecoration:'none'}}>Rental Report →</a>
+        <a href="https://trreb.ca/market-data/quick-market-overview/" target="_blank" rel="noopener noreferrer" style={{display:'inline-flex',alignItems:'center',gap:6,padding:'10px 16px',background:'rgba(59,130,246,0.08)',border:`1px solid rgba(59,130,246,0.25)`,borderRadius:8,fontSize:12,color:BLUE,fontWeight:600,textDecoration:'none'}}>Market Overview →</a>
+      </div>
+
       <div style={{padding:"12px 16px",background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8}}>
-        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Market commentary by Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage. For informational purposes only. Not TRREB data. Verify all figures with official sources before making investment decisions.</p>
+        <p style={{fontSize:11,color:MUTED,lineHeight:1.6}}>Market statistics sourced from TRREB Market Watch reports and public data releases. Deemed reliable but not guaranteed. For official TRREB statistics visit <a href="https://trreb.ca/market-data/" target="_blank" rel="noopener noreferrer" style={{color:BLUE}}>trreb.ca/market-data</a>. Market commentary by Hamza Nouman, Sales Representative, Royal LePage Signature Realty, Brokerage. For informational purposes only.</p>
       </div>
     </div>
   );
@@ -2578,14 +2756,28 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
-  // Load live TRREB listings from PropTx API
+  // Load ALL live TRREB listings from PropTx API (paginated)
   useEffect(()=>{
-    fetch('/api/listings?limit=100')
-      .then(r=>r.json())
-      .then(d=>{
-        if(d.listings && d.listings.length > 0){
-          // API already returns clean transformed data — map directly
-          setLiveListings(d.listings.map((l,i)=>{
+    async function fetchAllListings(){
+      let allListings=[];
+      let page=1;
+      let totalPages=1;
+      while(page<=totalPages){
+        try{
+          const r=await fetch('/api/listings?limit=200&page='+page);
+          const d=await r.json();
+          if(d.listings&&d.listings.length>0){
+            allListings=allListings.concat(d.listings);
+            totalPages=d.pages||1;
+            // Show listings incrementally as they load
+            processListings(allListings);
+          }else{break;}
+        }catch(e){console.error('Feed page '+page+' error:',e);break;}
+        page++;
+      }
+    }
+    function processListings(allRaw){
+      setLiveListings(allRaw.map((l,i)=>{
             const price=l.price||0;
             const beds=l.beds||0;
             const rent=l.estimatedRent||l.rent||Math.round(price*0.0042);
@@ -2652,9 +2844,8 @@ export default function App(){
             };
           }));
           setUsingLiveFeed(true);
-        }
-      })
-      .catch(e=>console.error('Feed error:',e));
+    }
+    fetchAllListings();
   },[]);
 
   useEffect(()=>{
