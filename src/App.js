@@ -2379,7 +2379,7 @@ export default function App(){
             capRate: +(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
             cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
             walkScore:72, transitScore:65, schoolScore:76,
-            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false,
+            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false, photos:l.photos||[], images:l.photos||[],
           })));
           setUsingLiveFeed(true);
         }
