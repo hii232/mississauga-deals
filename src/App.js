@@ -2330,7 +2330,71 @@ function Testimonials(){
 /* ─────────────────────────────────────────────
    MAIN APP
 ───────────────────────────────────────────── */
+
+/* ─── PHOTO LIGHTBOX ─────────────────────────────────────────────── */
+function Lightbox({ photos, startIndex, onClose }) {
+  const [idx, setIdx] = React.useState(startIndex || 0);
+  React.useEffect(() => {
+    const h = e => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') setIdx(i => (i + 1) % photos.length);
+      if (e.key === 'ArrowLeft')  setIdx(i => (i - 1 + photos.length) % photos.length);
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [photos.length, onClose]);
+
+  return (
+    <div onClick={onClose} style={{
+      position:'fixed',inset:0,background:'rgba(0,0,0,0.96)',
+      zIndex:999999,display:'flex',flexDirection:'column',
+      alignItems:'center',justifyContent:'center',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{position:'relative',display:'flex',flexDirection:'column',alignItems:'center'}}>
+        <img
+          src={photos[idx]}
+          alt={'Photo ' + (idx+1) + ' of ' + photos.length}
+          style={{maxWidth:'90vw',maxHeight:'82vh',objectFit:'contain',borderRadius:6,display:'block'}}
+          onError={e => { e.target.style.opacity=0.2; }}
+        />
+        {photos.length > 1 && (
+          <>
+            <button onClick={() => setIdx(i => (i-1+photos.length)%photos.length)}
+              style={{position:'absolute',left:-60,top:'50%',transform:'translateY(-50%)',
+                background:'rgba(255,255,255,0.12)',border:'none',borderRadius:'50%',
+                width:48,height:48,color:'#fff',fontSize:24,cursor:'pointer',
+                display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>‹</button>
+            <button onClick={() => setIdx(i => (i+1)%photos.length)}
+              style={{position:'absolute',right:-60,top:'50%',transform:'translateY(-50%)',
+                background:'rgba(255,255,255,0.12)',border:'none',borderRadius:'50%',
+                width:48,height:48,color:'#fff',fontSize:24,cursor:'pointer',
+                display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)'}}>›</button>
+          </>
+        )}
+        {/* Thumbnails */}
+        {photos.length > 1 && (
+          <div style={{display:'flex',gap:6,marginTop:12,overflowX:'auto',maxWidth:'90vw',padding:'0 4px'}}>
+            {photos.map((p, i) => (
+              <img key={i} src={p} alt={'thumb'+i} onClick={() => setIdx(i)}
+                style={{width:60,height:42,objectFit:'cover',borderRadius:4,cursor:'pointer',
+                  border: i===idx ? '2px solid #3B82F6' : '2px solid transparent',opacity: i===idx?1:0.6,flexShrink:0}}
+              />
+            ))}
+          </div>
+        )}
+        <div style={{color:'rgba(255,255,255,0.5)',fontSize:12,marginTop:8}}>
+          {idx+1} / {photos.length} &nbsp;·&nbsp; ← → to navigate · Esc to close
+        </div>
+      </div>
+      <button onClick={onClose}
+        style={{position:'fixed',top:16,right:20,background:'transparent',border:'none',
+          color:'#fff',fontSize:30,cursor:'pointer',lineHeight:1,opacity:0.7}}>✕</button>
+    </div>
+  );
+}
+
 export default function App(){
+  const [lightbox, setLightbox] = React.useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
@@ -2444,7 +2508,8 @@ export default function App(){
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
       {selectedListing&&(
-        <ListingModal
+        {lightbox && <Lightbox photos={lightbox.photos} startIndex={lightbox.index} onClose={() => setLightbox(null)} />}
+      <ListingModal
           l={selectedListing}
           onClose={()=>setSelectedListing(null)}
           isRegistered={isRegistered}
