@@ -2366,7 +2366,7 @@ export default function App(){
           garage:l.GarageType||'',locker:l.Locker||'',
           tax:l.TaxAnnualAmount||null,condoFee:l.AssociationFee||null,
           crossStreet:l.CrossStreet||'',age:l.ApproximateAge||'',
-          postalCode:l.PostalCode||'',images:[],isSample:false,
+          postalCode:l.PostalCode||'',images:l.images||[],isSample:false,
           priceReduction:l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice?+((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1):0,
           estimatedRent:Math.round((l.ListPrice||0)*0.0042),
           capRate:+(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
