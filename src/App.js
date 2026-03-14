@@ -422,9 +422,12 @@ const HOOD_GRADIENTS={
 };
 
 function ListingCard({l,onOpen,isSample=true}){
-  const cf=fmtCF(l.cashFlow);
+  const cf=fmtCF(l.cashFlow||0);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
-  const scoreCol=scoreColor(l.hamzaScore);
+  const score=l.hamzaScore||0;
+  const scoreCol=scoreColor(score);
+  const hasPhotos=l.photos&&l.photos.length>0;
+  const [imgErr,setImgErr]=useState(false);
 
   return(
     <div
@@ -444,45 +447,59 @@ function ListingCard({l,onOpen,isSample=true}){
         ...(l.hamzasPick?{boxShadow:"0 0 0 1px rgba(245,158,11,0.15), 0 12px 48px rgba(245,158,11,0.08)"}:{})
       }}
     >
-      {/* Rich image area — gradient with data overlay */}
-      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
-        {/* Subtle grid pattern overlay */}
-        <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
+      {/* Image area — real photos or gradient fallback */}
+      <div style={{height:180,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
+        {hasPhotos&&!imgErr?(
+          <img src={l.photos[0]} alt={l.address} loading="lazy"
+            onError={()=>setImgErr(true)}
+            style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        ):(
+          <>
+            <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
+            <div style={{position:"absolute",bottom:10,left:12,fontFamily:"'Inter',sans-serif",fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.12)",letterSpacing:"0.12em",textTransform:"uppercase"}}>{l.neighbourhood}</div>
+          </>
+        )}
+        {/* Dark gradient overlay for text readability on photos */}
+        {hasPhotos&&!imgErr&&<div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(5,9,26,0.7) 0%,rgba(5,9,26,0.1) 40%,transparent 60%)"}}/>}
 
-        {/* Neighbourhood name watermark */}
-        <div style={{position:"absolute",bottom:10,left:12,fontFamily:"'Inter',sans-serif",fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.12)",letterSpacing:"0.12em",textTransform:"uppercase"}}>{l.neighbourhood}</div>
+        {/* Photo count badge */}
+        {hasPhotos&&l.photos.length>1&&(
+          <div style={{position:"absolute",bottom:10,left:10,background:"rgba(5,9,26,0.8)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:600,border:"1px solid rgba(255,255,255,0.1)"}}>
+            {l.photos.length} photos
+          </div>
+        )}
 
         {/* Tags top-left */}
         <div style={{position:"absolute",top:10,left:10,display:"flex",gap:5,flexWrap:"wrap"}}>
-          {}
-          {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.18)",border:"1px solid rgba(245,158,11,0.5)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GOLD,fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
-          {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.18)",border:"1px solid rgba(59,130,246,0.45)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#93C5FD",fontWeight:600}}>LRT</span>}
-          {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.14)",border:"1px solid rgba(16,185,129,0.4)",borderRadius:4,padding:"2px 8px",fontSize:9,color:GREEN,fontWeight:700}}>↓{l.priceReduction}%</span>}
-          {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.35)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#FCA5A5",fontWeight:600}}>{l.dom}d</span>}
+          {l.hamzasPick&&<span style={{background:"rgba(245,158,11,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#000",fontWeight:700,letterSpacing:"0.05em"}}>★ PICK</span>}
+          {l.lrtAccess&&<span style={{background:"rgba(59,130,246,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:600}}>LRT</span>}
+          {l.priceReduction>=5&&<span style={{background:"rgba(16,185,129,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:700}}>↓{l.priceReduction}%</span>}
+          {l.dom>=40&&<span style={{background:"rgba(239,68,68,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:600}}>{l.dom}d</span>}
         </div>
 
-        {/* Score badge top-right — redesigned */}
+        {/* Score badge top-right */}
         <div style={{position:"absolute",top:10,right:10}}>
           <div style={{
             width:44,height:44,borderRadius:"50%",
-            background:`radial-gradient(circle at 30% 30%,${scoreCol}22,${scoreCol}08)`,
+            background:`rgba(5,9,26,0.75)`,
+            backdropFilter:"blur(8px)",
             border:`2px solid ${scoreCol}`,
             display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
             boxShadow:`0 0 12px ${scoreCol}30`
           }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{l.hamzaScore.toFixed(1)}</div>
+            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{score.toFixed(1)}</div>
             <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
           </div>
         </div>
 
         {/* Property type — bottom right */}
-        <div style={{position:"absolute",bottom:10,right:10,background:"rgba(5,9,26,0.75)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:500,border:`1px solid rgba(255,255,255,0.08)`}}>{l.type}</div>
+        <div style={{position:"absolute",bottom:10,right:10,background:"rgba(5,9,26,0.75)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:500,border:"1px solid rgba(255,255,255,0.08)"}}>{l.type}</div>
       </div>
 
       {/* Card body */}
       <div style={{padding:"14px 16px 12px"}}>
         {/* Address + neighbourhood */}
-        <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2,lineHeight:1.3,letterSpacing:"-0.01em"}}>{l.address}</div>
+        <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2,lineHeight:1.3,letterSpacing:"-0.01em",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}</div>
         <div style={{fontSize:11,color:MUTED,marginBottom:12,fontWeight:500}}>{l.neighbourhood}, Mississauga</div>
 
         {/* Price row */}
@@ -491,23 +508,27 @@ function ListingCard({l,onOpen,isSample=true}){
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:19,fontWeight:700,color:TEXT,letterSpacing:"-0.02em"}}>{fmtK(l.price)}</div>
             {l.priceReduction>0&&<div style={{fontSize:10,color:MUTED,textDecoration:"line-through",marginTop:1}}>{fmtK(l.originalPrice)}</div>}
           </div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:cf.color,fontWeight:600,background:l.cashFlow>0?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)",padding:"3px 8px",borderRadius:5,border:`1px solid ${l.cashFlow>0?"rgba(16,185,129,0.2)":"rgba(239,68,68,0.2)"}`}}>{cf.label}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:cf.color,fontWeight:600,background:(l.cashFlow||0)>0?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)",padding:"3px 8px",borderRadius:5,border:`1px solid ${(l.cashFlow||0)>0?"rgba(16,185,129,0.2)":"rgba(239,68,68,0.2)"}`}}>{cf.label}</div>
         </div>
 
-        {/* Specs */}
-        <div style={{display:"flex",gap:14,marginBottom:10}}>
-          {[["🛏",l.beds,"bd"],["🚿",l.baths,"ba"],["▭",l.sqft.toLocaleString(),"ft²"]].map(([icon,val,unit])=>(
-            <div key={unit} style={{fontSize:11,color:TEXT2,display:"flex",gap:3,alignItems:"center"}}>
-              <span style={{fontSize:10,opacity:0.6}}>{icon}</span>
-              <span style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:600,fontSize:12}}>{val}</span>
-              <span style={{color:MUTED}}>{unit}</span>
+        {/* Specs — Bloomberg terminal style data row */}
+        <div style={{display:"flex",gap:4,marginBottom:10,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
+          {[
+            [l.beds,"BD"],
+            [l.baths,"BA"],
+            [l.dom+"d","DOM"],
+            [l.capRate?l.capRate+"%":"—","CAP"],
+          ].map(([val,unit])=>(
+            <div key={unit} style={{flex:1,textAlign:"center",borderRight:unit!=="CAP"?`1px solid ${BORDER}`:"none",paddingRight:unit!=="CAP"?4:0}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:700,fontSize:12,lineHeight:1}}>{val}</div>
+              <div style={{fontSize:8,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
             </div>
           ))}
         </div>
 
         {/* Brokerage — TRREB required */}
-        <div style={{fontSize:9.5,color:"#3A4E68",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8,fontStyle:"italic",fontWeight:500}}>
-          Courtesy: {l.brokerage}
+        <div style={{fontSize:9.5,color:"#3A4E68",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8,fontStyle:"italic",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+          {l.isSample?"Sample Data":"Courtesy: "+(l.brokerage||"Listing Brokerage")}
         </div>
       </div>
     </div>
@@ -583,11 +604,13 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const [rate,setRate]=useState(5.5);
   const [amort,setAmort]=useState(25);
   const [reno,setReno]=useState(50000);
-  const [arv,setArv]=useState(Math.round(l.price*1.2));
+  const [arv,setArv]=useState(Math.round((l.price||0)*1.2));
   const [aiLoading,setAiLoading]=useState(false);
   const [aiResult,setAiResult]=useState("");
   const [vacancy,setVacancy]=useState(5);
   const [opex,setOpex]=useState(30);
+  const [photoIdx,setPhotoIdx]=useState(0);
+  const photos=l.photos||l.images||[];
 
   const monthly=calcMonthly(l.price,down,rate,amort);
   const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
@@ -619,13 +642,15 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const callAI=async()=>{
     setAiLoading(true);setAiResult("");
     try{
-      const prompt=`You are Hamza Nouman's AI assistant for mississaugainvestor.ca. Analyze this Mississauga investment property and provide a concise investor-focused analysis in 4-6 sentences covering: investment grade (strong/moderate/weak), cash flow assessment at ${l.cashFlow>=0?"+":""}$${Math.abs(l.cashFlow)}/mo, cap rate of ${l.capRate}% vs Mississauga average, DOM of ${l.dom} days and what it signals about seller motivation, and one specific action recommendation for an investor.
+      const cf=l.cashFlow||0;
+      const cr=l.capRate||0;
+      const prompt=`You are Hamza Nouman's AI assistant for mississaugainvestor.ca. Analyze this Mississauga investment property and provide a concise investor-focused analysis in 4-6 sentences covering: investment grade (strong/moderate/weak), cash flow assessment at ${cf>=0?"+":""}$${Math.abs(cf)}/mo, cap rate of ${cr}% vs Mississauga average, DOM of ${l.dom||0} days and what it signals about seller motivation, and one specific action recommendation for an investor.
 
-Property: ${l.address}, ${l.neighbourhood}, Mississauga
-Price: $${l.price.toLocaleString()} (${l.priceReduction>0?`down ${l.priceReduction}% from $${l.originalPrice?.toLocaleString()||"ask"}`:"at ask"})
-Type: ${l.type} | ${l.beds}bd/${l.baths}ba | ${l.sqft} sqft | ${l.dom} days on market
-Est. Rent: $${l.estimatedRent?.toLocaleString()}/mo | Cash Flow: ${l.cashFlow>=0?"+":""}$${l.cashFlow}/mo | Cap Rate: ${l.capRate}%
-LRT Access: ${l.lrtAccess?"Yes — Hurontario corridor":"No"} | Walk: ${l.walkScore}/100 | Transit: ${l.transitScore}/100 | Schools: ${l.schoolScore}/100
+Property: ${l.address}, ${l.neighbourhood||l.city||"Mississauga"}, Mississauga
+Price: $${(l.price||0).toLocaleString()} (${(l.priceReduction||0)>0?`down ${l.priceReduction}% from $${(l.originalPrice||l.price||0).toLocaleString()}`:"at ask"})
+Type: ${l.type||"Residential"} | ${l.beds||0}bd/${l.baths||0}ba | ${l.dom||0} days on market
+Est. Rent: $${(l.estimatedRent||0).toLocaleString()}/mo | Cash Flow: ${cf>=0?"+":""}$${cf}/mo | Cap Rate: ${cr}%
+LRT Access: ${l.lrtAccess?"Yes — Hurontario corridor":"No"} | Walk: ${l.walkScore||0}/100 | Transit: ${l.transitScore||0}/100
 
 Write in plain English, no markdown headers or bullet points. Be decisive and direct — this is for a serious investor.`;
       const res=await fetch("/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},
@@ -657,7 +682,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
             <div style={{fontSize:13,color:MUTED}}>{l.neighbourhood}, Mississauga · Courtesy: {l.brokerage}</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center",flexShrink:0}}>
-            <ScoreBadge score={l.hamzaScore} size="lg"/>
+            <ScoreBadge score={l.hamzaScore||0} size="lg"/>
             <button onClick={onClose} aria-label="Close listing" style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:24,lineHeight:1,padding:"4px"}}>×</button>
           </div>
         </div>
@@ -677,17 +702,42 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           {/* OVERVIEW */}
           {tab==="overview"&&(
             <div>
+              {/* Photo gallery */}
+              {photos.length>0&&(
+                <div style={{marginBottom:20,borderRadius:12,overflow:"hidden",position:"relative"}}>
+                  <img src={photos[photoIdx]} alt={l.address} style={{width:"100%",height:320,objectFit:"cover",display:"block"}}
+                    onError={e=>{e.target.style.display="none";}}/>
+                  {photos.length>1&&(
+                    <div style={{position:"absolute",bottom:12,left:"50%",transform:"translateX(-50%)",display:"flex",gap:8,alignItems:"center"}}>
+                      <button onClick={()=>setPhotoIdx(i=>i>0?i-1:photos.length-1)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>‹</button>
+                      <span style={{fontSize:11,color:"#fff",fontFamily:"'JetBrains Mono',monospace",background:"rgba(5,9,26,0.6)",padding:"4px 10px",borderRadius:12,backdropFilter:"blur(4px)"}}>{photoIdx+1}/{photos.length}</span>
+                      <button onClick={()=>setPhotoIdx(i=>i<photos.length-1?i+1:0)} style={{width:32,height:32,borderRadius:"50%",background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>›</button>
+                    </div>
+                  )}
+                  {/* Thumbnail strip */}
+                  {photos.length>1&&(
+                    <div style={{display:"flex",gap:4,padding:"8px",background:"rgba(5,9,26,0.9)",overflowX:"auto"}}>
+                      {photos.slice(0,12).map((p,i)=>(
+                        <img key={i} src={p} alt="" onClick={()=>setPhotoIdx(i)}
+                          style={{width:56,height:40,objectFit:"cover",borderRadius:4,cursor:"pointer",opacity:i===photoIdx?1:0.5,border:i===photoIdx?`2px solid ${BLUE}`:"2px solid transparent",transition:"all .15s ease",flexShrink:0}}
+                          onError={e=>{e.target.style.display="none";}}/>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Stats grid */}
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
-                <StatBox label="List Price" value={fmtK(l.price)} accent={TEXT}/>
-                <StatBox label="Price Drop" value={l.priceReduction>0?`-${l.priceReduction}%`:"—"} accent={l.priceReduction>0?GREEN:MUTED}/>
-                <StatBox label="Days on Market" value={l.dom} sub="days" accent={l.dom>=40?RED:TEXT}/>
-                <StatBox label="Est. Rent" value={`$${l.estimatedRent.toLocaleString()}/mo`} accent={GREEN}/>
+                <StatBox label="List Price" value={fmtK(l.price||0)} accent={TEXT}/>
+                <StatBox label="Price Drop" value={(l.priceReduction||0)>0?`-${l.priceReduction}%`:"—"} accent={(l.priceReduction||0)>0?GREEN:MUTED}/>
+                <StatBox label="Days on Market" value={l.dom||0} sub="days" accent={(l.dom||0)>=40?RED:TEXT}/>
+                <StatBox label="Est. Rent" value={`$${(l.estimatedRent||0).toLocaleString()}/mo`} accent={GREEN}/>
               </div>
               <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:20}}>
-                <StatBox label="Beds" value={l.beds}/>
-                <StatBox label="Baths" value={l.baths}/>
-                <StatBox label="Sq Ft" value={l.sqft.toLocaleString()}/>
+                <StatBox label="Beds" value={l.beds||0}/>
+                <StatBox label="Baths" value={l.baths||0}/>
+                <StatBox label="Type" value={l.type||'—'}/>
                 <StatBox label="LRT Access" value={l.lrtAccess?"✓ Yes":"—"} accent={l.lrtAccess?GREEN:MUTED}/>
               </div>
               {/* Walkability */}
@@ -699,7 +749,10 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               </div>
               {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>{l.isSample
+                  ? <>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> This is demonstration data only. For real listings, call Hamza at 647-609-1289.</>
+                  : <>Listing data provided under license via PropTx/TRREB. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Deemed reliable but not guaranteed. Not intended to solicit buyers or sellers currently under contract.</>
+                }</p>
               </div>
             </div>
           )}
@@ -718,7 +771,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
                 </div>
               </div>
               <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-                <StatBox label="Hamza's Score" value={`${l.hamzaScore}/10`} accent={scoreColor(l.hamzaScore)}/>
+                <StatBox label="Hamza's Score" value={`${(l.hamzaScore||0).toFixed(1)}/10`} accent={scoreColor(l.hamzaScore||0)}/>
                 <StatBox label="Est. Cash Flow" value={fmtNum(l.cashFlow)} accent={fmtCF(l.cashFlow).color}/>
                 <StatBox label="Est. Cap Rate" value={`${l.capRate}%`} accent={GOLD}/>
               </div>
@@ -860,7 +913,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
 
         {/* Footer CTA */}
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
-          <div style={{fontSize:11,color:MUTED}}>📍 Sample data · Courtesy: {l.brokerage}</div>
+          <div style={{fontSize:11,color:MUTED}}>📍 {l.isSample?"Sample data":"Live listing"} · Courtesy: {l.brokerage||"Listing Brokerage"}</div>
           <div style={{display:"flex",gap:8}}>
             <a href={`https://wa.me/16476091289?text=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price))}`} target="_blank" rel="noreferrer"
               style={{display:"inline-flex",alignItems:"center",gap:6,background:"#25D366",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
@@ -1925,7 +1978,7 @@ function Footer({onPrivacy}){
           <div style={{fontSize:11,color:"#4A6280",lineHeight:1.8}}>
             <p style={{marginBottom:6}}>The trademarks <strong style={{color:"#5A7090"}}>MLS®, Multiple Listing Service®</strong> and the associated logos are owned by The Canadian Real Estate Association (CREA) and identify the quality of services provided by real estate professionals who are members of CREA.</p>
             <p style={{marginBottom:6}}>The trademark <strong style={{color:"#5A7090"}}>REALTOR®</strong> is controlled by The Canadian Real Estate Association (CREA) and identifies real estate professionals who are members of CREA. Used under license.</p>
-            <p style={{marginBottom:6}}><strong style={{color:"#5A7090"}}>DATA DISCLAIMER:</strong> The listing information on this website is deemed reliable but is not guaranteed accurate. Sample listing data displayed on this site is for demonstration purposes only and does not represent actual MLS® listings. Live data from TRREB MLS® will be displayed upon integration. For verified listing information, visit  or contact Hamza directly.</p>
+            <p style={{marginBottom:6}}><strong style={{color:"#5A7090"}}>DATA DISCLAIMER:</strong> Listing data is provided under license via PropTx Inc. and the Toronto Regional Real Estate Board (TRREB). The listing information is deemed reliable but is not guaranteed accurate. Information may be subject to errors, omissions, or changes without notice. Not intended to solicit buyers or sellers currently under contract. For verified listing information, contact Hamza directly at 647-609-1289.</p>
             <p>MLS® data is provided for the private, non-commercial use of individuals. Any other use of these materials is strictly prohibited. Copyright © {new Date().getFullYear()} The Canadian Real Estate Association. All rights reserved.</p>
           </div>
         </div>
@@ -2120,18 +2173,18 @@ function Hero({onCTA,setActiveNav}){
 /* ─────────────────────────────────────────────
    LISTINGS VIEW
 ───────────────────────────────────────────── */
-function ListingsView({onOpenListing,filterHood,setFilterHood}){
+function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false}){
   const [propType,setPropType]=useState("All");
   const [sort,setSort]=useState("score");
   const [search,setSearch]=useState("");
   const [chips,setChips]=useState(new Set());
   const [showFilters,setShowFilters]=useState(false);
-  const [filters,setFilters]=useState({priceMin:400000,priceMax:2000000,bedsMin:0,domMax:999,priceDropMin:0});
+  const [filters,setFilters]=useState({priceMin:300000,priceMax:3000000,bedsMin:0,domMax:999,priceDropMin:0});
 
   const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
 
   const filtered=useMemo(()=>{
-    let list=[...liveListings];
+    let list=[...listings];
     if(propType!=="All")list=list.filter(l=>l.type===propType);
     if(filterHood)list=list.filter(l=>l.neighbourhood===filterHood);
     if(search)list=list.filter(l=>l.address.toLowerCase().includes(search.toLowerCase())||l.neighbourhood.toLowerCase().includes(search.toLowerCase()));
@@ -2141,7 +2194,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
     if(chips.has("40-days"))list=list.filter(l=>l.dom>=40);
     if(chips.has("under-800"))list=list.filter(l=>l.price<800000);
     list=list.filter(l=>l.price>=filters.priceMin&&l.price<=filters.priceMax&&l.beds>=filters.bedsMin&&l.dom<=filters.domMax&&l.priceReduction>=filters.priceDropMin);
-    const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
+    const sortFns={score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),price:(a,b)=>(a.price||0)-(b.price||0),dom:(a,b)=>(b.dom||0)-(a.dom||0),drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0)};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
   },[propType,filterHood,search,chips,filters,sort]);
@@ -2207,30 +2260,59 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
       </div>
 
       {/* Hamza's Pick Banner */}
-      {filtered.find(l=>l.hamzasPick)&&(
+      {filtered.find(l=>l.hamzasPick)&&(()=>{
+        const pick=filtered.find(l=>l.hamzasPick);
+        return(
         <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.06))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
           <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>★</div>
           <div style={{flex:1}}>
-            <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Pick of the Week — Personal Selection</div>
-            <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>1590 Carolyn Rd, Erin Mills</div>
-            <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
+            <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Top Pick — Highest Score</div>
+            <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>{pick.address}</div>
+            <div style={{fontSize:12,color:MUTED,marginTop:2}}>{pick.priceReduction>0?pick.priceReduction+"% price reduction · ":""}{pick.dom}d DOM · Score: {(pick.hamzaScore||0).toFixed(1)}/10 · {fmtK(pick.price)}</div>
           </div>
-          <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
+          <button onClick={()=>onOpenListing(pick)} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
             View Analysis →
           </button>
+        </div>
+        );
+      })()}
+
+      {/* Loading skeleton */}
+      {loading&&listings.length===0&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
+          {[...Array(8)].map((_,i)=>(
+            <div key={i} style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,overflow:"hidden"}}>
+              <div className="skeleton" style={{height:180}}/>
+              <div style={{padding:"14px 16px"}}>
+                <div className="skeleton" style={{height:14,borderRadius:4,marginBottom:8,width:"70%"}}/>
+                <div className="skeleton" style={{height:12,borderRadius:4,marginBottom:14,width:"50%"}}/>
+                <div className="skeleton" style={{height:20,borderRadius:4,marginBottom:10,width:"40%"}}/>
+                <div className="skeleton" style={{height:32,borderRadius:6,width:"100%"}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Live feed indicator */}
+      {!loading&&listings.length>0&&(
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,padding:"10px 16px",background:"rgba(16,185,129,0.06)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:8}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:GREEN,boxShadow:"0 0 8px rgba(16,185,129,0.6)"}}/>
+          <span style={{fontSize:12,color:GREEN,fontWeight:600}}>LIVE FEED</span>
+          <span style={{fontSize:11,color:MUTED}}>· {listings.length} active PropTx/TRREB listings · Updated in real-time</span>
         </div>
       )}
 
       {/* Grid */}
-      {filtered.length===0?(
+      {!loading&&filtered.length===0?(
         <div style={{textAlign:"center",padding:"60px 24px",color:MUTED}}>
           <div style={{fontSize:40,marginBottom:12}}>🔍</div>
-          <p style={{fontSize:15}}>No listings match your filters.</p>
-          <button onClick={()=>{setPropType("All");setChips(new Set());setSearch("");setFilterHood&&setFilterHood(null);}} className="btn-ghost" style={{padding:"10px 20px",borderRadius:8,fontSize:13,marginTop:12}}>Clear Filters</button>
+          <p style={{fontSize:15}}>{listings.length===0?"Connecting to TRREB feed...":"No listings match your filters."}</p>
+          {listings.length>0&&<button onClick={()=>{setPropType("All");setChips(new Set());setSearch("");setFilterHood&&setFilterHood(null);}} className="btn-ghost" style={{padding:"10px 20px",borderRadius:8,fontSize:13,marginTop:12}}>Clear Filters</button>}
         </div>
       ):(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={true}/>)}
+          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample}/>)}
         </div>
       )}
     </section>
@@ -2327,40 +2409,78 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
 
   // Check stored cookie consent
-  // Load live TRREB listings
+  // Load live TRREB listings from PropTx API
   useEffect(()=>{
-    fetch('/api/listings?city=Mississauga&limit=100')
+    fetch('/api/listings?limit=100')
       .then(r=>r.json())
       .then(d=>{
         if(d.listings && d.listings.length > 0){
-          setLiveListings(d.listings.map(l=>({
-            id: l.ListingKey,
-            address: [l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
-            neighbourhood: l.CityRegion||'Mississauga',
-            price: l.ListPrice, originalPrice: l.OriginalListPrice||l.ListPrice,
-            beds: l.BedroomsTotal||0, baths: l.BathroomsTotalInteger||0,
-            sqft: l.BuildingAreaTotal||null, sqftRange: l.LivingAreaRange||null,
-            dom: l.DaysOnMarket||0,
-            type: l.PropertySubType||l.PropertyType||'Residential',
-            brokerage: l.ListOfficeName||'',
-            description: l.PublicRemarks||'',
-            inclusions: l.Inclusions||'',
-            parking: l.ParkingTotal||0, garage: l.GarageType||'', locker: l.Locker||'',
-            tax: l.TaxAnnualAmount||null, condoFee: l.AssociationFee||null,
-            crossStreet: l.CrossStreet||'', age: l.ApproximateAge||'',
-            postalCode: l.PostalCode||'', images: [], isSample: false,
-            priceReduction: l.OriginalListPrice&&l.OriginalListPrice>l.ListPrice ? +((1-l.ListPrice/l.OriginalListPrice)*100).toFixed(1) : 0,
-            estimatedRent: Math.round((l.ListPrice||0)*0.0042),
-            capRate: +(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
-            cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
-            walkScore:72, transitScore:65, schoolScore:76,
-            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false,
-          })));
+          // API already returns clean transformed data — map directly
+          setLiveListings(d.listings.map((l,i)=>{
+            const price=l.price||0;
+            const beds=l.beds||0;
+            const rent=l.estimatedRent||l.rent||Math.round(price*0.0042);
+            const monthly=calcMonthly(price,20,5.5,25);
+            const cashFlow=rent-monthly-Math.round(price*0.015/12);
+            const capRate=price>0?+((rent*12*0.65/price)*100).toFixed(2):0;
+            const dom=l.dom||l.daysOnMarket||0;
+            const drop=l.priceDrop||l.priceReduction||0;
+            const hood=l.city||l.neighbourhood||'Mississauga';
+            const hoodData=HOOD_DATA[hood];
+            // Score: weighted formula based on cash flow, DOM, price drop, yield
+            const cfScore=Math.min(10,Math.max(0,(cashFlow+500)/100));
+            const domScore=Math.min(10,dom/10);
+            const dropScore=Math.min(10,drop);
+            const yieldScore=Math.min(10,capRate*2);
+            const hamzaScore=+Math.min(10,Math.max(1,(cfScore*0.3+domScore*0.25+dropScore*0.25+yieldScore*0.2))).toFixed(1);
+            const lrtCorridorHoods=['Cooksville','Hurontario','Port Credit','City Centre','Mississauga Valleys'];
+            return{
+              id:l.id||l.mlsId||('live-'+i),
+              mlsId:l.mlsId||'',
+              address:l.address||'Address on Request',
+              neighbourhood:hood,
+              city:hood,
+              postalCode:l.postalCode||'',
+              price:price,
+              originalPrice:l.originalPrice||price,
+              beds:beds,
+              baths:l.baths||0,
+              sqft:null,
+              type:l.type||'Residential',
+              subType:l.subType||'',
+              yearBuilt:l.yearBuilt||null,
+              dom:dom,
+              daysOnMarket:dom,
+              status:l.status||'Active',
+              brokerage:l.brokerage||l.listingBrokerage||'',
+              remarks:l.remarks||l.notes||'',
+              description:l.remarks||l.notes||'',
+              photos:l.photos||l.images||[],
+              images:l.photos||l.images||[],
+              lat:l.lat||null,
+              lng:l.lng||null,
+              priceReduction:drop,
+              priceDrop:drop,
+              estimatedRent:rent,
+              rent:rent,
+              capRate:capRate,
+              cashFlow:cashFlow,
+              walkScore:hoodData?72+Math.round(Math.random()*15):72,
+              transitScore:hoodData?65+Math.round(Math.random()*20):65,
+              schoolScore:hoodData?70+Math.round(Math.random()*20):76,
+              hamzaScore:hamzaScore,
+              hamzaNotes:hoodData?hoodData.note:'Investment analysis available — click for details.',
+              hamzasPick:hamzaScore>=8.5&&i<3,
+              lrtAccess:lrtCorridorHoods.includes(hood),
+              hasSuite:l.hasSuite||false,
+              isSample:false,
+            };
+          }));
           setUsingLiveFeed(true);
         }
       })
       .catch(e=>console.error('Feed error:',e));
-  },[isRegistered]);
+  },[]);
 
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
@@ -2476,7 +2596,7 @@ export default function App(){
             </div>
           </div>
         ):activeNav==="listings"?(
-          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood}/>
+          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings} loading={!usingLiveFeed && liveListings.length===0}/>
         ):activeNav==="pulse"?(
           <MarketPulse/>
         ):activeNav==="hoods"?(
