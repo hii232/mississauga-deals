@@ -63,7 +63,7 @@ module.exports = async function handler(req, res) {
       'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
       'Latitude', 'Longitude', 'ModificationTimestamp',
-      'ListingContractDate', 'OriginalEntryTimestamp'
+      'OnMarketDate', 'ListingContractDate', 'OriginalEntryTimestamp'
     ].join(',');
 
     // Use $expand=Media to get photos inline (per AMPRE docs)
@@ -141,7 +141,7 @@ module.exports = async function handler(req, res) {
       // Calculate DOM: use DaysOnMarket if available, else calculate from dates
       var dom = l.DaysOnMarket || 0;
       if (dom === 0) {
-        var listDate = l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
+        var listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
         if (listDate) {
           var diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
           if (diff > 0 && diff < 1000) dom = diff;
