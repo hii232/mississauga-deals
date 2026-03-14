@@ -2374,6 +2374,90 @@ function Hero({onCTA,setActiveNav}){
 }
 
 /* ─────────────────────────────────────────────
+   LISTINGS MAP (Leaflet — free, no API key)
+───────────────────────────────────────────── */
+function ListingsMap({listings,onOpenListing}){
+  const mapRef=useRef(null);
+  const mapObjRef=useRef(null);
+  const markersRef=useRef(null);
+  const [selectedPin,setSelectedPin]=useState(null);
+
+  useEffect(()=>{
+    // Load Leaflet CSS + JS dynamically
+    if(!document.getElementById('leaflet-css')){
+      const css=document.createElement('link');css.id='leaflet-css';css.rel='stylesheet';
+      css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
+    }
+    if(!window.L){
+      const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.onload=()=>initMap();document.head.appendChild(s);
+    }else{initMap();}
+    function initMap(){
+      if(!mapRef.current||mapObjRef.current)return;
+      const L=window.L;
+      const map=L.map(mapRef.current,{zoomControl:true}).setView([43.589,-79.644],12);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+        attribution:'© OpenStreetMap © CARTO',maxZoom:19
+      }).addTo(map);
+      mapObjRef.current=map;
+      markersRef.current=L.layerGroup().addTo(map);
+      updateMarkers();
+    }
+    return()=>{if(mapObjRef.current){mapObjRef.current.remove();mapObjRef.current=null;markersRef.current=null;}};
+  },[]);
+
+  const updateMarkers=()=>{
+    if(!mapObjRef.current||!markersRef.current||!window.L)return;
+    const L=window.L;
+    markersRef.current.clearLayers();
+    const withCoords=listings.filter(l=>l.lat&&l.lng);
+    withCoords.forEach(l=>{
+      const sc=l.hamzaScore||0;const col=sc>=8.5?'#10B981':sc>=7?'#3B82F6':sc>=5.5?'#F59E0B':'#EF4444';
+      const icon=L.divIcon({
+        className:'',
+        html:`<div style="width:28px;height:28px;border-radius:50%;background:${col};border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer">${sc.toFixed(1)}</div>`,
+        iconSize:[28,28],iconAnchor:[14,14]
+      });
+      const marker=L.marker([l.lat,l.lng],{icon}).addTo(markersRef.current);
+      marker.on('click',()=>setSelectedPin(l));
+    });
+    if(withCoords.length>0){
+      const bounds=L.latLngBounds(withCoords.map(l=>[l.lat,l.lng]));
+      mapObjRef.current.fitBounds(bounds,{padding:[30,30],maxZoom:14});
+    }
+  };
+
+  useEffect(()=>{updateMarkers();},[listings]);
+
+  return(
+    <div style={{position:"relative"}}>
+      <div ref={mapRef} style={{width:"100%",height:600,borderRadius:12,border:`1px solid ${BORDER}`,overflow:"hidden"}}/>
+      {/* Floating listing card when pin clicked */}
+      {selectedPin&&(
+        <div style={{position:"absolute",top:12,right:12,width:320,background:CARD,border:`1px solid ${BORDER}`,borderRadius:12,overflow:"hidden",boxShadow:"0 12px 40px rgba(0,0,0,0.6)",zIndex:1000,animation:"fadeUp .2s ease"}}>
+          <button onClick={()=>setSelectedPin(null)} style={{position:"absolute",top:8,right:8,background:"rgba(5,9,26,0.7)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:"50%",width:28,height:28,color:"#fff",fontSize:14,cursor:"pointer",zIndex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+          {selectedPin.photos&&selectedPin.photos.length>0&&(
+            <img src={selectedPin.photos[0]} alt="" style={{width:"100%",height:140,objectFit:"cover"}} onError={e=>{e.target.style.display="none";}}/>
+          )}
+          <div style={{padding:"12px 14px"}}>
+            <div style={{fontSize:13,fontWeight:700,color:TEXT,marginBottom:2}}>{selectedPin.address}</div>
+            <div style={{fontSize:11,color:MUTED,marginBottom:8}}>{selectedPin.neighbourhood}, Mississauga</div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:17,fontWeight:700,color:TEXT}}>{fmtK(selectedPin.price)}</span>
+              <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:scoreColor(selectedPin.hamzaScore||0),fontWeight:700}}>{(selectedPin.hamzaScore||0).toFixed(1)}/10</span>
+            </div>
+            <div style={{display:"flex",gap:10,fontSize:11,color:MUTED,fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>
+              <span>{selectedPin.beds}bd</span><span>{selectedPin.baths}ba</span><span>{selectedPin.type}</span><span>{selectedPin.dom||0}d DOM</span>
+            </div>
+            <button onClick={()=>onOpenListing(selectedPin)} className="btn-primary" style={{width:"100%",padding:"10px",borderRadius:8,fontSize:12}}>View Full Analysis →</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
    LISTINGS VIEW
 ───────────────────────────────────────────── */
 function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false}){
@@ -2382,10 +2466,12 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   const [search,setSearch]=useState("");
   const [chips,setChips]=useState(new Set());
   const [showFilters,setShowFilters]=useState(false);
-  const [viewMode,setViewMode]=useState("grid"); // grid | table
+  const [viewMode,setViewMode]=useState("grid"); // grid | table | map
   const [filters,setFilters]=useState({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});
+  const [page,setPage]=useState(1);
+  const PER_PAGE=24;
 
-  const toggleChip=c=>setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});
+  const toggleChip=c=>{setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});setPage(1);};
 
   const filtered=useMemo(()=>{
     let list=[...listings];
@@ -2443,7 +2529,13 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   },[filtered]);
 
   const activeFilters=chips.size+(propType!=="All"?1:0)+(filterHood?1:0)+(search?1:0)+(filters.priceMin>0||filters.priceMax<5000000||filters.bedsMin>0||filters.capRateMin>0||filters.scoreMin>0?1:0);
-  const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});};
+  const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});setPage(1);};
+
+  // Pagination
+  const totalPages=Math.ceil(filtered.length/PER_PAGE);
+  const paged=viewMode==="map"?filtered:filtered.slice((page-1)*PER_PAGE,page*PER_PAGE);
+  // Reset page if out of bounds
+  useEffect(()=>{if(page>totalPages&&totalPages>0)setPage(1);},[page,totalPages]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2500,7 +2592,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
         {/* Property type tabs */}
         <div style={{display:"flex",gap:6,marginBottom:12,flexWrap:"wrap",alignItems:"center"}}>
           {["All","Detached","Semi-Detached","Townhouse","Condo","Duplex","Triplex","Fourplex","Multiplex"].map(t=>(
-            <button key={t} onClick={()=>setPropType(t)} className={"chip"+(propType===t?" active":"")} style={{padding:"7px 14px",fontSize:12}}>{t}</button>
+            <button key={t} onClick={()=>{setPropType(t);setPage(1);}} className={"chip"+(propType===t?" active":"")} style={{padding:"7px 14px",fontSize:12}}>{t}</button>
           ))}
           {filterHood&&<button onClick={()=>setFilterHood(null)} style={{background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.3)",borderRadius:6,padding:"7px 14px",fontSize:12,color:RED,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontWeight:600}}>✕ {filterHood}</button>}
         </div>
@@ -2551,8 +2643,9 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
 
           {/* View toggle */}
           <div style={{display:"flex",border:`1px solid ${BORDER}`,borderRadius:6,overflow:"hidden"}}>
-            <button onClick={()=>setViewMode("grid")} style={{padding:"6px 10px",background:viewMode==="grid"?"rgba(59,130,246,0.15)":"transparent",border:"none",color:viewMode==="grid"?BLUE:MUTED,cursor:"pointer",fontSize:12,fontWeight:600}}>Grid</button>
-            <button onClick={()=>setViewMode("table")} style={{padding:"6px 10px",background:viewMode==="table"?"rgba(59,130,246,0.15)":"transparent",border:"none",borderLeft:`1px solid ${BORDER}`,color:viewMode==="table"?BLUE:MUTED,cursor:"pointer",fontSize:12,fontWeight:600}}>Table</button>
+            {["grid","table","map"].map(m=>(
+              <button key={m} onClick={()=>setViewMode(m)} style={{padding:"6px 10px",background:viewMode===m?"rgba(59,130,246,0.15)":"transparent",border:"none",borderLeft:m!=="grid"?`1px solid ${BORDER}`:"none",color:viewMode===m?BLUE:MUTED,cursor:"pointer",fontSize:12,fontWeight:600,textTransform:"capitalize"}}>{m==="map"?"Map":m==="grid"?"Grid":"Table"}</button>
+            ))}
           </div>
 
           <button onClick={()=>setShowFilters(!showFilters)} className="btn-ghost" style={{padding:"7px 14px",borderRadius:6,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>
@@ -2565,7 +2658,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
             </button>
           )}
 
-          <span style={{fontSize:11,color:MUTED,marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{filtered.length}<span style={{color:"#3A5070"}}> / {listings.length}</span></span>
+          <span style={{fontSize:11,color:MUTED,marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{viewMode==="map"?filtered.length:(page-1)*PER_PAGE+1+"–"+Math.min(page*PER_PAGE,filtered.length)}<span style={{color:"#3A5070"}}> / {filtered.length}</span></span>
         </div>
 
         {/* ═══ ADVANCED FILTER PANEL ═══ */}
@@ -2655,7 +2748,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
                 </tr>
               </thead>
               <tbody>
-                {filtered.map(l=>{
+                {paged.map(l=>{
                   const sc=l.hamzaScore||0;const scCol=scoreColor(sc);
                   return(
                     <tr key={l.id} onClick={()=>onOpenListing(l)} style={{cursor:"pointer",borderBottom:`1px solid rgba(255,255,255,0.03)`,transition:"background .15s ease"}}
@@ -2680,10 +2773,39 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
             </table>
           </div>
         </div>
+      ):viewMode==="map"?(
+        /* ═══ MAP VIEW ═══ */
+        <ListingsMap listings={filtered} onOpenListing={onOpenListing}/>
       ):(
         /* ═══ GRID VIEW ═══ */
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {filtered.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample}/>)}
+          {paged.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample}/>)}
+        </div>
+      )}
+
+      {/* ═══ PAGINATION ═══ */}
+      {viewMode!=="map"&&totalPages>1&&(
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginTop:24,flexWrap:"wrap"}}>
+          <button onClick={()=>{setPage(1);window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===1}
+            style={{padding:"8px 12px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===1?"default":"pointer",background:page===1?"transparent":CARD,border:`1px solid ${page===1?"transparent":BORDER}`,color:page===1?MUTED:TEXT}}>«</button>
+          <button onClick={()=>{setPage(p=>Math.max(1,p-1));window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===1}
+            style={{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===1?"default":"pointer",background:page===1?"transparent":CARD,border:`1px solid ${page===1?"transparent":BORDER}`,color:page===1?MUTED:TEXT}}>‹ Prev</button>
+          {(()=>{
+            const pages=[];
+            let start=Math.max(1,page-3),end=Math.min(totalPages,page+3);
+            if(start>1){pages.push(1);if(start>2)pages.push("...");}
+            for(let i=start;i<=end;i++)pages.push(i);
+            if(end<totalPages){if(end<totalPages-1)pages.push("...");pages.push(totalPages);}
+            return pages.map((p,i)=>p==="..."?<span key={"e"+i} style={{color:MUTED,fontSize:12,padding:"0 4px"}}>…</span>:
+              <button key={p} onClick={()=>{setPage(p);window.scrollTo({top:300,behavior:"smooth"});}}
+                style={{width:36,height:36,borderRadius:6,fontSize:12,fontWeight:p===page?700:500,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer",background:p===page?"rgba(59,130,246,0.2)":CARD,border:`1px solid ${p===page?"rgba(59,130,246,0.5)":BORDER}`,color:p===page?BLUE:TEXT}}>{p}</button>
+            );
+          })()}
+          <button onClick={()=>{setPage(p=>Math.min(totalPages,p+1));window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===totalPages}
+            style={{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===totalPages?"default":"pointer",background:page===totalPages?"transparent":CARD,border:`1px solid ${page===totalPages?"transparent":BORDER}`,color:page===totalPages?MUTED:TEXT}}>Next ›</button>
+          <button onClick={()=>{setPage(totalPages);window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===totalPages}
+            style={{padding:"8px 12px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===totalPages?"default":"pointer",background:page===totalPages?"transparent":CARD,border:`1px solid ${page===totalPages?"transparent":BORDER}`,color:page===totalPages?MUTED:TEXT}}>»</button>
+          <span style={{fontSize:11,color:MUTED,marginLeft:8,fontFamily:"'JetBrains Mono',monospace"}}>Page {page} of {totalPages}</span>
         </div>
       )}
     </section>
