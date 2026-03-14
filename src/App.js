@@ -149,7 +149,7 @@ const BORDER="rgba(255,255,255,0.07)";
 /* ─────────────────────────────────────────────
    LISTING DATA
 ───────────────────────────────────────────── */
-const LISTINGS = [];
+const LISTINGS=[];
 
 const HOOD_DATA = {
   "Clarkson":          {trend:"hot", emoji:"🔥",avgPrice:1002000,priceYoY:8.2,avgDOM:38,inventory:"Low",   rentYield:5.1,lat:43.5167,lng:-79.6239,note:"LRT corridor + GO station = best appreciation play 2025-2026"},
@@ -321,7 +321,7 @@ function PrivacyModal({onClose}){
    INVESTMENT DISCLAIMER MODAL
 ───────────────────────────────────────────── */
 function InvDisclaimerModal({onAccept}){
-  const [checked,setChecked]=useState(true);
+  const [checked,setChecked]=useState(false);
   return(
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Investment Disclaimer">
       <div style={{background:CARD,border:`1px solid rgba(196,154,60,0.3)`,borderRadius:16,width:"100%",maxWidth:580,animation:"fadeUp .3s ease"}}>
@@ -446,8 +446,6 @@ function ListingCard({l,onOpen,isSample=true}){
     >
       {/* Rich image area — gradient with data overlay */}
       <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
-              {l.photos&&l.photos.length>0&&<img src={l.photos[0]} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",cursor:"zoom-in"}} onError={function(e){e.target.parentNode.style.display="none";}} onClick={function(e){e.stopPropagation();_setLb({photos:l.photos,i:0});}}/>}
-              {l.photos&&l.photos.length>1&&<div style={{position:"absolute",bottom:6,right:8,background:"rgba(0,0,0,0.55)",color:"#fff",fontSize:10,borderRadius:3,padding:"2px 5px"}}>{l.photos.length}&#32;photos</div>}
         {/* Subtle grid pattern overlay */}
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
 
@@ -701,7 +699,7 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
               </div>
               {/* TRREB disclaimer */}
               <div style={{background:"rgba(255,255,255,0.02)",border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px"}}>
-                
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.6}}>⚠️ <strong style={{color:TEXT}}>SAMPLE DATA.</strong> These listings are not real MLS® listings. They are demonstration data only and do not represent actual properties available for purchase. The trademarks MLS®, Multiple Listing Service® and the associated logos are owned by The Canadian Real Estate Association (CREA). Data reliability is not guaranteed. For real listings, visit  or call Hamza at 647-609-1289.</p>
               </div>
             </div>
           )}
@@ -2146,7 +2144,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
     const sortFns={score:(a,b)=>b.hamzaScore-a.hamzaScore,price:(a,b)=>a.price-b.price,dom:(a,b)=>b.dom-a.dom,drop:(a,b)=>b.priceReduction-a.priceReduction,cashflow:(a,b)=>b.cashFlow-a.cashFlow};
     list.sort(sortFns[sort]||sortFns.score);
     return list;
-  },[propType,filterHood,search,chips,filters,sort,liveListings]);
+  },[propType,filterHood,search,chips,filters,sort]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2213,8 +2211,8 @@ function ListingsView({onOpenListing,filterHood,setFilterHood}){
         <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.08),rgba(59,130,246,0.06))",border:`1px solid rgba(245,158,11,0.3)`,borderRadius:12,padding:"16px 20px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
           <div style={{width:40,height:40,borderRadius:"50%",background:"rgba(245,158,11,0.15)",border:`2px solid rgba(245,158,11,0.5)`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>★</div>
           <div style={{flex:1}}>
-            
-            
+            <div style={{fontSize:11,color:GOLD,fontWeight:700,letterSpacing:"0.06em",marginBottom:3,textTransform:"uppercase"}}>Hamza's Pick of the Week — Personal Selection</div>
+            <div style={{fontSize:15,fontWeight:700,color:TEXT,letterSpacing:"-0.01em"}}>1590 Carolyn Rd, Erin Mills</div>
             <div style={{fontSize:12,color:MUTED,marginTop:2}}>12.4% price reduction · 67 DOM · Score: 9.0/10 · Sample listing for demonstration</div>
           </div>
           <button onClick={()=>onOpenListing(filtered.find(l=>l.hamzasPick))} className="btn-gold" style={{padding:"10px 20px",borderRadius:8,fontSize:13,flexShrink:0}}>
@@ -2312,12 +2310,11 @@ function Testimonials(){
    MAIN APP
 ───────────────────────────────────────────── */
 export default function App(){
-  const [_lb,_setLb]=useState(null);
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
   const [isRegistered,setIsRegistered]=useState(false);
   const [liveListings,setLiveListings]=useState([]);
-  const [usingLiveFeed,setUsingLiveFeed]=useState(true);
+  const [usingLiveFeed,setUsingLiveFeed]=useState(false);
   const [freeViews,setFreeViews]=useState(1);
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
@@ -2332,15 +2329,11 @@ export default function App(){
   // Check stored cookie consent
   // Load live TRREB listings
   useEffect(()=>{
-    let cancelled=false;
-    const loadAll=async()=>{
-      let page=1,all=[];
-      while(!cancelled){
-        try{
-          const r=await fetch('/api/listings?city=Mississauga&limit=100&page='+page);
-          const d=await r.json();
-          if(!d.listings||d.listings.length===0) break;
-          const mapped=d.listings.map(l=>({
+    fetch('/api/listings?city=Mississauga&limit=100')
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.listings && d.listings.length > 0){
+          setLiveListings(d.listings.map(l=>({
             id: l.ListingKey,
             address: [l.UnitNumber?'#'+l.UnitNumber:null,l.StreetNumber,l.StreetName,l.StreetSuffix].filter(Boolean).join(' '),
             neighbourhood: l.CityRegion||'Mississauga',
@@ -2361,18 +2354,13 @@ export default function App(){
             capRate: +(((l.ListPrice||1)*0.0042*12/(l.ListPrice||1))*100).toFixed(2),
             cashFlow: Math.round((l.ListPrice||0)*0.0042-(l.ListPrice||0)*0.004),
             walkScore:72, transitScore:65, schoolScore:76,
-            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false, photos:l.photos||[], images:l.photos||[],
-          }));
-          all=[...all,...mapped];
-          if(!cancelled){setLiveListings([...all]);setUsingLiveFeed(true);}
-          if(d.listings.length<100) break;
-          page++;
-        }catch(e){console.error(e);break;}
-      }
-    };
-    loadAll();
-    return()=>{cancelled=true;};
-  },[]);
+            hamzaScore:null, hamzaNotes:'', hamzasPick:false, lrtAccess:false,
+          })));
+          setUsingLiveFeed(true);
+        }
+      })
+      .catch(e=>console.error('Feed error:',e));
+  },[isRegistered]);
 
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
@@ -2433,7 +2421,6 @@ export default function App(){
 
       {/* Modals */}
       {showRegModal&&<RegModal onClose={()=>setShowRegModal(false)} onSuccess={handleRegSuccess}/>}
-      {_lb&&<div onClick={function(){_setLb(null);}} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.96)",zIndex:99999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}><button onClick={function(){_setLb(null);}} style={{position:"fixed",top:16,right:16,background:"transparent",border:"none",color:"#fff",fontSize:30,cursor:"pointer",lineHeight:1}}>×</button><div style={{display:"flex",alignItems:"center",gap:12}}>{_lb.i>0&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i-1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:28,cursor:"pointer"}}>‹</button>}<img src={_lb.photos[_lb.i]} alt="" style={{maxWidth:"88vw",maxHeight:"83vh",objectFit:"contain",borderRadius:6,display:"block"}} onError={function(e){e.target.style.opacity=0.3;}}/>{_lb.i<_lb.photos.length-1&&<button onClick={function(e){e.stopPropagation();_setLb(function(x){return{photos:x.photos,i:x.i+1};});}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:44,height:44,color:"#fff",fontSize:28,cursor:"pointer"}}>›</button>}</div><div style={{color:"rgba(255,255,255,0.4)",fontSize:12,marginTop:8}}>{(_lb.i+1)+" / "+_lb.photos.length}</div></div>}
       {selectedListing&&(
         <ListingModal
           l={selectedListing}
