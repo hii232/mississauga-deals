@@ -2380,7 +2380,33 @@ function ListingsMap({listings,onOpenListing}){
   const mapRef=useRef(null);
   const mapObjRef=useRef(null);
   const markersRef=useRef(null);
+  const listingsRef=useRef(listings);
   const [selectedPin,setSelectedPin]=useState(null);
+  const setSelectedPinRef=useRef(setSelectedPin);
+  setSelectedPinRef.current=setSelectedPin;
+  listingsRef.current=listings;
+
+  function addMarkers(){
+    if(!mapObjRef.current||!markersRef.current||!window.L)return;
+    const L=window.L;
+    const data=listingsRef.current;
+    markersRef.current.clearLayers();
+    const withCoords=(data||[]).filter(l=>l.lat&&l.lng);
+    withCoords.forEach(l=>{
+      const sc=l.hamzaScore||0;const col=sc>=8.5?'#10B981':sc>=7?'#3B82F6':sc>=5.5?'#F59E0B':'#EF4444';
+      const icon=L.divIcon({
+        className:'',
+        html:'<div style="width:28px;height:28px;border-radius:50%;background:'+col+';border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:JetBrains Mono,monospace;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer">'+sc.toFixed(1)+'</div>',
+        iconSize:[28,28],iconAnchor:[14,14]
+      });
+      const marker=L.marker([l.lat,l.lng],{icon}).addTo(markersRef.current);
+      marker.on('click',function(){setSelectedPinRef.current(l);});
+    });
+    if(withCoords.length>0){
+      const bounds=L.latLngBounds(withCoords.map(l=>[l.lat,l.lng]));
+      mapObjRef.current.fitBounds(bounds,{padding:[30,30],maxZoom:14});
+    }
+  }
 
   useEffect(()=>{
     // Load Leaflet CSS + JS dynamically
@@ -2388,46 +2414,25 @@ function ListingsMap({listings,onOpenListing}){
       const css=document.createElement('link');css.id='leaflet-css';css.rel='stylesheet';
       css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(css);
     }
-    if(!window.L){
-      const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-      s.onload=()=>initMap();document.head.appendChild(s);
-    }else{initMap();}
     function initMap(){
       if(!mapRef.current||mapObjRef.current)return;
       const L=window.L;
       const map=L.map(mapRef.current,{zoomControl:true}).setView([43.589,-79.644],12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
-        attribution:'© OpenStreetMap © CARTO',maxZoom:19
+        attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19
       }).addTo(map);
       mapObjRef.current=map;
       markersRef.current=L.layerGroup().addTo(map);
-      updateMarkers();
+      addMarkers();
     }
+    if(!window.L){
+      const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      s.onload=function(){initMap();};document.head.appendChild(s);
+    }else{initMap();}
     return()=>{if(mapObjRef.current){mapObjRef.current.remove();mapObjRef.current=null;markersRef.current=null;}};
   },[]);
 
-  const updateMarkers=()=>{
-    if(!mapObjRef.current||!markersRef.current||!window.L)return;
-    const L=window.L;
-    markersRef.current.clearLayers();
-    const withCoords=listings.filter(l=>l.lat&&l.lng);
-    withCoords.forEach(l=>{
-      const sc=l.hamzaScore||0;const col=sc>=8.5?'#10B981':sc>=7?'#3B82F6':sc>=5.5?'#F59E0B':'#EF4444';
-      const icon=L.divIcon({
-        className:'',
-        html:`<div style="width:28px;height:28px;border-radius:50%;background:${col};border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 8px rgba(0,0,0,0.4);cursor:pointer">${sc.toFixed(1)}</div>`,
-        iconSize:[28,28],iconAnchor:[14,14]
-      });
-      const marker=L.marker([l.lat,l.lng],{icon}).addTo(markersRef.current);
-      marker.on('click',()=>setSelectedPin(l));
-    });
-    if(withCoords.length>0){
-      const bounds=L.latLngBounds(withCoords.map(l=>[l.lat,l.lng]));
-      mapObjRef.current.fitBounds(bounds,{padding:[30,30],maxZoom:14});
-    }
-  };
-
-  useEffect(()=>{updateMarkers();},[listings]);
+  useEffect(()=>{addMarkers();},[listings]);
 
   return(
     <div style={{position:"relative"}}>
