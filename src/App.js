@@ -466,7 +466,7 @@ function ListingCard({l,onOpen,isSample}){
       }}
     >
       {/* Rich image area — gradient with data overlay */}
-      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`, {l.images&&l.images[0]&&<img src={l.images[0]} alt="" loading="lazy" onError={e=>{e.target.style.display="none"}} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.92,zIndex:0}}/>}
+      <div style={{height:148,background:`linear-gradient(145deg,${grad[0]},${grad[1]})`,position:"relative",overflow:"hidden"}}>
       {l.images&&l.images[0]&&<img src={l.images[0]} alt={l.address} loading="lazy" onError={e=>e.target.style.display="none"} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",opacity:0.9,zIndex:0}}/>}
         {/* Subtle grid pattern overlay */}
         <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)",backgroundSize:"20px 20px"}}/>
