@@ -41,6 +41,10 @@ module.exports = async function handler(req, res) {
     var skip = (page - 1) * limit;
 
     var filters = ["StandardStatus eq 'Active'", "ListPrice ge 300000"];
+    // Exclude commercial, lease, and non-residential — only residential sales
+    filters.push("PropertyType ne 'Commercial'");
+    filters.push("PropertyType ne 'Business'");
+    filters.push("PropertyType ne 'No Building'");
     if (req.query.minPrice) filters.push('ListPrice ge ' + parseInt(req.query.minPrice));
     if (req.query.maxPrice) filters.push('ListPrice le ' + parseInt(req.query.maxPrice));
     if (req.query.beds) filters.push('BedroomsTotal ge ' + parseInt(req.query.beds));
@@ -113,6 +117,17 @@ module.exports = async function handler(req, res) {
     var data = await resp.json();
     var items = data.value || [];
     var total = data['@odata.count'] || items.length;
+
+    // Filter out commercial, lease, and non-residential subtypes
+    var EXCLUDED_SUBTYPES = /sale of business|commercial|industrial|office|retail|vacant land|common element|parking|locker|storage/i;
+    items = items.filter(function(l) {
+      var sub = l.PropertySubType || '';
+      var prop = l.PropertyType || '';
+      if (EXCLUDED_SUBTYPES.test(sub) || EXCLUDED_SUBTYPES.test(prop)) return false;
+      // Filter out leases (TransactionType or keywords in remarks)
+      if (/lease/i.test(prop) || /lease/i.test(sub)) return false;
+      return true;
+    });
 
     var listings = items.map(function(l) {
       var price = l.ListPrice || 0;

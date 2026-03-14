@@ -2963,7 +2963,39 @@ export default function App(){
         }catch(e){/* skip failed batch */}
       }
     }
+    // Mississauga FSA (Forward Sortation Area) centroids for map pins
+    // Each 3-char postal prefix maps to a neighbourhood centroid
+    const FSA_COORDS={
+      'L4T':[43.6938,-79.6312],'L4V':[43.6770,-79.6110],'L4W':[43.6370,-79.5930],
+      'L4X':[43.6080,-79.5700],'L4Y':[43.5850,-79.5450],'L4Z':[43.6380,-79.6220],
+      'L5A':[43.5870,-79.6040],'L5B':[43.5930,-79.6430],'L5C':[43.5770,-79.5880],
+      'L5E':[43.5610,-79.5830],'L5G':[43.5520,-79.5840],'L5H':[43.5440,-79.5740],
+      'L5J':[43.5230,-79.5760],'L5K':[43.5260,-79.6020],'L5L':[43.5460,-79.6550],
+      'L5M':[43.5580,-79.6830],'L5N':[43.5690,-79.7050],'L5R':[43.5800,-79.6640],
+      'L5S':[43.6550,-79.6100],'L5T':[43.6650,-79.6370],'L5V':[43.5500,-79.6300],
+      'L5W':[43.5750,-79.6150]
+    };
+    function geocodeFromPostal(pc,id){
+      if(!pc)return null;
+      const fsa=pc.replace(/\s/g,'').substring(0,3).toUpperCase();
+      const coords=FSA_COORDS[fsa];
+      if(!coords)return null;
+      // Deterministic offset based on full postal code + id so pins spread but stay stable
+      const key=(pc||'')+(id||'');
+      let h=0;for(let i=0;i<key.length;i++){h=((h<<5)-h)+key.charCodeAt(i);h|=0;}
+      const r1=((h&0xFFFF)/0xFFFF-0.5)*0.008;
+      const r2=(((h>>16)&0xFFFF)/0xFFFF-0.5)*0.012;
+      return[coords[0]+r1,coords[1]+r2];
+    }
+
     function processListings(allRaw){
+      // Filter out commercial, lease, and non-residential listings
+      const EXCLUDED=/sale of business|commercial|industrial|office|retail|vacant land|common element|parking|locker|storage/i;
+      allRaw=allRaw.filter(l=>{
+        if(EXCLUDED.test(l.subType||''))return false;
+        if(EXCLUDED.test(l.type||''))return false;
+        return true;
+      });
       const result=allRaw.map((l,i)=>{
             const price=l.price||0;
             const beds=l.beds||0;
@@ -3011,8 +3043,8 @@ export default function App(){
               description:l.remarks||l.notes||'',
               photos:l.photos||l.images||[],
               images:l.photos||l.images||[],
-              lat:l.lat||null,
-              lng:l.lng||null,
+              lat:l.lat||(geocodeFromPostal(l.postalCode,l.id)||[])[0]||null,
+              lng:l.lng||(geocodeFromPostal(l.postalCode,l.id)||[])[1]||null,
               priceReduction:drop,
               priceDrop:drop,
               estimatedRent:rent,
