@@ -217,8 +217,6 @@ function enrichListing(listing) {
     city: listing.City,
     postalCode: listing.PostalCode,
     beds,
-    baths: listing.BathroomsTotalInteger || 0,
-    halfBaths: listing.BathroomsHalf || 0,
     sqft,
     lotSize: listing.LotSizeArea,
     lotUnit: listing.LotSizeUnits,
