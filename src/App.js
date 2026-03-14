@@ -2874,6 +2874,41 @@ export default function App(){
     fetchAllListings();
   },[]);
 
+  // Lazy-load first photo for listings that came back with empty photos
+  useEffect(()=>{
+    if(!liveListings||liveListings.length===0)return;
+    const needPhotos=liveListings.filter(l=>!l.photos||l.photos.length===0);
+    if(needPhotos.length===0)return;
+    let cancelled=false;
+    async function loadPhotos(){
+      // Process in batches of 20
+      for(let i=0;i<needPhotos.length;i+=20){
+        if(cancelled)return;
+        const batch=needPhotos.slice(i,i+20);
+        const ids=batch.map(l=>l.id);
+        try{
+          const r=await fetch('/api/photos-batch',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ids})
+          });
+          const d=await r.json();
+          if(d.photos&&!cancelled){
+            setLiveListings(prev=>prev.map(l=>{
+              if(d.photos[l.id]&&(!l.photos||l.photos.length===0)){
+                return{...l,photos:[d.photos[l.id]],images:[d.photos[l.id]]};
+              }
+              return l;
+            }));
+          }
+        }catch(e){console.error('Photo batch error:',e);}
+      }
+    }
+    // Small delay so listings render first
+    const t=setTimeout(loadPhotos,300);
+    return()=>{cancelled=true;clearTimeout(t);};
+  },[liveListings.length]);
+
   useEffect(()=>{
     // Don't use localStorage (not allowed in Claude artifacts)
     // In production, this would check a cookie
