@@ -498,13 +498,28 @@ function PriceHistoryTab({ listing }) {
     async function fetchHistory() {
       try {
         // Parse address into components
-        const addressParts = (listing.address || '').split(' ');
-        const streetNumber = addressParts[0] || '';
-        // Handle unit numbers like "123-456 Street Name"
-        const hasUnit = streetNumber.includes('-');
-        const actualNumber = hasUnit ? streetNumber.split('-')[1] : streetNumber;
-        const unit = hasUnit ? streetNumber.split('-')[0] : '';
-        const streetName = addressParts.slice(1, -1).join(' ') || addressParts.slice(1).join(' ');
+        // Format from AMPRE: "UnitNumber- StreetNumber StreetName StreetSuffix"
+        // e.g. "123- 3045 Confederation Pkwy" or "3045 Confederation Pkwy"
+        const parts = (listing.address || '').split(' ').filter(Boolean);
+        let unit = '';
+        let startIdx = 0;
+
+        // First part ending with '-' is the unit number (e.g. "123-")
+        if (parts[0] && parts[0].endsWith('-')) {
+          unit = parts[0].replace(/-$/, '');
+          startIdx = 1;
+        } else if (parts[0] && parts[0].includes('-')) {
+          // Format "unit-streetnum" (e.g. "123-3045")
+          const [u, sn] = parts[0].split('-');
+          unit = u;
+          parts[0] = sn; // replace with just the street number
+        }
+
+        const actualNumber = parts[startIdx] || '';
+        // Street name is everything after the street number, excluding the last word (suffix like Dr, Ave, Pkwy)
+        const nameParts = parts.slice(startIdx + 1);
+        // Use just the core street name (drop suffix for better AMPRE contains() matching)
+        const streetName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts.join(' ');
 
         if (!streetName) {
           setError('Unable to parse address for history lookup.');
