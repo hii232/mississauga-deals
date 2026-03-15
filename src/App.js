@@ -201,7 +201,8 @@ const calcMonthly=(price,downPct,rate,years)=>{
   return Math.round(p*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1));
 };
 const scoreColor=s=>s>=8.5?GREEN:s>=7?BLUE:s>=5.5?GOLD:RED;
-const fmtCF=n=>({color:n>=-300?GREEN:n>=-600?GOLD:RED,label:fmtNum(n)});
+const fmtCF=n=>({color:n>=0?GREEN:n>=-500?'#94A3B8':RED,label:fmtNum(n)});
+const formatAddress=a=>{if(!a)return'Address on Request';return a.replace(/^(\d+)-\s*/,'#$1 - ').replace(/\b\w+/g,w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase());};
 
 /* ─────────────────────────────────────────────
    FULLSCREEN PHOTO LIGHTBOX
@@ -553,8 +554,8 @@ function ListingCard({l,onOpen,isSample=true}){
       {/* Card body */}
       <div style={{padding:"14px 16px 12px"}}>
         {/* Address + neighbourhood */}
-        <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2,lineHeight:1.3,letterSpacing:"-0.01em",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}</div>
-        <div style={{fontSize:11,color:MUTED,marginBottom:12,fontWeight:500}}>{l.neighbourhood}, Mississauga</div>
+        <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2,lineHeight:1.3,letterSpacing:"-0.01em",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatAddress(l.address)}</div>
+        <div style={{fontSize:11,color:MUTED,marginBottom:12,fontWeight:500}}>{l.neighbourhood&&l.neighbourhood!=='Mississauga'?l.neighbourhood+', ':''}Mississauga</div>
 
         {/* Price row */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:10}}>
@@ -562,7 +563,7 @@ function ListingCard({l,onOpen,isSample=true}){
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:19,fontWeight:700,color:TEXT,letterSpacing:"-0.02em"}}>{fmtK(l.price)}</div>
             {l.priceReduction>0&&<div style={{fontSize:10,color:MUTED,textDecoration:"line-through",marginTop:1}}>{fmtK(l.originalPrice)}</div>}
           </div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:12,color:cf.color,fontWeight:600,background:(l.cashFlow||0)>0?"rgba(16,185,129,0.08)":"rgba(239,68,68,0.08)",padding:"3px 8px",borderRadius:5,border:`1px solid ${(l.cashFlow||0)>0?"rgba(16,185,129,0.2)":"rgba(239,68,68,0.2)"}`}}>{cf.label}</div>
+          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:(l.cashFlow||0)>=0?12:11,color:cf.color,fontWeight:(l.cashFlow||0)>=0?600:500,background:(l.cashFlow||0)>=0?"rgba(16,185,129,0.08)":"rgba(255,255,255,0.04)",padding:"3px 8px",borderRadius:5,border:`1px solid ${(l.cashFlow||0)>=0?"rgba(16,185,129,0.2)":"rgba(255,255,255,0.08)"}`}}>{cf.label}</div>
         </div>
 
         {/* Specs — Bloomberg terminal style data row */}
@@ -672,8 +673,9 @@ function RegModal({onClose,onSuccess}){
 /* ─────────────────────────────────────────────
    LISTING MODAL
 ───────────────────────────────────────────── */
-function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShowDisclaimer}){
+function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShowDisclaimer,savedDeals=[],onSaveDeal}){
   const [tab,setTab]=useState("overview");
+  const [takeUnlocked]=useState(()=>{try{const v=localStorage.getItem('take_views');if(!v||parseInt(v)===0){localStorage.setItem('take_views','1');return true;}return false;}catch{return true;}});
   const [down,setDown]=useState(20);
   const [rate,setRate]=useState(5.5);
   const [amort,setAmort]=useState(25);
@@ -698,10 +700,16 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
   const uniquePhotos=lazyPhotos||(l.photos&&l.photos.length>0?[...new Set(l.photos)]:[]);
 
   const monthly=calcMonthly(l.price,down,rate,amort);
-  const brutoCF=l.estimatedRent-monthly-Math.round(l.price*0.015/12);
+  const propTax=Math.round(l.price*0.0095/12); // ~0.95% Mississauga mill rate
+  const propInsurance=Math.round(l.price*0.003/12); // ~0.3% insurance
+  const maintenance=Math.round(l.estimatedRent*0.05); // 5% maintenance reserve
+  const vacancyLoss=Math.round(l.estimatedRent*vacancy/100);
+  const totalExpenses=monthly+propTax+propInsurance+maintenance+vacancyLoss;
+  const brutoCF=l.estimatedRent-totalExpenses;
   const noi=l.estimatedRent*12*(1-vacancy/100)*(1-opex/100);
   const capRate=((noi/l.price)*100).toFixed(2);
-  const cashOnCash=l.price*down/100>0?((brutoCF*12/(l.price*down/100))*100).toFixed(2):"—";
+  const totalCashInvested=l.price*down/100;
+  const cashOnCash=totalCashInvested>0?((brutoCF*12/totalCashInvested)*100).toFixed(2):"—";
   const grm=(l.price/(l.estimatedRent*12)).toFixed(1);
 
   const brrrEquity=arv-(l.price+reno);
@@ -716,13 +724,16 @@ function ListingModal({l,onClose,isRegistered,onRequireReg,seenDisclaimer,onShow
     {id:"ai",label:"AI Analysis"}
   ];
 
+  const isTabLocked=(id)=>!isRegistered&&(["mortgage","caprate","brrr","ai"].includes(id)||(id==="take"&&!takeUnlocked));
+
   const handleCalcTab=(id)=>{
-    if(["mortgage","caprate","brrr","ai"].includes(id)){
-      if(!isRegistered){onRequireReg();return;}
+    if(["mortgage","caprate","brrr","ai"].includes(id)||(id==="take"&&!takeUnlocked)){
+      if(!isRegistered){setTab(id);return;} // Show blurred preview instead of blocking
       if(!seenDisclaimer){onShowDisclaimer(()=>setTab(id));return;}
     }
     setTab(id);
   };
+  const isLockedTab=isTabLocked(tab);
 
   const callAI=async()=>{
     setAiLoading(true);setAiResult("");
@@ -782,7 +793,17 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
           ))}
         </div>
 
-        <div className="modal-scroll" style={{padding:"20px 24px"}}>
+        <div className="modal-scroll" style={{padding:"20px 24px",position:"relative"}}>
+
+          {/* Blur overlay for locked tabs */}
+          {isLockedTab&&(
+            <div style={{position:"absolute",inset:0,zIndex:5,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"rgba(5,9,26,0.6)",backdropFilter:"blur(6px)",borderRadius:8}}>
+              <div style={{fontSize:32,marginBottom:10}}>🔒</div>
+              <div style={{fontSize:16,fontWeight:700,color:TEXT,marginBottom:6}}>Full Analysis Locked</div>
+              <p style={{fontSize:13,color:MUTED,marginBottom:14,textAlign:"center",maxWidth:300}}>Sign up free to unlock mortgage calculators, cap rate analysis, BRRR tools, and AI insights.</p>
+              <button onClick={onRequireReg} className="btn-primary" style={{padding:"11px 28px",borderRadius:9,fontSize:14}}>Sign Up Free to Unlock</button>
+            </div>
+          )}
 
           {/* OVERVIEW */}
           {tab==="overview"&&(
@@ -939,6 +960,28 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
                   <span className="mono" style={{fontSize:14,fontWeight:700,color:GREEN}}>${Math.round(noi).toLocaleString()}</span>
                 </div>
               </div>
+              {/* Cash-on-Cash Breakdown */}
+              <div style={{marginTop:14,padding:"12px 16px",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:10}}>
+                <div style={{fontSize:12,fontWeight:700,color:GOLD,marginBottom:10}}>Cash-on-Cash Return Breakdown</div>
+                {[["Estimated Rent",l.estimatedRent,TEXT],["Mortgage Payment",-monthly,RED],["Property Tax (0.95%)",-propTax,RED],["Insurance (0.3%)",-propInsurance,RED],["Maintenance (5%)",-maintenance,RED],["Vacancy ("+vacancy+"%)",-vacancyLoss,RED]].map(([lbl,val,clr])=>(
+                  <div key={lbl} style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                    <span style={{fontSize:12,color:MUTED}}>{lbl}</span>
+                    <span className="mono" style={{fontSize:12,color:clr}}>{val>=0?"$":"−$"}{Math.abs(Math.round(val)).toLocaleString()}/mo</span>
+                  </div>
+                ))}
+                <div style={{display:"flex",justifyContent:"space-between",borderTop:`1px solid ${BORDER}`,paddingTop:8,marginTop:6}}>
+                  <span style={{fontSize:13,fontWeight:600,color:TEXT}}>Monthly Cash Flow</span>
+                  <span className="mono" style={{fontSize:14,fontWeight:700,color:brutoCF>=0?GREEN:RED}}>{brutoCF>=0?"$":"−$"}{Math.abs(Math.round(brutoCF)).toLocaleString()}/mo</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
+                  <span style={{fontSize:12,color:MUTED}}>Down Payment ({down}%)</span>
+                  <span className="mono" style={{fontSize:12,color:TEXT}}>${Math.round(totalCashInvested).toLocaleString()}</span>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                  <span style={{fontSize:13,fontWeight:600,color:TEXT}}>Cash-on-Cash Return</span>
+                  <span className="mono" style={{fontSize:14,fontWeight:700,color:parseFloat(cashOnCash)>=8?GREEN:parseFloat(cashOnCash)>=4?GOLD:RED}}>{cashOnCash}%</span>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1005,14 +1048,20 @@ Write in plain English, no markdown headers or bullet points. Be decisive and di
         {/* Footer CTA */}
         <div style={{padding:"16px 24px",borderTop:`1px solid ${BORDER}`,display:"flex",gap:10,flexWrap:"wrap",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontSize:11,color:MUTED}}>📍 {l.isSample?"Sample data":"Live listing"} · Courtesy: {l.brokerage||"Listing Brokerage"}</div>
-          <div style={{display:"flex",gap:8}}>
-            <a href={`mailto:hamza@nouman.ca?subject=Inquiry: ${encodeURIComponent(l.address)}&body=${encodeURIComponent("Hi Hamza, I'm interested in "+l.address+" listed at "+fmtK(l.price)+". Please send me more details.")}`}
-              style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#3B82F6,#2563EB)",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
-              ✉ Email Hamza
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <a href={`mailto:hamza@nouman.ca?subject=Book Showing: ${encodeURIComponent(l.address)}&body=${encodeURIComponent("Hi Hamza,\n\nI'd like to book a showing for:\n"+l.address+"\nListed at "+fmtK(l.price)+"\n\nPlease let me know your availability.\n\nThank you!")}`}
+              style={{display:"inline-flex",alignItems:"center",gap:6,background:"linear-gradient(135deg,#10B981,#059669)",color:"#fff",border:"none",padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
+              Book a Showing
             </a>
             <a href="tel:16476091289" style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>
-              📞 Call
+              Call
             </a>
+            <button onClick={()=>{const t=l.address+' - '+fmtK(l.price)+', '+(l.capRate||0)+'% cap rate';const u='https://mississaugainvestor.ca';if(navigator.share){navigator.share({title:t,url:u}).catch(()=>{})}else{navigator.clipboard.writeText(t+' '+u).then(()=>alert('Link copied!'))}}} style={{display:"inline-flex",alignItems:"center",gap:6,background:SURFACE,color:TEXT,border:`1px solid ${BORDER}`,padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+              Share
+            </button>
+            {onSaveDeal&&<button onClick={()=>onSaveDeal(l.id)} style={{display:"inline-flex",alignItems:"center",gap:6,background:savedDeals.includes(l.id)?"rgba(245,158,11,0.12)":SURFACE,color:savedDeals.includes(l.id)?GOLD:TEXT,border:`1px solid ${savedDeals.includes(l.id)?"rgba(245,158,11,0.3)":BORDER}`,padding:"9px 16px",borderRadius:8,fontSize:13,fontWeight:600,cursor:"pointer"}}>
+              {savedDeals.includes(l.id)?"★ Saved":"☆ Save Deal"}
+            </button>}
           </div>
         </div>
       </div>
@@ -1047,8 +1096,12 @@ function PreConForm({onClose}){
   return(
     <div style={{padding:"24px 28px"}}>
       <div style={{marginBottom:20}}>
-        <div style={{background:"rgba(196,154,60,0.08)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:10,padding:"14px 16px",marginBottom:18}}>
+        <div style={{background:"rgba(196,154,60,0.08)",border:`1px solid rgba(196,154,60,0.2)`,borderRadius:10,padding:"14px 16px",marginBottom:12}}>
           <p style={{fontSize:12,color:MUTED,lineHeight:1.6}}>🔒 <strong style={{color:GOLD}}>VIP Access Only.</strong> Pre-construction pricing and floor plans are shared directly by Hamza based on your investment profile. No public listings shown here — this is a lead capture form only. Contact Hamza for current opportunities.</p>
+        </div>
+        <div style={{background:"rgba(245,158,11,0.06)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:8,padding:"10px 14px",marginBottom:18,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:14,flexShrink:0}}>🔥</span>
+          <span style={{fontSize:12,color:TEXT2,lineHeight:1.5}}>Currently tracking <strong style={{color:GOLD}}>3 upcoming launches</strong> in Mississauga — register now for priority pricing before public release.</span>
         </div>
         {[["Full Name *","name","text"],["Phone *","phone","tel"],["Email","email","email"]].map(([label,key,type])=>(
           <div key={key} style={{marginBottom:14}}>
@@ -1158,14 +1211,25 @@ function QuizView({onResult}){
   const [leadForm,setLeadForm]=useState({name:"",phone:"",casl:false});
   const [sent,setSent]=useState(false);
 
+  const [emailGate,setEmailGate]=useState(false);
+  const [gateEmail,setGateEmail]=useState("");
+
   const handleAnswer=(ans)=>{
     const next=[...answers,ans];
     if(step<QUIZ.length-1){setAnswers(next);setStep(s=>s+1);}
     else{
-      const profiles=["cashflow","appreciation","brrr","precon"];
-      setResult(QUIZ_RESULTS[profiles[Math.floor(Math.random()*3)]]);
       setAnswers(next);
+      setEmailGate(true); // show email gate before results
     }
+  };
+
+  const handleEmailGate=()=>{
+    if(!gateEmail)return;
+    const profiles=["cashflow","appreciation","brrr","precon"];
+    setResult(QUIZ_RESULTS[profiles[Math.floor(Math.random()*3)]]);
+    setEmailGate(false);
+    // Send lead
+    fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:"Quiz Lead",email:gateEmail,source:"quiz-email-gate",timestamp:new Date().toISOString()})}).catch(()=>{});
   };
 
   const handleLead=()=>{
@@ -1182,6 +1246,21 @@ function QuizView({onResult}){
       <button onClick={()=>{setStep(0);setAnswers([]);setResult(null);setSent(false);}} className="btn-ghost" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>
         Retake Quiz
       </button>
+    </div>
+  );
+
+  if(emailGate&&!result)return(
+    <div style={{maxWidth:480,margin:"0 auto",padding:"60px 24px",textAlign:"center"}}>
+      <div style={{fontSize:48,marginBottom:16}}>📊</div>
+      <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:TEXT,marginBottom:8}}>Your results are ready!</h2>
+      <p style={{color:MUTED,fontSize:14,marginBottom:24}}>Enter your email to see your investor profile and get matched with properties.</p>
+      <input type="email" placeholder="your@email.com" value={gateEmail} onChange={e=>setGateEmail(e.target.value)}
+        style={{width:"100%",background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"12px 16px",color:TEXT,fontSize:15,marginBottom:14}}/>
+      <button onClick={handleEmailGate} disabled={!gateEmail||!gateEmail.includes("@")} className="btn-primary"
+        style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15,opacity:(!gateEmail||!gateEmail.includes("@"))?0.4:1,cursor:(!gateEmail||!gateEmail.includes("@"))?"not-allowed":"pointer"}}>
+        See My Results
+      </button>
+      <p style={{fontSize:11,color:MUTED,marginTop:12}}>We respect your privacy. Unsubscribe anytime.</p>
     </div>
   );
 
@@ -1254,7 +1333,7 @@ const MARKET_INPUTS={
   avgCondoPrice:621000,
   condoPriceYoY:-2.1,
   mortgageRate5yr:4.89,
-  bocRate:2.75,
+  bocRate:2.25,
   monthlySupplyMonths:4.2,
   newListingsMonthly:2847,
   absorptionRate:38,
@@ -1831,20 +1910,30 @@ function HoodsView({onFilterListings}){
 
             {active===name?(
               <div style={{animation:"fadeIn .2s ease"}}>
-                <p style={{fontSize:12,color:TEXT2,lineHeight:1.7,marginBottom:12,fontStyle:"italic"}}>"{h.note}"</p>
+                <p style={{fontSize:12,color:TEXT2,lineHeight:1.7,marginBottom:8}}>"{h.note}"</p>
+                <div style={{display:"flex",gap:8,marginBottom:12}}>
+                  <div style={{flex:1,background:SURFACE,borderRadius:6,padding:"6px 10px"}}>
+                    <div style={{fontSize:9,color:MUTED,marginBottom:1}}>Typical Tenant</div>
+                    <div style={{fontSize:11,color:TEXT2}}>{h.trend==='hot'?'Families, professionals':'Families, newcomers, students'}</div>
+                  </div>
+                  <div style={{flex:1,background:SURFACE,borderRadius:6,padding:"6px 10px"}}>
+                    <div style={{fontSize:9,color:MUTED,marginBottom:1}}>Investor Tip</div>
+                    <div style={{fontSize:11,color:GOLD}}>{h.rentYield>=5?'Best rent-to-price ratio':h.trend==='hot'?'Buy for appreciation':'Value-add opportunity'}</div>
+                  </div>
+                </div>
                 <div style={{display:"flex",gap:8}}>
                   <button onClick={e=>{e.stopPropagation();onFilterListings(name);}}
                     className="btn-gold-outline" style={{flex:1,padding:"8px 12px",borderRadius:8,fontSize:11}}>
-                    View {name} Listings →
+                    View {name} Listings
                   </button>
                   <button onClick={e=>{e.stopPropagation();mapInstanceRef.current?.flyTo([h.lat,h.lng],14,{duration:0.8});markersRef.current[name]?.openPopup();}}
                     style={{background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",borderRadius:8,padding:"8px 12px",fontSize:11,color:BLUE,cursor:"pointer",fontWeight:600}}>
-                    📍 Map
+                    Map
                   </button>
                 </div>
               </div>
             ):(
-              <div style={{fontSize:11,color:MUTED}}>Click to expand →</div>
+              <div style={{fontSize:11,color:MUTED}}>Click to expand</div>
             )}
           </div>
         ))}
@@ -1890,7 +1979,7 @@ function RealEstateNews(){
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [activeSource,setActiveSource]=useState("all");
-  const [activeCategory,setActiveCategory]=useState("all");
+  const [activeCategory,setActiveCategory]=useState("mississauga");
   const [lastUpdated,setLastUpdated]=useState(null);
   const [ticker,setTicker]=useState([]);
 
@@ -1961,7 +2050,7 @@ function RealEstateNews(){
 
   // Market data bar — hardcoded current context (updates when real feed connects)
   const MARKET_DATA=[
-    {label:"BoC Rate",val:"2.75%",delta:"-0.25",deltaColor:GREEN},
+    {label:"BoC Rate",val:"2.25%",delta:"-0.25",deltaColor:GREEN},
     {label:"5yr Fixed",val:"4.89%",delta:"+0.05",deltaColor:RED},
     {label:"TRREB Sales/List",val:"0.41",delta:"-0.04",deltaColor:RED},
     {label:"Avg Detached Msga",val:"$1.02M",delta:"+4.2% YoY",deltaColor:GREEN},
@@ -1997,10 +2086,10 @@ function RealEstateNews(){
           <div style={{fontSize:9,fontWeight:700,color:BLUE,letterSpacing:"0.1em",textTransform:"uppercase",paddingRight:16,borderRight:`1px solid ${BORDER}`,marginRight:16,whiteSpace:"nowrap",flexShrink:0}}>MARKET</div>
           {MARKET_DATA.map((m,i)=>(
             <div key={i} style={{paddingRight:20,marginRight:20,borderRight:i<MARKET_DATA.length-1?`1px solid rgba(255,255,255,0.05)`:"none",flexShrink:0}}>
-              <div style={{fontSize:9,color:MUTED,fontWeight:500,whiteSpace:"nowrap",marginBottom:2}}>{m.label}</div>
+              <div style={{fontSize:10,color:MUTED,fontWeight:500,whiteSpace:"nowrap",marginBottom:2,letterSpacing:'0.03em'}}>{m.label}</div>
               <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:TEXT}}>{m.val}</span>
-                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:9,color:m.deltaColor,fontWeight:600}}>{m.delta}</span>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:15,fontWeight:700,color:TEXT}}>{m.val}</span>
+                <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:10,color:m.deltaColor,fontWeight:600}}>{m.delta}</span>
               </div>
             </div>
           ))}
@@ -2163,7 +2252,11 @@ function Footer({onPrivacy}){
             <div style={{fontSize:12,color:MUTED,lineHeight:1.8}}>
               📞 <a href="tel:16476091289" style={{color:MUTED,textDecoration:"none"}}>647-609-1289</a><br/>
               ✉️ <a href="mailto:hamza@nouman.ca" style={{color:MUTED,textDecoration:"none"}}>hamza@nouman.ca</a><br/>
-              🌐 
+              🌐 <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" style={{color:MUTED,textDecoration:"none"}}>hamzahomes.ca</a>
+            </div>
+            <div style={{display:"flex",gap:12,alignItems:"center",marginTop:12}}>
+              <a href="https://www.royallepage.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",background:"rgba(255,255,255,0.04)",borderRadius:6,border:`1px solid ${BORDER}`,fontSize:11,color:MUTED,textDecoration:"none"}}>👑 Royal LePage</a>
+              <a href="https://www.reco.on.ca" target="_blank" rel="noreferrer" style={{display:"inline-flex",alignItems:"center",gap:6,padding:"4px 10px",background:"rgba(255,255,255,0.04)",borderRadius:6,border:`1px solid ${BORDER}`,fontSize:11,color:MUTED,textDecoration:"none"}}>Licensed by RECO</a>
             </div>
           </div>
           <div style={{flex:1,minWidth:160}}>
@@ -2309,7 +2402,7 @@ function Header({activeNav,setActiveNav,onSeller}){
 /* ─────────────────────────────────────────────
    HERO SECTION
 ───────────────────────────────────────────── */
-function Hero({onCTA,setActiveNav}){
+function Hero({onCTA,setActiveNav,listingCount=0}){
   return(
     <section aria-label="Hero" style={{padding:"64px 24px 52px",maxWidth:1240,margin:"0 auto",position:"relative",zIndex:1}}>
       <div style={{textAlign:"center",animation:"fadeUp .65s cubic-bezier(.22,1,.36,1) both"}}>
@@ -2330,7 +2423,7 @@ function Hero({onCTA,setActiveNav}){
 
         {/* Sub */}
         <p style={{fontSize:"clamp(15px,2vw,19px)",color:TEXT2,maxWidth:580,margin:"0 auto 36px",lineHeight:1.75,fontWeight:400}}>
-          AI-powered cap rate analysis, cash flow projections, and personal conviction scores on every deal — before your competition even opens Realtor.ca.
+          {listingCount>0?listingCount.toLocaleString():'1,800+'} live Mississauga properties scored and ranked in real-time. Cap rates, cash flow, and AI deal scores on every listing — updated hourly.
         </p>
 
         {/* CTAs */}
@@ -2348,7 +2441,7 @@ function Hero({onCTA,setActiveNav}){
           {[
             {icon:"★",val:"4.9/5",label:"Investor Rating"},
             {icon:"✓",val:"8+",label:"Years GTA Experience"},
-            {icon:"⚡",val:"20+",label:"Properties Scored"},
+            {icon:"⚡",val:listingCount>0?listingCount.toLocaleString()+"+":'1,800+',label:"Properties Scored"},
             {icon:"🏆",val:"Master Sales",label:"Award Winner"},
           ].map((s,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 16px",background:"rgba(255,255,255,0.03)",border:`1px solid rgba(255,255,255,0.07)`,borderRadius:8}}>
@@ -2506,6 +2599,7 @@ function ListingsMap({listings,onOpenListing}){
 function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false}){
   const [propType,setPropType]=useState("All");
   const [sort,setSort]=useState("score");
+  const [showScoreInfo,setShowScoreInfo]=useState(false);
   const [search,setSearch]=useState("");
   const [chips,setChips]=useState(new Set());
   const [showFilters,setShowFilters]=useState(false);
@@ -2513,6 +2607,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   const [filters,setFilters]=useState({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});
   const [page,setPage]=useState(1);
   const PER_PAGE=24;
+  const loadMoreRef=useRef(null);
 
   const toggleChip=c=>{setChips(prev=>{const n=new Set(prev);n.has(c)?n.delete(c):n.add(c);return n;});setPage(1);};
 
@@ -2574,11 +2669,19 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   const activeFilters=chips.size+(propType!=="All"?1:0)+(filterHood?1:0)+(search?1:0)+(filters.priceMin>0||filters.priceMax<5000000||filters.bedsMin>0||filters.capRateMin>0||filters.scoreMin>0?1:0);
   const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});setPage(1);};
 
-  // Pagination
+  // Infinite scroll — show items 0..page*PER_PAGE
   const totalPages=Math.ceil(filtered.length/PER_PAGE);
-  const paged=viewMode==="map"?filtered:filtered.slice((page-1)*PER_PAGE,page*PER_PAGE);
-  // Reset page if out of bounds
-  useEffect(()=>{if(page>totalPages&&totalPages>0)setPage(1);},[page,totalPages]);
+  const paged=viewMode==="map"?filtered:filtered.slice(0,page*PER_PAGE);
+  const hasMore=page<totalPages;
+  // Reset page when filters change
+  useEffect(()=>{setPage(1);},[propType,sort,search,filterHood]);
+  // IntersectionObserver for infinite scroll
+  useEffect(()=>{
+    if(!loadMoreRef.current||viewMode==="map")return;
+    const obs=new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&hasMore)setPage(p=>p+1);},{rootMargin:"400px"});
+    obs.observe(loadMoreRef.current);
+    return()=>obs.disconnect();
+  },[hasMore,viewMode]);
 
   return(
     <section aria-label="Property Listings" id="listings">
@@ -2618,6 +2721,37 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* How scoring works */}
+      <div style={{textAlign:"right",marginBottom:8}}>
+        <button onClick={()=>setShowScoreInfo(!showScoreInfo)} style={{background:"none",border:"none",color:BLUE,fontSize:11,cursor:"pointer",fontWeight:600}}>
+          {showScoreInfo?'Hide':'How the score works'}
+        </button>
+      </div>
+      {showScoreInfo&&(
+        <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:12,padding:"18px 22px",marginBottom:18,animation:"slideDown .2s ease"}}>
+          <h3 style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:12}}>How The Deal Score Works</h3>
+          <p style={{fontSize:12,color:MUTED,marginBottom:12,lineHeight:1.6}}>Every property is scored 1-10 based on investment potential using Hamza's framework:</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:8}}>
+            {[
+              {f:"Cash Flow",w:"30%",d:"Break-even = 7.5. Positive CF scores higher. Calibrated to Mississauga norms."},
+              {f:"Days on Market",w:"25%",d:"Longer DOM = more leverage. Sweet spot: 30-90 days."},
+              {f:"Price Reduction",w:"20%",d:"Price drops signal motivated sellers and negotiation room."},
+              {f:"Cap Rate / Yield",w:"25%",d:"Higher cap rate = higher score. 4%+ is strong for Mississauga."},
+              {f:"Suite Bonus",w:"+1.0",d:"Properties with basement suite potential get a bonus point."},
+            ].map(s=>(
+              <div key={s.f} style={{background:SURFACE,borderRadius:8,padding:"10px 12px",border:`1px solid ${BORDER}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                  <span style={{fontSize:11,fontWeight:700,color:TEXT}}>{s.f}</span>
+                  <span style={{fontSize:10,color:GOLD,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{s.w}</span>
+                </div>
+                <p style={{fontSize:10,color:MUTED,lineHeight:1.5}}>{s.d}</p>
+              </div>
+            ))}
+          </div>
+          <p style={{fontSize:10,color:MUTED,marginTop:10}}>Scores recalculate hourly with live data. This is Hamza's personal investment framework — not a generic formula.</p>
         </div>
       )}
 
@@ -2700,6 +2834,8 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
               CLEAR ALL ({activeFilters})
             </button>
           )}
+
+          {viewMode==="table"&&<button onClick={()=>{const h=['Address','Price','Cap Rate','Cash Flow','DOM','Score','Type','Neighbourhood'];const r=filtered.map(l=>['"'+(l.address||'').replace(/"/g,'""')+'"',l.price,(l.capRate||0),l.cashFlow||0,l.dom||0,(l.hamzaScore||0).toFixed(1),l.type||'',l.neighbourhood||'']);const csv=[h,...r].map(r=>r.join(',')).join('\n');const b=new Blob([csv],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='mississauga-deals-'+new Date().toISOString().split('T')[0]+'.csv';a.click();URL.revokeObjectURL(u);}} className="btn-ghost" style={{padding:"6px 12px",borderRadius:6,fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}>CSV</button>}
 
           <span style={{fontSize:11,color:MUTED,marginLeft:"auto",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{viewMode==="map"?filtered.length:(page-1)*PER_PAGE+1+"–"+Math.min(page*PER_PAGE,filtered.length)}<span style={{color:"#3A5070"}}> / {filtered.length}</span></span>
         </div>
@@ -2826,29 +2962,16 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
         </div>
       )}
 
-      {/* ═══ PAGINATION ═══ */}
-      {viewMode!=="map"&&totalPages>1&&(
-        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginTop:24,flexWrap:"wrap"}}>
-          <button onClick={()=>{setPage(1);window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===1}
-            style={{padding:"8px 12px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===1?"default":"pointer",background:page===1?"transparent":CARD,border:`1px solid ${page===1?"transparent":BORDER}`,color:page===1?MUTED:TEXT}}>«</button>
-          <button onClick={()=>{setPage(p=>Math.max(1,p-1));window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===1}
-            style={{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===1?"default":"pointer",background:page===1?"transparent":CARD,border:`1px solid ${page===1?"transparent":BORDER}`,color:page===1?MUTED:TEXT}}>‹ Prev</button>
-          {(()=>{
-            const pages=[];
-            let start=Math.max(1,page-3),end=Math.min(totalPages,page+3);
-            if(start>1){pages.push(1);if(start>2)pages.push("...");}
-            for(let i=start;i<=end;i++)pages.push(i);
-            if(end<totalPages){if(end<totalPages-1)pages.push("...");pages.push(totalPages);}
-            return pages.map((p,i)=>p==="..."?<span key={"e"+i} style={{color:MUTED,fontSize:12,padding:"0 4px"}}>…</span>:
-              <button key={p} onClick={()=>{setPage(p);window.scrollTo({top:300,behavior:"smooth"});}}
-                style={{width:36,height:36,borderRadius:6,fontSize:12,fontWeight:p===page?700:500,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer",background:p===page?"rgba(59,130,246,0.2)":CARD,border:`1px solid ${p===page?"rgba(59,130,246,0.5)":BORDER}`,color:p===page?BLUE:TEXT}}>{p}</button>
-            );
-          })()}
-          <button onClick={()=>{setPage(p=>Math.min(totalPages,p+1));window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===totalPages}
-            style={{padding:"8px 14px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===totalPages?"default":"pointer",background:page===totalPages?"transparent":CARD,border:`1px solid ${page===totalPages?"transparent":BORDER}`,color:page===totalPages?MUTED:TEXT}}>Next ›</button>
-          <button onClick={()=>{setPage(totalPages);window.scrollTo({top:300,behavior:"smooth"});}} disabled={page===totalPages}
-            style={{padding:"8px 12px",borderRadius:6,fontSize:12,fontWeight:600,fontFamily:"'JetBrains Mono',monospace",cursor:page===totalPages?"default":"pointer",background:page===totalPages?"transparent":CARD,border:`1px solid ${page===totalPages?"transparent":BORDER}`,color:page===totalPages?MUTED:TEXT}}>»</button>
-          <span style={{fontSize:11,color:MUTED,marginLeft:8,fontFamily:"'JetBrains Mono',monospace"}}>Page {page} of {totalPages}</span>
+      {/* ═══ INFINITE SCROLL SENTINEL ═══ */}
+      {viewMode!=="map"&&<div ref={loadMoreRef} style={{height:1}}/>}
+      {viewMode!=="map"&&hasMore&&(
+        <div style={{textAlign:"center",padding:"24px 0"}}>
+          <span style={{fontSize:12,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>Loading more… ({paged.length} of {filtered.length})</span>
+        </div>
+      )}
+      {viewMode!=="map"&&!hasMore&&filtered.length>0&&(
+        <div style={{textAlign:"center",padding:"16px 0"}}>
+          <span style={{fontSize:11,color:MUTED}}>Showing all {filtered.length} properties</span>
         </div>
       )}
     </section>
@@ -2930,19 +3053,21 @@ function Testimonials(){
 export default function App(){
   const [activeNav,setActiveNav]=useState("listings");
   const [selectedListing,setSelectedListing]=useState(null);
-  const [isRegistered,setIsRegistered]=useState(false);
+  const [isRegistered,setIsRegistered]=useState(()=>{try{return localStorage.getItem('user_registered')==='true'}catch{return false}});
   const [liveListings,setLiveListings]=useState([]);
   const [usingLiveFeed,setUsingLiveFeed]=useState(false);
-  const [freeViews,setFreeViews]=useState(5);
+  const [freeViews,setFreeViews]=useState(()=>{try{const v=localStorage.getItem('listing_views');return v?3-parseInt(v):3}catch{return 3}});
   const [showRegModal,setShowRegModal]=useState(false);
   const [pendingListing,setPendingListing]=useState(null);
   const [showPrecon,setShowPrecon]=useState(false);
   const [showSeller,setShowSeller]=useState(false);
   const [showPrivacy,setShowPrivacy]=useState(false);
-  const [cookieConsent,setCookieConsent]=useState(null); // null=not answered, "all"/"essential"
+  const [cookieConsent,setCookieConsent]=useState(()=>{try{return localStorage.getItem('cookie_consent')}catch{return null}}); // null=not answered, "all"/"essential"
   const [seenDisclaimer,setSeenDisclaimer]=useState(false);
   const [disclaimerCallback,setDisclaimerCallback]=useState(null);
   const [filterHood,setFilterHood]=useState(null);
+  const [showExitPopup,setShowExitPopup]=useState(false);
+  const [savedDeals,setSavedDeals]=useState(()=>{try{return JSON.parse(localStorage.getItem('saved_deals')||'[]')}catch{return[]}});
 
   // Check stored cookie consent
   // Load ALL live TRREB listings from PropTx API (paginated)
@@ -3178,6 +3303,16 @@ export default function App(){
     // In production, this would check a cookie
   },[]);
 
+  // Exit-intent popup
+  useEffect(()=>{
+    if(isRegistered)return;
+    const shown=sessionStorage.getItem('exit_popup_shown');
+    if(shown)return;
+    const h=e=>{if(e.clientY<=0){setShowExitPopup(true);sessionStorage.setItem('exit_popup_shown','true');}};
+    document.addEventListener('mouseleave',h);
+    return()=>document.removeEventListener('mouseleave',h);
+  },[isRegistered]);
+
   // Scroll to top on tab change
   useEffect(()=>{window.scrollTo({top:0,behavior:"smooth"});},[activeNav]);
 
@@ -3185,12 +3320,12 @@ export default function App(){
     if(!isRegistered&&freeViews<=0){
       setPendingListing(l);setShowRegModal(true);return;
     }
-    if(!isRegistered)setFreeViews(v=>v-1);
+    if(!isRegistered){setFreeViews(v=>{const nv=v-1;try{localStorage.setItem('listing_views',String(3-nv))}catch{}return nv;});}
     setSelectedListing(l);
   };
 
   const handleRegSuccess=(name)=>{
-    setIsRegistered(true);setShowRegModal(false);
+    setIsRegistered(true);try{localStorage.setItem('user_registered','true')}catch{}setShowRegModal(false);
     if(pendingListing){setSelectedListing(pendingListing);setPendingListing(null);}
   };
 
@@ -3202,6 +3337,14 @@ export default function App(){
   const handleDisclaimerAccept=()=>{
     setSeenDisclaimer(true);
     if(disclaimerCallback){disclaimerCallback();setDisclaimerCallback(null);}
+  };
+
+  const handleSaveDeal=(id)=>{
+    setSavedDeals(prev=>{
+      const next=prev.includes(id)?prev.filter(d=>d!==id):[...prev,id];
+      try{localStorage.setItem('saved_deals',JSON.stringify(next))}catch{}
+      return next;
+    });
   };
 
   const handleFilterHood=(hood)=>{
@@ -3225,9 +3368,27 @@ export default function App(){
       {/* Cookie Consent */}
       {cookieConsent===null&&(
         <CookieBanner
-          onAccept={()=>setCookieConsent("all")}
-          onDecline={()=>setCookieConsent("essential")}
+          onAccept={()=>{setCookieConsent("all");try{localStorage.setItem('cookie_consent','all')}catch{}}}
+          onDecline={()=>{setCookieConsent("essential");try{localStorage.setItem('cookie_consent','essential')}catch{}}}
         />
+      )}
+
+      {/* Exit-intent popup */}
+      {showExitPopup&&!isRegistered&&(
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setShowExitPopup(false)}} style={{zIndex:150}}>
+          <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.3)`,borderRadius:16,width:"100%",maxWidth:460,animation:"fadeUp .3s ease",padding:"32px 28px",textAlign:"center"}}>
+            <button onClick={()=>setShowExitPopup(false)} style={{position:"absolute",top:16,right:20,background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:20}}>x</button>
+            <div style={{fontSize:36,marginBottom:12}}>📊</div>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:TEXT,marginBottom:8}}>Before you go...</h2>
+            <p style={{fontSize:14,color:MUTED,lineHeight:1.7,marginBottom:20}}>
+              Sign up free to get Hamza's personal investment take, AI deal scores, and cash flow analysis on every Mississauga property.
+            </p>
+            <button onClick={()=>{setShowExitPopup(false);setShowRegModal(true);}} className="btn-primary" style={{width:"100%",padding:"14px",borderRadius:10,fontSize:15,marginBottom:10}}>
+              Get Free Access
+            </button>
+            <button onClick={()=>setShowExitPopup(false)} style={{background:"none",border:"none",color:MUTED,fontSize:13,cursor:"pointer",padding:"8px"}}>No thanks</button>
+          </div>
+        </div>
       )}
 
       {/* Modals */}
@@ -3240,6 +3401,8 @@ export default function App(){
           onRequireReg={()=>{setPendingListing(selectedListing);setSelectedListing(null);setShowRegModal(true);}}
           seenDisclaimer={seenDisclaimer}
           onShowDisclaimer={handleShowDisclaimer}
+          savedDeals={savedDeals}
+          onSaveDeal={handleSaveDeal}
         />
       )}
       {disclaimerCallback&&!seenDisclaimer&&<InvDisclaimerModal onAccept={handleDisclaimerAccept}/>}
@@ -3273,9 +3436,45 @@ export default function App(){
       <main id="main-content" style={{maxWidth:1240,margin:"0 auto",padding:"0 24px 48px",position:"relative",zIndex:1}}>
 
         {/* Hero (only on listings) */}
-        {activeNav==="listings"&&<Hero onCTA={()=>setShowRegModal(true)} setActiveNav={setActiveNav}/>}
+        {activeNav==="listings"&&<Hero onCTA={()=>setShowRegModal(true)} setActiveNav={setActiveNav} listingCount={liveListings.length}/>}
 
         {/* Pre-con banner */}
+        {/* Testimonials strip — above listings */}
+        {activeNav==="listings"&&(
+          <div style={{marginBottom:24}}>
+            <div style={{display:"flex",gap:14,overflowX:"auto",paddingBottom:8}}>
+              {[
+                {name:"Arjun P.",quote:"The scoring system saved me weeks of analysis. Closed $31K under ask.",result:"+$420/mo CF"},
+                {name:"Fatima R.",quote:"Hamza walked me through BRRR, found a townhouse 67 DOM. Refinanced in 8 months.",result:"Refinanced in 8mo"},
+                {name:"David K.",quote:"Identified a LRT corridor play in Cooksville. 4.9% cap rate at purchase.",result:"4.9% cap rate"},
+              ].map(t=>(
+                <div key={t.name} style={{flexShrink:0,width:300,background:CARD,border:`1px solid ${BORDER}`,borderRadius:10,padding:"14px 16px"}}>
+                  <div style={{display:"flex",gap:2,marginBottom:6}}>{[1,2,3,4,5].map(s=><span key={s} style={{color:GOLD,fontSize:10}}>★</span>)}</div>
+                  <p style={{fontSize:12,color:TEXT2,lineHeight:1.6,marginBottom:8,fontStyle:"italic"}}>"{t.quote}"</p>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:11,color:BLUE,fontWeight:700}}>{t.name}</span>
+                    <span style={{fontSize:10,color:GREEN,fontWeight:600,background:"rgba(16,185,129,0.08)",padding:"2px 8px",borderRadius:4}}>{t.result}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Weekly Top 10 Deals Signup */}
+        {activeNav==="listings"&&(
+          <div style={{background:`linear-gradient(135deg,rgba(196,154,60,0.06),rgba(59,130,246,0.04))`,border:`1px solid rgba(196,154,60,0.2)`,borderRadius:12,padding:"18px 22px",marginBottom:24,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap",justifyContent:"space-between"}}>
+            <div>
+              <div style={{fontSize:14,fontWeight:700,color:TEXT,marginBottom:2}}>📬 Weekly Top 10 Deals</div>
+              <div style={{fontSize:12,color:MUTED}}>Get the 10 best-scoring Mississauga investment properties delivered every Monday.</div>
+            </div>
+            <form onSubmit={e=>{e.preventDefault();const em=e.target.elements.top10email.value;if(!em)return;fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:"Top 10 Subscriber",email:em,source:"weekly-top-10",timestamp:new Date().toISOString()})}).catch(()=>{});e.target.elements.top10email.value="";e.target.querySelector("button").textContent="Subscribed ✓";}} style={{display:"flex",gap:8}}>
+              <input name="top10email" type="email" placeholder="your@email.com" required style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"8px 14px",color:TEXT,fontSize:13,width:220}}/>
+              <button type="submit" className="btn-primary" style={{padding:"8px 18px",borderRadius:8,fontSize:13,whiteSpace:"nowrap"}}>Subscribe Free</button>
+            </form>
+          </div>
+        )}
+
         {activeNav==="precon"?(
           <div style={{padding:"40px 0"}}>
             <div style={{textAlign:"center",marginBottom:32}}>
