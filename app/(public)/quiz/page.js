@@ -142,10 +142,10 @@ export default function QuizPage() {
           <div className="text-center mb-6">
             <div className="text-4xl mb-3">🎯</div>
             <h2 className="font-heading font-semibold text-xl text-navy mb-2">
-              Your personalized deals are ready!
+              Your investment profile is ready
             </h2>
             <p className="text-sm text-muted">
-              Enter your email to see listings that match your criteria.
+              Enter your details below and we&apos;ll send you a curated list of properties tailored to your goals within 24 hours.
             </p>
           </div>
 
@@ -188,7 +188,7 @@ export default function QuizPage() {
               disabled={loading}
               className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
             >
-              {loading ? 'Finding your deals...' : 'Show My Deals'}
+              {loading ? 'Submitting...' : 'Get My Curated Deals'}
             </button>
           </form>
 
