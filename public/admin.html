@@ -244,6 +244,7 @@ select.input{cursor:pointer}
 // ─── DATA ──────────────────────────────────────────────────────────────────
 const KEYS={listings:'mi_listings',blogs:'mi_blogs',leads:'mi_leads',settings:'mi_settings',seo:'mi_seo',images:'mi_images'};
 const DEFAULT_PASS='hamza2025';
+let adminKey='';
 const DEFAULT_SETTINGS={agentName:'Hamza Nouman',title:'Sales Representative',brokerage:'Royal LePage Signature Realty, Brokerage',phone:'647-609-1289',email:'hamza@nouman.ca',website:'https://www.hamzahomes.ca',whatsapp:'16476091289',calendly:'https://calendly.com/hamzanouman',bio:'Specializing in Mississauga investment properties with deep expertise in cap rate analysis, BRRR strategies, and the Hurontario LRT corridor.',awards:'Master Sales Award',languages:'English, Urdu, Hindi',siteMode:'demo'};
 const DEFAULT_SEO={siteTitle:'Mississauga Investor | Investment Property Intelligence',siteDesc:'Find the best investment properties in Mississauga with expert analysis from Hamza Nouman, Sales Representative at Royal LePage Signature Realty, Brokerage.',keywords:'mississauga investment properties, cash flow properties mississauga, hamza nouman realtor',googleAnalytics:'',canonicalBase:'https://mississaugainvestor.ca'};
 const DEFAULT_IMAGES={agentPhoto:null,heroBg:null,logoImage:null,aboutBanner:null,marketPulseBanner:null,preconBanner:null,neighbourhoods:{Clarkson:null,'Port Credit':null,Lakeview:null,'Churchill Meadows':null,Streetsville:null,'Erin Mills':null,Cooksville:null,Hurontario:null,Meadowvale:null,Malton:null}};
@@ -288,9 +289,36 @@ function save(key){
 }
 
 // ─── AUTH ─────────────────────────────────────────────────────────────────
-function doLogin(){
+async function doLogin(){
   const p=document.getElementById('pass-input').value;
   const err=document.getElementById('login-error');
+  err.style.display='none';
+  // Try API auth first
+  try{
+    const res=await fetch('/api/admin/leads',{headers:{'x-admin-key':p}});
+    if(res.ok){
+      adminKey=p;
+      const data=await res.json();
+      // Map Supabase leads to admin UI format
+      state.leads=(data.leads||[]).map(l=>({
+        id:l.id,
+        name:l.name||'—',
+        phone:l.phone||'',
+        email:l.email||'',
+        type:l.source||'unknown',
+        date:l.created_at?l.created_at.split('T')[0]:'',
+        casl:true,
+        notes:l.notes||''
+      }));
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app').style.display='flex';
+      loadState();
+      updateBadges();
+      nav('dashboard');
+      return;
+    }
+  }catch(e){}
+  // Fallback to local password
   if(p===DB.getPass()){
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
@@ -815,12 +843,16 @@ function renderBlogForm(){
 let leadsFilter='All';
 function renderLeads(){
   const el=document.getElementById('section-leads');
-  const types=['All','Registration','Pre-Con VIP','Seller','Quiz'];
+  const allTypes=[...new Set(state.leads.map(l=>l.type))].sort();
+  const types=['All',...allTypes];
   const filtered=leadsFilter==='All'?state.leads:state.leads.filter(l=>l.type===leadsFilter);
   el.innerHTML=`
   <div class="section-header">
     <div><div class="section-title">Leads Manager</div><div class="section-sub">${state.leads.length} total · all CASL consented</div></div>
-    <button class="btn btn-ghost" onclick="exportLeads()">📥 Export CSV</button>
+    <div style="display:flex;gap:8px">
+      ${adminKey?'<button class="btn btn-ghost" onclick="refreshLeads()">🔄 Refresh</button>':''}
+      <button class="btn btn-ghost" onclick="exportLeads()">📥 Export CSV</button>
+    </div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
     ${types.map(t=>`<button class="btn ${leadsFilter===t?'btn-gold':'btn-ghost'} btn-sm" style="${leadsFilter!==t?'border:1px solid var(--border)':''}" onclick="leadsFilter='${t}';render('leads')">${t}${t!=='All'?' ('+state.leads.filter(l=>l.type===t).length+')':''}</button>`).join('')}
@@ -842,8 +874,13 @@ function renderLeads(){
   ${filtered.length===0?'<div style="text-align:center;padding:40px;color:var(--muted)">No leads in this category.</div>':''}`;
 }
 
-function deleteLead(id){
+async function deleteLead(id){
   if(!confirm('Delete this lead?'))return;
+  if(adminKey){
+    try{
+      await fetch('/api/admin/leads?id='+encodeURIComponent(id),{method:'DELETE',headers:{'x-admin-key':adminKey}});
+    }catch(e){}
+  }
   state.leads=state.leads.filter(l=>l.id!==id);
   save('leads');
   render('leads');
@@ -858,6 +895,28 @@ function exportLeads(){
   a.download='mi-leads-'+new Date().toISOString().split('T')[0]+'.csv';
   a.click();
   showToast('Leads exported as CSV');
+}
+
+async function refreshLeads(){
+  if(!adminKey)return;
+  try{
+    const res=await fetch('/api/admin/leads',{headers:{'x-admin-key':adminKey}});
+    if(!res.ok)return showToast('Failed to refresh','error');
+    const data=await res.json();
+    state.leads=(data.leads||[]).map(l=>({
+      id:l.id,
+      name:l.name||'—',
+      phone:l.phone||'',
+      email:l.email||'',
+      type:l.source||'unknown',
+      date:l.created_at?l.created_at.split('T')[0]:'',
+      casl:true,
+      notes:l.notes||''
+    }));
+    updateBadges();
+    render('leads');
+    showToast('Leads refreshed — '+state.leads.length+' total');
+  }catch(e){showToast('Network error','error');}
 }
 
 // ─── IMAGES ───────────────────────────────────────────────────────────────

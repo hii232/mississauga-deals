@@ -8,7 +8,7 @@ const supabase =
 
 export async function POST(request) {
   const body = await request.json().catch(() => ({}));
-  const { name, email, phone, listingId, listingAddress, listingPrice, source, timestamp } = body;
+  const { name, email, phone, listingId, listingAddress, listingPrice, source, notes, timestamp } = body;
 
   if (!email || !email.includes('@')) {
     return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
@@ -36,6 +36,7 @@ export async function POST(request) {
       listing_address: listingAddress || null,
       listing_price: listingPrice || null,
       source: source || 'unknown',
+      notes: notes || null,
       created_at: timestamp || new Date().toISOString(),
     });
 
