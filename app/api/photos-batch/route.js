@@ -15,7 +15,7 @@ export async function POST(request) {
   const result = {};
 
   try {
-    // Try ResourceRecordKey first
+    // Pass 1: Try ResourceRecordKey (bulk query)
     const filter1 = batch.map((id) => "ResourceRecordKey eq '" + id + "'").join(' or ');
     const r1 = await fetch(
       BASE + '/Media?$filter=' + encodeURIComponent(filter1) +
@@ -32,13 +32,13 @@ export async function POST(request) {
       }
     }
 
-    // Find missing — try ListingKey
-    const missing = batch.filter((id) => !result[id]);
-    if (missing.length > 0) {
-      const filter2 = missing.map((id) => "ListingKey eq '" + id + "'").join(' or ');
+    // Pass 2: Missing — try ListingKey (bulk query)
+    const missing1 = batch.filter((id) => !result[id]);
+    if (missing1.length > 0) {
+      const filter2 = missing1.map((id) => "ListingKey eq '" + id + "'").join(' or ');
       const r2 = await fetch(
         BASE + '/Media?$filter=' + encodeURIComponent(filter2) +
-        '&$orderby=ListingKey,Order asc&$top=' + (missing.length * 3) +
+        '&$orderby=ListingKey,Order asc&$top=' + (missing1.length * 3) +
         '&$select=MediaURL,ListingKey,Order',
         { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
       );
@@ -50,6 +50,26 @@ export async function POST(request) {
           if (key && u && !result[key]) result[key] = u;
         }
       }
+    }
+
+    // Pass 3: Still missing — try Navigation property (individual, parallel)
+    const missing2 = batch.filter((id) => !result[id]);
+    if (missing2.length > 0) {
+      const navPromises = missing2.map((id) =>
+        fetch(
+          BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
+          { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
+        )
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (d?.value?.length) {
+              const u = d.value[0].MediaURL || d.value[0].MediaUrl || '';
+              if (u) result[id] = u;
+            }
+          })
+          .catch(() => {})
+      );
+      await Promise.all(navPromises);
     }
 
     return NextResponse.json({ photos: result }, {
