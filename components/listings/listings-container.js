@@ -114,12 +114,26 @@ export function ListingsContainer({ initialListings }) {
     let cancelled = false;
     async function fetchClient() {
       try {
-        const res = await fetch('/api/listings');
+        const res = await fetch('/api/listings?limit=200&page=1');
         if (!res.ok) return;
         const data = await res.json();
         const raw = data.listings || data || [];
+        const totalPages = data.pages || 1;
+
+        // Fetch remaining pages
+        if (totalPages > 1) {
+          for (let p = 2; p <= totalPages && !cancelled; p++) {
+            try {
+              const r = await fetch('/api/listings?limit=200&page=' + p);
+              if (r.ok) {
+                const pg = await r.json();
+                if (pg?.listings) raw.push(...pg.listings);
+              }
+            } catch { /* continue */ }
+          }
+        }
+
         if (!cancelled && raw.length > 0) {
-          // Dynamic import to avoid bundling server code unnecessarily
           const { processListings } = await import('@/lib/listings/process-listings');
           setListings(processListings(raw));
         }
@@ -181,8 +195,7 @@ export function ListingsContainer({ initialListings }) {
     const sortOpt = SORT_OPTIONS.find((s) => s.key === sortKey);
     if (sortOpt) result.sort(sortOpt.fn);
 
-    // VOW compliance: max 100
-    return result.slice(0, 100);
+    return result;
   }, [listings, search, propertyType, activeStrategies, sortKey]);
 
   const compareListings = useMemo(

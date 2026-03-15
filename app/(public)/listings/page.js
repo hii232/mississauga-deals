@@ -12,14 +12,32 @@ async function fetchListings() {
     const baseUrl = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/listings`, {
+
+    // Fetch first page to get total count
+    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
       next: { revalidate: 300 },
     });
-
     if (!res.ok) return [];
-
     const data = await res.json();
     const raw = data.listings || data || [];
+    const totalPages = data.pages || 1;
+
+    // Fetch remaining pages if any
+    if (totalPages > 1) {
+      const pagePromises = [];
+      for (let p = 2; p <= totalPages; p++) {
+        pagePromises.push(
+          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
+            next: { revalidate: 300 },
+          }).then((r) => r.ok ? r.json() : null)
+        );
+      }
+      const pages = await Promise.all(pagePromises);
+      for (const pg of pages) {
+        if (pg?.listings) raw.push(...pg.listings);
+      }
+    }
+
     return processListings(raw);
   } catch {
     return [];

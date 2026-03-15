@@ -368,7 +368,7 @@ function PhotoGallery({ photos, listingId }) {
     let cancelled = false;
     async function loadPhotos() {
       try {
-        const res = await fetch('/api/photos?id=' + encodeURIComponent(listingId));
+        const res = await fetch('/api/photos-all?id=' + encodeURIComponent(listingId));
         if (!res.ok) return;
         const data = await res.json();
         if (!cancelled && data.photos?.length > 0) {
