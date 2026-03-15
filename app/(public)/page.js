@@ -147,7 +147,7 @@ function GoogleReviews() {
             {[1, 2, 3, 4, 5].map((s) => (
               <span key={s} className="text-gold text-xl">★</span>
             ))}
-            <span className="text-sm text-muted ml-2">5.0 on Google</span>
+            <span className="text-sm text-muted ml-2">5.0 on Google (28 reviews)</span>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
