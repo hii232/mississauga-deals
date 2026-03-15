@@ -8,6 +8,7 @@ import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
+import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
@@ -382,8 +383,9 @@ function PhotoGallery({ photos, listingId }) {
   }, [photos, listingId]);
 
   const resolvedPhotos = photos?.length > 0 ? photos : fetchedPhotos;
-  const images = resolvedPhotos?.length ? resolvedPhotos : ['/images/placeholder-property.jpg'];
-  const hasRealPhotos = resolvedPhotos?.length > 0;
+  const dedupedPhotos = resolvedPhotos?.length ? deduplicatePhotos(resolvedPhotos) : null;
+  const images = dedupedPhotos?.length ? dedupedPhotos : ['/images/placeholder-property.jpg'];
+  const hasRealPhotos = dedupedPhotos?.length > 0;
 
   return (
     <div className="space-y-3">
