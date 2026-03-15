@@ -31,12 +31,9 @@ export async function GET(request) {
       'Latitude', 'Longitude', 'ModificationTimestamp',
     ].join(',');
 
-    // Status values to try — AMPRE/CREA may use different conventions
+    // AMPRE uses 'Closed' for sold listings (confirmed working)
     const statusAttempts = [
       "StandardStatus eq 'Closed'",
-      "StandardStatus eq 'Sold'",
-      "(StandardStatus eq 'Closed' or StandardStatus eq 'Sold')",
-      "StandardStatus ne 'Active'",  // catch-all: everything that's NOT active
     ];
 
     let items = [];
@@ -51,14 +48,14 @@ export async function GET(request) {
       // Similar property type
       if (type) {
         const typeMap = {
-          'Detached': "PropertyType eq 'Residential'",
-          'Semi-Detached': "(PropertySubType eq 'Semi-Detached' or PropertySubType eq 'Semi-detached')",
-          'Townhouse': "(PropertySubType eq 'Att/Row/Twnhouse' or PropertySubType eq 'Row / Townhouse')",
-          'Condo': "PropertyType eq 'Condominium'",
-          'Duplex': "PropertySubType eq 'Duplex'",
-          'Triplex': "PropertySubType eq 'Triplex'",
-          'Fourplex': "PropertySubType eq 'Fourplex'",
-          'Multiplex': "PropertySubType eq 'Multiplex'",
+          'Detached': "(PropertyType eq 'Residential' or PropertyType eq 'Residential Freehold')",
+          'Semi-Detached': "contains(PropertySubType, 'Semi')",
+          'Townhouse': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",
+          'Condo': "(contains(PropertyType, 'Condo') or contains(PropertySubType, 'Condo') or contains(PropertySubType, 'Apt'))",
+          'Duplex': "contains(PropertySubType, 'Duplex')",
+          'Triplex': "contains(PropertySubType, 'Triplex')",
+          'Fourplex': "contains(PropertySubType, 'Fourplex')",
+          'Multiplex': "contains(PropertySubType, 'Multiplex')",
         };
         if (typeMap[type]) filters.push(typeMap[type]);
       }
@@ -111,10 +108,10 @@ export async function GET(request) {
       }
     }
 
-    // If no sold data found with any status filter, try getting non-active listings without type/bed filters
+    // If no sold data found, try broader search without type/bed filters
     if (items.length === 0) {
       const broadFilters = [
-        "StandardStatus ne 'Active'",
+        "StandardStatus eq 'Closed'",
         "City eq '" + city.replace(/'/g, "''") + "'",
         "PropertyType ne 'Commercial'",
         "PropertyType ne 'Business'",
@@ -127,25 +124,15 @@ export async function GET(request) {
 
       try {
         const resp = await fetch(url, { headers });
-        if (debug) {
-          debugInfo['broad_ne_active'] = { status: resp.status, ok: resp.ok };
-        }
         if (resp.ok) {
           const data = await resp.json();
-          if (debug) {
-            debugInfo['broad_ne_active'].count = data['@odata.count'] || (data.value || []).length;
-            const statuses = [...new Set((data.value || []).map(v => v.StandardStatus))];
-            debugInfo['broad_ne_active'].statuses = statuses;
-          }
           if ((data.value || []).length > 0) {
             items = data.value;
             total = data['@odata.count'] || items.length;
-            usedFilter = 'broad_ne_active';
+            usedFilter = 'broad_closed';
           }
         }
-      } catch (e) {
-        if (debug) debugInfo['broad_ne_active'] = { error: e.message };
-      }
+      } catch {}
     }
 
     // Map items to comps
