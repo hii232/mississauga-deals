@@ -11,7 +11,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'ids array required' }, { status: 400 });
   }
 
-  const batch = ids.slice(0, 20);
+  const batch = ids.slice(0, 50);
   const result = {};
 
   try {
