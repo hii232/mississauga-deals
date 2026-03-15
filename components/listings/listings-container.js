@@ -20,7 +20,7 @@ export function ListingsContainer({ initialListings }) {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos: batch first, then individual fallback for misses
+  // Fetch photos: parallel batch requests for speed
   useEffect(() => {
     if (listings.length === 0) return;
     const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
@@ -30,53 +30,72 @@ export function ListingsContainer({ initialListings }) {
     async function fetchPhotos() {
       const found = {};
 
-      // Pass 1: Batch fetch (fast, but misses some listings)
-      for (let i = 0; i < needPhotos.length; i += 20) {
-        if (cancelled) return;
-        const batch = needPhotos.slice(i, i + 20);
-        try {
-          const res = await fetch('/api/photos-batch', {
+      // Split into batches of 50 and fire ALL in parallel
+      const batches = [];
+      for (let i = 0; i < needPhotos.length; i += 50) {
+        batches.push(needPhotos.slice(i, i + 50));
+      }
+
+      // Fire all batch requests at once
+      const batchResults = await Promise.allSettled(
+        batches.map((batch) =>
+          fetch('/api/photos-batch', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: batch }),
-          });
-          if (!res.ok) continue;
-          const data = await res.json();
-          if (data.photos) {
-            Object.assign(found, data.photos);
-            if (!cancelled) setPhotoMap((prev) => ({ ...prev, ...data.photos }));
-          }
-        } catch {
-          // continue
+          }).then((res) => (res.ok ? res.json() : null))
+        )
+      );
+
+      if (cancelled) return;
+
+      // Merge all results and update state once
+      for (const r of batchResults) {
+        if (r.status === 'fulfilled' && r.value?.photos) {
+          Object.assign(found, r.value.photos);
         }
       }
+      if (Object.keys(found).length > 0) {
+        setPhotoMap((prev) => ({ ...prev, ...found }));
+      }
 
-      // Pass 2: Individual fetch for missing (uses 3-fallback strategy)
+      // Pass 2: Individual fetch for missing (parallel chunks of 15)
       const missing = needPhotos.filter((id) => !found[id]);
       if (missing.length === 0 || cancelled) return;
 
-      // Fetch 6 at a time to avoid overwhelming the server
-      for (let i = 0; i < missing.length; i += 6) {
-        if (cancelled) return;
-        const chunk = missing.slice(i, i + 6);
-        const results = await Promise.allSettled(
-          chunk.map(async (id) => {
-            const res = await fetch('/api/photos?id=' + encodeURIComponent(id));
-            if (!res.ok) return null;
-            const data = await res.json();
-            return data.photos?.[0] ? { id, url: data.photos[0] } : null;
-          })
-        );
-        if (cancelled) return;
-        const newPhotos = {};
-        for (const r of results) {
-          if (r.status === 'fulfilled' && r.value) {
-            newPhotos[r.value.id] = r.value.url;
+      const chunks = [];
+      for (let i = 0; i < missing.length; i += 15) {
+        chunks.push(missing.slice(i, i + 15));
+      }
+
+      // Fire all individual chunks in parallel
+      const chunkResults = await Promise.allSettled(
+        chunks.map((chunk) =>
+          Promise.allSettled(
+            chunk.map(async (id) => {
+              const res = await fetch('/api/photos?id=' + encodeURIComponent(id));
+              if (!res.ok) return null;
+              const data = await res.json();
+              return data.photos?.[0] ? { id, url: data.photos[0] } : null;
+            })
+          )
+        )
+      );
+
+      if (cancelled) return;
+
+      const fallbackPhotos = {};
+      for (const chunkResult of chunkResults) {
+        if (chunkResult.status === 'fulfilled') {
+          for (const r of chunkResult.value) {
+            if (r.status === 'fulfilled' && r.value) {
+              fallbackPhotos[r.value.id] = r.value.url;
+            }
           }
         }
-        if (Object.keys(newPhotos).length > 0) {
-          setPhotoMap((prev) => ({ ...prev, ...newPhotos }));
-        }
+      }
+      if (Object.keys(fallbackPhotos).length > 0) {
+        setPhotoMap((prev) => ({ ...prev, ...fallbackPhotos }));
       }
     }
     fetchPhotos();
