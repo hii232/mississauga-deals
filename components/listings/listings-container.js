@@ -255,6 +255,7 @@ export function ListingsContainer({ initialListings }) {
               <button
                 onClick={() => {
                   localStorage.setItem('compare_list', JSON.stringify(compareIds));
+                  localStorage.setItem('compare_data', JSON.stringify(compareListings));
                   router.push('/compare');
                 }}
                 className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90"

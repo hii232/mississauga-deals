@@ -50,6 +50,18 @@ export default function ComparePage() {
   useEffect(() => {
     async function load() {
       try {
+        // First try pre-stored full listing data (set by compare button)
+        const storedData = localStorage.getItem('compare_data');
+        if (storedData) {
+          const parsed = JSON.parse(storedData);
+          if (parsed.length > 0) {
+            setListings(parsed);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback: fetch by IDs
         const compareIds = JSON.parse(localStorage.getItem('compare_list') || '[]');
         if (compareIds.length === 0) {
           setListings([]);
@@ -57,10 +69,21 @@ export default function ComparePage() {
           return;
         }
 
-        const res = await fetch('/api/listings');
-        const data = await res.json();
-        const all = processListings(data.listings || data);
-        const compared = all.filter((l) => compareIds.includes(l.id));
+        // Fetch all pages to find the selected listings
+        let all = [];
+        let page = 1;
+        let totalPages = 1;
+        while (page <= totalPages) {
+          const res = await fetch('/api/listings?limit=200&page=' + page);
+          const data = await res.json();
+          const batch = data.listings || data || [];
+          all.push(...batch);
+          totalPages = data.pages || 1;
+          page++;
+        }
+
+        const processed = processListings(all);
+        const compared = processed.filter((l) => compareIds.includes(l.id));
         setListings(compared);
       } catch (err) {
         console.error('Failed to load compare list:', err);
