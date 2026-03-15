@@ -33,7 +33,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await fetch('/api/lead', {
+      const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -45,7 +45,16 @@ export default function SignupPage() {
         }),
       });
 
+      const data = await res.json();
+      if (data.existing) {
+        setError('This email is already registered. Please log in instead.');
+        setLoading(false);
+        return;
+      }
+
       localStorage.setItem('user_registered', 'true');
+      localStorage.setItem('user_name', form.name);
+      localStorage.setItem('user_email', form.email);
       router.push('/listings');
     } catch {
       setError('Something went wrong. Please try again.');

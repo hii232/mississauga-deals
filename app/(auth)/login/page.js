@@ -24,6 +24,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       localStorage.setItem('user_registered', 'true');
+      localStorage.setItem('user_email', email);
       router.push('/listings');
     } catch {
       setError('Something went wrong. Please try again.');

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/listings', label: 'Listings' },
@@ -14,7 +14,25 @@ const NAV_ITEMS = [
 
 export default function Header({ savedCount = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
   const pathname = usePathname();
+  const router = useRouter();
+
+  useEffect(() => {
+    const registered = localStorage.getItem('user_registered');
+    const email = localStorage.getItem('user_email');
+    if (registered === 'true' && email) {
+      setUserEmail(email);
+    }
+  }, [pathname]);
+
+  function handleLogout() {
+    localStorage.removeItem('user_registered');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_email');
+    setUserEmail(null);
+    router.push('/');
+  }
 
   return (
     <>
@@ -67,18 +85,34 @@ export default function Header({ savedCount = 0 }) {
 
             {/* Auth Buttons */}
             <div className="hidden md:flex items-center gap-2">
-              <Link
-                href="/login"
-                className="btn-ghost text-sm no-underline"
-              >
-                Log In
-              </Link>
-              <Link
-                href="/signup"
-                className="btn-primary text-sm !px-4 !py-2 no-underline"
-              >
-                Sign Up Free
-              </Link>
+              {userEmail ? (
+                <>
+                  <span className="text-sm text-muted truncate max-w-[200px]" title={userEmail}>
+                    {userEmail}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="btn-ghost text-sm"
+                  >
+                    Log Out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="btn-ghost text-sm no-underline"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="btn-primary text-sm !px-4 !py-2 no-underline"
+                  >
+                    Sign Up Free
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -124,12 +158,23 @@ export default function Header({ savedCount = 0 }) {
                 Saved {savedCount > 0 && `(${savedCount})`}
               </Link>
               <div className="border-t border-gray-100 pt-3 mt-3 flex gap-2">
-                <Link href="/login" className="btn-secondary text-sm flex-1 text-center no-underline" onClick={() => setMenuOpen(false)}>
-                  Log In
-                </Link>
-                <Link href="/signup" className="btn-primary text-sm flex-1 text-center no-underline" onClick={() => setMenuOpen(false)}>
-                  Sign Up Free
-                </Link>
+                {userEmail ? (
+                  <>
+                    <span className="text-xs text-muted truncate flex-1 self-center">{userEmail}</span>
+                    <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="btn-secondary text-sm">
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" className="btn-secondary text-sm flex-1 text-center no-underline" onClick={() => setMenuOpen(false)}>
+                      Log In
+                    </Link>
+                    <Link href="/signup" className="btn-primary text-sm flex-1 text-center no-underline" onClick={() => setMenuOpen(false)}>
+                      Sign Up Free
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>
