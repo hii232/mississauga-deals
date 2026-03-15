@@ -129,6 +129,15 @@
   animation-play-state: paused;
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.2s ease-out;
+}
+
 /* Leaflet overrides for light theme */
 .leaflet-container {
   @apply rounded-xl;

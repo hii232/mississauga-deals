@@ -104,23 +104,23 @@ function HeroCard({ label, value, format, color, icon: Icon, delay }) {
 
   return (
     <div
-      className="group relative overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-br from-white to-cloud p-4 transition-all duration-200 hover:shadow-md hover:border-accent/20 hover:-translate-y-0.5 opacity-0 animate-fadeUp"
+      className="group relative overflow-hidden rounded-lg border border-slate-100 bg-gradient-to-br from-white to-cloud px-3 py-2.5 transition-all duration-200 hover:shadow-sm hover:border-accent/20 opacity-0 animate-fadeUp"
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
     >
       {/* Colored accent bar */}
-      <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-full ${c.bar}`} />
+      <div className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-full ${c.bar}`} />
 
-      <div className="pl-3 flex items-start justify-between">
+      <div className="pl-2.5 flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 mb-1">
+          <p className="text-[9px] font-medium uppercase tracking-wider text-slate-400 mb-0.5">
             {label}
           </p>
-          <p className="font-mono text-2xl font-bold text-navy tracking-tight truncate">
+          <p className="font-mono text-lg font-bold text-navy tracking-tight truncate">
             {displayVal}
           </p>
         </div>
-        <div className={`shrink-0 rounded-lg ${c.iconBg} p-2 transition-transform duration-200 group-hover:scale-110`}>
-          <Icon className={`h-5 w-5 ${c.iconText}`} />
+        <div className={`shrink-0 rounded-md ${c.iconBg} p-1.5`}>
+          <Icon className={`h-4 w-4 ${c.iconText}`} />
         </div>
       </div>
     </div>
@@ -131,17 +131,17 @@ function HeroCard({ label, value, format, color, icon: Icon, delay }) {
 function ContextCard({ label, value, format, icon: Icon, delay }) {
   return (
     <div
-      className="flex items-center gap-3 rounded-lg bg-cloud/70 px-4 py-3 transition-colors duration-150 hover:bg-cloud opacity-0 animate-fadeUp"
+      className="flex items-center gap-2.5 rounded-md bg-cloud/70 px-3 py-2 transition-colors duration-150 hover:bg-cloud opacity-0 animate-fadeUp"
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-        <Icon className="h-4 w-4 text-slate-400" />
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100">
+        <Icon className="h-3.5 w-3.5 text-slate-400" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
+        <p className="text-[9px] font-medium uppercase tracking-wider text-slate-400">
           {label}
         </p>
-        <p className="font-mono text-lg font-bold text-navy truncate">
+        <p className="font-mono text-sm font-bold text-navy truncate">
           {formatValue(value, format)}
         </p>
       </div>
@@ -236,26 +236,26 @@ export function DealScreener({ listings }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
       {/* ── Navy Header Bar ── */}
-      <div className="bg-gradient-to-r from-navy to-navy/90 px-5 py-3">
+      <div className="bg-gradient-to-r from-navy to-navy/90 px-4 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <svg className="h-5 w-5 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="flex items-center gap-2">
+            <svg className="h-4 w-4 text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            <h2 className="text-sm font-bold text-white">Deal Screener</h2>
-            <span className="hidden sm:inline-block rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-medium text-white/70">
+            <h2 className="text-xs font-bold text-white">Deal Screener</h2>
+            <span className="hidden sm:inline-block rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/70">
               Portfolio Analytics
             </span>
           </div>
 
           {/* Tier 3: Badge pills */}
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-mono font-medium text-white/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+          <div className="flex items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
+              <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
               {metrics.suites.toLocaleString()} suites
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[11px] font-mono font-medium text-white/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
+              <span className="h-1 w-1 rounded-full bg-accent" />
               {metrics.analyzed.toLocaleString()} analyzed
             </span>
           </div>
@@ -263,9 +263,9 @@ export function DealScreener({ listings }) {
       </div>
 
       {/* ── Body ── */}
-      <div className="p-5 space-y-4">
+      <div className="px-4 py-3 space-y-2.5">
         {/* Tier 1: Hero Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           <HeroCard
             label="Avg Score"
             value={metrics.avgScore}
@@ -300,11 +300,8 @@ export function DealScreener({ listings }) {
           />
         </div>
 
-        {/* Separator */}
-        <div className="border-t border-slate-100" />
-
         {/* Tier 2: Context Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           <ContextCard
             label="Total Listings"
             value={metrics.total}

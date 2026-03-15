@@ -1,5 +1,6 @@
 import { Inter, DM_Sans } from 'next/font/google';
 import './globals.css';
+import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -66,7 +67,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
+        {children}
+      </body>
     </html>
   );
 }
