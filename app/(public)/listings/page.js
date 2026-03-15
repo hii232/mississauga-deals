@@ -55,7 +55,7 @@ export default async function ListingsPage() {
             Mississauga Investment Properties
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {listings.length} active listings scored and analyzed
+            All active listings scored and analyzed
           </p>
         </div>
         <ListingsContainer initialListings={listings} />
