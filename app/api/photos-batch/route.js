@@ -3,6 +3,52 @@ import { NextResponse } from 'next/server';
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_TOKEN;
 
+// Fetch first photo for a single listing using 3-level fallback (same as /api/photos)
+async function fetchFirstPhoto(id) {
+  const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+
+  // Try ResourceRecordKey
+  try {
+    const r1 = await fetch(
+      BASE + "/Media?$filter=ResourceRecordKey eq '" + id + "'&$orderby=Order asc&$top=1&$select=MediaURL",
+      { headers }
+    );
+    if (r1.ok) {
+      const d1 = await r1.json();
+      const u = d1?.value?.[0]?.MediaURL || d1?.value?.[0]?.MediaUrl || '';
+      if (u) return u;
+    }
+  } catch {}
+
+  // Try ListingKey
+  try {
+    const r2 = await fetch(
+      BASE + "/Media?$filter=ListingKey eq '" + id + "'&$orderby=Order asc&$top=1&$select=MediaURL",
+      { headers }
+    );
+    if (r2.ok) {
+      const d2 = await r2.json();
+      const u = d2?.value?.[0]?.MediaURL || d2?.value?.[0]?.MediaUrl || '';
+      if (u) return u;
+    }
+  } catch {}
+
+  // Try Navigation property
+  try {
+    const r3 = await fetch(
+      BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
+      { headers }
+    );
+    if (r3.ok) {
+      const d3 = await r3.json();
+      const u = d3?.value?.[0]?.MediaURL || d3?.value?.[0]?.MediaUrl || '';
+      if (u) return u;
+    }
+  } catch {}
+
+  return null;
+}
+
 export async function POST(request) {
   if (!TOK) return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
 
@@ -11,69 +57,19 @@ export async function POST(request) {
     return NextResponse.json({ error: 'ids array required' }, { status: 400 });
   }
 
+  // Accept up to 50 IDs, process in chunks of 8 to avoid timeout
   const batch = ids.slice(0, 50);
   const result = {};
 
   try {
-    // Pass 1: Try ResourceRecordKey (bulk query)
-    const filter1 = batch.map((id) => "ResourceRecordKey eq '" + id + "'").join(' or ');
-    const r1 = await fetch(
-      BASE + '/Media?$filter=' + encodeURIComponent(filter1) +
-      '&$orderby=ResourceRecordKey,Order asc&$top=' + (batch.length * 3) +
-      '&$select=MediaURL,ResourceRecordKey,Order',
-      { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
-    );
-    if (r1.ok) {
-      const d1 = await r1.json();
-      for (const m of (d1.value || [])) {
-        const key = m.ResourceRecordKey;
-        const u = m.MediaURL || m.MediaUrl || '';
-        if (key && u && !result[key]) result[key] = u;
-      }
-    }
-
-    // Pass 2: Missing — try ListingKey (bulk query)
-    const missing1 = batch.filter((id) => !result[id]);
-    if (missing1.length > 0) {
-      const filter2 = missing1.map((id) => "ListingKey eq '" + id + "'").join(' or ');
-      const r2 = await fetch(
-        BASE + '/Media?$filter=' + encodeURIComponent(filter2) +
-        '&$orderby=ListingKey,Order asc&$top=' + (missing1.length * 3) +
-        '&$select=MediaURL,ListingKey,Order',
-        { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
-      );
-      if (r2.ok) {
-        const d2 = await r2.json();
-        for (const m of (d2.value || [])) {
-          const key = m.ListingKey;
-          const u = m.MediaURL || m.MediaUrl || '';
-          if (key && u && !result[key]) result[key] = u;
-        }
-      }
-    }
-
-    // Pass 3: Still missing — try Navigation property in small chunks to avoid timeouts
-    const missing2 = batch.filter((id) => !result[id]);
-    if (missing2.length > 0) {
-      // Process in chunks of 5 to avoid rate limiting / serverless timeout
-      for (let i = 0; i < missing2.length; i += 5) {
-        const chunk = missing2.slice(i, i + 5);
-        const chunkPromises = chunk.map((id) =>
-          fetch(
-            BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
-            { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
-          )
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-              if (d?.value?.length) {
-                const u = d.value[0].MediaURL || d.value[0].MediaUrl || '';
-                if (u) result[id] = u;
-              }
-            })
-            .catch(() => {})
-        );
-        await Promise.all(chunkPromises);
-      }
+    // Process in chunks of 8 concurrently — each ID gets full 3-level fallback
+    for (let i = 0; i < batch.length; i += 8) {
+      const chunk = batch.slice(i, i + 8);
+      const promises = chunk.map(async (id) => {
+        const url = await fetchFirstPhoto(id);
+        if (url) result[id] = url;
+      });
+      await Promise.all(promises);
     }
 
     return NextResponse.json({ photos: result }, {
