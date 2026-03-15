@@ -472,12 +472,31 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     async function fetchListing() {
       try {
-        const res = await fetch('/api/listings');
+        // Fetch page 1 to get total pages
+        const res = await fetch('/api/listings?limit=200&page=1');
         if (!res.ok) throw new Error('Failed to load');
         const data = await res.json();
         const raw = data.listings || data || [];
-        const processed = processListings(raw);
-        const found = processed.find((l) => String(l.id) === String(params.id));
+        const totalPages = data.pages || 1;
+
+        // Check first page
+        let processed = processListings(raw);
+        let found = processed.find((l) => String(l.id) === String(params.id));
+
+        // Paginate through remaining pages if not found
+        if (!found && totalPages > 1) {
+          for (let p = 2; p <= totalPages; p++) {
+            const r = await fetch('/api/listings?limit=200&page=' + p);
+            if (!r.ok) continue;
+            const pg = await r.json();
+            if (pg?.listings?.length) {
+              const batch = processListings(pg.listings);
+              found = batch.find((l) => String(l.id) === String(params.id));
+              if (found) break;
+            }
+          }
+        }
+
         if (!found) {
           setError('Property not found.');
         } else {
