@@ -39,9 +39,43 @@ export function ListingsContainer({ initialListings }) {
   const [compareIds, setCompareIds] = useState([]);
   const [isRegistered, setIsRegistered] = useState(false);
 
+  const [photoMap, setPhotoMap] = useState({});
+
   useEffect(() => {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
+
+  // Batch-fetch first photos for listings that have no photos
+  useEffect(() => {
+    if (listings.length === 0) return;
+    const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
+    if (needPhotos.length === 0) return;
+
+    let cancelled = false;
+    async function fetchPhotos() {
+      // Process in batches of 20 (API limit)
+      for (let i = 0; i < needPhotos.length; i += 20) {
+        if (cancelled) return;
+        const batch = needPhotos.slice(i, i + 20);
+        try {
+          const res = await fetch('/api/photos-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: batch }),
+          });
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data.photos && !cancelled) {
+            setPhotoMap((prev) => ({ ...prev, ...data.photos }));
+          }
+        } catch {
+          // continue with next batch
+        }
+      }
+    }
+    fetchPhotos();
+    return () => { cancelled = true; };
+  }, [listings]);
 
   // Client-side fallback: if SSR returned no listings, fetch on client
   useEffect(() => {
@@ -267,6 +301,7 @@ export function ListingsContainer({ initialListings }) {
           isRegistered={isRegistered}
           compareIds={compareIds}
           onToggleCompare={toggleCompare}
+          photoMap={photoMap}
         />
       )}
       {view === 'table' && (
@@ -275,6 +310,7 @@ export function ListingsContainer({ initialListings }) {
           isRegistered={isRegistered}
           compareIds={compareIds}
           onToggleCompare={toggleCompare}
+          photoMap={photoMap}
         />
       )}
       {view === 'map' && (

@@ -1,24 +1,60 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 
-export function ListingCard({ listing, isGated, isCompared, onToggleCompare }) {
+export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto }) {
   const [saved, setSaved] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const photo = listing.photos?.[0];
-  const photoCount = listing.photos?.length || 0;
+  const [allPhotos, setAllPhotos] = useState(null);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+
+  // Use listing photos if available, otherwise use batch-fetched first photo
+  const photo = listing.photos?.[0] || batchPhoto || null;
+  const hasPhoto = !!photo;
   const scoreHex = scoreColorHex(listing.hamzaScore);
+
+  const openLightbox = useCallback(async () => {
+    if (!hasPhoto) return;
+
+    // If listing already has multiple photos, use them directly
+    if (listing.photos?.length > 1) {
+      setAllPhotos(listing.photos);
+      setLightboxOpen(true);
+      return;
+    }
+
+    // Fetch all photos from the API
+    setLoadingPhotos(true);
+    try {
+      const res = await fetch('/api/photos?id=' + encodeURIComponent(listing.id));
+      if (res.ok) {
+        const data = await res.json();
+        if (data.photos?.length > 0) {
+          setAllPhotos(data.photos);
+          setLightboxOpen(true);
+          setLoadingPhotos(false);
+          return;
+        }
+      }
+    } catch {
+      // fall through
+    }
+    // Fallback: show single photo
+    setAllPhotos([photo]);
+    setLightboxOpen(true);
+    setLoadingPhotos(false);
+  }, [hasPhoto, listing.photos, listing.id, photo]);
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
       {/* Photo */}
       <div
         className="relative h-48 w-full overflow-hidden cursor-pointer"
-        onClick={() => photoCount > 0 && setLightboxOpen(true)}
+        onClick={openLightbox}
       >
         {photo ? (
           <img
@@ -35,13 +71,22 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare }) {
           </div>
         )}
 
-        {/* Photo count badge */}
-        {photoCount > 1 && (
+        {/* Loading overlay */}
+        {loadingPhotos && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+            <svg className="h-6 w-6 animate-spin text-white" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          </div>
+        )}
+
+        {/* Photo icon badge */}
+        {hasPhoto && (
           <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
-            {photoCount}
           </div>
         )}
 
@@ -184,9 +229,9 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare }) {
       </div>
 
       {/* Photo Lightbox */}
-      {lightboxOpen && photoCount > 0 && (
+      {lightboxOpen && allPhotos?.length > 0 && (
         <PhotoLightbox
-          photos={listing.photos}
+          photos={allPhotos}
           initialIndex={0}
           onClose={() => setLightboxOpen(false)}
         />

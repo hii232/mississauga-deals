@@ -356,11 +356,34 @@ function BreakdownRow({ label, value, bold, annual, negative }) {
 // ──────────────────────────────────────────
 //  Photo Gallery
 // ──────────────────────────────────────────
-function PhotoGallery({ photos }) {
+function PhotoGallery({ photos, listingId }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const images = photos?.length ? photos : ['/images/placeholder-property.jpg'];
-  const hasRealPhotos = photos?.length > 0;
+  const [fetchedPhotos, setFetchedPhotos] = useState(null);
+
+  // Fetch photos from API if listing has none
+  useEffect(() => {
+    if (photos?.length > 0 || !listingId) return;
+    let cancelled = false;
+    async function loadPhotos() {
+      try {
+        const res = await fetch('/api/photos?id=' + encodeURIComponent(listingId));
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && data.photos?.length > 0) {
+          setFetchedPhotos(data.photos);
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    loadPhotos();
+    return () => { cancelled = true; };
+  }, [photos, listingId]);
+
+  const resolvedPhotos = photos?.length > 0 ? photos : fetchedPhotos;
+  const images = resolvedPhotos?.length ? resolvedPhotos : ['/images/placeholder-property.jpg'];
+  const hasRealPhotos = resolvedPhotos?.length > 0;
 
   return (
     <div className="space-y-3">
@@ -545,7 +568,7 @@ export default function PropertyDetailPage() {
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Left Column: Photos */}
           <div className="lg:col-span-3">
-            <PhotoGallery photos={listing.photos} />
+            <PhotoGallery photos={listing.photos} listingId={listing.id} />
           </div>
 
           {/* Right Column: Header Info */}

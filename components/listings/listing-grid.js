@@ -6,7 +6,7 @@ import { ListingCard } from './listing-card';
 const PAGE_SIZE = 12;
 const FREE_LIMIT = 5;
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare }) {
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef(null);
 
@@ -68,6 +68,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
               isGated={isGated}
               isCompared={compareIds.includes(listing.id)}
               onToggleCompare={onToggleCompare}
+              batchPhoto={photoMap?.[listing.id]}
             />
           );
         })}
