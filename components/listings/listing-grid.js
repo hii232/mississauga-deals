@@ -1,46 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ListingCard } from './listing-card';
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 30;
 const FREE_LIMIT = 4;
 
 export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap }) {
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Reset visible count when listings change
+  // Reset to page 1 when listings change (filters, sort, etc.)
   useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
+    setCurrentPage(1);
   }, [listings]);
-
-  // IntersectionObserver for infinite scroll
-  const handleObserver = useCallback(
-    (entries) => {
-      const [entry] = entries;
-      if (entry.isIntersecting && visibleCount < listings.length) {
-        setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, listings.length));
-      }
-    },
-    [visibleCount, listings.length]
-  );
-
-  useEffect(() => {
-    const node = sentinelRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(handleObserver, {
-      root: null,
-      rootMargin: '200px',
-      threshold: 0,
-    });
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [handleObserver]);
-
-  const visible = listings.slice(0, visibleCount);
 
   if (listings.length === 0) {
     return (
@@ -56,11 +28,38 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
     );
   }
 
+  const totalPages = Math.ceil(listings.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const pageListings = listings.slice(startIndex, startIndex + PAGE_SIZE);
+
+  function handlePageChange(page) {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Build page numbers: show 1, ..., nearby pages, ..., last
+  function getPageNumbers() {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push('...');
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  }
+
   return (
     <div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {visible.map((listing, index) => {
-          const isGated = !isRegistered && index >= FREE_LIMIT;
+        {pageListings.map((listing, index) => {
+          const globalIndex = startIndex + index;
+          const isGated = !isRegistered && globalIndex >= FREE_LIMIT;
           return (
             <ListingCard
               key={listing.id}
@@ -74,24 +73,48 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
         })}
       </div>
 
-      {/* Infinite scroll sentinel */}
-      {visibleCount < listings.length && (
-        <div ref={sentinelRef} className="flex justify-center py-8">
-          <div className="flex items-center gap-2 text-sm text-slate-400">
-            <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Loading more properties...
-          </div>
-        </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <nav className="mt-8 flex items-center justify-center gap-1" aria-label="Pagination">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            &larr; Prev
+          </button>
+
+          {getPageNumbers().map((page, i) =>
+            page === '...' ? (
+              <span key={`dot-${i}`} className="px-2 text-sm text-slate-400">...</span>
+            ) : (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`min-w-[36px] rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  page === currentPage
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {page}
+              </button>
+            )
+          )}
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            Next &rarr;
+          </button>
+        </nav>
       )}
 
-      {visibleCount >= listings.length && listings.length > PAGE_SIZE && (
-        <p className="py-6 text-center text-xs text-slate-400">
-          Showing all {listings.length} properties
-        </p>
-      )}
+      <p className="py-4 text-center text-xs text-slate-400">
+        Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, listings.length)} of {listings.length} properties
+      </p>
     </div>
   );
 }
