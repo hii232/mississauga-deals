@@ -1,12 +1,31 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
 export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto }) {
   const [saved, setSaved] = useState(false);
+
+  // Initialize saved state from localStorage
+  useEffect(() => {
+    const savedDeals = JSON.parse(localStorage.getItem('saved_deals') || '[]');
+    setSaved(savedDeals.includes(listing.id));
+  }, [listing.id]);
+
+  function toggleSave() {
+    const savedDeals = JSON.parse(localStorage.getItem('saved_deals') || '[]');
+    if (savedDeals.includes(listing.id)) {
+      const updated = savedDeals.filter((id) => id !== listing.id);
+      localStorage.setItem('saved_deals', JSON.stringify(updated));
+      setSaved(false);
+    } else {
+      savedDeals.push(listing.id);
+      localStorage.setItem('saved_deals', JSON.stringify(savedDeals));
+      setSaved(true);
+    }
+  }
 
   // Use listing photos if available, otherwise use batch-fetched first photo
   const photo = listing.photos?.[0] || batchPhoto || null;
@@ -149,8 +168,8 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
             {/* Save button */}
             <button
-              onClick={() => setSaved(!saved)}
-              className="flex items-center gap-1 text-xs text-slate-400 transition-colors hover:text-red-500"
+              onClick={toggleSave}
+              className={`flex items-center gap-1 text-xs transition-colors ${saved ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
               aria-label={saved ? 'Unsave' : 'Save'}
             >
               <svg

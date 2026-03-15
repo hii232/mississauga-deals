@@ -20,10 +20,20 @@ export default function SavedPage() {
           return;
         }
 
-        const res = await fetch('/api/listings');
-        const data = await res.json();
-        const all = processListings(data.listings || data);
-        const saved = all.filter((l) => savedIds.includes(l.id));
+        // Fetch all pages to find the saved listings
+        let all = [];
+        let page = 1;
+        let totalPages = 1;
+        while (page <= totalPages) {
+          const res = await fetch('/api/listings?limit=200&page=' + page);
+          const data = await res.json();
+          const batch = data.listings || data || [];
+          all.push(...batch);
+          totalPages = data.pages || 1;
+          page++;
+        }
+        const processed = processListings(all);
+        const saved = processed.filter((l) => savedIds.includes(l.id));
         setListings(saved);
       } catch (err) {
         console.error('Failed to load saved deals:', err);
