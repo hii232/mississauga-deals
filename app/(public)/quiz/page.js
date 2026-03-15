@@ -19,6 +19,7 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState([]);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -58,6 +59,7 @@ export default function QuizPage() {
         body: JSON.stringify({
           name,
           email,
+          phone,
           source: 'quiz',
           notes: `Strategy: ${key} | Budget: ${answers[1]} | Type: ${answers[2]} | Timeline: ${answers[3]} | Priority: ${answers[4]}`,
         }),
@@ -82,6 +84,7 @@ export default function QuizPage() {
     setAnswers([]);
     setEmail('');
     setName('');
+    setPhone('');
     setError('');
   }
 
@@ -166,6 +169,19 @@ export default function QuizPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="quiz-phone" className="mb-1 block text-sm font-medium text-navy">
+                Phone
+              </label>
+              <input
+                id="quiz-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(647) 000-0000"
                 className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
