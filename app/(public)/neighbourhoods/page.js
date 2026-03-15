@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
@@ -9,6 +9,16 @@ const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 
 export default function NeighbourhoodsPage() {
   const [filter, setFilter] = useState('All');
+  const [recentSales, setRecentSales] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/sold-comps?limit=8')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.comps) setRecentSales(data.comps);
+      })
+      .catch(() => {});
+  }, []);
 
   const hoodEntries = Object.entries(HOOD_DATA);
   const filtered =
@@ -121,6 +131,62 @@ export default function NeighbourhoodsPage() {
           );
         })}
       </div>
+
+      {/* Recent Sales Activity */}
+      {recentSales.length > 0 && (
+        <div className="mt-10 card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="font-heading font-semibold text-lg text-navy">Recent Sales Across Mississauga</h2>
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-success">
+                <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
+                Live
+              </span>
+            </div>
+            <Link
+              href="/recent-sales"
+              className="text-xs font-medium text-accent hover:text-accent-dark no-underline inline-flex items-center gap-1"
+            >
+              View all
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400">Address</th>
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">City</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400">Sold Price</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400">vs List</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400 hidden md:table-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentSales.map((comp) => (
+                  <tr key={comp.id} className="border-b border-slate-50 last:border-0">
+                    <td className="py-2.5">
+                      <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
+                    </td>
+                    <td className="py-2.5 text-muted text-xs hidden sm:table-cell">{comp.city}</td>
+                    <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
+                    <td className="py-2.5 text-center">
+                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-success' : comp.priceDelta > 0 ? 'text-red-500' : 'text-muted'}`}>
+                        {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right text-xs text-muted hidden md:table-cell">
+                      {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

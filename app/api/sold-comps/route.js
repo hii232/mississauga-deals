@@ -28,7 +28,7 @@ export async function GET(request) {
       'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
       'PropertyType', 'PropertySubType', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName',
-      'Latitude', 'Longitude', 'ModificationTimestamp',
+      'Latitude', 'Longitude', 'ModificationTimestamp', 'CloseDate',
     ].join(',');
 
     // AMPRE uses 'Closed' for sold listings (confirmed working)

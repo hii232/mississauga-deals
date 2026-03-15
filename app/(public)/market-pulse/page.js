@@ -8,6 +8,8 @@ import { fmtK } from '@/lib/utils/format';
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recentSales, setRecentSales] = useState([]);
+  const [salesStats, setSalesStats] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -22,6 +24,15 @@ export default function MarketPulsePage() {
       }
     }
     load();
+
+    // Fetch recent sold comps
+    fetch('/api/sold-comps?limit=5')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.comps) setRecentSales(data.comps);
+        if (data?.stats) setSalesStats(data.stats);
+      })
+      .catch(() => {});
   }, []);
 
   // Derive stats from HOOD_DATA as fallback
@@ -142,6 +153,80 @@ export default function MarketPulsePage() {
           })}
         </div>
       </div>
+
+      {/* Recent Sales Activity */}
+      {recentSales.length > 0 && (
+        <div className="card p-6 mb-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-semibold text-lg text-navy">
+              Recent Sales Activity
+            </h2>
+            <Link
+              href="/recent-sales"
+              className="text-xs font-medium text-accent hover:text-accent-dark no-underline inline-flex items-center gap-1"
+            >
+              View all
+              <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+
+          {/* Mini stats row */}
+          {salesStats && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="rounded-lg bg-cloud p-2.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-slate-400">Avg Sold</p>
+                <p className="text-sm font-bold text-navy">{fmtK(salesStats.avgSoldPrice)}</p>
+              </div>
+              <div className="rounded-lg bg-cloud p-2.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-slate-400">Avg DOM</p>
+                <p className="text-sm font-bold text-navy">{salesStats.avgDOM}d</p>
+              </div>
+              <div className="rounded-lg bg-cloud p-2.5 text-center">
+                <p className="text-[10px] font-medium uppercase text-slate-400">Negotiation</p>
+                <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-success' : 'text-red-500'}`}>
+                  {salesStats.avgNegotiationGap > 0 ? '+' : ''}{salesStats.avgNegotiationGap}%
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Sales table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400">Address</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400">Sold</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400">vs List</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">DOM</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentSales.map((comp) => (
+                  <tr key={comp.id} className="border-b border-slate-50 last:border-0">
+                    <td className="py-2.5">
+                      <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
+                    </td>
+                    <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
+                    <td className="py-2.5 text-center">
+                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-success' : comp.priceDelta > 0 ? 'text-red-500' : 'text-muted'}`}>
+                        {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-center text-muted hidden sm:table-cell">{comp.dom}d</td>
+                    <td className="py-2.5 text-right text-xs text-muted hidden sm:table-cell">
+                      {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
         {/* Hot Neighbourhoods */}

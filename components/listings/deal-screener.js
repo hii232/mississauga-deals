@@ -166,8 +166,37 @@ function formatValue(val, fmt) {
   }
 }
 
+// ── Sold Icons ──
+function SoldIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+    </svg>
+  );
+}
+
+function PercentIcon({ className }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="m9 14.25 6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0c1.1.128 1.907 1.077 1.907 2.185ZM9.75 9h.008v.008H9.75V9Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm4.125 4.5h.008v.008h-.008V13.5Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    </svg>
+  );
+}
+
 // ── Main Component ──
 export function DealScreener({ listings }) {
+  const [soldStats, setSoldStats] = useState(null);
+
+  // Fetch sold market stats
+  useEffect(() => {
+    fetch('/api/sold-comps?limit=20')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.stats) setSoldStats(data.stats);
+      })
+      .catch(() => {});
+  }, []);
+
   const metrics = useMemo(() => {
     if (!listings.length) {
       return {
@@ -275,7 +304,7 @@ export function DealScreener({ listings }) {
         <div className="border-t border-slate-100" />
 
         {/* Tier 2: Context Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <ContextCard
             label="Total Listings"
             value={metrics.total}
@@ -304,6 +333,24 @@ export function DealScreener({ listings }) {
             icon={ClockIcon}
             delay={480}
           />
+          {soldStats && (
+            <ContextCard
+              label="Avg Sold"
+              value={soldStats.avgSoldPrice}
+              format="price"
+              icon={SoldIcon}
+              delay={540}
+            />
+          )}
+          {soldStats && (
+            <ContextCard
+              label="Sale-to-List"
+              value={100 + (soldStats.avgNegotiationGap || 0)}
+              format="pct"
+              icon={PercentIcon}
+              delay={600}
+            />
+          )}
         </div>
 
         {/* Disclaimer */}

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
   { href: '/listings', label: 'Listings' },
+  { href: '/recent-sales', label: 'Recent Sales' },
   { href: '/market-pulse', label: 'Market Pulse' },
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
   { href: '/news', label: 'News' },
