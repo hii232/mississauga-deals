@@ -4,7 +4,7 @@
  */
 
 // ── Power of Sale / Foreclosure Detection ──
-const POS_RE = /\b(power of sale|foreclosure|bank[- ]owned|lender[- ]owned|estate sale|judicial sale|court[- ]ordered|as[- ]is where[- ]is|sold as[- ]is|no represent|receivership|vesting order)\b/i;
+const POS_RE = /\b(power of sale|foreclosure|bank owned|bank[- ]sale|bank repo|lender[- ]owned|estate sale|judicial sale|court[- ]ordered|as[- ]is where[- ]is|sold as[- ]is|no represent|receivership|vesting order|must sell|must be sold|below market|priced to sell|investor alert|handyman|fixer[- ]upper|needs work|as is|tenant occupied|vacant possession)\b/i;
 
 export function isPowerOfSale(remarks) {
   return POS_RE.test(remarks || '');
@@ -42,7 +42,7 @@ export const STRATEGY_CHIPS = [
   { key: 'reduced', label: 'REDUCED', filter: (l) => l.priceDrop > 0 },
   { key: 'new', label: 'NEW', filter: (l) => l.dom <= 3 },
   { key: 'under800', label: '<$800K', filter: (l) => l.price < 800000 },
-  { key: 'suite', label: 'LEGAL SUITE', filter: (l) => l.hasSuite },
+  { key: 'suite', label: 'LEGAL SUITE', filter: (l) => /legal basement/i.test(l.remarks || '') },
   { key: 'pos', label: 'POWER OF SALE', filter: (l) => isPowerOfSale(l.remarks) },
 ];
 

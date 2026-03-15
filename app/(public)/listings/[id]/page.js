@@ -74,12 +74,6 @@ function OverviewTab({ listing }) {
 
   return (
     <div className="space-y-6">
-      {listing.remarks && (
-        <div>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
-          <p className="text-sm leading-relaxed text-navy/80">{listing.remarks}</p>
-        </div>
-      )}
       <div>
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Key Facts</h3>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -91,6 +85,12 @@ function OverviewTab({ listing }) {
           ))}
         </div>
       </div>
+      {listing.remarks && (
+        <div>
+          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
+          <p className="text-sm leading-relaxed text-navy/80">{listing.remarks}</p>
+        </div>
+      )}
     </div>
   );
 }
