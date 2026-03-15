@@ -469,7 +469,7 @@ const HOOD_GRADIENTS={
   "Malton":             ["#1A100E","#36201A"],
 };
 
-function ListingCard({l,onOpen,isSample=true,isComparing=false,onToggleCompare,isSaved=false}){
+function ListingCard({l,onOpen,isSample=true,isComparing=false,onToggleCompare,isSaved=false,isGated=false,onRequireReg}){
   const cf=fmtCF(l.cashFlow||0);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
   const score=l.hamzaScore||0;
@@ -537,20 +537,22 @@ function ListingCard({l,onOpen,isSample=true,isComparing=false,onToggleCompare,i
           {l.hasSuite&&<span style={{background:"rgba(168,85,247,0.85)",borderRadius:4,padding:"2px 8px",fontSize:9,color:"#fff",fontWeight:700}}>SUITE</span>}
         </div>
 
-        {/* Score badge top-right */}
-        <div style={{position:"absolute",top:10,right:10}}>
-          <div style={{
-            width:44,height:44,borderRadius:"50%",
-            background:`rgba(5,9,26,0.75)`,
-            backdropFilter:"blur(8px)",
-            border:`2px solid ${scoreCol}`,
-            display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-            boxShadow:`0 0 12px ${scoreCol}30`
-          }}>
-            <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{score.toFixed(1)}</div>
-            <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
+        {/* Score badge top-right — hidden when gated */}
+        {!isGated&&(
+          <div style={{position:"absolute",top:10,right:10}}>
+            <div style={{
+              width:44,height:44,borderRadius:"50%",
+              background:`rgba(5,9,26,0.75)`,
+              backdropFilter:"blur(8px)",
+              border:`2px solid ${scoreCol}`,
+              display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+              boxShadow:`0 0 12px ${scoreCol}30`
+            }}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,fontWeight:700,color:scoreCol,lineHeight:1}}>{score.toFixed(1)}</div>
+              <div style={{fontSize:8,color:scoreCol,opacity:0.65,fontFamily:"'JetBrains Mono',monospace"}}>/10</div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Property type — bottom right */}
         <div style={{position:"absolute",bottom:10,right:10,background:"rgba(5,9,26,0.75)",backdropFilter:"blur(4px)",borderRadius:4,padding:"3px 8px",fontSize:10,color:TEXT2,fontWeight:500,border:"1px solid rgba(255,255,255,0.08)"}}>{l.type}</div>
@@ -568,29 +570,59 @@ function ListingCard({l,onOpen,isSample=true,isComparing=false,onToggleCompare,i
             <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:19,fontWeight:700,color:TEXT,letterSpacing:"-0.02em"}}>{fmtK(l.price)}</div>
             {l.priceReduction>0&&<div style={{fontSize:10,color:MUTED,textDecoration:"line-through",marginTop:1}}>{fmtK(l.originalPrice)}</div>}
           </div>
-          <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:(l.cashFlow||0)>=0?12:11,color:cf.color,fontWeight:(l.cashFlow||0)>=0?600:500,background:(l.cashFlow||0)>=0?"rgba(16,185,129,0.08)":"rgba(255,255,255,0.04)",padding:"3px 8px",borderRadius:5,border:`1px solid ${(l.cashFlow||0)>=0?"rgba(16,185,129,0.2)":"rgba(255,255,255,0.08)"}`}}>{cf.label}</div>
+          {!isGated&&<div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:(l.cashFlow||0)>=0?12:11,color:cf.color,fontWeight:(l.cashFlow||0)>=0?600:500,background:(l.cashFlow||0)>=0?"rgba(16,185,129,0.08)":"rgba(255,255,255,0.04)",padding:"3px 8px",borderRadius:5,border:`1px solid ${(l.cashFlow||0)>=0?"rgba(16,185,129,0.2)":"rgba(255,255,255,0.08)"}`}}>{cf.label}</div>}
         </div>
 
-        {/* Specs — Bloomberg terminal style data row */}
-        <div style={{display:"flex",gap:4,marginBottom:8,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
-          {[
-            [l.beds,"BD"],
-            [l.baths,"BA"],
-            [l.dom+"d","DOM"],
-            [l.capRate?l.capRate+"%":"—","CAP"],
-            [l.cashOnCash?(l.cashOnCash>0?"+":"")+l.cashOnCash+"%":"—","CoC"],
-          ].map(([val,unit],idx,arr)=>(
-            <div key={unit} style={{flex:1,textAlign:"center",borderRight:idx<arr.length-1?`1px solid ${BORDER}`:"none",paddingRight:idx<arr.length-1?4:0}}>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",color:unit==="CoC"?(l.cashOnCash>=0?GREEN:RED):TEXT,fontWeight:700,fontSize:11,lineHeight:1}}>{val}</div>
-              <div style={{fontSize:7,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
+        {isGated?(
+          /* ═══ GATED METRICS — blur overlay with signup CTA ═══ */
+          <div style={{position:"relative",marginBottom:8}}>
+            {/* Blurred fake metrics behind */}
+            <div style={{filter:"blur(6px)",opacity:0.4,pointerEvents:"none",userSelect:"none"}}>
+              <div style={{display:"flex",gap:4,marginBottom:8,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
+                {[["3","BD"],["2","BA"],["45d","DOM"],["4.2%","CAP"],["—","CoC"]].map(([val,unit],idx,arr)=>(
+                  <div key={unit} style={{flex:1,textAlign:"center",borderRight:idx<arr.length-1?`1px solid ${BORDER}`:"none"}}>
+                    <div style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:700,fontSize:11,lineHeight:1}}>{val}</div>
+                    <div style={{fontSize:7,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:MUTED}}>
+                <span>Est. Rent: $3,200/mo</span>
+                <span>Mtg: $2,688/mo</span>
+              </div>
             </div>
-          ))}
-        </div>
-        {/* Rent estimate row */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,fontSize:11,color:MUTED}}>
-          <span>Est. Rent: <span style={{color:TEXT,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(l.estimatedRent||0).toLocaleString()}/mo</span></span>
-          <span>Mtg: <span style={{color:TEXT,fontFamily:"'JetBrains Mono',monospace"}}>${Math.round(calcMonthly(l.price,20,5.5,25)).toLocaleString()}/mo</span></span>
-        </div>
+            {/* Signup CTA overlay */}
+            <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:2}}>
+              <button onClick={e=>{e.stopPropagation();if(onRequireReg)onRequireReg();}} style={{background:"rgba(255,255,255,0.95)",color:"#111",border:"1px solid rgba(0,0,0,0.15)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,cursor:"pointer",boxShadow:"0 2px 8px rgba(0,0,0,0.15)",marginBottom:4}}>
+                Sign up free to see deal analysis
+              </button>
+              <span style={{fontSize:10,color:MUTED}}>Takes 10 seconds. No credit card.</span>
+            </div>
+          </div>
+        ):(
+          <>
+            {/* Specs — Bloomberg terminal style data row */}
+            <div style={{display:"flex",gap:4,marginBottom:8,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
+              {[
+                [l.beds,"BD"],
+                [l.baths,"BA"],
+                [l.dom+"d","DOM"],
+                [l.capRate?l.capRate+"%":"—","CAP"],
+                [l.cashOnCash?(l.cashOnCash>0?"+":"")+l.cashOnCash+"%":"—","CoC"],
+              ].map(([val,unit],idx,arr)=>(
+                <div key={unit} style={{flex:1,textAlign:"center",borderRight:idx<arr.length-1?`1px solid ${BORDER}`:"none",paddingRight:idx<arr.length-1?4:0}}>
+                  <div style={{fontFamily:"'JetBrains Mono',monospace",color:unit==="CoC"?(l.cashOnCash>=0?GREEN:RED):TEXT,fontWeight:700,fontSize:11,lineHeight:1}}>{val}</div>
+                  <div style={{fontSize:7,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
+                </div>
+              ))}
+            </div>
+            {/* Rent estimate row */}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,fontSize:11,color:MUTED}}>
+              <span>Est. Rent: <span style={{color:TEXT,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(l.estimatedRent||0).toLocaleString()}/mo</span></span>
+              <span>Mtg: <span style={{color:TEXT,fontFamily:"'JetBrains Mono',monospace"}}>${Math.round(calcMonthly(l.price,20,5.5,25)).toLocaleString()}/mo</span></span>
+            </div>
+          </>
+        )}
 
         {/* Compare + Saved + Brokerage */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8}}>
@@ -2614,7 +2646,7 @@ function ListingsMap({listings,onOpenListing}){
 /* ─────────────────────────────────────────────
    LISTINGS VIEW
 ───────────────────────────────────────────── */
-function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false,compareList=[],onToggleCompare,recentlyViewed=[],onDealAlert,savedDeals=[]}){
+function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false,compareList=[],onToggleCompare,recentlyViewed=[],onDealAlert,savedDeals=[],isRegistered=false,onRequireReg}){
   const [propType,setPropType]=useState("All");
   const [sort,setSort]=useState("score");
   const [showScoreInfo,setShowScoreInfo]=useState(false);
@@ -2959,23 +2991,23 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
                 </tr>
               </thead>
               <tbody>
-                {paged.map(l=>{
-                  const sc=l.hamzaScore||0;const scCol=scoreColor(sc);
+                {paged.map((l,idx)=>{
+                  const sc=l.hamzaScore||0;const scCol=scoreColor(sc);const gated=!isRegistered&&idx>=5;
                   return(
-                    <tr key={l.id} onClick={()=>onOpenListing(l)} style={{cursor:"pointer",borderBottom:`1px solid rgba(255,255,255,0.03)`,transition:"background .15s ease"}}
+                    <tr key={l.id} onClick={()=>gated?onRequireReg&&onRequireReg():onOpenListing(l)} style={{cursor:"pointer",borderBottom:`1px solid rgba(255,255,255,0.03)`,transition:"background .15s ease"}}
                       onMouseEnter={e=>e.currentTarget.style.background="rgba(59,130,246,0.06)"}
                       onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                      <td style={{padding:"8px 10px"}}><span style={{color:scCol,fontWeight:700}}>{sc.toFixed(1)}</span></td>
-                      <td style={{padding:"8px 10px",color:TEXT,fontWeight:600,maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}{l.hamzasPick?<span style={{color:GOLD,marginLeft:4}}>★</span>:""}</td>
+                      <td style={{padding:"8px 10px"}}>{gated?<span style={{color:MUTED,filter:"blur(4px)"}}>7.2</span>:<span style={{color:scCol,fontWeight:700}}>{sc.toFixed(1)}</span>}</td>
+                      <td style={{padding:"8px 10px",color:TEXT,fontWeight:600,maxWidth:220,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.address}{l.hamzasPick&&!gated?<span style={{color:GOLD,marginLeft:4}}>★</span>:""}</td>
                       <td style={{padding:"8px 10px",color:MUTED}}>{l.type}</td>
                       <td style={{padding:"8px 10px",color:TEXT,fontWeight:600}}>{fmtK(l.price)}</td>
-                      <td style={{padding:"8px 10px",color:(l.priceReduction||0)>0?GREEN:MUTED}}>{(l.priceReduction||0)>0?"-"+l.priceReduction+"%":"—"}</td>
+                      <td style={{padding:"8px 10px",color:gated?MUTED:(l.priceReduction||0)>0?GREEN:MUTED}}>{gated?<span style={{filter:"blur(4px)"}}>—</span>:(l.priceReduction||0)>0?"-"+l.priceReduction+"%":"—"}</td>
                       <td style={{padding:"8px 10px",color:TEXT}}>{l.beds}</td>
                       <td style={{padding:"8px 10px",color:TEXT}}>{l.baths}</td>
-                      <td style={{padding:"8px 10px",color:(l.dom||0)>=40?RED:TEXT}}>{l.dom||0}</td>
-                      <td style={{padding:"8px 10px",color:GREEN}}>${(l.estimatedRent||0).toLocaleString()}</td>
-                      <td style={{padding:"8px 10px",color:(l.cashFlow||0)>=-300?GREEN:(l.cashFlow||0)>=-600?GOLD:RED,fontWeight:600}}>{(l.cashFlow||0)>0?"+":""}{l.cashFlow||0}</td>
-                      <td style={{padding:"8px 10px",color:(l.capRate||0)>=4?GREEN:(l.capRate||0)>=3?GOLD:MUTED,fontWeight:600}}>{(l.capRate||0).toFixed(1)}%</td>
+                      <td style={{padding:"8px 10px",color:gated?MUTED:(l.dom||0)>=40?RED:TEXT}}>{gated?<span style={{filter:"blur(4px)"}}>—</span>:l.dom||0}</td>
+                      <td style={{padding:"8px 10px"}}>{gated?<span style={{filter:"blur(4px)",color:MUTED}}>$—</span>:<span style={{color:GREEN}}>${(l.estimatedRent||0).toLocaleString()}</span>}</td>
+                      <td style={{padding:"8px 10px"}}>{gated?<span style={{filter:"blur(4px)",color:MUTED}}>—</span>:<span style={{color:(l.cashFlow||0)>=-300?GREEN:(l.cashFlow||0)>=-600?GOLD:RED,fontWeight:600}}>{(l.cashFlow||0)>0?"+":""}{l.cashFlow||0}</span>}</td>
+                      <td style={{padding:"8px 10px"}}>{gated?<span style={{filter:"blur(4px)",color:MUTED}}>—</span>:<span style={{color:(l.capRate||0)>=4?GREEN:(l.capRate||0)>=3?GOLD:MUTED,fontWeight:600}}>{(l.capRate||0).toFixed(1)}%</span>}</td>
                       <td style={{padding:"8px 10px",color:MUTED,maxWidth:160,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontSize:9}}>{l.brokerage||"—"}</td>
                     </tr>
                   );
@@ -2990,7 +3022,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
       ):(
         /* ═══ GRID VIEW ═══ */
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {paged.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample} isComparing={compareList.includes(l.id)} onToggleCompare={onToggleCompare} isSaved={savedDeals.includes(l.id)}/>)}
+          {paged.map((l,idx)=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample} isComparing={compareList.includes(l.id)} onToggleCompare={onToggleCompare} isSaved={savedDeals.includes(l.id)} isGated={!isRegistered&&idx>=5} onRequireReg={onRequireReg}/>)}
         </div>
       )}
 
@@ -3569,7 +3601,7 @@ export default function App(){
             </div>
           </div>
         ):activeNav==="listings"?(
-          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings} loading={!usingLiveFeed && liveListings.length===0} compareList={compareList} onToggleCompare={id=>setCompareList(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<4?[...prev,id]:prev)} recentlyViewed={recentlyViewed} onDealAlert={()=>setShowDealAlert(true)} savedDeals={savedDeals}/>
+          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings} loading={!usingLiveFeed && liveListings.length===0} compareList={compareList} onToggleCompare={id=>setCompareList(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<4?[...prev,id]:prev)} recentlyViewed={recentlyViewed} onDealAlert={()=>setShowDealAlert(true)} savedDeals={savedDeals} isRegistered={isRegistered} onRequireReg={()=>setShowRegModal(true)}/>
         ):activeNav==="pulse"?(
           <MarketPulse/>
         ):activeNav==="hoods"?(
