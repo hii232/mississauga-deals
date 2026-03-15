@@ -19,51 +19,9 @@ export async function GET(request) {
     const type = searchParams.get('type') || '';
     const beds = parseInt(searchParams.get('beds')) || 0;
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
+    const debug = searchParams.get('debug') === '1';
 
-    // Build filters for sold/closed listings in the same area
-    const filters = [];
-
-    // Try 'Closed' first (RESO standard), API may also use 'Sold'
-    // We'll try both statuses with OR
-    filters.push("(StandardStatus eq 'Closed' or StandardStatus eq 'Sold')");
-
-    // Same city
-    filters.push("City eq '" + city.replace(/'/g, "''") + "'");
-
-    // Similar property type if provided
-    if (type) {
-      // Map our display type back to AMPRE property type/subtype patterns
-      const typeMap = {
-        'Detached': "PropertyType eq 'Residential'",
-        'Semi-Detached': "(PropertySubType eq 'Semi-Detached' or PropertySubType eq 'Semi-detached')",
-        'Townhouse': "(PropertySubType eq 'Att/Row/Twnhouse' or PropertySubType eq 'Row / Townhouse')",
-        'Condo': "PropertyType eq 'Condominium'",
-        'Duplex': "PropertySubType eq 'Duplex'",
-        'Triplex': "PropertySubType eq 'Triplex'",
-        'Fourplex': "PropertySubType eq 'Fourplex'",
-        'Multiplex': "PropertySubType eq 'Multiplex'",
-      };
-      if (typeMap[type]) {
-        filters.push(typeMap[type]);
-      }
-    }
-
-    // Similar bed count (±1)
-    if (beds > 0) {
-      filters.push('BedroomsTotal ge ' + Math.max(1, beds - 1));
-      filters.push('BedroomsTotal le ' + (beds + 1));
-    }
-
-    // Only recent sold (within ~12 months)
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    const dateStr = oneYearAgo.toISOString().split('T')[0];
-    filters.push("ModificationTimestamp gt " + dateStr + "T00:00:00Z");
-
-    // Exclude commercial/lease
-    filters.push("PropertyType ne 'Commercial'");
-    filters.push("PropertyType ne 'Business'");
-
+    const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
     const sel = [
       'ListingKey', 'ListingId', 'ListPrice', 'ClosePrice',
       'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
@@ -71,67 +29,124 @@ export async function GET(request) {
       'PropertyType', 'PropertySubType', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName',
       'Latitude', 'Longitude', 'ModificationTimestamp',
-      'OnMarketDate', 'CloseDate', 'OriginalEntryTimestamp',
     ].join(',');
 
-    let url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-      + '&$select=' + encodeURIComponent(sel)
-      + '&$top=' + limit
-      + '&$orderby=ModificationTimestamp desc&$count=true';
+    // Status values to try — AMPRE/CREA may use different conventions
+    const statusAttempts = [
+      "StandardStatus eq 'Closed'",
+      "StandardStatus eq 'Sold'",
+      "(StandardStatus eq 'Closed' or StandardStatus eq 'Sold')",
+      "StandardStatus ne 'Active'",  // catch-all: everything that's NOT active
+    ];
 
-    const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
-    let resp = await fetch(url, { headers });
+    let items = [];
+    let total = 0;
+    let usedFilter = '';
+    let debugInfo = {};
 
-    // Fallback: if Closed/Sold filter fails, try without status (just get recent listings)
-    if (!resp.ok) {
-      // Try with just 'Closed'
-      filters[0] = "StandardStatus eq 'Closed'";
-      url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
+    for (const statusFilter of statusAttempts) {
+      const filters = [statusFilter];
+      filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+
+      // Similar property type
+      if (type) {
+        const typeMap = {
+          'Detached': "PropertyType eq 'Residential'",
+          'Semi-Detached': "(PropertySubType eq 'Semi-Detached' or PropertySubType eq 'Semi-detached')",
+          'Townhouse': "(PropertySubType eq 'Att/Row/Twnhouse' or PropertySubType eq 'Row / Townhouse')",
+          'Condo': "PropertyType eq 'Condominium'",
+          'Duplex': "PropertySubType eq 'Duplex'",
+          'Triplex': "PropertySubType eq 'Triplex'",
+          'Fourplex': "PropertySubType eq 'Fourplex'",
+          'Multiplex': "PropertySubType eq 'Multiplex'",
+        };
+        if (typeMap[type]) filters.push(typeMap[type]);
+      }
+
+      // Similar bed count (±1)
+      if (beds > 0) {
+        filters.push('BedroomsTotal ge ' + Math.max(1, beds - 1));
+        filters.push('BedroomsTotal le ' + (beds + 1));
+      }
+
+      // Exclude commercial/lease
+      filters.push("PropertyType ne 'Commercial'");
+      filters.push("PropertyType ne 'Business'");
+
+      const url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
         + '&$select=' + encodeURIComponent(sel)
         + '&$top=' + limit
         + '&$orderby=ModificationTimestamp desc&$count=true';
-      resp = await fetch(url, { headers });
+
+      try {
+        const resp = await fetch(url, { headers });
+        if (debug) {
+          debugInfo[statusFilter] = { status: resp.status, ok: resp.ok };
+        }
+
+        if (resp.ok) {
+          const data = await resp.json();
+          const count = data['@odata.count'] || (data.value || []).length;
+
+          if (debug) {
+            debugInfo[statusFilter].count = count;
+            // Show unique statuses found
+            const statuses = [...new Set((data.value || []).map(v => v.StandardStatus))];
+            debugInfo[statusFilter].statuses = statuses;
+          }
+
+          if (count > 0) {
+            items = data.value || [];
+            total = count;
+            usedFilter = statusFilter;
+            break;
+          }
+        } else if (debug) {
+          const errText = await resp.text().catch(() => '');
+          debugInfo[statusFilter].error = errText.substring(0, 200);
+        }
+      } catch (e) {
+        if (debug) debugInfo[statusFilter] = { error: e.message };
+      }
     }
 
-    // Second fallback: try 'Sold' only
-    if (!resp.ok) {
-      filters[0] = "StandardStatus eq 'Sold'";
-      url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
+    // If no sold data found with any status filter, try getting non-active listings without type/bed filters
+    if (items.length === 0) {
+      const broadFilters = [
+        "StandardStatus ne 'Active'",
+        "City eq '" + city.replace(/'/g, "''") + "'",
+        "PropertyType ne 'Commercial'",
+        "PropertyType ne 'Business'",
+      ];
+      const url = BASE + '/Property?$filter=' + encodeURIComponent(broadFilters.join(' and '))
         + '&$select=' + encodeURIComponent(sel)
         + '&$top=' + limit
         + '&$orderby=ModificationTimestamp desc&$count=true';
-      resp = await fetch(url, { headers });
+
+      try {
+        const resp = await fetch(url, { headers });
+        if (debug) {
+          debugInfo['broad_ne_active'] = { status: resp.status, ok: resp.ok };
+        }
+        if (resp.ok) {
+          const data = await resp.json();
+          if (debug) {
+            debugInfo['broad_ne_active'].count = data['@odata.count'] || (data.value || []).length;
+            const statuses = [...new Set((data.value || []).map(v => v.StandardStatus))];
+            debugInfo['broad_ne_active'].statuses = statuses;
+          }
+          if ((data.value || []).length > 0) {
+            items = data.value;
+            total = data['@odata.count'] || items.length;
+            usedFilter = 'broad_ne_active';
+          }
+        }
+      } catch (e) {
+        if (debug) debugInfo['broad_ne_active'] = { error: e.message };
+      }
     }
 
-    // Third fallback: remove date fields from select (some may not be supported)
-    if (!resp.ok) {
-      const selSafe = [
-        'ListingKey', 'ListingId', 'ListPrice', 'ClosePrice',
-        'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
-        'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
-        'PropertyType', 'PropertySubType', 'DaysOnMarket',
-        'StandardStatus', 'ListOfficeName',
-        'Latitude', 'Longitude', 'ModificationTimestamp',
-      ].join(',');
-      url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-        + '&$select=' + encodeURIComponent(selSafe)
-        + '&$top=' + limit
-        + '&$orderby=ModificationTimestamp desc&$count=true';
-      resp = await fetch(url, { headers });
-    }
-
-    if (!resp.ok) {
-      const errText = await resp.text().catch(() => '');
-      return NextResponse.json(
-        { error: 'AMPRE ' + resp.status, detail: errText.substring(0, 400), comps: [] },
-        { status: resp.status }
-      );
-    }
-
-    const data = await resp.json();
-    const items = data.value || [];
-    const total = data['@odata.count'] || items.length;
-
+    // Map items to comps
     const comps = items.map((l) => {
       const listPrice = l.ListPrice || 0;
       const closePrice = l.ClosePrice || l.ListPrice || 0;
@@ -176,10 +191,12 @@ export async function GET(request) {
       total,
     };
 
-    return NextResponse.json(
-      { comps, stats },
-      { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } }
-    );
+    const result = { comps, stats, usedFilter };
+    if (debug) result.debug = debugInfo;
+
+    return NextResponse.json(result, {
+      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+    });
   } catch (err) {
     console.error('sold-comps error:', err.message);
     return NextResponse.json({ error: 'Server error', detail: err.message, comps: [], stats: {} }, { status: 500 });
