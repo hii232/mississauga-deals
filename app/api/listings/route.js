@@ -69,6 +69,7 @@ export async function GET(request) {
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
       'Latitude', 'Longitude', 'ModificationTimestamp',
       'OnMarketDate', 'ListingContractDate', 'OriginalEntryTimestamp',
+      'LivingArea', 'BuildingAreaTotal',
     ].join(',');
 
     const expand = 'Media($select=MediaURL,MediaKey;$orderby=Order)';
@@ -186,6 +187,7 @@ export async function GET(request) {
         images: ph,
         lat: l.Latitude,
         lng: l.Longitude,
+        sqft: l.LivingArea || l.BuildingAreaTotal || 0,
         originalPrice: l.OriginalListPrice || price,
         priceDrop: drop,
         priceReduction: drop,

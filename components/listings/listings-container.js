@@ -1,13 +1,26 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { DealScreener } from './deal-screener';
 import { ListingGrid } from './listing-grid';
 import { ListingTable } from './listing-table';
 import { InvestorFilters } from './investor-filters';
 import { DEFAULT_FILTERS, applyFilters } from './filter-utils';
 
+const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[600px] items-center justify-center rounded-xl border border-slate-200 bg-white">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+      <span className="ml-3 text-sm text-muted">Loading map...</span>
+    </div>
+  ),
+});
+
 export function ListingsContainer({ initialListings }) {
+  const router = useRouter();
   const [listings, setListings] = useState(initialListings);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [view, setView] = useState('grid');
@@ -204,9 +217,7 @@ export function ListingsContainer({ initialListings }) {
         />
       )}
       {view === 'map' && (
-        <div className="flex h-96 items-center justify-center rounded-xl border border-slate-200 bg-white">
-          <p className="text-sm text-slate-400">Map view coming soon</p>
-        </div>
+        <ListingMap listings={filtered} photoMap={photoMap} />
       )}
 
       {/* Compare Bar */}
@@ -241,7 +252,13 @@ export function ListingsContainer({ initialListings }) {
               >
                 Clear
               </button>
-              <button className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90">
+              <button
+                onClick={() => {
+                  localStorage.setItem('compare_list', JSON.stringify(compareIds));
+                  router.push('/dashboard/compare');
+                }}
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white hover:bg-accent/90"
+              >
                 Compare ({compareIds.length})
               </button>
             </div>
