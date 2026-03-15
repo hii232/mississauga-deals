@@ -7,6 +7,7 @@ import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calcula
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
+import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
@@ -357,17 +358,31 @@ function BreakdownRow({ label, value, bold, annual, negative }) {
 // ──────────────────────────────────────────
 function PhotoGallery({ photos }) {
   const [activeIdx, setActiveIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const images = photos?.length ? photos : ['/images/placeholder-property.jpg'];
+  const hasRealPhotos = photos?.length > 0;
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200">
+      <div
+        className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200 cursor-pointer"
+        onClick={() => hasRealPhotos && setLightboxOpen(true)}
+      >
         <img
           src={images[activeIdx]}
           alt="Property photo"
           className="h-full w-full object-cover"
           onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
         />
+        {/* Photo count overlay */}
+        {images.length > 1 && (
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+            </svg>
+            {activeIdx + 1} / {images.length} — Click to enlarge
+          </div>
+        )}
       </div>
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -388,6 +403,15 @@ function PhotoGallery({ photos }) {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxOpen && hasRealPhotos && (
+        <PhotoLightbox
+          photos={images}
+          initialIndex={activeIdx}
+          onClose={() => setLightboxOpen(false)}
+        />
       )}
     </div>
   );
