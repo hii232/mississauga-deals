@@ -115,6 +115,20 @@
   100% { background-position: 600px 0; }
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 40s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Leaflet overrides for light theme */
 .leaflet-container {
   @apply rounded-xl;
