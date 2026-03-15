@@ -30,6 +30,7 @@ const SORT_OPTIONS = [
 ];
 
 export function ListingsContainer({ initialListings }) {
+  const [listings, setListings] = useState(initialListings);
   const [search, setSearch] = useState('');
   const [propertyType, setPropertyType] = useState('All');
   const [activeStrategies, setActiveStrategies] = useState([]);
@@ -41,6 +42,29 @@ export function ListingsContainer({ initialListings }) {
   useEffect(() => {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
+
+  // Client-side fallback: if SSR returned no listings, fetch on client
+  useEffect(() => {
+    if (initialListings.length > 0) return;
+    let cancelled = false;
+    async function fetchClient() {
+      try {
+        const res = await fetch('/api/listings');
+        if (!res.ok) return;
+        const data = await res.json();
+        const raw = data.listings || data || [];
+        if (!cancelled && raw.length > 0) {
+          // Dynamic import to avoid bundling server code unnecessarily
+          const { processListings } = await import('@/lib/listings/process-listings');
+          setListings(processListings(raw));
+        }
+      } catch {
+        // silently fail
+      }
+    }
+    fetchClient();
+    return () => { cancelled = true; };
+  }, [initialListings]);
 
   const toggleStrategy = useCallback((key) => {
     setActiveStrategies((prev) =>
@@ -59,7 +83,7 @@ export function ListingsContainer({ initialListings }) {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = [...initialListings];
+    let result = [...listings];
 
     // Search
     if (search.trim()) {
@@ -94,11 +118,11 @@ export function ListingsContainer({ initialListings }) {
 
     // VOW compliance: max 100
     return result.slice(0, 100);
-  }, [initialListings, search, propertyType, activeStrategies, sortKey]);
+  }, [listings, search, propertyType, activeStrategies, sortKey]);
 
   const compareListings = useMemo(
-    () => initialListings.filter((l) => compareIds.includes(l.id)),
-    [initialListings, compareIds]
+    () => listings.filter((l) => compareIds.includes(l.id)),
+    [listings, compareIds]
   );
 
   return (

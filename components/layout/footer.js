@@ -18,7 +18,7 @@ export default function Footer() {
             <div className="text-xs text-white/60 space-y-1">
               <p>Hamza Nouman, Sales Representative</p>
               <p>Royal LePage Signature Realty, Brokerage</p>
-              <p>347 Peel Centre Dr., Brampton, ON</p>
+              <p>30 Eglinton Ave W, Mississauga, ON</p>
               <p>
                 <a href="tel:6476091289" className="text-accent hover:text-accent/80 no-underline">647-609-1289</a>
                 {' · '}
