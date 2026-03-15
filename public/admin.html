@@ -269,6 +269,10 @@ const DB={
   setPass(p){localStorage.setItem('mi_pass',p)},
 };
 
+// CRM helpers
+function daysAgo(dateStr){if(!dateStr)return null;return Math.floor((Date.now()-new Date(dateStr).getTime())/(1000*60*60*24));}
+function isOverdue(lead){if(lead.call_count>=4)return false;if(lead.last_called_at)return daysAgo(lead.last_called_at)>=15;return daysAgo(lead.date)>=15;}
+
 // State
 let state={listings:[],blogs:[],leads:[],settings:{},seo:{},images:{}};
 
@@ -308,7 +312,9 @@ async function doLogin(){
         type:l.source||'unknown',
         date:l.created_at?l.created_at.split('T')[0]:'',
         casl:true,
-        notes:l.notes||''
+        notes:l.notes||'',
+        last_called_at:l.last_called_at||null,
+        call_count:l.call_count||0
       }));
       document.getElementById('login-screen').style.display='none';
       document.getElementById('app').style.display='flex';
@@ -845,10 +851,12 @@ function renderLeads(){
   const el=document.getElementById('section-leads');
   const allTypes=[...new Set(state.leads.map(l=>l.type))].sort();
   const types=['All',...allTypes];
-  const filtered=leadsFilter==='All'?state.leads:state.leads.filter(l=>l.type===leadsFilter);
+  let filtered=leadsFilter==='All'?[...state.leads]:state.leads.filter(l=>l.type===leadsFilter);
+  filtered.sort((a,b)=>{const ao=isOverdue(a)?0:1;const bo=isOverdue(b)?0:1;return ao-bo;});
+  const overdueCount=state.leads.filter(l=>isOverdue(l)).length;
   el.innerHTML=`
   <div class="section-header">
-    <div><div class="section-title">Leads Manager</div><div class="section-sub">${state.leads.length} total · all CASL consented</div></div>
+    <div><div class="section-title">Leads Manager</div><div class="section-sub">${state.leads.length} total${overdueCount?' · <span style="color:var(--red)">'+overdueCount+' overdue</span>':''} · call every 15 days · auto-remove after 4 calls</div></div>
     <div style="display:flex;gap:8px">
       ${adminKey?'<button class="btn btn-ghost" onclick="refreshLeads()">🔄 Refresh</button>':''}
       <button class="btn btn-ghost" onclick="exportLeads()">📥 Export CSV</button>
@@ -857,20 +865,25 @@ function renderLeads(){
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap">
     ${types.map(t=>`<button class="btn ${leadsFilter===t?'btn-gold':'btn-ghost'} btn-sm" style="${leadsFilter!==t?'border:1px solid var(--border)':''}" onclick="leadsFilter='${t}';render('leads')">${t}${t!=='All'?' ('+state.leads.filter(l=>l.type===t).length+')':''}</button>`).join('')}
   </div>
-  ${filtered.map(l=>`
-  <div class="list-item">
+  ${filtered.map(l=>{
+    const overdue=isOverdue(l);
+    const lastDays=daysAgo(l.last_called_at);
+    const callInfo=l.last_called_at?'📞 '+lastDays+'d ago':'📞 Never called';
+    return `
+  <div class="list-item" style="${overdue?'border-color:var(--red);box-shadow:0 0 12px rgba(248,113,113,0.15)':''}">
     <div style="font-size:26px;flex-shrink:0">${l.type==='Seller'?'🏡':l.type==='Pre-Con VIP'?'🏙️':'👤'}</div>
     <div class="list-info">
-      <div class="list-name">${l.name} <span class="tag tag-gold" style="font-size:10px">${l.type}</span></div>
-      <div class="list-meta">${l.phone}${l.email?' · '+l.email:''} · ${l.date}</div>
+      <div class="list-name">${l.name} <span class="tag tag-gold" style="font-size:10px">${l.type}</span> <span class="tag" style="font-size:10px;background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid rgba(96,165,250,0.2)">${l.call_count}/4 calls</span>${overdue?' <span class="tag" style="font-size:10px;background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2)">OVERDUE</span>':''}</div>
+      <div class="list-meta">${l.phone}${l.email?' · '+l.email:''} · ${l.date} · ${callInfo}</div>
       ${l.notes?`<div style="font-size:12px;color:var(--text);font-style:italic;margin-top:2px">"${l.notes}"</div>`:''}
     </div>
     <div class="list-actions">
+      <button class="btn btn-sm" style="background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid rgba(96,165,250,0.2)" onclick="markCalled('${l.id}')">📞 Called</button>
       <a href="https://wa.me/${state.settings.whatsapp||'16476091289'}?text=${encodeURIComponent('Hi '+l.name+', this is Hamza Nouman from Royal LePage Signature Realty. Thank you for visiting mississaugainvestor.ca!')}" target="_blank" class="btn btn-sm" style="background:rgba(37,211,102,0.1);color:#25D366;border:1px solid rgba(37,211,102,0.2)">💬</a>
       ${l.phone?`<a href="tel:${l.phone}" class="btn btn-ghost btn-sm" style="border:1px solid var(--border)">📞</a>`:''}
       <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">🗑️</button>
     </div>
-  </div>`).join('')}
+  </div>`}).join('')}
   ${filtered.length===0?'<div style="text-align:center;padding:40px;color:var(--muted)">No leads in this category.</div>':''}`;
 }
 
@@ -885,6 +898,25 @@ async function deleteLead(id){
   save('leads');
   render('leads');
   showToast('Lead removed');
+}
+
+async function markCalled(id){
+  if(!adminKey)return;
+  try{
+    const res=await fetch('/api/admin/leads?id='+encodeURIComponent(id),{method:'PATCH',headers:{'x-admin-key':adminKey}});
+    if(!res.ok)return showToast('Failed to update','error');
+    const data=await res.json();
+    if(data.deleted){
+      state.leads=state.leads.filter(l=>l.id!==id);
+      showToast('Lead completed after 4 calls — removed');
+    }else{
+      const lead=state.leads.find(l=>l.id===id);
+      if(lead){lead.call_count=data.call_count;lead.last_called_at=data.last_called_at;}
+      showToast('Marked as called ('+data.call_count+'/4)');
+    }
+    updateBadges();
+    render('leads');
+  }catch(e){showToast('Network error','error');}
 }
 
 function exportLeads(){
@@ -911,7 +943,9 @@ async function refreshLeads(){
       type:l.source||'unknown',
       date:l.created_at?l.created_at.split('T')[0]:'',
       casl:true,
-      notes:l.notes||''
+      notes:l.notes||'',
+      last_called_at:l.last_called_at||null,
+      call_count:l.call_count||0
     }));
     updateBadges();
     render('leads');
