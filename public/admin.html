@@ -275,7 +275,7 @@ let state={listings:[],blogs:[],leads:[],settings:{},seo:{},images:{}};
 function loadState(){
   state.listings=DB.get('listings')||DEFAULT_LISTINGS;
   state.blogs=DB.get('blogs')||DEFAULT_BLOGS;
-  state.leads=DB.get('leads')||DEFAULT_LEADS;
+  if(!adminKey)state.leads=DB.get('leads')||DEFAULT_LEADS;
   state.settings=DB.get('settings')||DEFAULT_SETTINGS;
   state.seo=DB.get('seo')||DEFAULT_SEO;
   state.images=DB.get('images')||DEFAULT_IMAGES;
