@@ -1,5 +1,7 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS, TESTIMONIALS } from '@/lib/constants';
+import { GOOGLE_REVIEWS } from '@/lib/constants';
+import { processListings } from '@/lib/listings/process-listings';
+import { headers } from 'next/headers';
 
 export const metadata = {
   title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals',
@@ -7,25 +9,80 @@ export const metadata = {
 };
 
 // ─────────────────────────────────────────────
+//   LIVE STATS FETCH
+// ─────────────────────────────────────────────
+async function fetchLiveStats() {
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    const proto = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${proto}://${host}`;
+
+    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const raw = data.listings || data || [];
+    const totalPages = data.pages || 1;
+
+    if (totalPages > 1) {
+      const pagePromises = [];
+      for (let p = 2; p <= totalPages; p++) {
+        pagePromises.push(
+          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
+            next: { revalidate: 300 },
+          }).then((r) => (r.ok ? r.json() : null))
+        );
+      }
+      const pages = await Promise.all(pagePromises);
+      for (const pg of pages) {
+        if (pg?.listings) raw.push(...pg.listings);
+      }
+    }
+
+    const listings = processListings(raw);
+    if (listings.length === 0) return null;
+
+    const count = listings.length;
+    const avgScore = (listings.reduce((s, l) => s + l.hamzaScore, 0) / count).toFixed(1);
+    const avgDom = Math.round(listings.reduce((s, l) => s + l.dom, 0) / count);
+    const avgPrice = listings.reduce((s, l) => s + l.price, 0) / count;
+
+    let priceLabel;
+    if (avgPrice >= 1000000) {
+      priceLabel = '$' + (avgPrice / 1000000).toFixed(2) + 'M';
+    } else {
+      priceLabel = '$' + Math.round(avgPrice / 1000) + 'K';
+    }
+
+    return { count, avgScore, avgDom, priceLabel };
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────
 //   STATS BAR
 // ─────────────────────────────────────────────
-function StatsBar() {
+function StatsBar({ liveStats }) {
+  const s = liveStats || { count: '200+', avgScore: '6.8', avgDom: 28, priceLabel: '$970K' };
   const stats = [
-    { label: 'Active Listings', value: '200+', icon: '📊' },
-    { label: 'Avg. Deal Score', value: '6.8/10', icon: '⭐' },
-    { label: 'Avg. DOM', value: '28 days', icon: '📅' },
-    { label: 'Avg. Price', value: '$970K', icon: '💰' },
+    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: '📊' },
+    { label: 'Avg. Deal Score', value: `${s.avgScore}/10`, icon: '⭐' },
+    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: '📅' },
+    { label: 'Avg. Price', value: s.priceLabel, icon: '💰' },
   ];
 
   return (
     <div className="bg-cloud border-y border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-5">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {stats.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-2xl mb-1">{s.icon}</div>
-              <div className="font-heading font-bold text-xl text-navy">{s.value}</div>
-              <div className="text-xs text-muted">{s.label}</div>
+          {stats.map((st) => (
+            <div key={st.label} className="text-center">
+              <div className="text-2xl mb-1">{st.icon}</div>
+              <div className="font-heading font-bold text-xl text-navy">{st.value}</div>
+              <div className="text-xs text-muted">{st.label}</div>
             </div>
           ))}
         </div>
@@ -115,32 +172,6 @@ function GoogleReviews() {
 }
 
 // ─────────────────────────────────────────────
-//   TESTIMONIALS STRIP
-// ─────────────────────────────────────────────
-function TestimonialStrip() {
-  return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex gap-4 overflow-x-auto pb-2">
-        {TESTIMONIALS.map((t) => (
-          <div key={t.name} className="flex-shrink-0 w-80 card p-4">
-            <div className="flex gap-0.5 mb-2">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <span key={s} className="text-gold text-xs">★</span>
-              ))}
-            </div>
-            <p className="text-xs text-navy/70 leading-relaxed mb-3 italic">&ldquo;{t.quote}&rdquo;</p>
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-accent">{t.name}</span>
-              <span className="text-[10px] font-medium text-success bg-success/5 px-2 py-0.5 rounded">{t.result}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-// ─────────────────────────────────────────────
 //   CTA SECTION
 // ─────────────────────────────────────────────
 function CTASection() {
@@ -170,7 +201,9 @@ function CTASection() {
 // ─────────────────────────────────────────────
 //   HOMEPAGE
 // ─────────────────────────────────────────────
-export default function HomePage() {
+export default async function HomePage() {
+  const liveStats = await fetchLiveStats();
+
   return (
     <>
       {/* Hero */}
@@ -205,8 +238,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-success/20 rounded-full blur-3xl opacity-20" />
       </section>
 
-      <StatsBar />
-      <TestimonialStrip />
+      <StatsBar liveStats={liveStats} />
 
       {/* Featured Listings CTA */}
       <section className="max-w-7xl mx-auto px-4 py-12">
