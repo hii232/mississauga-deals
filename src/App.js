@@ -121,10 +121,15 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25)}
 @media(max-width:768px){
   .desktop-only{display:none!important}
   .mobile-stack{flex-direction:column!important}
-  .modal-overlay{padding:12px 8px}
+  .modal-overlay{padding:8px 4px}
+  .modal-overlay>div{max-height:95vh!important;border-radius:12px!important}
+  main{padding:0 12px 32px!important}
+  footer{padding:20px 12px!important}
 }
 @media(max-width:480px){
   .hide-xs{display:none!important}
+  h1{font-size:24px!important}
+  h2{font-size:20px!important}
 }
 `;
 
@@ -464,7 +469,7 @@ const HOOD_GRADIENTS={
   "Malton":             ["#1A100E","#36201A"],
 };
 
-function ListingCard({l,onOpen,isSample=true}){
+function ListingCard({l,onOpen,isSample=true,isComparing=false,onToggleCompare,isSaved=false}){
   const cf=fmtCF(l.cashFlow||0);
   const grad=HOOD_GRADIENTS[l.neighbourhood]||["#0C1429","#182040"];
   const score=l.hamzaScore||0;
@@ -567,23 +572,35 @@ function ListingCard({l,onOpen,isSample=true}){
         </div>
 
         {/* Specs — Bloomberg terminal style data row */}
-        <div style={{display:"flex",gap:4,marginBottom:10,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
+        <div style={{display:"flex",gap:4,marginBottom:8,background:SURFACE,borderRadius:6,padding:"6px 8px",border:`1px solid ${BORDER}`}}>
           {[
             [l.beds,"BD"],
             [l.baths,"BA"],
             [l.dom+"d","DOM"],
             [l.capRate?l.capRate+"%":"—","CAP"],
-          ].map(([val,unit])=>(
-            <div key={unit} style={{flex:1,textAlign:"center",borderRight:unit!=="CAP"?`1px solid ${BORDER}`:"none",paddingRight:unit!=="CAP"?4:0}}>
-              <div style={{fontFamily:"'JetBrains Mono',monospace",color:TEXT,fontWeight:700,fontSize:12,lineHeight:1}}>{val}</div>
-              <div style={{fontSize:8,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
+            [l.cashOnCash?(l.cashOnCash>0?"+":"")+l.cashOnCash+"%":"—","CoC"],
+          ].map(([val,unit],idx,arr)=>(
+            <div key={unit} style={{flex:1,textAlign:"center",borderRight:idx<arr.length-1?`1px solid ${BORDER}`:"none",paddingRight:idx<arr.length-1?4:0}}>
+              <div style={{fontFamily:"'JetBrains Mono',monospace",color:unit==="CoC"?(l.cashOnCash>=0?GREEN:RED):TEXT,fontWeight:700,fontSize:11,lineHeight:1}}>{val}</div>
+              <div style={{fontSize:7,color:MUTED,fontWeight:600,letterSpacing:"0.08em",marginTop:2}}>{unit}</div>
             </div>
           ))}
         </div>
+        {/* Rent estimate row */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,fontSize:11,color:MUTED}}>
+          <span>Est. Rent: <span style={{color:TEXT,fontWeight:600,fontFamily:"'JetBrains Mono',monospace"}}>${(l.estimatedRent||0).toLocaleString()}/mo</span></span>
+          <span>Mtg: <span style={{color:TEXT,fontFamily:"'JetBrains Mono',monospace"}}>${Math.round(calcMonthly(l.price,20,5.5,25)).toLocaleString()}/mo</span></span>
+        </div>
 
-        {/* Brokerage — TRREB required */}
-        <div style={{fontSize:9.5,color:"#3A4E68",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8,fontStyle:"italic",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-          {l.isSample?"Sample Data":"Courtesy: "+(l.brokerage||"Listing Brokerage")}
+        {/* Compare + Saved + Brokerage */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:`1px solid rgba(255,255,255,0.05)`,paddingTop:8}}>
+          <div style={{fontSize:9.5,color:"#3A4E68",fontStyle:"italic",fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>
+            {l.isSample?"Sample Data":"Courtesy: "+(l.brokerage||"Listing Brokerage")}
+          </div>
+          <div style={{display:"flex",gap:4,flexShrink:0}}>
+            {isSaved&&<span style={{fontSize:10,color:GOLD}} title="Saved">★</span>}
+            {onToggleCompare&&<button onClick={e=>{e.stopPropagation();onToggleCompare(l.id);}} style={{background:isComparing?"rgba(59,130,246,0.15)":"transparent",border:`1px solid ${isComparing?"rgba(59,130,246,0.4)":"rgba(255,255,255,0.08)"}`,borderRadius:4,padding:"2px 6px",fontSize:9,color:isComparing?BLUE:MUTED,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}} title="Add to compare">{isComparing?"✓ CMP":"+ CMP"}</button>}
+          </div>
         </div>
       </div>
     </div>
@@ -2596,7 +2613,7 @@ function ListingsMap({listings,onOpenListing}){
 /* ─────────────────────────────────────────────
    LISTINGS VIEW
 ───────────────────────────────────────────── */
-function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false}){
+function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loading=false,compareList=[],onToggleCompare,recentlyViewed=[],onDealAlert,savedDeals=[]}){
   const [propType,setPropType]=useState("All");
   const [sort,setSort]=useState("score");
   const [showScoreInfo,setShowScoreInfo]=useState(false);
@@ -2604,7 +2621,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
   const [chips,setChips]=useState(new Set());
   const [showFilters,setShowFilters]=useState(false);
   const [viewMode,setViewMode]=useState("grid"); // grid | table | map
-  const [filters,setFilters]=useState({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});
+  const [filters,setFilters]=useState({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0,cashFlowMin:-2000,cocMin:-20});
   const [page,setPage]=useState(1);
   const PER_PAGE=24;
   const loadMoreRef=useRef(null);
@@ -2629,8 +2646,8 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
     if(chips.has("new-listing"))list=list.filter(l=>(l.dom||0)<=3);
     // Range filters
     list=list.filter(l=>{
-      const p=l.price||0,b=l.beds||0,ba=l.baths||0,d=l.dom||0,dr=l.priceReduction||0,cr=l.capRate||0,sc=l.hamzaScore||0;
-      return p>=filters.priceMin&&p<=filters.priceMax&&b>=filters.bedsMin&&b<=filters.bedsMax&&ba>=filters.bathsMin&&d>=filters.domMin&&d<=filters.domMax&&dr>=filters.priceDropMin&&cr>=filters.capRateMin&&sc>=filters.scoreMin;
+      const p=l.price||0,b=l.beds||0,ba=l.baths||0,d=l.dom||0,dr=l.priceReduction||0,cr=l.capRate||0,sc=l.hamzaScore||0,cf=l.cashFlow||0,coc=l.cashOnCash||0;
+      return p>=filters.priceMin&&p<=filters.priceMax&&b>=filters.bedsMin&&b<=filters.bedsMax&&ba>=filters.bathsMin&&d>=filters.domMin&&d<=filters.domMax&&dr>=filters.priceDropMin&&cr>=filters.capRateMin&&sc>=filters.scoreMin&&cf>=filters.cashFlowMin&&coc>=filters.cocMin;
     });
     const sortFns={
       score:(a,b)=>(b.hamzaScore||0)-(a.hamzaScore||0),
@@ -2641,6 +2658,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
       drop:(a,b)=>(b.priceReduction||0)-(a.priceReduction||0),
       cashflow:(a,b)=>(b.cashFlow||0)-(a.cashFlow||0),
       caprate:(a,b)=>(b.capRate||0)-(a.capRate||0),
+      coc:(a,b)=>(b.cashOnCash||0)-(a.cashOnCash||0),
       rent:(a,b)=>(b.estimatedRent||0)-(a.estimatedRent||0),
       ppsqft:(a,b)=>{const pa=(a.price||1)/(a.beds||1),pb=(b.price||1)/(b.beds||1);return pa-pb;},
     };
@@ -2663,11 +2681,16 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
     const bestDeal=filtered.reduce((best,l)=>(l.hamzaScore||0)>(best.hamzaScore||0)?l:best,filtered[0]);
     const totalValue=prices.reduce((a,b)=>a+b,0);
     const priceDrops=filtered.filter(l=>(l.priceReduction||0)>0).length;
-    return{avgPrice,avgCap,avgDOM,maxCap,cfPositive,total:filtered.length,bestDeal,totalValue,priceDrops,cfNegative:filtered.length-cfPositive};
+    const cocs=filtered.map(l=>l.cashOnCash||0);
+    const avgCoC=cocs.length>0?cocs.reduce((a,b)=>a+b,0)/cocs.length:0;
+    const bestCF=Math.max(...cfs);
+    const suitePotential=filtered.filter(l=>l.hasSuite).length;
+    const avgScore=filtered.reduce((a,l)=>a+(l.hamzaScore||0),0)/filtered.length;
+    return{avgPrice,avgCap,avgDOM,maxCap,cfPositive,total:filtered.length,bestDeal,totalValue,priceDrops,cfNegative:filtered.length-cfPositive,avgCoC,bestCF,suitePotential,avgScore};
   },[filtered]);
 
-  const activeFilters=chips.size+(propType!=="All"?1:0)+(filterHood?1:0)+(search?1:0)+(filters.priceMin>0||filters.priceMax<5000000||filters.bedsMin>0||filters.capRateMin>0||filters.scoreMin>0?1:0);
-  const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0});setPage(1);};
+  const activeFilters=chips.size+(propType!=="All"?1:0)+(filterHood?1:0)+(search?1:0)+(filters.priceMin>0||filters.priceMax<5000000||filters.bedsMin>0||filters.capRateMin>0||filters.scoreMin>0||filters.cashFlowMin>-2000||filters.cocMin>-20?1:0);
+  const resetAll=()=>{setPropType("All");setChips(new Set());setSearch("");if(setFilterHood)setFilterHood(null);setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0,cashFlowMin:-2000,cocMin:-20});setPage(1);};
 
   // Infinite scroll — show items 0..page*PER_PAGE
   const totalPages=Math.ceil(filtered.length/PER_PAGE);
@@ -2708,13 +2731,15 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
               {label:"SHOWING",value:analytics.total,sub:`of ${listings.length}`,color:TEXT},
               {label:"AVG PRICE",value:fmtK(analytics.avgPrice),sub:"filtered avg",color:TEXT},
               {label:"AVG CAP RATE",value:analytics.avgCap.toFixed(2)+"%",sub:"net yield",color:analytics.avgCap>=4?GREEN:analytics.avgCap>=3?GOLD:RED},
-              {label:"MAX CAP",value:analytics.maxCap.toFixed(1)+"%",sub:"best yield",color:GREEN},
+              {label:"AVG CoC",value:analytics.avgCoC.toFixed(1)+"%",sub:"cash-on-cash",color:analytics.avgCoC>=0?GREEN:RED},
               {label:"CF POSITIVE",value:analytics.cfPositive,sub:`of ${analytics.total}`,color:analytics.cfPositive>0?GREEN:RED},
+              {label:"BEST CF",value:"$"+analytics.bestCF.toLocaleString(),sub:"/month",color:analytics.bestCF>0?GREEN:RED},
               {label:"AVG DOM",value:Math.round(analytics.avgDOM)+"d",sub:"days on mkt",color:analytics.avgDOM>=40?RED:TEXT},
               {label:"PRICE DROPS",value:analytics.priceDrops,sub:"reduced",color:analytics.priceDrops>0?GREEN:MUTED},
-              {label:"TOTAL VALUE",value:analytics.totalValue>=1e9?"$"+(analytics.totalValue/1e9).toFixed(1)+"B":"$"+(analytics.totalValue/1e6).toFixed(0)+"M",sub:"portfolio",color:GOLD},
+              {label:"SUITES",value:analytics.suitePotential,sub:"detected",color:analytics.suitePotential>0?GREEN:MUTED},
+              {label:"AVG SCORE",value:analytics.avgScore.toFixed(1),sub:"/10",color:scoreColor(analytics.avgScore)},
             ].map((s,i)=>(
-              <div key={i} style={{padding:"12px 14px",borderRight:i<7?`1px solid rgba(255,255,255,0.04)`:"none",borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
+              <div key={i} style={{padding:"12px 14px",borderRight:`1px solid rgba(255,255,255,0.04)`,borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
                 <div style={{fontSize:9,color:MUTED,fontWeight:600,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace",marginBottom:4}}>{s.label}</div>
                 <div style={{fontFamily:"'JetBrains Mono',monospace",fontSize:16,fontWeight:700,color:s.color,lineHeight:1}}>{s.value}</div>
                 <div style={{fontSize:9,color:MUTED,marginTop:2,fontFamily:"'JetBrains Mono',monospace"}}>{s.sub}</div>
@@ -2781,13 +2806,16 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
             {[
               ["cash-flow","CF+","Cash Flow Positive","#10B981"],
               ["high-yield","4%+ CAP","Cap Rate 4%+","#F59E0B"],
+              ["cash-flow","CF+","Positive Cash Flow","#10B981"],
+              ["high-yield","HIGH CAP","4%+ Cap Rate","#F59E0B"],
               ["motivated","MOTIVATED","DOM 30+ & Price Cut","#EF4444"],
               ["brrr","BRRR","DOM 40+ & 5%+ Drop","#8B5CF6"],
               ["price-drop","REDUCED","5%+ Price Drop","#10B981"],
               ["new-listing","NEW","Listed 0-3 Days","#3B82F6"],
               ["under-800","<$800K","Under $800K","#3B82F6"],
               ["under-600","<$600K","Under $600K","#3B82F6"],
-              ["suite","SUITE","Basement Suite Potential","#F59E0B"],
+              ["suite","SUITE","Basement Suite Detected","#F59E0B"],
+              ["lrt","LRT","Near LRT Corridor","#6366F1"],
             ].map(([id,tag,desc,col])=>(
               <button key={id} onClick={()=>toggleChip(id)}
                 title={desc}
@@ -2809,6 +2837,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
             <option value="score">SORT: SCORE ↓</option>
             <option value="caprate">SORT: CAP RATE ↓</option>
             <option value="cashflow">SORT: CASH FLOW ↓</option>
+            <option value="coc">SORT: CoC RETURN ↓</option>
             <option value="price">SORT: PRICE ↑</option>
             <option value="priceDesc">SORT: PRICE ↓</option>
             <option value="dom">SORT: DOM ↓</option>
@@ -2845,7 +2874,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
           <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.15)`,borderRadius:10,padding:"18px 20px",marginTop:14,animation:"slideDown .2s ease"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
               <div style={{fontSize:10,fontWeight:700,color:BLUE,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace"}}>ADVANCED SCREENING</div>
-              <button onClick={()=>setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0})} style={{fontSize:10,color:MUTED,background:"none",border:"none",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>RESET</button>
+              <button onClick={()=>setFilters({priceMin:0,priceMax:5000000,bedsMin:0,bedsMax:99,bathsMin:0,domMin:0,domMax:999,priceDropMin:0,capRateMin:0,scoreMin:0,cashFlowMin:-2000,cocMin:-20})} style={{fontSize:10,color:MUTED,background:"none",border:"none",cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>RESET</button>
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:14}}>
               {[
@@ -2858,6 +2887,8 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
                 ["Max DOM","domMax",7,999,7,v=>v>=999?"Any":v+"d"],
                 ["Min Price Drop","priceDropMin",0,25,1,v=>v+"%"],
                 ["Min Cap Rate","capRateMin",0,8,0.5,v=>v.toFixed(1)+"%"],
+                ["Min Cash Flow","cashFlowMin",-2000,1000,100,v=>"$"+v.toLocaleString()+"/mo"],
+                ["Min CoC Return","cocMin",-20,15,1,v=>v+"%"],
                 ["Min Score","scoreMin",0,9,0.5,v=>v.toFixed(1)+"/10"],
               ].map(([label,key,min,max,step,fmt])=>(
                 <div key={key}>
@@ -2958,7 +2989,7 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
       ):(
         /* ═══ GRID VIEW ═══ */
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
-          {paged.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample}/>)}
+          {paged.map(l=><ListingCard key={l.id} l={l} onOpen={onOpenListing} isSample={l.isSample} isComparing={compareList.includes(l.id)} onToggleCompare={onToggleCompare} isSaved={savedDeals.includes(l.id)}/>)}
         </div>
       )}
 
@@ -2972,6 +3003,38 @@ function ListingsView({onOpenListing,filterHood,setFilterHood,listings=[],loadin
       {viewMode!=="map"&&!hasMore&&filtered.length>0&&(
         <div style={{textAlign:"center",padding:"16px 0"}}>
           <span style={{fontSize:11,color:MUTED}}>Showing all {filtered.length} properties</span>
+        </div>
+      )}
+
+      {/* Deal Alert CTA */}
+      {onDealAlert&&(
+        <div style={{background:`linear-gradient(135deg,rgba(59,130,246,0.06),rgba(139,92,246,0.04))`,border:`1px solid rgba(59,130,246,0.2)`,borderRadius:12,padding:"20px 24px",marginTop:24,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontSize:15,fontWeight:700,color:TEXT,marginBottom:4}}>🔔 Never Miss a Deal</div>
+            <div style={{fontSize:12,color:MUTED}}>Set your criteria and get notified instantly when matching properties hit the market.</div>
+          </div>
+          <button onClick={onDealAlert} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:13}}>Set Up Deal Alerts</button>
+        </div>
+      )}
+
+      {/* Recently Viewed */}
+      {recentlyViewed.length>0&&(
+        <div style={{marginTop:28}}>
+          <div style={{fontSize:11,fontWeight:700,color:MUTED,letterSpacing:"0.08em",fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>RECENTLY VIEWED</div>
+          <div style={{display:"flex",gap:10,overflowX:"auto",paddingBottom:6}}>
+            {recentlyViewed.map(r=>{
+              const listing=listings.find(l=>l.id===r.id);
+              return(
+                <div key={r.id} onClick={()=>listing&&onOpenListing(listing)} style={{flexShrink:0,width:200,background:CARD,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 12px",cursor:listing?"pointer":"default",opacity:listing?1:0.5}}>
+                  <div style={{fontSize:11,fontWeight:600,color:TEXT,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{formatAddress(r.address)}</div>
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                    <span style={{fontSize:11,color:GOLD,fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{fmtK(r.price)}</span>
+                    <span style={{fontSize:10,color:scoreColor(r.score||0),fontFamily:"'JetBrains Mono',monospace"}}>{(r.score||0).toFixed(1)}/10</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>
@@ -3068,6 +3131,10 @@ export default function App(){
   const [filterHood,setFilterHood]=useState(null);
   const [showExitPopup,setShowExitPopup]=useState(false);
   const [savedDeals,setSavedDeals]=useState(()=>{try{return JSON.parse(localStorage.getItem('saved_deals')||'[]')}catch{return[]}});
+  const [compareList,setCompareList]=useState([]);
+  const [showCompare,setShowCompare]=useState(false);
+  const [recentlyViewed,setRecentlyViewed]=useState(()=>{try{return JSON.parse(localStorage.getItem('recently_viewed')||'[]')}catch{return[]}});
+  const [showDealAlert,setShowDealAlert]=useState(false);
 
   // Check stored cookie consent
   // Load ALL live TRREB listings from PropTx API (paginated)
@@ -3228,8 +3295,15 @@ export default function App(){
             const beds=l.beds||0;
             const rent=l.estimatedRent||l.rent||Math.round(price*0.0042);
             const monthly=calcMonthly(price,20,5.5,25);
-            const cashFlow=rent-monthly-Math.round(price*0.015/12);
-            const capRate=price>0?+((rent*12*0.65/price)*100).toFixed(2):0;
+            const propTax=Math.round(price*0.0095/12); // Mississauga ~0.95% mill rate
+            const propInsurance=Math.round(price*0.003/12); // ~0.3% insurance
+            const maintenanceReserve=Math.round(rent*0.05); // 5% maintenance
+            const vacancyAllowance=Math.round(rent*0.04); // 4% vacancy
+            const cashFlow=rent-monthly-propTax-propInsurance-maintenanceReserve-vacancyAllowance;
+            const noi=rent*12*0.91*(1-0.30); // 91% occupancy, 30% opex
+            const capRate=price>0?+((noi/price)*100).toFixed(2):0;
+            const totalCashIn=price*0.20; // 20% down
+            const cashOnCash=totalCashIn>0?+((cashFlow*12/totalCashIn)*100).toFixed(2):0;
             const dom=l.dom||l.daysOnMarket||0;
             const drop=l.priceDrop||l.priceReduction||0;
             const hood=l.city||l.neighbourhood||'Mississauga';
@@ -3278,6 +3352,8 @@ export default function App(){
               rent:rent,
               capRate:capRate,
               cashFlow:cashFlow,
+              cashOnCash:cashOnCash,
+              monthlyExpenses:monthly+propTax+propInsurance+maintenanceReserve+vacancyAllowance,
               walkScore:hoodData?72+Math.round(Math.random()*15):72,
               transitScore:hoodData?65+Math.round(Math.random()*20):65,
               schoolScore:hoodData?70+Math.round(Math.random()*20):76,
@@ -3322,6 +3398,12 @@ export default function App(){
     }
     if(!isRegistered){setFreeViews(v=>{const nv=v-1;try{localStorage.setItem('listing_views',String(3-nv))}catch{}return nv;});}
     setSelectedListing(l);
+    // Track recently viewed
+    setRecentlyViewed(prev=>{
+      const next=[{id:l.id,address:l.address,price:l.price,score:l.hamzaScore,cashFlow:l.cashFlow,ts:Date.now()},...prev.filter(r=>r.id!==l.id)].slice(0,10);
+      try{localStorage.setItem('recently_viewed',JSON.stringify(next))}catch{}
+      return next;
+    });
   };
 
   const handleRegSuccess=(name)=>{
@@ -3486,7 +3568,7 @@ export default function App(){
             </div>
           </div>
         ):activeNav==="listings"?(
-          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings} loading={!usingLiveFeed && liveListings.length===0}/>
+          <ListingsView onOpenListing={handleOpenListing} filterHood={filterHood} setFilterHood={setFilterHood} listings={liveListings} loading={!usingLiveFeed && liveListings.length===0} compareList={compareList} onToggleCompare={id=>setCompareList(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<4?[...prev,id]:prev)} recentlyViewed={recentlyViewed} onDealAlert={()=>setShowDealAlert(true)} savedDeals={savedDeals}/>
         ):activeNav==="pulse"?(
           <MarketPulse/>
         ):activeNav==="hoods"?(
@@ -3542,10 +3624,120 @@ export default function App(){
       {/* Footer */}
       <Footer onPrivacy={()=>setShowPrivacy(true)}/>
 
+      {/* Compare bar — floating bottom */}
+      {compareList.length>0&&(
+        <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:"rgba(5,9,26,0.95)",backdropFilter:"blur(12px)",borderTop:`1px solid rgba(59,130,246,0.3)`,padding:"10px 24px",display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+          <span style={{fontSize:12,color:MUTED,fontFamily:"'JetBrains Mono',monospace"}}>{compareList.length}/4 selected</span>
+          <div style={{display:"flex",gap:6}}>
+            {compareList.map(id=>{const l=liveListings.find(x=>x.id===id);return l?<span key={id} style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:6,padding:"4px 10px",fontSize:11,color:TEXT,display:"inline-flex",alignItems:"center",gap:4}}>
+              {formatAddress(l.address).slice(0,20)}…
+              <button onClick={()=>setCompareList(prev=>prev.filter(x=>x!==id))} style={{background:"none",border:"none",color:RED,cursor:"pointer",fontSize:12,padding:0}}>×</button>
+            </span>:null;})}
+          </div>
+          <button onClick={()=>setShowCompare(true)} disabled={compareList.length<2} className="btn-primary" style={{padding:"8px 20px",borderRadius:8,fontSize:12,opacity:compareList.length<2?0.4:1}}>Compare {compareList.length} Properties</button>
+          <button onClick={()=>setCompareList([])} style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:11}}>Clear</button>
+        </div>
+      )}
+
+      {/* Compare Modal */}
+      {showCompare&&compareList.length>=2&&(
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setShowCompare(false)}} style={{zIndex:200}}>
+          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:16,width:"100%",maxWidth:900,maxHeight:"90vh",overflow:"auto",animation:"fadeUp .3s ease"}}>
+            <div style={{padding:"20px 28px",borderBottom:`1px solid ${BORDER}`,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,background:CARD,zIndex:1}}>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:TEXT}}>Compare Properties</h2>
+              <button onClick={()=>setShowCompare(false)} style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:22}}>×</button>
+            </div>
+            <div style={{padding:"20px 28px",overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+                <thead>
+                  <tr style={{borderBottom:`1px solid ${BORDER}`}}>
+                    <th style={{textAlign:"left",padding:"8px 12px",color:MUTED,fontSize:11,fontFamily:"'JetBrains Mono',monospace"}}>METRIC</th>
+                    {compareList.map(id=>{const l=liveListings.find(x=>x.id===id);return <th key={id} style={{textAlign:"center",padding:"8px 12px",color:TEXT,fontSize:12,minWidth:160}}>{l?formatAddress(l.address).slice(0,25):"—"}</th>;})}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ["Price",l=>fmtK(l.price)],
+                    ["Beds / Baths",l=>l.beds+"bd / "+l.baths+"ba"],
+                    ["Type",l=>l.type],
+                    ["Neighbourhood",l=>l.neighbourhood],
+                    ["Est. Rent",l=>"$"+(l.estimatedRent||0).toLocaleString()+"/mo"],
+                    ["Cash Flow",l=>{const cf=l.cashFlow||0;return <span style={{color:cf>=0?GREEN:RED}}>{fmtNum(cf)}/mo</span>;}],
+                    ["Cap Rate",l=><span style={{color:parseFloat(l.capRate)>=4?GREEN:GOLD}}>{l.capRate}%</span>],
+                    ["CoC Return",l=><span style={{color:(l.cashOnCash||0)>=0?GREEN:RED}}>{l.cashOnCash||0}%</span>],
+                    ["Deal Score",l=><span style={{color:scoreColor(l.hamzaScore||0),fontWeight:700}}>{(l.hamzaScore||0).toFixed(1)}/10</span>],
+                    ["DOM",l=>l.dom+"d"],
+                    ["Price Drop",l=>l.priceReduction>0?<span style={{color:GREEN}}>{l.priceReduction}%</span>:"—"],
+                    ["Suite Detected",l=>l.hasSuite?<span style={{color:GREEN}}>Yes</span>:<span style={{color:MUTED}}>No</span>],
+                    ["LRT Access",l=>l.lrtAccess?<span style={{color:BLUE}}>Yes</span>:<span style={{color:MUTED}}>No</span>],
+                    ["Monthly Expenses",l=>"$"+(l.monthlyExpenses||0).toLocaleString()],
+                    ["Down Payment (20%)",l=>"$"+Math.round(l.price*0.2).toLocaleString()],
+                  ].map(([label,fn])=>(
+                    <tr key={label} style={{borderBottom:`1px solid rgba(255,255,255,0.04)`}}>
+                      <td style={{padding:"8px 12px",color:MUTED,fontSize:11,fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>{label}</td>
+                      {compareList.map(id=>{const l=liveListings.find(x=>x.id===id);return <td key={id} style={{textAlign:"center",padding:"8px 12px",color:TEXT,fontFamily:"'JetBrains Mono',monospace"}}>{l?fn(l):"—"}</td>;})}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deal Alert Modal */}
+      {showDealAlert&&(
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setShowDealAlert(false)}} style={{zIndex:200}}>
+          <div style={{background:CARD,border:`1px solid rgba(59,130,246,0.3)`,borderRadius:16,width:"100%",maxWidth:480,animation:"fadeUp .3s ease",padding:"28px"}}>
+            <button onClick={()=>setShowDealAlert(false)} style={{position:"absolute",top:16,right:20,background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:20}}>×</button>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:TEXT,marginBottom:6}}>🔔 Deal Alerts</h2>
+            <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Get notified when properties matching your criteria hit the market.</p>
+            <form onSubmit={e=>{e.preventDefault();const fd=new FormData(e.target);const data=Object.fromEntries(fd);fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...data,source:"deal-alert",timestamp:new Date().toISOString()})}).catch(()=>{});e.target.reset();setShowDealAlert(false);alert("Deal alerts activated! Hamza will send matching properties to your email.");}}>
+              <div style={{display:"grid",gap:12,marginBottom:16}}>
+                <input name="email" type="email" placeholder="your@email.com" required style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}/>
+                <input name="name" type="text" placeholder="Your name" required style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:14}}/>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  <select name="maxPrice" style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:13}}>
+                    <option value="">Max Price</option>
+                    <option value="600000">Under $600K</option>
+                    <option value="800000">Under $800K</option>
+                    <option value="1000000">Under $1M</option>
+                    <option value="1500000">Under $1.5M</option>
+                    <option value="99999999">Any</option>
+                  </select>
+                  <select name="minBeds" style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:13}}>
+                    <option value="">Min Beds</option>
+                    <option value="1">1+</option>
+                    <option value="2">2+</option>
+                    <option value="3">3+</option>
+                    <option value="4">4+</option>
+                  </select>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  <select name="strategy" style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:13}}>
+                    <option value="">Strategy</option>
+                    <option value="cashflow">Cash Flow</option>
+                    <option value="brrr">BRRR</option>
+                    <option value="appreciation">Appreciation</option>
+                    <option value="precon">Pre-Construction</option>
+                  </select>
+                  <select name="hood" style={{background:SURFACE,border:`1px solid ${BORDER}`,borderRadius:8,padding:"10px 14px",color:TEXT,fontSize:13}}>
+                    <option value="">Any Neighbourhood</option>
+                    {["Cooksville","Port Credit","Erin Mills","Churchill Meadows","Clarkson","Streetsville","Meadowvale","Malton","Hurontario","Lakeview","City Centre"].map(h=><option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+              </div>
+              <button type="submit" className="btn-primary" style={{width:"100%",padding:"13px",borderRadius:10,fontSize:15}}>Activate Deal Alerts</button>
+              <p style={{fontSize:10,color:MUTED,marginTop:10,textAlign:"center"}}>Free. Unsubscribe anytime. We respect your privacy.</p>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Sign up CTA - bottom right */}
-      {!isRegistered&&(
+      {!isRegistered&&compareList.length===0&&(
         <button onClick={()=>setShowRegModal(true)}
-          style={{position:"fixed",bottom:24,right:24,zIndex:999,background:"linear-gradient(135deg,#3B82F6,#2563EB)",border:"none",borderRadius:14,padding:"14px 20px",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 20px rgba(59,130,246,0.4)",display:"flex",alignItems:"center",gap:8,animation:"fadeUp .5s ease"}}>
+          style={{position:"fixed",bottom:24,right:24,zIndex:99,background:"linear-gradient(135deg,#3B82F6,#2563EB)",border:"none",borderRadius:14,padding:"14px 20px",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",boxShadow:"0 4px 20px rgba(59,130,246,0.4)",display:"flex",alignItems:"center",gap:8,animation:"fadeUp .5s ease"}}>
           🔓 Sign Up — Free Access
         </button>
       )}
