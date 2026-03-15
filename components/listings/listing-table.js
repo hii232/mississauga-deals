@@ -64,7 +64,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Score</th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">DOM</th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">CAP</th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">$/SqFt</th>
+              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">CoC</th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Cash Flow</th>
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Tags</th>
             </tr>
@@ -141,9 +141,9 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
                     {listing.capRate.toFixed(1)}%
                   </td>
 
-                  {/* $/SqFt */}
+                  {/* CoC */}
                   <td className={`px-4 py-3 text-slate-600 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    {listing.pricePerSqFt > 0 ? '$' + listing.pricePerSqFt : 'N/A'}
+                    {listing.cashOnCash.toFixed(1)}%
                   </td>
 
                   {/* Cash Flow */}

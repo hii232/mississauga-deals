@@ -119,8 +119,8 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400">$/SqFt</p>
-              <p className="text-sm font-bold text-navy">{listing.pricePerSqFt > 0 ? '$' + listing.pricePerSqFt : 'N/A'}</p>
+              <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+              <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
             </div>
             <div>
               <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
