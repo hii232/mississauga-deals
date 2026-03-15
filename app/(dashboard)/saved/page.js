@@ -9,6 +9,7 @@ import { scoreColorHex } from '@/lib/deal-score';
 export default function SavedPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [photoMap, setPhotoMap] = useState({});
 
   useEffect(() => {
     async function load() {
@@ -43,6 +44,51 @@ export default function SavedPage() {
     }
     load();
   }, []);
+
+  // Fetch photos for saved listings
+  useEffect(() => {
+    if (listings.length === 0) return;
+    const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
+    if (needPhotos.length === 0) return;
+
+    let cancelled = false;
+
+    // Batch fetch photos
+    for (let i = 0; i < needPhotos.length; i += 50) {
+      const batch = needPhotos.slice(i, i + 50);
+      fetch('/api/photos-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: batch }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data?.photos) return;
+          setPhotoMap((prev) => ({ ...prev, ...data.photos }));
+        })
+        .catch(() => {});
+    }
+
+    // Fallback: fetch missing individually after a delay
+    const fallbackTimer = setTimeout(() => {
+      if (cancelled) return;
+      const missing = needPhotos.filter((id) => !photoMap[id]);
+      for (const id of missing) {
+        fetch('/api/photos?id=' + encodeURIComponent(id))
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (cancelled || !data?.photos?.[0]) return;
+            setPhotoMap((prev) => ({ ...prev, [id]: data.photos[0] }));
+          })
+          .catch(() => {});
+      }
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(fallbackTimer);
+    };
+  }, [listings]);
 
   function handleRemove(id) {
     const savedIds = JSON.parse(localStorage.getItem('saved_deals') || '[]');
@@ -101,9 +147,9 @@ export default function SavedPage() {
               >
                 {/* Photo */}
                 <div className="relative h-44 overflow-hidden">
-                  {listing.photos?.[0] ? (
+                  {(listing.photos?.[0] || photoMap[listing.id]) ? (
                     <img
-                      src={listing.photos[0]}
+                      src={listing.photos?.[0] || photoMap[listing.id]}
                       alt={listing.address}
                       className="h-full w-full object-cover transition-transform group-hover:scale-105"
                       loading="lazy"
