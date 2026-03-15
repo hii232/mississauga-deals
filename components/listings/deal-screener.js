@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 
 export function DealScreener({ listings }) {
@@ -102,6 +103,14 @@ export function DealScreener({ listings }) {
           </div>
         ))}
       </div>
+
+      <p className="mt-3 text-[10px] text-slate-400 leading-relaxed">
+        Scores measure estimated investment return potential only — not property quality or desirability.
+        A low score does not mean the property is undesirable.{' '}
+        <Link href="/score-methodology" className="text-accent hover:underline no-underline">
+          How the score works →
+        </Link>
+      </p>
     </div>
   );
 }

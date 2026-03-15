@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   return (
@@ -41,6 +42,7 @@ export default function Footer() {
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
               <li><Link href="/pre-construction" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
+              <li><Link href="/score-methodology" className="text-white/50 hover:text-white no-underline transition-colors">How the Score Works</Link></li>
             </ul>
           </div>
 
@@ -62,7 +64,7 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-sm text-white mb-3">Compliance</h4>
             <div className="space-y-3 text-xs">
               <a href="https://www.royallepage.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
-                <span className="text-base">👑</span> Royal LePage
+                <Image src="/images/royal-lepage-logo.svg" alt="Royal LePage" width={120} height={64} className="rounded" />
               </a>
               <a href="https://www.reco.on.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
                 <span className="text-base">🏛️</span> Licensed by RECO
@@ -90,10 +92,21 @@ export default function Footer() {
 
           {/* Investment Disclaimer */}
           <p className="text-[10px] text-white/30 leading-relaxed">
-            Investment analysis tools are for general informational purposes only. Not financial, investment,
-            or professional advice. All projections are estimates — actual results will differ. Consult qualified
-            professionals before making investment decisions. Real estate investment involves significant risk
-            including potential loss of capital.
+            Investment scores, cash flow estimates, cap rates, and all financial metrics displayed on this site
+            are calculated estimates for informational purposes only. They are not appraisals, broker price opinions,
+            or guaranteed returns. Actual investment performance depends on many factors not captured in these
+            calculations including property condition, tenant quality, future interest rates, maintenance costs,
+            and market conditions. Consult a qualified financial advisor before making investment decisions.
+          </p>
+
+          {/* Deal Score Disclaimer */}
+          <p className="text-[10px] text-white/30 leading-relaxed">
+            This score measures estimated investment return potential only — not property quality, condition,
+            or desirability. Scores are based on mathematical calculations using list price, estimated rental
+            income, and operating costs. A low investment score does not mean the property is undesirable — it
+            means the current asking price relative to estimated rental income produces lower investor returns.
+            Scores update as prices change. This is not an appraisal. Hamza Nouman, Sales Representative,
+            Royal LePage Signature Realty, Brokerage.
           </p>
 
           {/* PIPEDA */}
