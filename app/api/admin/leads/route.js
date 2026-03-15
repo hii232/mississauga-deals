@@ -32,7 +32,44 @@ export async function GET(request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ leads: data || [] });
+  const leads = data || [];
+
+  // Compute stats
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = weekAgo;
+
+  const bySource = {};
+  let newThisWeek = 0;
+  let needsFollowUp = 0;
+  let overdue = 0;
+
+  leads.forEach((l) => {
+    // Source breakdown
+    const src = l.source || 'unknown';
+    bySource[src] = (bySource[src] || 0) + 1;
+
+    // New this week
+    const created = new Date(l.created_at);
+    if (created >= weekAgo) newThisWeek++;
+
+    // Follow-up status
+    const callCount = l.call_count || 0;
+    const lastContact = l.last_called_at ? new Date(l.last_called_at) : created;
+    if (callCount === 0 && created < threeDaysAgo) needsFollowUp++;
+    if (lastContact < sevenDaysAgo && callCount < 4) overdue++;
+  });
+
+  const stats = {
+    total: leads.length,
+    newThisWeek,
+    needsFollowUp,
+    overdue,
+    bySource,
+  };
+
+  return NextResponse.json({ leads, stats });
 }
 
 export async function DELETE(request) {
