@@ -9,6 +9,7 @@ import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
+import { calculateDistance } from '@/lib/sold-comps';
 
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
@@ -204,9 +205,14 @@ function CapRateTab({ listing }) {
   );
 }
 
-function BRRRTab({ listing }) {
+function BRRRTab({ listing, initialARV }) {
   const [renoCost, setRenoCost] = useState(50000);
-  const [arv, setArv] = useState(Math.round(listing.price * 1.2));
+  const [arv, setArv] = useState(initialARV || Math.round(listing.price * 1.2));
+
+  // Update ARV when initialARV changes (from sold comps "Use as ARV" button)
+  useEffect(() => {
+    if (initialARV) setArv(initialARV);
+  }, [initialARV]);
 
   const calc = useMemo(() => calculateBRRR(listing.price, renoCost, arv), [listing.price, renoCost, arv]);
 
@@ -324,6 +330,320 @@ function ExpertAnalysisTab({ listing }) {
       >
         {loading ? 'Analyzing...' : 'Generate Expert Analysis'}
       </button>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────
+//  Sold Comps Tab
+// ──────────────────────────────────────────
+function SoldCompsTab({ listing, onUseAsARV }) {
+  const [comps, setComps] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function fetchComps() {
+      try {
+        const params = new URLSearchParams({
+          city: listing.city || 'Mississauga',
+          type: listing.type || '',
+          beds: String(listing.beds || 0),
+          limit: '20',
+        });
+        const res = await fetch('/api/sold-comps?' + params);
+        if (!res.ok) throw new Error('Failed to load comps');
+        const data = await res.json();
+        // Calculate distance from current listing for each comp
+        const enriched = (data.comps || []).map((c) => ({
+          ...c,
+          distance: calculateDistance(listing.lat, listing.lng, c.lat, c.lng),
+        }));
+        // Sort by distance (closest first)
+        enriched.sort((a, b) => (a.distance || 999) - (b.distance || 999));
+        setComps(enriched);
+        setStats(data.stats || null);
+      } catch {
+        setError('Unable to load sold comps for this area.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchComps();
+  }, [listing]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+        <span className="ml-3 text-sm text-muted">Loading sold comps...</span>
+      </div>
+    );
+  }
+
+  if (error || comps.length === 0) {
+    return (
+      <div className="py-8 text-center">
+        <svg className="mx-auto mb-3 h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" />
+        </svg>
+        <p className="text-sm text-muted">{error || 'No sold comps found in this area. Try checking nearby cities.'}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Stats */}
+      {stats && stats.count > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
+            <p className="text-xs text-muted">Avg Sold Price</p>
+            <p className="mt-0.5 text-lg font-bold text-navy">${stats.avgSoldPrice.toLocaleString()}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
+            <p className="text-xs text-muted">Avg Days to Sell</p>
+            <p className="mt-0.5 text-lg font-bold text-navy">{stats.avgDOM}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
+            <p className="text-xs text-muted">Avg Negotiation</p>
+            <p className={`mt-0.5 text-lg font-bold ${stats.avgNegotiationGap <= 0 ? 'text-success' : 'text-danger'}`}>
+              {stats.avgNegotiationGap > 0 ? '+' : ''}{stats.avgNegotiationGap}%
+            </p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
+            <p className="text-xs text-muted">Comps Found</p>
+            <p className="mt-0.5 text-lg font-bold text-navy">{stats.count}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Current Listing Context */}
+      <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
+        <p className="text-xs font-medium text-accent">Current listing: {listing.address} — ${listing.price.toLocaleString()}</p>
+      </div>
+
+      {/* Comps Table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-left">
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">Address</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">Sold</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">List</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">Gap</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">DOM</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">Date</th>
+              <th className="pb-2 pr-4 text-xs font-semibold uppercase tracking-wide text-muted">Dist.</th>
+              <th className="pb-2 text-xs font-semibold uppercase tracking-wide text-muted">ARV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comps.map((comp) => (
+              <tr key={comp.id} className="border-b border-slate-100 hover:bg-slate-50">
+                <td className="py-2.5 pr-4">
+                  <p className="font-medium text-navy">{comp.address}</p>
+                  <p className="text-xs text-muted">{comp.beds}bd / {comp.baths}ba</p>
+                </td>
+                <td className="py-2.5 pr-4 font-semibold text-navy">
+                  ${comp.closePrice.toLocaleString()}
+                </td>
+                <td className="py-2.5 pr-4 text-muted">
+                  ${comp.listPrice.toLocaleString()}
+                </td>
+                <td className={`py-2.5 pr-4 font-medium ${comp.priceDelta <= 0 ? 'text-success' : 'text-danger'}`}>
+                  {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
+                </td>
+                <td className="py-2.5 pr-4 text-muted">{comp.dom}d</td>
+                <td className="py-2.5 pr-4 text-muted whitespace-nowrap">
+                  {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA') : 'N/A'}
+                </td>
+                <td className="py-2.5 pr-4 text-muted">
+                  {comp.distance !== null ? comp.distance + ' km' : '—'}
+                </td>
+                <td className="py-2.5">
+                  <button
+                    onClick={() => onUseAsARV && onUseAsARV(comp.closePrice)}
+                    className="rounded-md bg-accent/10 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/20 transition"
+                    title="Use this sold price as ARV in BRRR calculator"
+                  >
+                    Use
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-[11px] text-muted">
+        Showing {comps.length} recently sold comparable properties in {listing.city || 'Mississauga'}.
+        Sorted by distance from current listing.
+      </p>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────
+//  Price History Tab
+// ──────────────────────────────────────────
+function PriceHistoryTab({ listing }) {
+  const [history, setHistory] = useState([]);
+  const [appreciation, setAppreciation] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    async function fetchHistory() {
+      try {
+        // Parse address into components
+        const addressParts = (listing.address || '').split(' ');
+        const streetNumber = addressParts[0] || '';
+        // Handle unit numbers like "123-456 Street Name"
+        const hasUnit = streetNumber.includes('-');
+        const actualNumber = hasUnit ? streetNumber.split('-')[1] : streetNumber;
+        const unit = hasUnit ? streetNumber.split('-')[0] : '';
+        const streetName = addressParts.slice(1, -1).join(' ') || addressParts.slice(1).join(' ');
+
+        if (!streetName) {
+          setError('Unable to parse address for history lookup.');
+          setLoading(false);
+          return;
+        }
+
+        const params = new URLSearchParams({
+          streetNumber: actualNumber,
+          streetName,
+          city: listing.city || 'Mississauga',
+        });
+        if (unit) params.set('unit', unit);
+
+        const res = await fetch('/api/price-history?' + params);
+        if (!res.ok) throw new Error('Failed to load history');
+        const data = await res.json();
+        setHistory(data.history || []);
+        setAppreciation(data.appreciation || null);
+      } catch {
+        setError('Unable to load price history for this property.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchHistory();
+  }, [listing]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
+        <span className="ml-3 text-sm text-muted">Loading price history...</span>
+      </div>
+    );
+  }
+
+  if (error || history.length === 0) {
+    return (
+      <div className="py-8 text-center">
+        <svg className="mx-auto mb-3 h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+        <p className="text-sm text-muted">{error || 'No historical listing data found for this property.'}</p>
+      </div>
+    );
+  }
+
+  const eventColors = {
+    'Sold': 'bg-success text-white',
+    'For Sale': 'bg-accent text-white',
+    'Terminated': 'bg-danger text-white',
+    'Expired': 'bg-slate-400 text-white',
+    'Pending': 'bg-gold text-white',
+    'Listed': 'bg-accent text-white',
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Appreciation Summary */}
+      {appreciation && (
+        <div className="rounded-lg border border-success/20 bg-success/5 p-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
+              <svg className="h-5 w-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-navy">
+                {appreciation.annualizedRate > 0 ? '+' : ''}{appreciation.annualizedRate}% annualized appreciation
+              </p>
+              <p className="text-xs text-muted">
+                ${appreciation.fromPrice.toLocaleString()} → ${appreciation.toPrice.toLocaleString()} over {appreciation.years} years
+                ({appreciation.totalChange > 0 ? '+' : ''}{appreciation.totalChange}% total)
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Timeline */}
+      <div className="relative">
+        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200" />
+        <div className="space-y-4">
+          {history.map((entry, i) => (
+            <div key={entry.id + '-' + i} className="relative flex gap-4 pl-10">
+              {/* Timeline dot */}
+              <div className="absolute left-2.5 top-1 h-3 w-3 rounded-full border-2 border-white bg-slate-300"
+                style={{
+                  backgroundColor: entry.event === 'Sold' ? '#10B981'
+                    : entry.event === 'Terminated' ? '#EF4444'
+                    : entry.event === 'For Sale' ? '#2563EB'
+                    : '#94A3B8'
+                }}
+              />
+              {/* Content */}
+              <div className="flex-1 rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${eventColors[entry.event] || 'bg-slate-200 text-slate-700'}`}>
+                    {entry.event}
+                  </span>
+                  <span className="text-xs text-muted">
+                    {entry.date ? new Date(entry.date).toLocaleDateString('en-CA') : 'Date unknown'}
+                  </span>
+                  {entry.dom > 0 && (
+                    <span className="text-xs text-muted">· {entry.dom} DOM</span>
+                  )}
+                </div>
+                <div className="mt-2 flex flex-wrap items-baseline gap-3">
+                  {entry.event === 'Sold' && entry.closePrice ? (
+                    <>
+                      <p className="text-lg font-bold text-navy">${entry.closePrice.toLocaleString()}</p>
+                      {entry.listPrice > 0 && entry.listPrice !== entry.closePrice && (
+                        <p className="text-xs text-muted">
+                          Listed: ${entry.listPrice.toLocaleString()}
+                          <span className={`ml-1 font-medium ${entry.closePrice <= entry.listPrice ? 'text-success' : 'text-danger'}`}>
+                            ({(((entry.closePrice - entry.listPrice) / entry.listPrice) * 100).toFixed(1)}%)
+                          </span>
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-lg font-bold text-navy">${entry.listPrice.toLocaleString()}</p>
+                  )}
+                </div>
+                {entry.brokerage && (
+                  <p className="mt-1 text-[11px] text-muted">{entry.brokerage}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <p className="text-[11px] text-muted">
+        Showing {history.length} historical listing event{history.length !== 1 ? 's' : ''} for this property.
+        Data sourced from TRREB MLS.
+      </p>
     </div>
   );
 }
@@ -447,6 +767,8 @@ function PhotoGallery({ photos, listingId }) {
 // ──────────────────────────────────────────
 const TABS = [
   { key: 'overview', label: 'Overview', gated: false },
+  { key: 'comps', label: 'Sold Comps', gated: true },
+  { key: 'history', label: 'Price History', gated: false },
   { key: 'hamza', label: "Hamza's Take", gated: true },
   { key: 'mortgage', label: 'Mortgage', gated: true },
   { key: 'caprate', label: 'Cap Rate', gated: true },
@@ -463,6 +785,7 @@ export default function PropertyDetailPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saved, setSaved] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
+  const [arvFromComps, setArvFromComps] = useState(null);
 
   useEffect(() => {
     const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
@@ -723,6 +1046,18 @@ export default function PropertyDetailPage() {
           {/* Tab Content */}
           <div className="rounded-xl border border-slate-200 bg-white p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
+            {activeTab === 'comps' && (
+              <AuthGate isAuthenticated={isAuthenticated}>
+                <SoldCompsTab
+                  listing={listing}
+                  onUseAsARV={(price) => {
+                    setArvFromComps(price);
+                    setActiveTab('brrr');
+                  }}
+                />
+              </AuthGate>
+            )}
+            {activeTab === 'history' && <PriceHistoryTab listing={listing} />}
             {activeTab === 'hamza' && (
               <AuthGate isAuthenticated={isAuthenticated}>
                 <HamzaTakeTab listing={listing} />
@@ -740,7 +1075,7 @@ export default function PropertyDetailPage() {
             )}
             {activeTab === 'brrr' && (
               <AuthGate isAuthenticated={isAuthenticated}>
-                <BRRRTab listing={listing} />
+                <BRRRTab listing={listing} initialARV={arvFromComps} />
               </AuthGate>
             )}
             {activeTab === 'expert' && (
