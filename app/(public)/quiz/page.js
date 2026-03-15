@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { QUIZ, QUIZ_RESULTS } from '@/lib/constants';
 
 const RESULT_MAP = {
@@ -13,34 +12,6 @@ const RESULT_MAP = {
   'Pre-construction flip': 'precon',
 };
 
-// Map quiz answers to listing page filter query params
-function buildFilterQuery(answers) {
-  const params = new URLSearchParams();
-
-  // Q2: Budget → price range
-  const budget = answers[1];
-  if (budget === 'Under $500K') { params.set('maxPrice', '500000'); }
-  else if (budget === '$500K \u2013 $700K') { params.set('minPrice', '500000'); params.set('maxPrice', '700000'); }
-  else if (budget === '$700K \u2013 $1M') { params.set('minPrice', '700000'); params.set('maxPrice', '1000000'); }
-  else if (budget === '$1M \u2013 $1.5M') { params.set('minPrice', '1000000'); params.set('maxPrice', '1500000'); }
-  else if (budget === '$1.5M+') { params.set('minPrice', '1500000'); }
-
-  // Q3: Property type
-  const type = answers[2];
-  if (type === 'Condo') params.set('type', 'Condo');
-  else if (type === 'Townhouse or semi') params.set('type', 'Town');
-  else if (type === 'Detached house') params.set('type', 'Detached');
-  else if (type === 'Duplex / multiplex') params.set('type', 'Duplex/Multi');
-
-  // Q5: What matters most → strategy chip
-  const priority = answers[4];
-  if (priority === 'Positive cash flow from day one') params.set('strategy', 'cf');
-  else if (priority === 'Below-market price') params.set('strategy', 'reduced');
-  else if (priority === 'Suite potential') params.set('strategy', 'suite');
-  else if (priority === 'Near transit') params.set('strategy', 'lrt');
-
-  return params.toString();
-}
 
 export default function QuizPage() {
   const router = useRouter();
@@ -96,11 +67,6 @@ export default function QuizPage() {
       localStorage.setItem('quiz_result', key);
       if (email) localStorage.setItem('user_email', email);
       if (name) localStorage.setItem('user_name', name);
-
-      // Build filter URL and redirect to results
-      const query = buildFilterQuery(answers);
-      const resultKey = key;
-      const result = QUIZ_RESULTS[resultKey];
 
       // Store result for display
       setStep(totalSteps + 1);
@@ -264,21 +230,29 @@ export default function QuizPage() {
               </div>
             </div>
 
+            <p className="text-sm text-muted mb-4">
+              Let&apos;s find the right deals for you. Reach out and I&apos;ll send you personalized listings that match your criteria.
+            </p>
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href={`/listings?${buildFilterQuery(answers)}`}
-                className="btn-primary !px-8 !py-3 no-underline"
+              <a
+                href="tel:6476091289"
+                className="btn-primary !px-8 !py-3 no-underline inline-flex items-center justify-center gap-2"
               >
-                View {resultKey === 'precon' ? 'Pre-Construction Deals' : 'Matching Listings'}
-              </Link>
-              {resultKey === 'precon' && (
-                <Link
-                  href="/pre-construction"
-                  className="btn-gold !px-8 !py-3 no-underline"
-                >
-                  Get Pre-Con VIP Access
-                </Link>
-              )}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+                Call 647-609-1289
+              </a>
+              <a
+                href="mailto:hamza@nouman.ca?subject=Investment%20Inquiry%20-%20Quiz%20Result&body=Hi%20Hamza%2C%0A%0AI%20just%20took%20the%20investment%20quiz%20on%20MississaugaInvestor.ca.%0A%0AMy%20strategy%3A%20${encodeURIComponent(result.title)}%0ABudget%3A%20${encodeURIComponent(answers[1])}%0AProperty%3A%20${encodeURIComponent(answers[2])}%0ATimeline%3A%20${encodeURIComponent(answers[3])}%0APriority%3A%20${encodeURIComponent(answers[4])}%0A%0AI%27d%20love%20to%20see%20matching%20deals.%20Thanks!"
+                className="rounded-lg border-2 border-accent bg-white px-8 py-3 text-sm font-semibold text-accent transition hover:bg-accent/5 no-underline inline-flex items-center justify-center gap-2"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email Hamza
+              </a>
             </div>
 
             <button
