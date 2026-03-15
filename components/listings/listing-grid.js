@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { ListingCard } from './listing-card';
 
 const PAGE_SIZE = 12;
-const FREE_LIMIT = 5;
+const FREE_LIMIT = 4;
 
 export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap }) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);

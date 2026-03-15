@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
-const FREE_LIMIT = 5;
+const FREE_LIMIT = 4;
 
 export function ListingTable({ listings, isRegistered, compareIds, onToggleCompare }) {
   if (listings.length === 0) {
