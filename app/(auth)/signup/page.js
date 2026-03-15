@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CASL_TEXT } from '@/lib/constants';
+import { GoogleSignIn } from '@/components/ui/google-signin';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -72,6 +73,20 @@ export default function SignupPage() {
           {error}
         </div>
       )}
+
+      <GoogleSignIn
+        onSuccess={() => router.push('/listings')}
+        onError={(msg) => setError(msg)}
+      />
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-3 text-xs text-muted">or sign up with email</span>
+        </div>
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
