@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_TOKEN;
 const CITIES = [
