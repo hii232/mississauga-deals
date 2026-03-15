@@ -20,86 +20,55 @@ export function ListingsContainer({ initialListings }) {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos: parallel batch requests for speed
+  // Fetch photos: fire all batches in parallel, update state instantly per batch
   useEffect(() => {
     if (listings.length === 0) return;
     const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
     if (needPhotos.length === 0) return;
 
     let cancelled = false;
-    async function fetchPhotos() {
-      const found = {};
+    const foundIds = new Set();
 
-      // Split into batches of 50 and fire ALL in parallel
-      const batches = [];
-      for (let i = 0; i < needPhotos.length; i += 50) {
-        batches.push(needPhotos.slice(i, i + 50));
-      }
-
-      // Fire all batch requests at once
-      const batchResults = await Promise.allSettled(
-        batches.map((batch) =>
-          fetch('/api/photos-batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ids: batch }),
-          }).then((res) => (res.ok ? res.json() : null))
-        )
-      );
-
-      if (cancelled) return;
-
-      // Merge all results and update state once
-      for (const r of batchResults) {
-        if (r.status === 'fulfilled' && r.value?.photos) {
-          Object.assign(found, r.value.photos);
-        }
-      }
-      if (Object.keys(found).length > 0) {
-        setPhotoMap((prev) => ({ ...prev, ...found }));
-      }
-
-      // Pass 2: Individual fetch for missing (parallel chunks of 15)
-      const missing = needPhotos.filter((id) => !found[id]);
-      if (missing.length === 0 || cancelled) return;
-
-      const chunks = [];
-      for (let i = 0; i < missing.length; i += 15) {
-        chunks.push(missing.slice(i, i + 15));
-      }
-
-      // Fire all individual chunks in parallel
-      const chunkResults = await Promise.allSettled(
-        chunks.map((chunk) =>
-          Promise.allSettled(
-            chunk.map(async (id) => {
-              const res = await fetch('/api/photos?id=' + encodeURIComponent(id));
-              if (!res.ok) return null;
-              const data = await res.json();
-              return data.photos?.[0] ? { id, url: data.photos[0] } : null;
-            })
-          )
-        )
-      );
-
-      if (cancelled) return;
-
-      const fallbackPhotos = {};
-      for (const chunkResult of chunkResults) {
-        if (chunkResult.status === 'fulfilled') {
-          for (const r of chunkResult.value) {
-            if (r.status === 'fulfilled' && r.value) {
-              fallbackPhotos[r.value.id] = r.value.url;
-            }
-          }
-        }
-      }
-      if (Object.keys(fallbackPhotos).length > 0) {
-        setPhotoMap((prev) => ({ ...prev, ...fallbackPhotos }));
-      }
+    // Each batch updates photos the instant it resolves
+    for (let i = 0; i < needPhotos.length; i += 50) {
+      const batch = needPhotos.slice(i, i + 50);
+      fetch('/api/photos-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: batch }),
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (cancelled || !data?.photos) return;
+          const photos = data.photos;
+          Object.keys(photos).forEach((id) => foundIds.add(id));
+          setPhotoMap((prev) => ({ ...prev, ...photos }));
+        })
+        .catch(() => {});
     }
-    fetchPhotos();
-    return () => { cancelled = true; };
+
+    // Pass 2: after a short delay, fetch missing individually
+    const fallbackTimer = setTimeout(() => {
+      if (cancelled) return;
+      const missing = needPhotos.filter((id) => !foundIds.has(id));
+      if (missing.length === 0) return;
+
+      // Fire all individual fetches at once
+      for (const id of missing) {
+        fetch('/api/photos?id=' + encodeURIComponent(id))
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (cancelled || !data?.photos?.[0]) return;
+            setPhotoMap((prev) => ({ ...prev, [id]: data.photos[0] }));
+          })
+          .catch(() => {});
+      }
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(fallbackTimer);
+    };
   }, [listings]);
 
   // Client-side fallback: if SSR returned no listings, fetch on client
