@@ -52,24 +52,28 @@ export async function POST(request) {
       }
     }
 
-    // Pass 3: Still missing — try Navigation property (individual, parallel)
+    // Pass 3: Still missing — try Navigation property in small chunks to avoid timeouts
     const missing2 = batch.filter((id) => !result[id]);
     if (missing2.length > 0) {
-      const navPromises = missing2.map((id) =>
-        fetch(
-          BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
-          { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
-        )
-          .then((r) => (r.ok ? r.json() : null))
-          .then((d) => {
-            if (d?.value?.length) {
-              const u = d.value[0].MediaURL || d.value[0].MediaUrl || '';
-              if (u) result[id] = u;
-            }
-          })
-          .catch(() => {})
-      );
-      await Promise.all(navPromises);
+      // Process in chunks of 5 to avoid rate limiting / serverless timeout
+      for (let i = 0; i < missing2.length; i += 5) {
+        const chunk = missing2.slice(i, i + 5);
+        const chunkPromises = chunk.map((id) =>
+          fetch(
+            BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
+            { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
+          )
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+              if (d?.value?.length) {
+                const u = d.value[0].MediaURL || d.value[0].MediaUrl || '';
+                if (u) result[id] = u;
+              }
+            })
+            .catch(() => {})
+        );
+        await Promise.all(chunkPromises);
+      }
     }
 
     return NextResponse.json({ photos: result }, {
