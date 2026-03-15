@@ -45,7 +45,7 @@ export function ListingsContainer({ initialListings }) {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Batch-fetch first photos for listings that have no photos
+  // Fetch photos: batch first, then individual fallback for misses
   useEffect(() => {
     if (listings.length === 0) return;
     const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
@@ -53,7 +53,9 @@ export function ListingsContainer({ initialListings }) {
 
     let cancelled = false;
     async function fetchPhotos() {
-      // Process in batches of 20 (API limit)
+      const found = {};
+
+      // Pass 1: Batch fetch (fast, but misses some listings)
       for (let i = 0; i < needPhotos.length; i += 20) {
         if (cancelled) return;
         const batch = needPhotos.slice(i, i + 20);
@@ -65,11 +67,40 @@ export function ListingsContainer({ initialListings }) {
           });
           if (!res.ok) continue;
           const data = await res.json();
-          if (data.photos && !cancelled) {
-            setPhotoMap((prev) => ({ ...prev, ...data.photos }));
+          if (data.photos) {
+            Object.assign(found, data.photos);
+            if (!cancelled) setPhotoMap((prev) => ({ ...prev, ...data.photos }));
           }
         } catch {
-          // continue with next batch
+          // continue
+        }
+      }
+
+      // Pass 2: Individual fetch for missing (uses 3-fallback strategy)
+      const missing = needPhotos.filter((id) => !found[id]);
+      if (missing.length === 0 || cancelled) return;
+
+      // Fetch 6 at a time to avoid overwhelming the server
+      for (let i = 0; i < missing.length; i += 6) {
+        if (cancelled) return;
+        const chunk = missing.slice(i, i + 6);
+        const results = await Promise.allSettled(
+          chunk.map(async (id) => {
+            const res = await fetch('/api/photos?id=' + encodeURIComponent(id));
+            if (!res.ok) return null;
+            const data = await res.json();
+            return data.photos?.[0] ? { id, url: data.photos[0] } : null;
+          })
+        );
+        if (cancelled) return;
+        const newPhotos = {};
+        for (const r of results) {
+          if (r.status === 'fulfilled' && r.value) {
+            newPhotos[r.value.id] = r.value.url;
+          }
+        }
+        if (Object.keys(newPhotos).length > 0) {
+          setPhotoMap((prev) => ({ ...prev, ...newPhotos }));
         }
       }
     }
