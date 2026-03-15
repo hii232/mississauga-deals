@@ -447,7 +447,7 @@ function PhotoGallery({ photos, listingId }) {
 // ──────────────────────────────────────────
 const TABS = [
   { key: 'overview', label: 'Overview', gated: false },
-  { key: 'hamza', label: "Hamza's Take", gated: false },
+  { key: 'hamza', label: "Hamza's Take", gated: true },
   { key: 'mortgage', label: 'Mortgage', gated: true },
   { key: 'caprate', label: 'Cap Rate', gated: true },
   { key: 'brrr', label: 'BRRR', gated: true },
@@ -597,12 +597,20 @@ export default function PropertyDetailPage() {
             <div className="rounded-xl border border-slate-200 bg-white p-6">
               {/* Score Badge */}
               <div className="mb-4 flex items-start justify-between">
-                <div
-                  className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
-                  style={{ backgroundColor: scoreColor }}
-                >
-                  {listing.hamzaScore}
-                </div>
+                {isAuthenticated ? (
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
+                    style={{ backgroundColor: scoreColor }}
+                  >
+                    {listing.hamzaScore}
+                  </div>
+                ) : (
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-200 text-slate-400">
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                    </svg>
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <button
                     onClick={handleShare}
@@ -653,21 +661,34 @@ export default function PropertyDetailPage() {
               </div>
 
               {/* Key Metrics */}
-              <div className="mt-5 grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <p className="text-xs text-muted">Cap Rate</p>
-                  <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
+              <div className="relative mt-5">
+                <div className={`grid grid-cols-3 gap-3 ${!isAuthenticated ? 'select-none blur-sm pointer-events-none' : ''}`}>
+                  <div className="text-center">
+                    <p className="text-xs text-muted">Cap Rate</p>
+                    <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted">Cash Flow</p>
+                    <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+                      {fmtNum(listing.cashFlow)}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xs text-muted">Est. Rent</p>
+                    <p className="text-sm font-bold text-navy">${listing.estimatedRent.toLocaleString()}</p>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-xs text-muted">Cash Flow</p>
-                  <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {fmtNum(listing.cashFlow)}
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-muted">Est. Rent</p>
-                  <p className="text-sm font-bold text-navy">${listing.estimatedRent.toLocaleString()}</p>
-                </div>
+                {!isAuthenticated && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <Link
+                      href="/signup"
+                      className="rounded-lg bg-navy px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
+                    >
+                      Sign up to unlock metrics
+                    </Link>
+                    <p className="mt-1 text-[10px] text-slate-500">Free. No credit card.</p>
+                  </div>
+                )}
               </div>
 
               {/* Brokerage Attribution */}
@@ -702,7 +723,11 @@ export default function PropertyDetailPage() {
           {/* Tab Content */}
           <div className="rounded-xl border border-slate-200 bg-white p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
-            {activeTab === 'hamza' && <HamzaTakeTab listing={listing} />}
+            {activeTab === 'hamza' && (
+              <AuthGate isAuthenticated={isAuthenticated}>
+                <HamzaTakeTab listing={listing} />
+              </AuthGate>
+            )}
             {activeTab === 'mortgage' && (
               <AuthGate isAuthenticated={isAuthenticated}>
                 <MortgageTab listing={listing} />
