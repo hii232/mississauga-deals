@@ -69,9 +69,10 @@ export async function GET(request) {
         filters.push('BedroomsTotal le ' + (beds + 1));
       }
 
-      // Exclude commercial/lease
+      // Exclude commercial/lease/rentals
       filters.push("PropertyType ne 'Commercial'");
       filters.push("PropertyType ne 'Business'");
+      filters.push('ListPrice ge 100000'); // Filter out lease/rental listings (monthly rent amounts)
 
       const url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
         + '&$select=' + encodeURIComponent(sel)
@@ -117,6 +118,7 @@ export async function GET(request) {
         "City eq '" + city.replace(/'/g, "''") + "'",
         "PropertyType ne 'Commercial'",
         "PropertyType ne 'Business'",
+        'ListPrice ge 100000',
       ];
       const url = BASE + '/Property?$filter=' + encodeURIComponent(broadFilters.join(' and '))
         + '&$select=' + encodeURIComponent(sel)
