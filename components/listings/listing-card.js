@@ -89,25 +89,40 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         </div>
 
         {/* Metrics row */}
-        <div className={`grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center ${isGated ? 'select-none blur-sm' : ''}`}>
-          <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
-            <p className="text-sm font-bold text-navy">{listing.dom}</p>
+        <div className="relative">
+          <div className={`grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center ${isGated ? 'select-none blur-sm pointer-events-none' : ''}`}>
+            <div>
+              <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
+              <p className="text-sm font-bold text-navy">{listing.dom}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+              <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+              <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
+              <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
+                {fmtNum(listing.cashFlow)}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
-            <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
-            <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
-            <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
-              {fmtNum(listing.cashFlow)}
-            </p>
-          </div>
+
+          {/* Gated CTA overlay */}
+          {isGated && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <Link
+                href="/signup"
+                className="rounded-lg bg-navy px-5 py-2.5 text-center text-sm font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
+              >
+                Sign up free to see deal analysis
+              </Link>
+              <p className="mt-1.5 text-[11px] text-slate-500">Takes 10 seconds. No credit card.</p>
+            </div>
+          )}
         </div>
 
         {/* Rent and mortgage */}
@@ -118,20 +133,8 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Gated overlay */}
-        {isGated && (
-          <div className="mt-3">
-            <Link
-              href="/signup"
-              className="block w-full rounded-lg bg-accent py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-accent/90"
-            >
-              Sign up free to see deal analysis
-            </Link>
-          </div>
-        )}
-
         {/* Actions */}
-        {!isGated && (
+        {!isGated ? (
           <div className="mt-3 flex items-center justify-between">
             {/* Compare checkbox */}
             <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-500 hover:text-navy">
@@ -165,6 +168,10 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               </svg>
               {saved ? 'Saved' : 'Save'}
             </button>
+          </div>
+        ) : (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <p className="text-[11px] text-slate-400">Listed by: {listing.brokerage || 'Royal LePage Signature Realty'}</p>
           </div>
         )}
       </div>
