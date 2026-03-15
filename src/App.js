@@ -2339,10 +2339,11 @@ function Footer({onPrivacy}){
 /* ─────────────────────────────────────────────
    HEADER
 ───────────────────────────────────────────── */
-function Header({activeNav,setActiveNav,onSeller}){
+function Header({activeNav,setActiveNav,onSeller,savedCount=0}){
   const [mobileOpen,setMobileOpen]=useState(false);
   const navItems=[
     {id:"listings",label:"Listings"},
+    {id:"saved",label:"Saved"+(savedCount>0?" ("+savedCount+")":"")},
     {id:"pulse",label:"Market Pulse"},
     {id:"hoods",label:"Neighbourhoods"},
     {id:"news",label:"News"},
@@ -3512,7 +3513,7 @@ export default function App(){
       )}
 
       {/* Header */}
-      <Header activeNav={activeNav} setActiveNav={setActiveNav} onSeller={()=>setShowSeller(true)}/>
+      <Header activeNav={activeNav} setActiveNav={setActiveNav} onSeller={()=>setShowSeller(true)} savedCount={savedDeals.length}/>
 
       {/* Main */}
       <main id="main-content" style={{maxWidth:1240,margin:"0 auto",padding:"0 24px 48px",position:"relative",zIndex:1}}>
@@ -3577,6 +3578,22 @@ export default function App(){
           <RealEstateNews/>
         ):activeNav==="quiz"?(
           <FindMyDeal/>
+        ):activeNav==="saved"?(
+          <div style={{padding:"20px 0"}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:24,color:TEXT,marginBottom:6}}>Saved Deals</h2>
+            <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Your bookmarked investment properties. {savedDeals.length===0?"Save deals from listings to see them here.":savedDeals.length+" saved."}</p>
+            {savedDeals.length>0?(
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:16}}>
+                {savedDeals.map(id=>{const l=liveListings.find(x=>x.id===id);return l?<ListingCard key={id} l={l} onOpen={handleOpenListing} isSample={false} isSaved={true} isComparing={compareList.includes(id)} onToggleCompare={tid=>setCompareList(prev=>prev.includes(tid)?prev.filter(x=>x!==tid):prev.length<4?[...prev,tid]:prev)}/>:null;})}
+              </div>
+            ):(
+              <div style={{textAlign:"center",padding:"60px 20px",background:CARD,borderRadius:12,border:`1px solid ${BORDER}`}}>
+                <div style={{fontSize:48,marginBottom:16}}>☆</div>
+                <p style={{color:MUTED,fontSize:14,marginBottom:16}}>No saved deals yet. Click the "Save Deal" button on any listing to bookmark it.</p>
+                <button onClick={()=>setActiveNav("listings")} className="btn-primary" style={{padding:"10px 24px",borderRadius:8,fontSize:14}}>Browse Listings</button>
+              </div>
+            )}
+          </div>
         ):null}
 
         {/* Registration status bar */}
