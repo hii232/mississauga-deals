@@ -32,18 +32,19 @@ export default function MarketPulsePage() {
 
   // Price by type estimates
   const avgDetached = Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgPrice, 0) / hoodEntries.length);
-  const avgPrices = stats?.avgPrices || {
-    detached: avgDetached,
-    semi: Math.round(avgDetached * 0.78),
-    townhouse: Math.round(avgDetached * 0.65),
-    condo: Math.round(avgDetached * 0.48),
+  const apiPrices = stats?.avgPrices;
+  const avgPrices = {
+    detached: apiPrices?.detached?.avg || apiPrices?.detached || avgDetached,
+    semi: apiPrices?.semiDetached?.avg || apiPrices?.semi || Math.round(avgDetached * 0.78),
+    townhouse: apiPrices?.townhouse?.avg || apiPrices?.townhouse || Math.round(avgDetached * 0.65),
+    condo: apiPrices?.condo?.avg || apiPrices?.condo || Math.round(avgDetached * 0.48),
   };
 
-  const marketMetrics = stats?.metrics || {
-    avgDOM: Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
-    salesToList: 97.2,
-    monthsOfInventory: 3.1,
-    newListings: 485,
+  const marketMetrics = {
+    avgDOM: stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
+    salesToList: stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 97.2,
+    monthsOfInventory: stats?.monthsOfInventory || 3.1,
+    newListings: stats?.hotNeighbourhoods?.length ? 485 : 485,
   };
 
   const priceTypes = [
