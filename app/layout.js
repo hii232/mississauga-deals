@@ -2,6 +2,8 @@ import Script from 'next/script';
 import { Inter, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
+import { Suspense } from 'react';
+import PageTracker from '@/components/PageTracker';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-RNQHJGY0TV';
 
@@ -85,6 +87,9 @@ export default function RootLayout({ children }) {
       <body className="font-sans">
         <OrganizationJsonLd />
         <WebSiteJsonLd />
+        <Suspense fallback={null}>
+          <PageTracker />
+        </Suspense>
         {children}
       </body>
     </html>
