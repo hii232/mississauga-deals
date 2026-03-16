@@ -169,7 +169,7 @@ export default function FAQPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
-              href="https://wa.me/16476095615?text=Hi%20Hamza%2C%20I%20have%20a%20question%20about%20investing%20in%20Mississauga"
+              href="https://wa.me/16476091289?text=Hi%20Hamza%2C%20I%20have%20a%20question%20about%20investing%20in%20Mississauga"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-primary !px-6 no-underline text-center"

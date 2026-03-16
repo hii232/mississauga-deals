@@ -122,7 +122,7 @@ async function sendLeadNotification({ name, email, phone, source, listingAddress
     },
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
-      to: process.env.LEAD_NOTIFICATION_EMAIL || 'hamza@mississaugainvestor.ca',
+      to: process.env.LEAD_NOTIFICATION_EMAIL || 'hamza@nouman.ca',
       subject: `New Lead: ${name || email} (${srcLabel})`,
       html,
     }),

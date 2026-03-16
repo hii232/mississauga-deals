@@ -42,7 +42,7 @@ export function FloatingContactButton() {
           {/* Options */}
           <div className="p-4 space-y-2">
             <a
-              href="tel:+16476095615"
+              href="tel:+16476091289"
               className="flex items-center gap-3 rounded-lg bg-cloud px-4 py-3 text-sm font-medium text-navy hover:bg-accent/5 transition-colors no-underline"
             >
               <svg className="h-5 w-5 text-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -50,12 +50,12 @@ export function FloatingContactButton() {
               </svg>
               <div>
                 <p className="font-semibold">Call Now</p>
-                <p className="text-xs text-muted">(647) 609-5615</p>
+                <p className="text-xs text-muted">(647) 609-1289</p>
               </div>
             </a>
 
             <a
-              href="https://wa.me/16476095615?text=Hi%20Hamza%2C%20I%27m%20interested%20in%20Mississauga%20investment%20properties"
+              href="https://wa.me/16476091289?text=Hi%20Hamza%2C%20I%27m%20interested%20in%20Mississauga%20investment%20properties"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded-lg bg-cloud px-4 py-3 text-sm font-medium text-navy hover:bg-accent/5 transition-colors no-underline"
@@ -70,7 +70,7 @@ export function FloatingContactButton() {
             </a>
 
             <a
-              href="mailto:hamza@mississaugainvestor.ca?subject=Investment%20Inquiry%20-%20MississaugaInvestor.ca"
+              href="mailto:hamza@nouman.ca?subject=Investment%20Inquiry%20-%20MississaugaInvestor.ca"
               className="flex items-center gap-3 rounded-lg bg-cloud px-4 py-3 text-sm font-medium text-navy hover:bg-accent/5 transition-colors no-underline"
             >
               <svg className="h-5 w-5 text-gold flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -78,7 +78,7 @@ export function FloatingContactButton() {
               </svg>
               <div>
                 <p className="font-semibold">Email</p>
-                <p className="text-xs text-muted">hamza@mississaugainvestor.ca</p>
+                <p className="text-xs text-muted">hamza@nouman.ca</p>
               </div>
             </a>
 
@@ -127,7 +127,7 @@ export function ContactBar({ address }) {
       </div>
       <div className="grid grid-cols-3 gap-2">
         <a
-          href="tel:+16476095615"
+          href="tel:+16476091289"
           className="flex items-center justify-center gap-1.5 rounded-lg bg-accent py-2.5 text-xs font-semibold text-white hover:bg-accent-dark transition-colors no-underline"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -136,7 +136,7 @@ export function ContactBar({ address }) {
           Call
         </a>
         <a
-          href={`https://wa.me/16476095615?text=${encodeURIComponent(msg)}`}
+          href={`https://wa.me/16476091289?text=${encodeURIComponent(msg)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-1.5 rounded-lg bg-[#25D366] py-2.5 text-xs font-semibold text-white hover:bg-[#20bd5a] transition-colors no-underline"
@@ -147,7 +147,7 @@ export function ContactBar({ address }) {
           WhatsApp
         </a>
         <a
-          href={`mailto:hamza@mississaugainvestor.ca?subject=${encodeURIComponent(`Inquiry: ${address || 'Investment Property'}`)}&body=${encodeURIComponent(msg)}`}
+          href={`mailto:hamza@nouman.ca?subject=${encodeURIComponent(`Inquiry: ${address || 'Investment Property'}`)}&body=${encodeURIComponent(msg)}`}
           className="flex items-center justify-center gap-1.5 rounded-lg bg-navy py-2.5 text-xs font-semibold text-white hover:bg-navy/90 transition-colors no-underline"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
