@@ -55,7 +55,7 @@ export default function MarketPulsePage() {
     avgDOM: stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
     salesToList: stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 97.2,
     monthsOfInventory: stats?.monthsOfInventory || 3.1,
-    newListings: stats?.hotNeighbourhoods?.length ? 485 : 485,
+    activeCount: stats?.activeCount || 0,
   };
 
   const priceTypes = [
@@ -120,9 +120,9 @@ export default function MarketPulsePage() {
           <p className="text-xs text-muted">months supply</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">New Listings</p>
-          <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.newListings}</p>
-          <p className="text-xs text-muted">this month</p>
+          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Active Listings</p>
+          <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.activeCount.toLocaleString()}</p>
+          <p className="text-xs text-muted">on market</p>
         </div>
       </div>
 

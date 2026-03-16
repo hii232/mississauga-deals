@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { GOOGLE_REVIEWS } from '@/lib/constants';
-import { processListings } from '@/lib/listings/process-listings';
 import { headers } from 'next/headers';
 
 export const metadata = {
@@ -9,7 +8,7 @@ export const metadata = {
 };
 
 // ─────────────────────────────────────────────
-//   LIVE STATS FETCH
+//   LIVE STATS FETCH (from unified market-stats API)
 // ─────────────────────────────────────────────
 async function fetchLiveStats() {
   try {
@@ -18,36 +17,18 @@ async function fetchLiveStats() {
     const proto = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${proto}://${host}`;
 
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
+    const res = await fetch(`${baseUrl}/api/market-stats`, {
       next: { revalidate: 300 },
     });
     if (!res.ok) return null;
     const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
 
-    if (totalPages > 1) {
-      const pagePromises = [];
-      for (let p = 2; p <= totalPages; p++) {
-        pagePromises.push(
-          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-            next: { revalidate: 300 },
-          }).then((r) => (r.ok ? r.json() : null))
-        );
-      }
-      const pages = await Promise.all(pagePromises);
-      for (const pg of pages) {
-        if (pg?.listings) raw.push(...pg.listings);
-      }
-    }
-
-    const listings = processListings(raw);
-    if (listings.length === 0) return null;
-
-    const count = listings.length;
-    const avgScore = (listings.reduce((s, l) => s + l.hamzaScore, 0) / count).toFixed(1);
-    const avgDom = Math.round(listings.reduce((s, l) => s + l.dom, 0) / count);
-    const avgPrice = listings.reduce((s, l) => s + l.price, 0) / count;
+    const count = data.activeCount || 0;
+    const avgDom = data.avgDOM || 28;
+    const avgPrice = data.avgPrice || 970000;
+    const salesToList = data.salesToListRatio
+      ? (data.salesToListRatio * 100).toFixed(1) + '%'
+      : '97.2%';
 
     let priceLabel;
     if (avgPrice >= 1000000) {
@@ -56,7 +37,7 @@ async function fetchLiveStats() {
       priceLabel = '$' + Math.round(avgPrice / 1000) + 'K';
     }
 
-    return { count, avgScore, avgDom, priceLabel };
+    return { count, avgDom, priceLabel, salesToList };
   } catch {
     return null;
   }
@@ -66,10 +47,10 @@ async function fetchLiveStats() {
 //   STATS BAR
 // ─────────────────────────────────────────────
 function StatsBar({ liveStats }) {
-  const s = liveStats || { count: '200+', avgScore: '6.8', avgDom: 28, priceLabel: '$970K' };
+  const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%' };
   const stats = [
     { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: '📊' },
-    { label: 'Avg. Deal Score', value: `${s.avgScore}/10`, icon: '⭐' },
+    { label: 'Sale-to-List', value: s.salesToList, icon: '⭐' },
     { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: '📅' },
     { label: 'Avg. Price', value: s.priceLabel, icon: '💰' },
   ];
