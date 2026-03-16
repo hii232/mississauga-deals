@@ -49,7 +49,7 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
 
       {/* Main image area */}
       <div
-        className="relative flex flex-1 items-center justify-center px-16"
+        className="relative flex flex-1 items-center justify-center px-2 sm:px-16"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Previous button */}
@@ -97,7 +97,7 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
             <button
               key={i}
               onClick={() => setCurrentIndex(i)}
-              className={`h-14 w-20 flex-shrink-0 overflow-hidden rounded border-2 transition ${
+              className={`h-10 w-14 sm:h-14 sm:w-20 flex-shrink-0 overflow-hidden rounded border-2 transition ${
                 i === currentIndex
                   ? 'border-white opacity-100'
                   : 'border-transparent opacity-50 hover:opacity-80'

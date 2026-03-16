@@ -725,7 +725,7 @@ function PhotoGallery({ photos, listingId }) {
   return (
     <div className="space-y-3">
       <div
-        className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-200 cursor-pointer"
+        className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[45vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer"
         onClick={() => hasRealPhotos && setLightboxOpen(true)}
       >
         <img
@@ -745,12 +745,12 @@ function PhotoGallery({ photos, listingId }) {
         )}
       </div>
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {images.map((src, i) => (
             <button
               key={i}
               onClick={() => setActiveIdx(i)}
-              className={`h-16 w-20 flex-shrink-0 overflow-hidden rounded-lg border-2 transition ${
+              className={`h-12 w-16 sm:h-16 sm:w-20 flex-shrink-0 overflow-hidden rounded-md sm:rounded-lg border-2 transition ${
                 i === activeIdx ? 'border-accent' : 'border-transparent opacity-70 hover:opacity-100'
               }`}
             >
