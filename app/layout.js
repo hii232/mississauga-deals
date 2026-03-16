@@ -61,6 +61,9 @@ export const metadata = {
     title: 'MississaugaInvestor.ca — Mississauga Investment Deals',
     description: 'Cash flow analysis, cap rates, and deal scores for Mississauga properties.',
   },
+  verification: {
+    google: 'HMswsCSfiZJiN5IP8HeMHoOarI5MJlZmmLZr1_WOnu4',
+  },
   robots: {
     index: true,
     follow: true,
