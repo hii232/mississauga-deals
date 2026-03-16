@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { InvestorFiltersAdvanced } from './investor-filters-advanced';
+import { SaveSearchButton } from './save-search-button';
 import {
   DEFAULT_FILTERS,
   PROPERTY_TYPES,
@@ -299,6 +300,9 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
               <option key={opt.key} value={opt.key}>Sort: {opt.label}</option>
             ))}
           </select>
+
+          {/* Save Search alerts */}
+          <SaveSearchButton filters={filters} />
         </div>
       </div>
 
