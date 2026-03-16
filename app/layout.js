@@ -1,6 +1,9 @@
+import Script from 'next/script';
 import { Inter, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || 'G-RNQHJGY0TV';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -32,7 +35,7 @@ export const metadata = {
     'BRRR strategy',
     'rental properties Mississauga',
   ],
-  authors: [{ name: 'Hamza Nouman', url: 'https://www.hamzahomes.ca' }],
+  authors: [{ name: 'Hamza Nouman', url: 'https://www.mississaugainvestor.ca' }],
   creator: 'Hamza Nouman',
   publisher: 'Royal LePage Signature Realty',
   metadataBase: new URL('https://www.mississaugainvestor.ca'),
@@ -67,6 +70,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+        <meta name="theme-color" content="#0F2A4A" />
+        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA_ID}',{page_path:window.location.pathname});`}
+        </Script>
+      </head>
       <body className="font-sans">
         <OrganizationJsonLd />
         <WebSiteJsonLd />

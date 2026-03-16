@@ -70,7 +70,7 @@ export function FloatingContactButton() {
             </a>
 
             <a
-              href="mailto:hamza@hamzahomes.ca?subject=Investment%20Inquiry%20-%20MississaugaInvestor.ca"
+              href="mailto:hamza@mississaugainvestor.ca?subject=Investment%20Inquiry%20-%20MississaugaInvestor.ca"
               className="flex items-center gap-3 rounded-lg bg-cloud px-4 py-3 text-sm font-medium text-navy hover:bg-accent/5 transition-colors no-underline"
             >
               <svg className="h-5 w-5 text-gold flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -78,7 +78,7 @@ export function FloatingContactButton() {
               </svg>
               <div>
                 <p className="font-semibold">Email</p>
-                <p className="text-xs text-muted">hamza@hamzahomes.ca</p>
+                <p className="text-xs text-muted">hamza@mississaugainvestor.ca</p>
               </div>
             </a>
 
@@ -147,7 +147,7 @@ export function ContactBar({ address }) {
           WhatsApp
         </a>
         <a
-          href={`mailto:hamza@hamzahomes.ca?subject=${encodeURIComponent(`Inquiry: ${address || 'Investment Property'}`)}&body=${encodeURIComponent(msg)}`}
+          href={`mailto:hamza@mississaugainvestor.ca?subject=${encodeURIComponent(`Inquiry: ${address || 'Investment Property'}`)}&body=${encodeURIComponent(msg)}`}
           className="flex items-center justify-center gap-1.5 rounded-lg bg-navy py-2.5 text-xs font-semibold text-white hover:bg-navy/90 transition-colors no-underline"
         >
           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

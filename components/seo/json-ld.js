@@ -28,7 +28,7 @@ export function OrganizationJsonLd() {
       '@type': 'RealEstateAgent',
       name: 'Royal LePage Signature Realty, Brokerage',
     },
-    sameAs: ['https://www.hamzahomes.ca'],
+    sameAs: ['https://www.mississaugainvestor.ca'],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'sales',

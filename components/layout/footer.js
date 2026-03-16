@@ -26,8 +26,8 @@ export default function Footer() {
                 <a href="mailto:hamza@nouman.ca" className="text-accent hover:text-accent/80 no-underline">hamza@nouman.ca</a>
               </p>
               <p>
-                <a href="https://www.hamzahomes.ca" target="_blank" rel="noreferrer" className="text-accent hover:text-accent/80 no-underline">
-                  hamzahomes.ca
+                <a href="https://www.mississaugainvestor.ca" className="text-accent hover:text-accent/80 no-underline">
+                  mississaugainvestor.ca
                 </a>
               </p>
             </div>
@@ -42,7 +42,9 @@ export default function Footer() {
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
               <li><Link href="/pre-construction" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
-              <li><Link href="/score-methodology" className="text-white/50 hover:text-white no-underline transition-colors">How the Score Works</Link></li>
+              <li><Link href="/mortgage-calculator" className="text-white/50 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>
+              <li><Link href="/blog" className="text-white/50 hover:text-white no-underline transition-colors">Blog</Link></li>
+              <li><Link href="/faq" className="text-white/50 hover:text-white no-underline transition-colors">FAQ</Link></li>
             </ul>
           </div>
 
