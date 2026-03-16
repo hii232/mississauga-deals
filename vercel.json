@@ -4,6 +4,10 @@
     {
       "path": "/api/alerts/send",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/seo/ping",
+      "schedule": "30 13 * * *"
     }
   ]
 }
