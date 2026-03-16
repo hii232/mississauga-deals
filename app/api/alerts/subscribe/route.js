@@ -25,11 +25,26 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const { email, name, filters } = body;
 
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
+    }
+
+    if (name && (typeof name !== 'string' || name.length > 100)) {
+      return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
+    }
+
+    // Sanitize filters — only allow known keys with safe values
+    const ALLOWED_FILTER_KEYS = ['minPrice', 'maxPrice', 'minBeds', 'maxBeds', 'type', 'hood', 'minScore', 'sort'];
+    const cleanFilters = {};
+    if (filters && typeof filters === 'object' && !Array.isArray(filters)) {
+      for (const key of ALLOWED_FILTER_KEYS) {
+        if (filters[key] !== undefined && filters[key] !== null) {
+          cleanFilters[key] = typeof filters[key] === 'string' ? filters[key].slice(0, 100) : Number(filters[key]) || 0;
+        }
+      }
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -55,7 +70,7 @@ export async function POST(request) {
       .insert({
         email: cleanEmail,
         name: name || null,
-        filters: filters || {},
+        filters: cleanFilters,
         created_at: new Date().toISOString(),
       })
       .select('id')
@@ -73,7 +88,7 @@ export async function POST(request) {
           email: cleanEmail,
           name: name || '',
           source: 'saved-search',
-          notes: `Saved search: ${JSON.stringify(filters || {}).substring(0, 200)}`,
+          notes: `Saved search: ${JSON.stringify(cleanFilters).substring(0, 200)}`,
         }),
       });
     } catch {

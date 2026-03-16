@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import InlineCTA from '@/components/ui/inline-cta';
 
 /* ── helpers ─────────────────────────────────────────────── */
 
@@ -361,6 +362,9 @@ export function NewsClient({ articles, sources, topics }) {
             )}
           </>
         )}
+
+        {/* ── Inline CTA ──────────────────────────────────── */}
+        <InlineCTA variant="deals" className="mt-10" />
 
         {/* ── Source Attribution ──────────────────────────── */}
         {filtered.length > 0 && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { trackExitIntent, trackLead } from '@/lib/utils/analytics';
 
 export default function ExitIntentPopup() {
   const [visible, setVisible] = useState(false);
@@ -32,6 +33,7 @@ export default function ExitIntentPopup() {
       if (e.clientY > 0) return;
       armed.current = false; // One-shot
       setVisible(true);
+      trackExitIntent('shown');
     };
 
     document.documentElement.addEventListener('mouseleave', handleMouseLeave);
@@ -45,6 +47,7 @@ export default function ExitIntentPopup() {
   const dismiss = () => {
     setVisible(false);
     localStorage.setItem('exit_intent_dismissed', 'true');
+    trackExitIntent('dismissed');
   };
 
   const handleSubmit = async (e) => {
@@ -72,6 +75,8 @@ export default function ExitIntentPopup() {
       if (!res.ok) throw new Error('Failed to subscribe');
 
       setSuccess(true);
+      trackExitIntent('converted');
+      trackLead('exit-intent', email);
       localStorage.setItem('user_registered', 'true');
       localStorage.setItem('user_email', email.trim().toLowerCase());
       localStorage.setItem('exit_intent_dismissed', 'true');

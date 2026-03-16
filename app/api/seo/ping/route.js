@@ -89,6 +89,5 @@ export async function POST(request) {
     results.indexNow = `error: ${err.message}`;
   }
 
-  console.log('SEO ping results:', results);
   return NextResponse.json({ message: 'SEO ping complete', results });
 }

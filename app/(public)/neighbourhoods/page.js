@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 
@@ -187,6 +188,8 @@ export default function NeighbourhoodsPage() {
           </div>
         </div>
       )}
+      {/* CTA */}
+      <InlineCTA variant="alerts" className="mt-12" />
     </div>
   );
 }

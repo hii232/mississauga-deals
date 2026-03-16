@@ -74,9 +74,6 @@ export async function POST(request) {
     }
   }
 
-  const lead = { name, email, listingId, listingAddress, listingPrice, source, timestamp };
-  console.log('NEW LEAD:', JSON.stringify(lead));
-
   // Send notification email to Hamza (non-blocking)
   if (process.env.RESEND_API_KEY) {
     sendLeadNotification({ name, email, phone, source, listingAddress, listingPrice, notes }).catch((err) =>

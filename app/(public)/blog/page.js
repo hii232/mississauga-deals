@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const ARTICLES = [
   {
@@ -120,23 +121,8 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* Newsletter CTA */}
-        <div className="mt-16 bg-cloud rounded-2xl p-8 text-center">
-          <h3 className="font-heading text-xl font-bold text-navy mb-2">
-            Get Investment Updates
-          </h3>
-          <p className="text-muted text-sm mb-6 max-w-md mx-auto">
-            New articles, market insights, and deal alerts delivered to your inbox. No spam — just valuable content for investors.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/quiz" className="btn-primary !px-6 no-underline text-center">
-              Find My Deal Strategy
-            </Link>
-            <Link href="/listings" className="btn-secondary !px-6 no-underline text-center">
-              Browse Active Deals
-            </Link>
-          </div>
-        </div>
+        {/* CTA */}
+        <InlineCTA variant="quiz" className="mt-16" />
       </section>
     </>
   );
