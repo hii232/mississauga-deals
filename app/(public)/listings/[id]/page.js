@@ -723,15 +723,15 @@ function PhotoGallery({ photos, listingId }) {
   const hasRealPhotos = dedupedPhotos?.length > 0;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 w-full min-w-0">
       <div
-        className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[45vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer"
+        className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[50vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer w-full"
         onClick={() => hasRealPhotos && setLightboxOpen(true)}
       >
         <img
           src={images[activeIdx]}
           alt="Property photo"
-          className="h-full w-full object-cover"
+          className="h-full w-full object-cover object-center"
           onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
         />
         {/* Photo count overlay */}
@@ -914,8 +914,8 @@ export default function PropertyDetailPage() {
   const scoreColor = scoreColorHex(listing.hamzaScore);
 
   return (
-    <main className="min-h-screen bg-cloud">
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-cloud overflow-x-hidden">
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 w-full">
         {/* Back Link */}
         <Link href="/listings" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -926,13 +926,13 @@ export default function PropertyDetailPage() {
 
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Left Column: Photos */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 min-w-0">
             <PhotoGallery photos={listing.photos} listingId={listing.id} />
           </div>
 
           {/* Right Column: Header Info */}
-          <div className="lg:col-span-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <div className="lg:col-span-2 min-w-0">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
               {/* Score Badge */}
               <div className="mb-4 flex items-start justify-between">
                 {isAuthenticated ? (
@@ -999,8 +999,8 @@ export default function PropertyDetailPage() {
               </div>
 
               {/* Key Metrics */}
-              <div className="relative mt-5">
-                <div className={`grid grid-cols-3 gap-3 ${!isAuthenticated ? 'select-none blur-sm pointer-events-none' : ''}`}>
+              {isAuthenticated ? (
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
                   <div className="text-center">
                     <p className="text-xs text-muted">Cap Rate</p>
                     <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
@@ -1016,18 +1016,17 @@ export default function PropertyDetailPage() {
                     <p className="text-sm font-bold text-navy">${listing.estimatedRent.toLocaleString()}</p>
                   </div>
                 </div>
-                {!isAuthenticated && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <Link
-                      href="/signup"
-                      className="rounded-lg bg-navy px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
-                    >
-                      Sign up to unlock metrics
-                    </Link>
-                    <p className="mt-1 text-[10px] text-slate-500">Free. No credit card.</p>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
+                  <Link
+                    href="/signup"
+                    className="rounded-lg bg-navy px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
+                  >
+                    Sign up to unlock metrics
+                  </Link>
+                  <p className="mt-1 text-[10px] text-slate-500">Free. No credit card.</p>
+                </div>
+              )}
 
               {/* Brokerage Attribution */}
               {listing.brokerage && (
@@ -1042,12 +1041,12 @@ export default function PropertyDetailPage() {
         {/* Tabs Section */}
         <div className="mt-8">
           {/* Tab Bar */}
-          <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 border border-slate-200">
+          <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 border border-slate-200 scrollbar-hide">
             {TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`flex-shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+                className={`flex-shrink-0 rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition whitespace-nowrap ${
                   activeTab === tab.key
                     ? 'bg-accent text-white shadow-sm'
                     : 'text-muted hover:bg-slate-50 hover:text-navy'
@@ -1059,7 +1058,7 @@ export default function PropertyDetailPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
             {activeTab === 'comps' && (
               <AuthGate isAuthenticated={isAuthenticated}>
