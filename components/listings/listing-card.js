@@ -62,9 +62,19 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
         {/* Tags row */}
         <div className="absolute bottom-3 left-3 flex gap-1.5">
-          {listing.hasSuite && (
+          {listing.basementTier === 'legal' && (
             <span className="rounded-full bg-success/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-              Suite
+              Legal Suite
+            </span>
+          )}
+          {listing.basementTier === 'potential' && (
+            <span className="rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              Suite Potential
+            </span>
+          )}
+          {listing.basementTier === 'finished' && (
+            <span className="rounded-full bg-slate-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              Fin. Basement
             </span>
           )}
           {listing.lrtAccess && (
@@ -123,7 +133,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
+              <p className="text-[10px] font-medium uppercase text-slate-400" title="Potential Cash Flow">PCF</p>
               <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
                 {fmtNum(listing.cashFlow)}
               </p>
@@ -146,9 +156,16 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
         {/* Rent and mortgage */}
         {!isGated && (
-          <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Rent est: {fmtK(listing.estimatedRent * 12).replace('/mo', '')}/yr</span>
-            <span>Mortgage: {fmtK(listing.monthlyExpenses * 12).replace('/mo', '')}/yr</span>
+          <div className="mt-2 space-y-0.5">
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>Rent est: {fmtK(listing.estimatedRent * 12).replace('/mo', '')}/yr</span>
+              <span>Mortgage: {fmtK(listing.monthlyExpenses * 12).replace('/mo', '')}/yr</span>
+            </div>
+            {listing.basementIncome > 0 && (
+              <p className="text-[10px] text-success font-medium">
+                Incl. +${listing.basementIncome.toLocaleString()}/mo basement income
+              </p>
+            )}
           </div>
         )}
 

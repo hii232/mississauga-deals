@@ -70,7 +70,11 @@ function OverviewTab({ listing }) {
     { label: 'Price Drop', value: listing.priceDrop ? `${listing.priceDrop}%` : 'None' },
     { label: 'Year Built', value: listing.yearBuilt || 'N/A' },
     { label: 'Status', value: listing.status },
-    { label: 'Suite Potential', value: listing.hasSuite ? 'Yes' : 'No' },
+    { label: 'Basement Income',
+      value: listing.basementTier === 'legal' ? `Legal Suite (+$${(listing.basementIncome || 1200).toLocaleString()}/mo)`
+           : listing.basementTier === 'potential' ? `Suite Potential (+$${(listing.basementIncome || 900).toLocaleString()}/mo)`
+           : listing.basementTier === 'finished' ? 'Finished Basement'
+           : 'None Detected' },
   ];
 
   return (
@@ -81,11 +85,19 @@ function OverviewTab({ listing }) {
           {facts.map((f) => (
             <div key={f.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs text-muted">{f.label}</p>
-              <p className="mt-0.5 text-sm font-semibold text-navy">{f.value}</p>
+              <p className={`mt-0.5 text-sm font-semibold ${f.label === 'Basement Income' && listing.basementTier === 'legal' ? 'text-success' : f.label === 'Basement Income' && listing.basementTier === 'potential' ? 'text-accent' : 'text-navy'}`}>{f.value}</p>
             </div>
           ))}
         </div>
       </div>
+      {listing.basementIncome > 0 && (
+        <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3">
+          <p className="text-sm text-success font-medium">
+            Potential cash flow includes estimated basement rental income of ${listing.basementIncome.toLocaleString()}/mo
+            {listing.basementTier === 'potential' && ' — verify suite legality with the City of Mississauga before relying on this income'}
+          </p>
+        </div>
+      )}
       {listing.remarks && (
         <div>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
@@ -134,7 +146,7 @@ function MortgageTab({ listing }) {
         <ResultCard label="Down Payment" value={fmtK(calc.downPayment)} />
         <ResultCard label="Monthly Mortgage" value={`$${calc.mortgage.toLocaleString()}`} />
         <ResultCard label="Est. Rent" value={`$${listing.estimatedRent.toLocaleString()}`} />
-        <ResultCard label="Cash Flow" value={fmtNum(calc.cashFlow)} positive={calc.cashFlow >= 0} />
+        <ResultCard label="Potential Cash Flow" value={fmtNum(calc.cashFlow)} positive={calc.cashFlow >= 0} />
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -1006,7 +1018,7 @@ export default function PropertyDetailPage() {
                     <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-muted">Cash Flow</p>
+                    <p className="text-xs text-muted">Potential CF</p>
                     <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
                       {fmtNum(listing.cashFlow)}
                     </p>
