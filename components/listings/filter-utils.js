@@ -35,27 +35,29 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Dupl
 
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
-  { key: 'cf', label: 'CF+', filter: (l) => l.cashFlow > 0 },
-  { key: 'highcap', label: 'HIGH CAP', filter: (l) => l.capRate >= 5 },
-  { key: 'motivated', label: 'MOTIVATED', filter: (l) => l.dom >= 45 },
-  { key: 'brrr', label: 'BRRR', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
-  { key: 'reduced', label: 'REDUCED', filter: (l) => l.priceDrop > 0 },
-  { key: 'new', label: 'NEW', filter: (l) => l.dom <= 3 },
-  { key: 'under800', label: '<$800K', filter: (l) => l.price < 800000 },
-  { key: 'suite', label: 'LEGAL SUITE', filter: (l) => /legal basement/i.test(l.remarks || '') },
-  { key: 'pos', label: 'POWER OF SALE', filter: (l) => isPowerOfSale(l.remarks) },
+  { key: 'cf', label: 'CF+', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
+  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate above 4% — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
+  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
+  { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
+  { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
+  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom <= 3 },
+  { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
+  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
+  { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
 ];
 
 // ── Sort Options ──
 export const SORT_OPTIONS = [
-  { key: 'score', label: 'Score', fn: (a, b) => b.hamzaScore - a.hamzaScore },
-  { key: 'price', label: 'Price', fn: (a, b) => a.price - b.price },
-  { key: 'dom', label: 'DOM', fn: (a, b) => b.dom - a.dom },
-  { key: 'drop', label: 'Price Drop', fn: (a, b) => b.priceDrop - a.priceDrop },
-  { key: 'cashflow', label: 'Cash Flow', fn: (a, b) => b.cashFlow - a.cashFlow },
-  { key: 'caprate', label: 'Cap Rate', fn: (a, b) => b.capRate - a.capRate },
+  { key: 'score', label: 'Score (Best Deals)', fn: (a, b) => b.hamzaScore - a.hamzaScore },
+  { key: 'cashflow', label: 'Cash Flow (Best CF)', fn: (a, b) => b.cashFlow - a.cashFlow },
+  { key: 'caprate', label: 'Cap Rate (Highest Yield)', fn: (a, b) => b.capRate - a.capRate },
+  { key: 'price', label: 'Price (Low to High)', fn: (a, b) => a.price - b.price },
+  { key: 'priceDesc', label: 'Price (High to Low)', fn: (a, b) => b.price - a.price },
+  { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => b.dom - a.dom },
+  { key: 'domNew', label: 'DOM (Newest First)', fn: (a, b) => a.dom - b.dom },
+  { key: 'drop', label: 'Price Drop (Biggest Cuts)', fn: (a, b) => b.priceDrop - a.priceDrop },
+  { key: 'rent', label: 'Rent (Highest)', fn: (a, b) => b.estimatedRent - a.estimatedRent },
   { key: 'coc', label: 'CoC Return', fn: (a, b) => b.cashOnCash - a.cashOnCash },
-  { key: 'rent', label: 'Est. Rent', fn: (a, b) => b.estimatedRent - a.estimatedRent },
 ];
 
 // ── Neighbourhood List (from HOOD_DATA keys) ──

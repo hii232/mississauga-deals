@@ -32,7 +32,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
   const scoreHex = scoreColorHex(listing.hamzaScore);
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
       {/* Photo — links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
@@ -82,9 +82,14 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               LRT
             </span>
           )}
+          {listing.cashFlow > 0 && (
+            <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              CF+
+            </span>
+          )}
           {listing.priceDrop > 0 && (
-            <span className="rounded-full bg-red-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-              Reduced
+            <span className="rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              -{listing.priceDrop.toFixed(0)}%
             </span>
           )}
           {listing.dom >= 45 && (
@@ -134,8 +139,8 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             </div>
             <div>
               <p className="text-[10px] font-medium uppercase text-slate-400" title="Potential Cash Flow">PCF</p>
-              <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
-                {fmtNum(listing.cashFlow)}
+              <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-500' : listing.cashFlow === 0 ? 'text-blue-500' : 'text-slate-400'}`}>
+                {listing.cashFlow > 0 ? '+' : ''}{fmtNum(listing.cashFlow)}
               </p>
             </div>
           </div>

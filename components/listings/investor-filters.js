@@ -9,6 +9,7 @@ import {
   STRATEGY_CHIPS,
   SORT_OPTIONS,
   countActiveFilters,
+  NEIGHBOURHOODS,
 } from './filter-utils';
 
 // ── Select Dropdown ──
@@ -46,8 +47,24 @@ function PriceInput({ value, onChange, placeholder }) {
   );
 }
 
+// ── Tooltip wrapper ──
+function Tooltip({ text, children }) {
+  return (
+    <div className="relative group/tip">
+      {children}
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-lg bg-navy px-3 py-2 text-[11px] leading-relaxed text-white shadow-lg opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-50 hidden sm:block">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-navy rotate-45" />
+      </div>
+    </div>
+  );
+}
+
+// ── Popular Neighbourhood Pills ──
+const POPULAR_HOODS = ['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton', 'Clarkson'];
+
 // ── Main Filter Component ──
-export function InvestorFilters({ filters, setFilters, resultCount }) {
+export function InvestorFilters({ filters, setFilters, resultCount, totalCount }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -66,14 +83,52 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
     }));
   }, [setFilters]);
 
+  const toggleHood = useCallback((hood) => {
+    setFilters((prev) => ({
+      ...prev,
+      neighbourhoods: prev.neighbourhoods.includes(hood)
+        ? prev.neighbourhoods.filter((h) => h !== hood)
+        : [...prev.neighbourhoods, hood],
+    }));
+  }, [setFilters]);
+
   const clearAll = useCallback(() => {
     setFilters({ ...DEFAULT_FILTERS });
   }, [setFilters]);
 
   const totalActive = advancedCount + filters.activeStrategies.length +
-    (filters.propertyType !== 'All' ? 1 : 0) + (filters.search ? 1 : 0);
+    (filters.propertyType !== 'All' ? 1 : 0) + (filters.search ? 1 : 0) +
+    filters.neighbourhoods.length;
 
-  // Shared filter content (used in both desktop and mobile)
+  // Build active filter tags for summary bar
+  const activeFilterTags = useMemo(() => {
+    const tags = [];
+    if (filters.propertyType !== 'All') {
+      tags.push({ label: filters.propertyType, clear: () => updateFilter('propertyType', 'All') });
+    }
+    filters.activeStrategies.forEach((key) => {
+      const chip = STRATEGY_CHIPS.find((c) => c.key === key);
+      if (chip) tags.push({ label: chip.label, clear: () => toggleStrategy(key) });
+    });
+    filters.neighbourhoods.forEach((hood) => {
+      tags.push({ label: hood, clear: () => toggleHood(hood) });
+    });
+    if (filters.beds !== null) {
+      tags.push({ label: `${filters.beds}+ beds`, clear: () => updateFilter('beds', null) });
+    }
+    if (filters.baths !== null) {
+      tags.push({ label: `${filters.baths}+ baths`, clear: () => updateFilter('baths', null) });
+    }
+    if (filters.priceRange[0] > 0) {
+      tags.push({ label: `Min $${(filters.priceRange[0] / 1000).toFixed(0)}K`, clear: () => updateFilter('priceRange', [0, filters.priceRange[1]]) });
+    }
+    if (filters.priceRange[1] < 3000000) {
+      tags.push({ label: `Max $${(filters.priceRange[1] / 1000).toFixed(0)}K`, clear: () => updateFilter('priceRange', [filters.priceRange[0], 3000000]) });
+    }
+    return tags;
+  }, [filters, updateFilter, toggleStrategy, toggleHood]);
+
+  // Shared filter content
   const filterContent = (
     <>
       {/* Search bar */}
@@ -86,11 +141,29 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
         </svg>
         <input
           type="text"
-          placeholder="Search by address, neighbourhood, or type..."
+          placeholder="Search by address, neighbourhood, postal code..."
           value={filters.search}
           onChange={(e) => updateFilter('search', e.target.value)}
           className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
         />
+      </div>
+
+      {/* Popular neighbourhood pills */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Popular:</span>
+        {POPULAR_HOODS.map((hood) => (
+          <button
+            key={hood}
+            onClick={() => toggleHood(hood)}
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+              filters.neighbourhoods.includes(hood)
+                ? 'bg-accent text-white'
+                : 'bg-white text-slate-500 border border-slate-200 hover:border-accent/30 hover:text-accent'
+            }`}
+          >
+            {hood}
+          </button>
+        ))}
       </div>
 
       {/* Property type pills */}
@@ -147,24 +220,25 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
         />
       </div>
 
-      {/* Strategy chips */}
+      {/* Strategy chips with tooltips */}
       <div className="flex flex-wrap gap-2">
         {STRATEGY_CHIPS.map((chip) => (
-          <button
-            key={chip.key}
-            onClick={() => toggleStrategy(chip.key)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
-              filters.activeStrategies.includes(chip.key)
-                ? chip.key === 'pos'
-                  ? 'bg-danger text-white'
-                  : 'bg-accent text-white'
-                : chip.key === 'pos'
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {chip.label}
-          </button>
+          <Tooltip key={chip.key} text={chip.tooltip}>
+            <button
+              onClick={() => toggleStrategy(chip.key)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-all duration-150 ${
+                filters.activeStrategies.includes(chip.key)
+                  ? chip.key === 'pos'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-accent text-white scale-105'
+                  : chip.key === 'pos'
+                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {chip.label}
+            </button>
+          </Tooltip>
         ))}
       </div>
     </>
@@ -173,7 +247,7 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
   return (
     <div className="space-y-4">
       {/* ── Desktop Layout ── */}
-      <div className="hidden sm:block space-y-4">
+      <div className="hidden sm:block space-y-3">
         {filterContent}
       </div>
 
@@ -217,7 +291,6 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
         <div className="fixed inset-0 z-50 sm:hidden">
           <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
           <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-2xl bg-cloud">
-            {/* Header */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
               <h2 className="text-base font-bold text-navy">Filters</h2>
               <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-navy">
@@ -226,14 +299,10 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
                 </svg>
               </button>
             </div>
-
-            {/* Filter Content */}
             <div className="space-y-4 p-4">
               {filterContent}
               <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
             </div>
-
-            {/* Footer */}
             <div className="sticky bottom-0 flex gap-3 border-t border-slate-200 bg-white px-4 py-3">
               <button
                 onClick={() => { clearAll(); setMobileOpen(false); }}
@@ -252,25 +321,19 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
         </div>
       )}
 
-      {/* ── Controls Row: Result count + Advanced toggle + Sort + View ── */}
+      {/* ── Controls Row ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <p className="text-sm text-slate-500">
-            <span className="font-semibold text-navy">{resultCount}</span>{' '}
-            {resultCount === 1 ? 'property' : 'properties'}
+            Showing <span className="font-semibold text-navy">{resultCount.toLocaleString()}</span>{' '}
+            {totalCount && resultCount !== totalCount && (
+              <>of <span className="font-semibold text-navy">{totalCount.toLocaleString()}</span>{' '}</>
+            )}
+            investment {resultCount === 1 ? 'property' : 'properties'}
           </p>
-          {totalActive > 0 && (
-            <button
-              onClick={clearAll}
-              className="text-xs font-medium text-accent hover:text-accent-dark"
-            >
-              Clear all filters
-            </button>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Advanced Filters toggle (desktop) */}
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`hidden sm:flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
@@ -290,7 +353,6 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
             )}
           </button>
 
-          {/* Sort dropdown */}
           <select
             value={filters.sortKey}
             onChange={(e) => updateFilter('sortKey', e.target.value)}
@@ -301,10 +363,36 @@ export function InvestorFilters({ filters, setFilters, resultCount }) {
             ))}
           </select>
 
-          {/* Save Search alerts */}
           <SaveSearchButton filters={filters} />
         </div>
       </div>
+
+      {/* ── Active Filter Tags ── */}
+      {activeFilterTags.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
+          <span className="text-[11px] font-medium text-slate-400 uppercase">Filters:</span>
+          {activeFilterTags.map((tag, i) => (
+            <span
+              key={i}
+              className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-xs font-medium text-navy"
+            >
+              {tag.label}
+              <button
+                onClick={tag.clear}
+                className="ml-0.5 text-slate-400 hover:text-red-500 transition-colors"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <button
+            onClick={clearAll}
+            className="text-xs font-medium text-accent hover:text-accent-dark ml-auto"
+          >
+            Clear All
+          </button>
+        </div>
+      )}
 
       {/* ── Advanced Panel (desktop) ── */}
       {showAdvanced && (
