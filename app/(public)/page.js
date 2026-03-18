@@ -17,22 +17,13 @@ async function fetchLiveStats() {
     const proto = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${proto}://${host}`;
 
-    const [statsRes, listingsRes] = await Promise.all([
-      fetch(`${baseUrl}/api/market-stats`, { next: { revalidate: 300 } }),
-      fetch(`${baseUrl}/api/listings`, { next: { revalidate: 300 } }).catch(() => null),
-    ]);
-    if (!statsRes.ok) return null;
-    const data = await statsRes.json();
+    const res = await fetch(`${baseUrl}/api/market-stats`, {
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
 
-    // Use processed listings count (matches Deal Screener) — fallback to raw activeCount
-    let count = data.activeCount || 0;
-    if (listingsRes?.ok) {
-      try {
-        const listingsData = await listingsRes.json();
-        const arr = listingsData?.listings || listingsData;
-        if (Array.isArray(arr) && arr.length > 0) count = arr.length;
-      } catch {}
-    }
+    const count = data.activeCount || 0;
     const avgDom = data.mississaugaAvgLDOM || data.avgDOM || 28;
     const avgPrice = data.avgPrice || 970000;
     const salesToList = data.mississaugaAvgSPLP
