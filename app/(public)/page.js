@@ -24,20 +24,28 @@ async function fetchLiveStats() {
     const data = await res.json();
 
     const count = data.activeCount || 0;
-    const avgDom = data.avgDOM || 28;
+    const avgDom = data.mississaugaAvgLDOM || data.avgDOM || 28;
     const avgPrice = data.avgPrice || 970000;
-    const salesToList = data.salesToListRatio
-      ? (data.salesToListRatio * 100).toFixed(1) + '%'
-      : '97.2%';
+    const salesToList = data.mississaugaAvgSPLP
+      ? data.mississaugaAvgSPLP + '%'
+      : data.salesToListRatio
+        ? (data.salesToListRatio * 100).toFixed(1) + '%'
+        : '97.2%';
+    const avgSoldPrice = data.avgPrices?.all?.soldAvg || data.avgPrice || 970000;
 
-    let priceLabel;
-    if (avgPrice >= 1000000) {
-      priceLabel = '$' + (avgPrice / 1000000).toFixed(2) + 'M';
-    } else {
-      priceLabel = '$' + Math.round(avgPrice / 1000) + 'K';
-    }
+    const fmtPrice = (p) => {
+      if (p >= 1000000) return '$' + (p / 1000000).toFixed(2) + 'M';
+      return '$' + Math.round(p / 1000) + 'K';
+    };
 
-    return { count, avgDom, priceLabel, salesToList };
+    return {
+      count,
+      avgDom,
+      priceLabel: fmtPrice(avgPrice),
+      salesToList,
+      avgSoldPrice: fmtPrice(avgSoldPrice),
+      monthsOfInventory: data.mississaugaMonthsOfInventory || null,
+    };
   } catch {
     return null;
   }
@@ -47,18 +55,20 @@ async function fetchLiveStats() {
 //   STATS BAR
 // ─────────────────────────────────────────────
 function StatsBar({ liveStats }) {
-  const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%' };
+  const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%', avgSoldPrice: '$964K', monthsOfInventory: 5.2 };
   const stats = [
     { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: '📊' },
     { label: 'Sale-to-List', value: s.salesToList, icon: '⭐' },
     { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: '📅' },
     { label: 'Avg. Price', value: s.priceLabel, icon: '💰' },
+    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: '✅' },
+    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: '📦' }] : []),
   ];
 
   return (
     <div className="bg-cloud border-y border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {stats.map((st) => (
             <div key={st.label} className="text-center">
               <div className="text-2xl mb-1">{st.icon}</div>
