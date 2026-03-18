@@ -57,18 +57,18 @@ function TopPickCard({ listing, photo }) {
       <div className="p-3">
         <p className="text-sm font-semibold text-navy line-clamp-1">{listing.address}</p>
         <p className="text-base font-bold text-navy">{fmtK(listing.price)}</p>
-        <div className="mt-1.5 grid grid-cols-3 gap-2 text-center rounded-md bg-cloud p-1.5">
+        <div className="mt-1.5 grid grid-cols-3 gap-1 text-center rounded-md bg-cloud p-1.5">
           <div>
             <p className="text-[9px] font-medium uppercase text-slate-400">CAP</p>
-            <p className="text-xs font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
           </div>
           <div>
             <p className="text-[9px] font-medium uppercase text-slate-400">CF</p>
-            <p className="text-xs font-bold text-emerald-500">+{fmtNum(listing.cashFlow)}</p>
+            <p className="text-[11px] font-bold text-emerald-500">+${Math.round(listing.cashFlow)}</p>
           </div>
           <div>
             <p className="text-[9px] font-medium uppercase text-slate-400">CoC</p>
-            <p className="text-xs font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
           </div>
         </div>
       </div>
