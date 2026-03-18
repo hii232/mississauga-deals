@@ -29,7 +29,8 @@ async function fetchLiveStats() {
     if (listingsRes?.ok) {
       try {
         const listingsData = await listingsRes.json();
-        if (Array.isArray(listingsData) && listingsData.length > 0) count = listingsData.length;
+        const arr = listingsData?.listings || listingsData;
+        if (Array.isArray(arr) && arr.length > 0) count = arr.length;
       } catch {}
     }
     const avgDom = data.mississaugaAvgLDOM || data.avgDOM || 28;
