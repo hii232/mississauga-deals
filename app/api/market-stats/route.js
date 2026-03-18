@@ -108,41 +108,41 @@ export async function GET() {
     ? +((100 + soldStats.avgNegotiationGap) / 100).toFixed(3)
     : 0.972;
 
-  // Build live avg prices merged with YoY (manual data — can't compute from API)
-  const yoyData = {
-    all: -5.8,
-    detached: -5.5,
-    semiDetached: -2.8,
-    townhouse: -7.0,
-    condo: -8.0,
+  // ── TRREB Market Watch February 2026 — Mississauga Sold Data ──
+  // Source: TRREB MW2602 (Feb 2026) — pages 3, 7, 9
+  const tRREBSold = {
+    all:          { sales: 345, avgPrice: 963747,  medianPrice: 850000,  yoy: -3.9 },
+    detached:     { sales: 124, avgPrice: 1460621, medianPrice: 1239000, yoy: -11.4 },
+    semiDetached: { sales: 42,  avgPrice: 921202,  medianPrice: 902000,  yoy: -9.2 },
+    townhouse:    { sales: 50,  avgPrice: 840000,  medianPrice: 780000,  yoy: -2.4 },
+    condo:        { sales: 129, avgPrice: 664000,  medianPrice: 550000,  yoy: -12.0 },
   };
 
   const avgPrices = {
     all: {
-      avg: liveListings?.avgPrice || 970000,
-      yoyChange: yoyData.all,
+      avg: liveListings?.avgPrice || tRREBSold.all.avgPrice,
+      yoyChange: tRREBSold.all.yoy,
+      soldAvg: tRREBSold.all.avgPrice,
+      medianPrice: tRREBSold.all.medianPrice,
+      sales: tRREBSold.all.sales,
       label: 'All Types',
     },
   };
 
-  // Merge live type prices with YoY data
+  // Merge live listing prices with TRREB sold data
   for (const key of ['detached', 'semiDetached', 'townhouse', 'condo']) {
-    if (liveListings?.avgPrices?.[key]) {
-      avgPrices[key] = {
-        ...liveListings.avgPrices[key],
-        yoyChange: yoyData[key],
-      };
-    } else {
-      // Fallback to manual estimates
-      const fallbacks = { detached: 1380000, semiDetached: 950000, townhouse: 940000, condo: 560000 };
-      avgPrices[key] = {
-        avg: fallbacks[key],
-        yoyChange: yoyData[key],
-        label: key === 'semiDetached' ? 'Semi-Detached'
-          : key === 'condo' ? 'Condo Apt'
-          : key.charAt(0).toUpperCase() + key.slice(1),
-      };
-    }
+    const trreb = tRREBSold[key];
+    avgPrices[key] = {
+      avg: liveListings?.avgPrices?.[key]?.avg || trreb.avgPrice,
+      count: liveListings?.avgPrices?.[key]?.count || 0,
+      yoyChange: trreb.yoy,
+      soldAvg: trreb.avgPrice,
+      medianPrice: trreb.medianPrice,
+      sales: trreb.sales,
+      label: key === 'semiDetached' ? 'Semi-Detached'
+        : key === 'condo' ? 'Condo Apt'
+        : key.charAt(0).toUpperCase() + key.slice(1),
+    };
   }
 
   const stats = {
@@ -159,34 +159,79 @@ export async function GET() {
     avgSoldDOM: soldStats?.avgDOM || 0,
     avgNegotiationGap: soldStats?.avgNegotiationGap || 0,
 
-    // ── Manual TRREB data (update periodically) ──
+    // ── TRREB Market Watch February 2026 (MW2602) ──
+    // Mississauga-specific from page 3; GTA from page 1
+    tRREBMonth: 'February 2026',
     gtaAvgPrice: 1008968,
+    gtaMedianPrice: 865000,
     gtaYoyChange: -7.1,
+    gtaSales: 3868,
+    gtaSalesYoy: -6.3,
+    gtaNewListings: 10705,
+    gtaNewListingsYoy: -17.7,
+    gtaActiveListings: 19314,
+    gtaActiveListingsYoy: -2.4,
+    gtaAvgLDOM: 36,
+    gtaAvgPDOM: 54,
+
+    // Mississauga TRREB stats
+    mississaugaSales: 345,
+    mississaugaNewListings: 940,
+    mississaugaActiveListings: 1748,
+    mississaugaSNLR: 32.4,
+    mississaugaMonthsOfInventory: 5.2,
+    mississaugaAvgSPLP: 96,
+    mississaugaAvgLDOM: 36,
+    mississaugaAvgPDOM: 53,
+    mississaugaAvgPrice: 963747,
+    mississaugaMedianPrice: 850000,
+
+    // Peel Region
+    peelSales: 706,
+    peelAvgPrice: 933616,
+    peelMedianPrice: 847750,
+    peelActiveListings: 3628,
+
     marketType: 'Buyers Market',
-    salesForecast2026: '+7% vs 2025',
+    salesForecast2026: '+7% vs 2025 (TRREB forecast)',
     pentUpDemand: '100,000+ sidelined buyers in GTA',
-    newListingsYoy: -12.3,
-    salesYoy: -8.5,
-    monthsOfInventory: 4.2,
+
+    // Economic indicators from page 1
+    economic: {
+      gdpGrowth: -0.6,            // Q4 2025
+      employmentGrowth: 1.2,       // January 2026
+      unemployment: 7.9,           // January 2026 (Toronto)
+      inflation: 2.3,              // January 2026
+      bocRate: 2.3,                // February 2026
+      primeRate: 4.5,              // February 2026
+    },
+    rates: {
+      variable: 4.45,
+      fixed1yr: 5.84,
+      fixed3yr: 6.05,
+      fixed5yr: 6.09,
+      stressTest: 8.09,            // fixed5yr + 2%
+    },
     rental: {
       avg1Bed: 2100,
       avg2Bed: 2700,
       avg3Bed: 3200,
       rentalYoyChange: -3.2,
     },
-    rates: {
-      variable: 4.95,
-      fixed5yr: 4.49,
-      fixed3yr: 4.89,
-      stressTest: 6.49,
-    },
     hotNeighbourhoods: [
-      { name: 'Cooksville', reason: 'LRT corridor + affordability', avgPrice: 820000 },
-      { name: 'Square One / City Centre', reason: 'Urban density + transit hub', avgPrice: 650000 },
+      { name: 'Cooksville', reason: 'LRT corridor + most affordable', avgPrice: 750000 },
+      { name: 'Square One / City Centre', reason: 'Urban density + transit hub', avgPrice: 620000 },
       { name: 'Port Credit', reason: 'Waterfront premium + GO Transit', avgPrice: 1250000 },
-      { name: 'Erin Mills', reason: 'Family-friendly + established', avgPrice: 1150000 },
-      { name: 'Churchill Meadows', reason: 'New builds + value', avgPrice: 1100000 },
+      { name: 'Clarkson', reason: 'Highest cap rates + GO station', avgPrice: 1050000 },
+      { name: 'Churchill Meadows', reason: 'New builds + family demand', avgPrice: 1100000 },
     ],
+    // Sales by home type from TRREB Feb 2026 (page 1 table)
+    salesByType: {
+      detached:     { feb2026: 124, avgPrice: 1460621, spLp: 94, ldom: 33 },
+      semiDetached: { feb2026: 42,  avgPrice: 921202,  spLp: 98, ldom: 29 },
+      townhouse:    { feb2026: 50,  avgPrice: 840000,  spLp: 96, ldom: 35 },
+      condoApt:     { feb2026: 129, avgPrice: 664000,  spLp: 96, ldom: 36 },
+    },
     priceTrend: [
       { month: 'Apr 2025', avg: 1025000 },
       { month: 'May 2025', avg: 1035000 },
@@ -198,8 +243,7 @@ export async function GET() {
       { month: 'Nov 2025', avg: 960000 },
       { month: 'Dec 2025', avg: 955000 },
       { month: 'Jan 2026', avg: 965000 },
-      { month: 'Feb 2026', avg: 970000 },
-      { month: 'Mar 2026', avg: 975000 },
+      { month: 'Feb 2026', avg: 963747 },
     ],
     salesTrend: [
       { month: 'Apr 2025', sales: 820 },
@@ -211,11 +255,10 @@ export async function GET() {
       { month: 'Oct 2025', sales: 680 },
       { month: 'Nov 2025', sales: 620 },
       { month: 'Dec 2025', sales: 480 },
-      { month: 'Jan 2026', sales: 520 },
-      { month: 'Feb 2026', sales: 610 },
-      { month: 'Mar 2026', sales: 670 },
+      { month: 'Jan 2026', sales: 380 },
+      { month: 'Feb 2026', sales: 345 },
     ],
-    disclaimer: 'Active listing statistics computed from live MLS data. Historical trends sourced from TRREB Market Watch reports. Deemed reliable but not guaranteed.',
+    disclaimer: 'Active listing statistics computed from live MLS data. Sold statistics from TRREB Market Watch February 2026 (MW2602). Deemed reliable but not guaranteed.',
   };
 
   return NextResponse.json(stats, {

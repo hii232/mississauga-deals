@@ -52,10 +52,13 @@ export default function MarketPulsePage() {
   };
 
   const marketMetrics = {
-    avgDOM: stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
-    salesToList: stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 97.2,
-    monthsOfInventory: stats?.monthsOfInventory || 3.1,
+    avgDOM: stats?.mississaugaAvgLDOM || stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
+    salesToList: stats?.mississaugaAvgSPLP || (stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 96),
+    monthsOfInventory: stats?.mississaugaMonthsOfInventory || 5.2,
     activeCount: stats?.activeCount || 0,
+    snlr: stats?.mississaugaSNLR || 32.4,
+    mississaugaSales: stats?.mississaugaSales || 345,
+    mississaugaNewListings: stats?.mississaugaNewListings || 940,
   };
 
   const priceTypes = [
@@ -67,13 +70,14 @@ export default function MarketPulsePage() {
 
   const maxPrice = Math.max(...priceTypes.map((p) => p.value));
 
-  // Mortgage rates
-  const rates = stats?.mortgageRates || [
-    { term: '1-Year Fixed', rate: '5.84%' },
-    { term: '2-Year Fixed', rate: '5.29%' },
-    { term: '3-Year Fixed', rate: '4.89%' },
-    { term: '5-Year Fixed', rate: '4.69%' },
-    { term: '5-Year Variable', rate: '5.55%' },
+  // Mortgage rates — TRREB Feb 2026 page 1
+  const ratesData = stats?.rates;
+  const rates = [
+    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.84%' },
+    { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%' },
+    { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%' },
+    { term: 'Variable', rate: ratesData?.variable ? `${ratesData.variable}%` : '4.45%' },
+    { term: 'BoC Rate', rate: stats?.economic?.bocRate ? `${stats.economic.bocRate}%` : '2.3%' },
   ];
 
   if (loading) {
