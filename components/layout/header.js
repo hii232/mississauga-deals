@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/recent-sales', label: 'Recent Sales' },
   { href: '/market-pulse', label: 'Market Pulse' },
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
+  { href: '/blog', label: 'Blog' },
   { href: '/news', label: 'News' },
   { href: '/quiz', label: 'Find My Deal' },
 ];

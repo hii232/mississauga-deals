@@ -101,6 +101,42 @@ export function WebSiteJsonLd() {
   );
 }
 
+// Article Schema — for blog posts
+export function ArticleJsonLd({ post }) {
+  if (!post) return null;
+
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt || '',
+    ...(post.cover_image_url && { image: post.cover_image_url }),
+    datePublished: post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    author: {
+      '@type': 'Person',
+      name: 'Hamza Nouman',
+      url: 'https://www.mississaugainvestor.ca',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'MississaugaInvestor.ca',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.mississaugainvestor.ca/images/og-image.jpg',
+      },
+    },
+    mainEntityOfPage: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}
+
 // FAQ Schema — for pages with FAQ-like content
 export function FAQJsonLd({ items }) {
   if (!items?.length) return null;
