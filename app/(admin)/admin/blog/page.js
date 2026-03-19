@@ -20,11 +20,34 @@ export default function AdminBlogPage() {
   const [editingPost, setEditingPost] = useState(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
     title: '', slug: '', excerpt: '', content: '', category: 'General', cover_image_url: '', published: false,
   });
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      setForm(f => ({ ...f, cover_image_url: data.url }));
+    } catch (err) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function fetchPosts() {
     try {
@@ -183,18 +206,31 @@ export default function AdminBlogPage() {
             </div>
           </div>
 
-          {/* Cover Image URL */}
+          {/* Cover Image */}
           <div>
-            <label className="block text-xs font-medium text-white/40 mb-1.5">Cover Image URL (optional)</label>
-            <input
-              type="text"
-              value={form.cover_image_url}
-              onChange={e => setForm(f => ({ ...f, cover_image_url: e.target.value }))}
-              placeholder="https://example.com/image.jpg"
-              className="w-full bg-[#0B1120] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-accent/50"
-            />
+            <label className="block text-xs font-medium text-white/40 mb-1.5">Cover Image (optional)</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={form.cover_image_url}
+                onChange={e => setForm(f => ({ ...f, cover_image_url: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+                className="flex-1 bg-[#0B1120] border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-accent/50"
+              />
+              <label className={`px-4 py-3 rounded-xl text-sm font-medium cursor-pointer transition-colors ${uploading ? 'bg-white/5 text-white/30' : 'bg-accent/20 text-accent hover:bg-accent/30'}`}>
+                {uploading ? 'Uploading...' : 'Upload'}
+                <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
+              </label>
+            </div>
             {form.cover_image_url && (
-              <img src={form.cover_image_url} alt="Cover preview" className="mt-2 rounded-lg max-h-32 object-cover" />
+              <div className="mt-2 relative inline-block">
+                <img src={form.cover_image_url} alt="Cover preview" className="rounded-lg max-h-32 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, cover_image_url: '' }))}
+                  className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full text-white text-xs flex items-center justify-center hover:bg-red-500"
+                >×</button>
+              </div>
             )}
           </div>
 
