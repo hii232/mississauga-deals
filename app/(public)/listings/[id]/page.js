@@ -390,7 +390,7 @@ function SoldCompsTab({ listing, onUseAsARV }) {
     async function fetchComps() {
       try {
         const params = new URLSearchParams({
-          city: listing.city || 'Mississauga',
+          city: 'Mississauga',
           type: listing.type || '',
           beds: String(listing.beds || 0),
           baths: String(listing.baths || 0),
@@ -582,7 +582,7 @@ function PriceHistoryTab({ listing }) {
         const params = new URLSearchParams({
           streetNumber: actualNumber,
           streetName,
-          city: listing.city || 'Mississauga',
+          city: 'Mississauga',
         });
         if (unit) params.set('unit', unit);
 
