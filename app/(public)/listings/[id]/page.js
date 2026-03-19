@@ -393,11 +393,20 @@ function SoldCompsTab({ listing, onUseAsARV }) {
           city: listing.city || 'Mississauga',
           type: listing.type || '',
           beds: String(listing.beds || 0),
+          baths: String(listing.baths || 0),
+          postal: (listing.postalCode || '').substring(0, 3),
           limit: '20',
         });
-        const res = await fetch('/api/sold-comps?' + params);
+        let res = await fetch('/api/sold-comps?' + params);
         if (!res.ok) throw new Error('Failed to load comps');
-        const data = await res.json();
+        let data = await res.json();
+
+        // If no comps found with postal filter, retry without it for broader area
+        if ((data.comps || []).length === 0 && params.get('postal')) {
+          params.delete('postal');
+          res = await fetch('/api/sold-comps?' + params);
+          if (res.ok) data = await res.json();
+        }
         // Calculate distance from current listing for each comp
         const enriched = (data.comps || []).map((c) => ({
           ...c,

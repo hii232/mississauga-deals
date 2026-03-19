@@ -18,6 +18,8 @@ export async function GET(request) {
     const city = searchParams.get('city') || 'Mississauga';
     const type = searchParams.get('type') || '';
     const beds = parseInt(searchParams.get('beds')) || 0;
+    const baths = parseInt(searchParams.get('baths')) || 0;
+    const postalPrefix = searchParams.get('postal') || '';
     const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 50);
     const debug = searchParams.get('debug') === '1';
 
@@ -64,6 +66,17 @@ export async function GET(request) {
       if (beds > 0) {
         filters.push('BedroomsTotal ge ' + Math.max(1, beds - 1));
         filters.push('BedroomsTotal le ' + (beds + 1));
+      }
+
+      // Similar bath count (±1)
+      if (baths > 0) {
+        filters.push('BathroomsTotalInteger ge ' + Math.max(1, baths - 1));
+        filters.push('BathroomsTotalInteger le ' + (baths + 1));
+      }
+
+      // Narrow by postal code prefix (first 3 chars = FSA) for area proximity
+      if (postalPrefix && postalPrefix.length >= 3) {
+        filters.push("startswith(PostalCode, '" + postalPrefix.substring(0, 3).replace(/'/g, "''") + "')");
       }
 
       // Exclude commercial/lease/rentals
