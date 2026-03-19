@@ -84,11 +84,11 @@ async function fetchTopDeals() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids }),
-        next: { revalidate: 3600 },
+        cache: 'no-store',
       });
       if (photoRes.ok) {
         const photoData = await photoRes.json();
-        photoMap = photoData || {};
+        photoMap = photoData?.photos || photoData || {};
       }
     } catch { /* photos optional */ }
 
@@ -361,7 +361,7 @@ export default async function HomePage() {
               <DealCard
                 key={deal.id}
                 deal={deal}
-                photo={topDeals.photoMap[deal.id]?.[0] || null}
+                photo={typeof topDeals.photoMap[deal.id] === 'string' ? topDeals.photoMap[deal.id] : topDeals.photoMap[deal.id]?.[0] || null}
               />
             ))}
           </div>
