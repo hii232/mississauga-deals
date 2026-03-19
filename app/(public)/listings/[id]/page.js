@@ -797,7 +797,6 @@ const TABS = [
   { key: 'overview', label: 'Overview', gated: false },
   { key: 'comps', label: 'Sold Comps', gated: true },
   { key: 'history', label: 'Price History', gated: false },
-  { key: 'hamza', label: "Hamza's Take", gated: true },
   { key: 'mortgage', label: 'Mortgage', gated: true },
   { key: 'caprate', label: 'Cap Rate', gated: true },
   { key: 'brrr', label: 'BRRR', gated: true },
@@ -1086,11 +1085,6 @@ export default function PropertyDetailPage() {
               </AuthGate>
             )}
             {activeTab === 'history' && <PriceHistoryTab listing={listing} />}
-            {activeTab === 'hamza' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
-                <HamzaTakeTab listing={listing} />
-              </AuthGate>
-            )}
             {activeTab === 'mortgage' && (
               <AuthGate isAuthenticated={isAuthenticated}>
                 <MortgageTab listing={listing} />
