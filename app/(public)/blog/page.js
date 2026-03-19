@@ -7,6 +7,9 @@ const supabase =
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
+// Revalidate every 60 seconds so new posts appear quickly
+export const revalidate = 60;
+
 const categoryColorMap = {
   'Neighbourhood Guide': 'bg-accent/10 text-accent border-accent/20',
   'Strategy': 'bg-green-500/10 text-green-600 border-green-500/20',
