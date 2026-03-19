@@ -47,19 +47,31 @@ export async function GET(request) {
       const filters = [statusFilter];
       filters.push("City eq '" + city.replace(/'/g, "''") + "'");
 
-      // Similar property type
+      // Similar property type (handle compound types like "Condo Townhouse")
       if (type) {
+        const typeLower = type.toLowerCase();
         const typeMap = {
-          'Detached': "(PropertyType eq 'Residential' or PropertyType eq 'Residential Freehold')",
-          'Semi-Detached': "contains(PropertySubType, 'Semi')",
-          'Townhouse': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",
-          'Condo': "(contains(PropertyType, 'Condo') or contains(PropertySubType, 'Condo') or contains(PropertySubType, 'Apt'))",
-          'Duplex': "contains(PropertySubType, 'Duplex')",
-          'Triplex': "contains(PropertySubType, 'Triplex')",
-          'Fourplex': "contains(PropertySubType, 'Fourplex')",
-          'Multiplex': "contains(PropertySubType, 'Multiplex')",
+          'detached': "(PropertyType eq 'Residential' or PropertyType eq 'Residential Freehold')",
+          'semi-detached': "contains(PropertySubType, 'Semi')",
+          'semi': "contains(PropertySubType, 'Semi')",
+          'townhouse': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",
+          'town': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",
+          'condo': "(contains(PropertyType, 'Condo') or contains(PropertySubType, 'Condo') or contains(PropertySubType, 'Apt'))",
+          'condo townhouse': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row'))",
+          'condo apt': "(contains(PropertyType, 'Condo') or contains(PropertySubType, 'Apt'))",
+          'duplex': "contains(PropertySubType, 'Duplex')",
+          'triplex': "contains(PropertySubType, 'Triplex')",
+          'fourplex': "contains(PropertySubType, 'Fourplex')",
+          'multiplex': "contains(PropertySubType, 'Multiplex')",
         };
-        if (typeMap[type]) filters.push(typeMap[type]);
+        // Try exact match first, then check if type contains a known key
+        let typeFilter = typeMap[typeLower];
+        if (!typeFilter) {
+          for (const [key, val] of Object.entries(typeMap)) {
+            if (typeLower.includes(key)) { typeFilter = val; break; }
+          }
+        }
+        if (typeFilter) filters.push(typeFilter);
       }
 
       // Similar bed count (±1)
