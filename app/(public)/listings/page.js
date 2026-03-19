@@ -15,7 +15,7 @@ async function fetchListings() {
 
     // Fetch first page to get total count
     const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 300 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok) return [];
     const data = await res.json();
@@ -28,7 +28,7 @@ async function fetchListings() {
       for (let p = 2; p <= totalPages; p++) {
         pagePromises.push(
           fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-            next: { revalidate: 300 },
+            next: { revalidate: 3600 },
           }).then((r) => r.ok ? r.json() : null)
         );
       }
