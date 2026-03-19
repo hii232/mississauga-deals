@@ -65,18 +65,37 @@ async function fetchTopDeals() {
     const proto = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${proto}://${host}`;
 
+    // Fetch all pages to get accurate total count
     const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
       next: { revalidate: 3600 },
     });
-    if (!res.ok) return { deals: [], photoMap: {} };
+    if (!res.ok) return { deals: [], photoMap: {}, totalCount: 0 };
     const data = await res.json();
     const raw = data.listings || data || [];
+    const totalPages = data.pages || 1;
+
+    // Fetch remaining pages
+    if (totalPages > 1) {
+      const pagePromises = [];
+      for (let p = 2; p <= totalPages; p++) {
+        pagePromises.push(
+          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
+            next: { revalidate: 3600 },
+          }).then((r) => r.ok ? r.json() : null)
+        );
+      }
+      const pages = await Promise.all(pagePromises);
+      for (const pg of pages) {
+        if (pg?.listings) raw.push(...pg.listings);
+      }
+    }
+
     const processed = processListings(raw);
     const top = processed
       .sort((a, b) => b.hamzaScore - a.hamzaScore)
       .slice(0, 4);
 
-    // Fetch photos for top deals
+    // Fetch photos for top 4 deals
     let photoMap = {};
     try {
       const ids = top.map((d) => d.id);
