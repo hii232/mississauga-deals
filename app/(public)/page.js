@@ -1,6 +1,10 @@
 import Link from 'next/link';
 import { GOOGLE_REVIEWS } from '@/lib/constants';
 import { headers } from 'next/headers';
+import { processListings } from '@/lib/listings/process-listings';
+import { scoreColorHex } from '@/lib/deal-score';
+import { fmtK } from '@/lib/utils/format';
+import { HeroSearch } from '@/components/home/hero-search';
 
 export const metadata = {
   title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals',
@@ -49,6 +53,102 @@ async function fetchLiveStats() {
   } catch {
     return null;
   }
+}
+
+// ─────────────────────────────────────────────
+//   TOP DEALS FETCH
+// ─────────────────────────────────────────────
+async function fetchTopDeals() {
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    const proto = host.includes('localhost') ? 'http' : 'https';
+    const baseUrl = `${proto}://${host}`;
+
+    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return { deals: [], photoMap: {} };
+    const data = await res.json();
+    const raw = data.listings || data || [];
+    const processed = processListings(raw);
+    const top = processed
+      .sort((a, b) => b.hamzaScore - a.hamzaScore)
+      .slice(0, 4);
+
+    // Fetch photos for top deals
+    let photoMap = {};
+    try {
+      const ids = top.map((d) => d.id);
+      const photoRes = await fetch(`${baseUrl}/api/photos-batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+        next: { revalidate: 3600 },
+      });
+      if (photoRes.ok) {
+        const photoData = await photoRes.json();
+        photoMap = photoData || {};
+      }
+    } catch { /* photos optional */ }
+
+    return { deals: top, photoMap, totalCount: processed.length };
+  } catch {
+    return { deals: [], photoMap: {}, totalCount: 0 };
+  }
+}
+
+// ─────────────────────────────────────────────
+//   DEAL CARD
+// ─────────────────────────────────────────────
+function DealCard({ deal, photo }) {
+  const scoreHex = scoreColorHex(deal.hamzaScore);
+  const cfColor = deal.cashFlow >= 0 ? 'text-emerald-500' : 'text-red-400';
+  const cfPrefix = deal.cashFlow >= 0 ? '+' : '-';
+
+  return (
+    <Link
+      href={`/listings/${deal.id}`}
+      className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-lg transition-all duration-300 no-underline"
+    >
+      <div className="relative h-44 w-full overflow-hidden bg-slate-100">
+        {photo ? (
+          <img src={photo} alt={deal.address} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" />
+            </svg>
+          </div>
+        )}
+        <div
+          className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-lg"
+          style={{ backgroundColor: scoreHex }}
+        >
+          {deal.hamzaScore}
+        </div>
+      </div>
+      <div className="p-4">
+        <p className="text-sm font-semibold text-navy truncate">{deal.address}</p>
+        <p className="text-lg font-bold text-navy mt-0.5">{fmtK(deal.price)}</p>
+        <p className="text-xs text-muted mt-0.5">{deal.beds} bed · {deal.baths} bath · {deal.type}</p>
+        <div className="mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-2">
+          <div>
+            <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+            <p className="text-xs font-bold text-navy">{deal.capRate.toFixed(1)}%</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
+            <p className={`text-xs font-bold ${cfColor}`}>{cfPrefix}${Math.abs(Math.round(deal.cashFlow))}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
+            <p className="text-xs font-bold text-navy">{deal.dom}</p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
 }
 
 // ─────────────────────────────────────────────
@@ -193,7 +293,7 @@ function CTASection() {
 //   HOMEPAGE
 // ─────────────────────────────────────────────
 export default async function HomePage() {
-  const liveStats = await fetchLiveStats();
+  const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
 
   return (
     <>
@@ -210,13 +310,31 @@ export default async function HomePage() {
               <br />
               <span className="text-accent">Deal Finder</span>
             </h1>
-            <p className="text-white/70 text-base md:text-lg leading-relaxed mb-8 max-w-xl">
+            <p className="text-white/70 text-base md:text-lg leading-relaxed mb-6 max-w-xl">
               Every active listing scored for cash flow, cap rate, and investment potential.
               Data-driven analysis to help you make smarter real estate decisions.
             </p>
+
+            {/* Search Bar */}
+            <HeroSearch />
+
+            {/* Popular Neighbourhoods */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className="text-white/40 text-xs">Popular:</span>
+              {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
+                <Link
+                  key={hood}
+                  href={`/listings?hood=${encodeURIComponent(hood)}`}
+                  className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
+                >
+                  {hood}
+                </Link>
+              ))}
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Link href="/listings" className="btn-primary !text-base !px-8 !py-3.5 no-underline text-center">
-                Browse Deals
+                Browse All Deals
               </Link>
               <Link href="/signup" className="bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg px-8 py-3.5 text-base no-underline text-center hover:bg-white/20 transition-colors border border-white/20">
                 Sign Up Free
@@ -231,15 +349,26 @@ export default async function HomePage() {
 
       <StatsBar liveStats={liveStats} />
 
-      {/* Featured Listings CTA */}
+      {/* Top Investment Deals */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h2 className="section-title mb-3">Top Investment Deals</h2>
           <p className="section-subtitle mx-auto">The highest-scored properties currently on the market</p>
         </div>
+        {topDeals.deals.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            {topDeals.deals.map((deal) => (
+              <DealCard
+                key={deal.id}
+                deal={deal}
+                photo={topDeals.photoMap[deal.id]?.[0] || null}
+              />
+            ))}
+          </div>
+        ) : null}
         <div className="text-center">
           <Link href="/listings" className="btn-primary !px-8 !py-3 no-underline">
-            View All Listings →
+            View All {topDeals.totalCount ? topDeals.totalCount.toLocaleString() + '+' : ''} Listings →
           </Link>
         </div>
       </section>
