@@ -1,9 +1,9 @@
 export const metadata = {
-  title: 'Mortgage Calculator — Mississauga Investment Property',
-  description:
-    'Calculate your monthly mortgage payments, cash flow, and investment returns for Mississauga properties. Free mortgage calculator for Canadian real estate investors.',
+  title: 'Mortgage Calculator — Mississauga Investment Properties',
+  description: 'Calculate mortgage payments, cash flow, and investment returns for Mississauga properties. Compare fixed vs variable rates with current Canadian mortgage rates.',
+  openGraph: {
+    title: 'Mortgage Calculator — Mississauga Investment Properties',
+    description: 'Free mortgage calculator for Mississauga real estate investors.',
+  },
 };
-
-export default function MortgageCalcLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

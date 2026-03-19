@@ -1,9 +1,15 @@
 import { HOOD_DATA } from '@/lib/constants';
+import { createClient } from '@supabase/supabase-js';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
 
 const BASE = 'https://www.mississaugainvestor.ca';
+
+const supabase =
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 export default async function sitemap() {
   const now = new Date().toISOString();
@@ -82,5 +88,26 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch listings', err);
   }
 
-  return [...staticPages, ...hoodPages, ...listingPages];
+  // ── Blog posts ──
+  let blogPages = [];
+  try {
+    if (supabase) {
+      const { data: posts } = await supabase
+        .from('blog_posts')
+        .select('slug, updated_at')
+        .eq('published', true);
+      if (posts) {
+        blogPages = posts.map((p) => ({
+          url: `${BASE}/blog/${p.slug}`,
+          lastModified: p.updated_at || now,
+          changeFrequency: 'weekly',
+          priority: 0.7,
+        }));
+      }
+    }
+  } catch (err) {
+    console.error('Sitemap: failed to fetch blog posts', err);
+  }
+
+  return [...staticPages, ...hoodPages, ...listingPages, ...blogPages];
 }

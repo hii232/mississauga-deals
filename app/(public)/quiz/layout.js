@@ -1,13 +1,9 @@
 export const metadata = {
-  title: 'Find My Deal — Investment Strategy Quiz',
-  description:
-    'Answer 5 quick questions to get a personalized Mississauga real estate investment strategy. Find properties matched to your budget, goals, and risk tolerance.',
+  title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
+  description: 'Take a 60-second quiz to discover your ideal Mississauga real estate investment strategy. Get matched with properties that fit your goals: cash flow, appreciation, or BRRR.',
   openGraph: {
-    title: 'Find My Deal Strategy — MississaugaInvestor.ca',
-    description: 'Get a personalized investment strategy for Mississauga real estate in under 2 minutes.',
+    title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
+    description: 'Discover your ideal Mississauga investment strategy in 60 seconds.',
   },
 };
-
-export default function QuizLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

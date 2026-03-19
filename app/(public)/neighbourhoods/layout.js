@@ -1,13 +1,9 @@
 export const metadata = {
-  title: 'Mississauga Neighbourhoods — Investment Insights by Area',
-  description:
-    'Explore 28 Mississauga neighbourhoods with investment data. Trends, average prices, days on market, rent yields, and expert notes for every area.',
+  title: 'Mississauga Neighbourhoods — Investment Analysis by Area',
+  description: 'Compare Mississauga neighbourhoods for real estate investment: average prices, rent yields, cap rates, and market temperature for Cooksville, Churchill Meadows, City Centre, Erin Mills, and more.',
   openGraph: {
-    title: 'Mississauga Neighbourhoods — MississaugaInvestor.ca',
-    description: 'Investment insights for every Mississauga neighbourhood — trends, pricing, inventory, and rent yields.',
+    title: 'Mississauga Neighbourhoods — Investment Analysis by Area',
+    description: 'Neighbourhood-by-neighbourhood investment analysis for Mississauga real estate.',
   },
 };
-
-export default function NeighbourhoodsLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

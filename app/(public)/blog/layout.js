@@ -1,9 +1,9 @@
 export const metadata = {
-  title: 'Blog — Mississauga Real Estate Investment Insights',
-  description:
-    'Expert insights on Mississauga real estate investing. Neighbourhood guides, market analysis, investment strategies, and tips for Canadian property investors.',
+  title: 'Investment Insights — Mississauga Real Estate Blog',
+  description: 'Expert analysis, neighbourhood guides, and investment strategies for Mississauga real estate investors. Market updates, cash flow analysis, and data-driven insights.',
+  openGraph: {
+    title: 'Investment Insights — Mississauga Real Estate Blog',
+    description: 'Expert Mississauga real estate investment analysis and guides.',
+  },
 };
-
-export default function BlogLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

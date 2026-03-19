@@ -1,9 +1,9 @@
 export const metadata = {
-  title: 'FAQ — Common Questions About Mississauga Real Estate Investing',
-  description:
-    'Answers to frequently asked questions about investing in Mississauga real estate, deal scores, cash flow analysis, and working with MississaugaInvestor.ca.',
+  title: 'FAQ — Mississauga Real Estate Investment Questions',
+  description: 'Frequently asked questions about investing in Mississauga real estate: how deal scores work, what cap rate means, how to find cash flow positive properties, and more.',
+  openGraph: {
+    title: 'FAQ — Mississauga Real Estate Investment Questions',
+    description: 'Common questions about Mississauga real estate investing answered.',
+  },
 };
-
-export default function FAQLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

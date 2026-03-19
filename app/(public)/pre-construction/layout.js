@@ -1,13 +1,9 @@
 export const metadata = {
-  title: 'Pre-Construction Homes — New Developments in Mississauga',
-  description:
-    'Explore pre-construction homes and new developments in Mississauga. Get early access to investment opportunities in upcoming projects.',
+  title: 'Pre-Construction Condos — Mississauga New Developments',
+  description: 'Browse pre-construction condo projects in Mississauga. Get early access to new developments with investment analysis and floor plans.',
   openGraph: {
-    title: 'Pre-Construction Homes — MississaugaInvestor.ca',
-    description: 'Pre-construction homes and new development opportunities for Mississauga investors.',
+    title: 'Pre-Construction Condos — Mississauga New Developments',
+    description: 'Pre-construction condo projects in Mississauga with investment analysis.',
   },
 };
-
-export default function PreConstructionLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }

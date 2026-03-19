@@ -1,13 +1,9 @@
 export const metadata = {
-  title: 'Sell Your Property — Free Home Valuation in Mississauga',
-  description:
-    'Get a free, no-obligation home valuation from a licensed Mississauga real estate agent. Sell your property for top dollar with expert pricing strategy.',
+  title: 'Sell Your Mississauga Property — Free Market Evaluation',
+  description: 'Get a free market evaluation for your Mississauga property. Expert guidance from Hamza Nouman, Royal LePage Signature Realty.',
   openGraph: {
-    title: 'Sell Your Property — MississaugaInvestor.ca',
-    description: 'Free home valuation and expert selling strategy for Mississauga homeowners.',
+    title: 'Sell Your Mississauga Property — Free Market Evaluation',
+    description: 'Free market evaluation for your Mississauga property.',
   },
 };
-
-export default function SellLayout({ children }) {
-  return children;
-}
+export default function Layout({ children }) { return children; }
