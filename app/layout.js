@@ -41,6 +41,9 @@ export const metadata = {
   creator: 'Hamza Nouman',
   publisher: 'Royal LePage Signature Realty',
   metadataBase: new URL('https://www.mississaugainvestor.ca'),
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_CA',
