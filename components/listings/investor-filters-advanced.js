@@ -27,33 +27,39 @@ function Toggle({ checked, onChange, label }) {
   );
 }
 
-// ── Metric Input ──
-function MetricInput({ label, value, onChange, placeholder, step = 1, prefix = '', suffix = '' }) {
+// ── Slider + Input Combo ──
+function SliderInput({ label, value, onChange, min = 0, max = 10, step = 0.5, prefix = '', suffix = '', placeholder }) {
+  const displayValue = value ?? min;
+  const pct = ((displayValue - min) / (max - min)) * 100;
+
   return (
     <div>
-      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-        {label}
-      </label>
-      <div className="relative">
-        {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{prefix}</span>
-        )}
-        <input
-          type="number"
-          value={value ?? ''}
-          onChange={(e) => {
-            const v = e.target.value;
-            onChange(v === '' ? null : Number(v));
-          }}
-          placeholder={placeholder}
-          step={step}
-          className={`w-full rounded-lg border border-slate-200 bg-white py-2 text-sm text-navy placeholder:text-slate-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 ${
-            prefix ? 'pl-7 pr-3' : suffix ? 'pl-3 pr-8' : 'px-3'
-          }`}
-        />
-        {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">{suffix}</span>
-        )}
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          {label}
+        </label>
+        <span className="text-xs font-bold text-navy">
+          {value !== null && value !== undefined ? `${prefix}${value}${suffix}` : '—'}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={displayValue}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          onChange(v === min ? null : v);
+        }}
+        className="filter-slider w-full"
+        style={{
+          background: `linear-gradient(to right, #1e3a5f ${pct}%, #e2e8f0 ${pct}%)`,
+        }}
+      />
+      <div className="flex justify-between mt-0.5">
+        <span className="text-[10px] text-slate-300">{prefix}{min}{suffix}</span>
+        <span className="text-[10px] text-slate-300">{prefix}{max}{suffix}</span>
       </div>
     </div>
   );
@@ -142,36 +148,40 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
           <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             Investment Metrics
           </h3>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MetricInput
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <SliderInput
               label="Min Cap Rate"
               value={filters.minCapRate}
               onChange={(v) => updateFilter('minCapRate', v)}
-              placeholder="e.g. 4"
+              min={0}
+              max={10}
               step={0.5}
               suffix="%"
             />
-            <MetricInput
+            <SliderInput
               label="Min Cash Flow"
               value={filters.minCashFlow}
               onChange={(v) => updateFilter('minCashFlow', v)}
-              placeholder="e.g. 0"
+              min={-2000}
+              max={2000}
               step={100}
               prefix="$"
             />
-            <MetricInput
+            <SliderInput
               label="Min CoC Return"
               value={filters.minCashOnCash}
               onChange={(v) => updateFilter('minCashOnCash', v)}
-              placeholder="e.g. 5"
+              min={0}
+              max={15}
               step={0.5}
               suffix="%"
             />
-            <MetricInput
+            <SliderInput
               label="Min Deal Score"
               value={filters.minDealScore}
               onChange={(v) => updateFilter('minDealScore', v)}
-              placeholder="e.g. 6"
+              min={1}
+              max={10}
               step={0.5}
             />
           </div>

@@ -138,6 +138,7 @@ export function ListingsContainer({ initialListings }) {
   const [view, setView] = useState('grid');
   const [compareIds, setCompareIds] = useState([]);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isLoading, setIsLoading] = useState(initialListings.length === 0);
 
   const [photoMap, setPhotoMap] = useState({});
 
@@ -224,6 +225,7 @@ export function ListingsContainer({ initialListings }) {
         if (!cancelled && raw.length > 0) {
           const { processListings } = await import('@/lib/listings/process-listings');
           setListings(processListings(raw));
+          setIsLoading(false);
         }
       } catch {
         // silently fail
@@ -320,6 +322,7 @@ export function ListingsContainer({ initialListings }) {
           compareIds={compareIds}
           onToggleCompare={toggleCompare}
           photoMap={photoMap}
+          isLoading={isLoading}
         />
       )}
       {view === 'table' && (

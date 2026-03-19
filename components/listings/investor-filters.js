@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { InvestorFiltersAdvanced } from './investor-filters-advanced';
 import { SaveSearchButton } from './save-search-button';
 import {
@@ -226,7 +226,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount }
           <Tooltip key={chip.key} text={chip.tooltip}>
             <button
               onClick={() => toggleStrategy(chip.key)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-all duration-150 ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-all duration-150 active:scale-95 ${
                 filters.activeStrategies.includes(chip.key)
                   ? chip.key === 'pos'
                     ? 'bg-amber-500 text-white'
@@ -286,33 +286,173 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount }
         </div>
       </div>
 
-      {/* ── Mobile Drawer ── */}
+      {/* ── Mobile Drawer (animated) ── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 sm:hidden">
-          <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
-          <div className="absolute inset-x-0 bottom-0 top-12 overflow-y-auto rounded-t-2xl bg-cloud">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">
+          <div
+            className="absolute inset-0 bg-black/30 transition-opacity duration-200"
+            style={{ animation: 'overlayIn 0.2s ease forwards' }}
+            onClick={() => setMobileOpen(false)}
+          />
+          <div
+            className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-cloud shadow-2xl"
+            style={{ animation: 'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards' }}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="h-1 w-10 rounded-full bg-slate-300" />
+            </div>
+
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-3">
               <h2 className="text-base font-bold text-navy">Filters</h2>
-              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-navy">
+              <button onClick={() => setMobileOpen(false)} className="rounded-full p-1 text-slate-400 hover:text-navy hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="space-y-4 p-4">
-              {filterContent}
-              <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
+
+            <div className="space-y-5 p-4 pb-28">
+              {/* Section: Search */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Search</h3>
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Address, neighbourhood, postal code..."
+                    value={filters.search}
+                    onChange={(e) => updateFilter('search', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+              </div>
+
+              {/* Section: Neighbourhoods */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Neighbourhoods</h3>
+                <div className="flex flex-wrap gap-2">
+                  {POPULAR_HOODS.map((hood) => (
+                    <button
+                      key={hood}
+                      onClick={() => toggleHood(hood)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
+                        filters.neighbourhoods.includes(hood)
+                          ? 'bg-accent text-white'
+                          : 'bg-white text-slate-500 border border-slate-200'
+                      }`}
+                    >
+                      {hood}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section: Property Type */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Property Type</h3>
+                <div className="flex flex-wrap gap-2">
+                  {PROPERTY_TYPES.map((pt) => (
+                    <button
+                      key={pt}
+                      onClick={() => updateFilter('propertyType', pt)}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all active:scale-95 ${
+                        filters.propertyType === pt
+                          ? 'bg-navy text-white'
+                          : 'bg-white text-navy border border-slate-200'
+                      }`}
+                    >
+                      {pt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section: Price & Rooms */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price & Rooms</h3>
+                <div className="flex flex-wrap gap-2">
+                  <PriceInput
+                    value={filters.priceRange[0]}
+                    onChange={(v) => updateFilter('priceRange', [v, filters.priceRange[1]])}
+                    placeholder="Min price"
+                  />
+                  <PriceInput
+                    value={filters.priceRange[1] >= 3000000 ? 0 : filters.priceRange[1]}
+                    onChange={(v) => updateFilter('priceRange', [filters.priceRange[0], v === 0 ? 3000000 : v])}
+                    placeholder="Max price"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <QuickSelect
+                    label="Beds"
+                    value={filters.beds}
+                    onChange={(v) => updateFilter('beds', v)}
+                    options={[
+                      { value: 1, label: '1+ bed' },
+                      { value: 2, label: '2+ beds' },
+                      { value: 3, label: '3+ beds' },
+                      { value: 4, label: '4+ beds' },
+                      { value: 5, label: '5+ beds' },
+                    ]}
+                  />
+                  <QuickSelect
+                    label="Baths"
+                    value={filters.baths}
+                    onChange={(v) => updateFilter('baths', v)}
+                    options={[
+                      { value: 1, label: '1+ bath' },
+                      { value: 2, label: '2+ baths' },
+                      { value: 3, label: '3+ baths' },
+                      { value: 4, label: '4+ baths' },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Section: Strategy */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Strategy</h3>
+                <div className="flex flex-wrap gap-2">
+                  {STRATEGY_CHIPS.map((chip) => (
+                    <button
+                      key={chip.key}
+                      onClick={() => toggleStrategy(chip.key)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all active:scale-95 ${
+                        filters.activeStrategies.includes(chip.key)
+                          ? chip.key === 'pos'
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-accent text-white'
+                          : chip.key === 'pos'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section: Advanced */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Advanced Filters</h3>
+                <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
+              </div>
             </div>
-            <div className="sticky bottom-0 flex gap-3 border-t border-slate-200 bg-white px-4 py-3">
+
+            <div className="fixed bottom-0 inset-x-0 flex gap-3 border-t border-slate-200 bg-white px-4 py-3 z-20">
               <button
                 onClick={() => { clearAll(); setMobileOpen(false); }}
-                className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 min-h-[44px] active:scale-95"
               >
                 Reset
               </button>
               <button
                 onClick={() => setMobileOpen(false)}
-                className="flex-1 rounded-lg bg-accent py-2.5 text-sm font-semibold text-white hover:bg-accent-dark"
+                className="flex-1 rounded-lg bg-accent py-3 text-sm font-semibold text-white hover:bg-accent-dark min-h-[44px] active:scale-95"
               >
                 Show {resultCount} {resultCount === 1 ? 'result' : 'results'}
               </button>
@@ -394,12 +534,16 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount }
         </div>
       )}
 
-      {/* ── Advanced Panel (desktop) ── */}
-      {showAdvanced && (
-        <div className="hidden sm:block">
+      {/* ── Advanced Panel (desktop, smooth expand) ── */}
+      <div
+        className={`hidden sm:grid transition-all duration-300 ease-in-out ${
+          showAdvanced ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
+      >
+        <div className="overflow-hidden">
           <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
         </div>
-      )}
+      </div>
     </div>
   );
 }

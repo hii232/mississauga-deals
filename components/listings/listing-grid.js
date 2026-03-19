@@ -6,13 +6,47 @@ import { ListingCard } from './listing-card';
 const PAGE_SIZE = 30;
 const FREE_LIMIT = 4;
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap }) {
+function SkeletonCard() {
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="h-48 animate-shimmer" />
+      <div className="p-4 space-y-3">
+        <div className="h-4 w-3/4 animate-shimmer rounded" />
+        <div className="h-5 w-1/3 animate-shimmer rounded" />
+        <div className="h-3 w-1/2 animate-shimmer rounded" />
+        <div className="grid grid-cols-4 gap-2 mt-3">
+          <div className="h-10 animate-shimmer rounded" />
+          <div className="h-10 animate-shimmer rounded" />
+          <div className="h-10 animate-shimmer rounded" />
+          <div className="h-10 animate-shimmer rounded" />
+        </div>
+        <div className="flex justify-between mt-2">
+          <div className="h-3 w-1/3 animate-shimmer rounded" />
+          <div className="h-3 w-1/3 animate-shimmer rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset to page 1 when listings change (filters, sort, etc.)
   useEffect(() => {
     setCurrentPage(1);
   }, [listings]);
+
+  // Show skeletons while loading
+  if (isLoading && listings.length === 0) {
+    return (
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <SkeletonCard key={i} />
+        ))}
+      </div>
+    );
+  }
 
   if (listings.length === 0) {
     return (

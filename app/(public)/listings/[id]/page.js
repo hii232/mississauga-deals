@@ -282,23 +282,46 @@ function ExpertAnalysisTab({ listing }) {
   const [analysis, setAnalysis] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isCached, setIsCached] = useState(false);
 
-  const fetchAnalysis = useCallback(async () => {
+  const fetchAnalysis = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setError('');
+    setIsCached(false);
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system: 'You are a real estate investment analyst specializing in Mississauga, Ontario. Provide concise, actionable analysis for investors. Focus on cash flow, appreciation potential, risks, and strategy recommendations. Keep it under 300 words.',
-          prompt: `Analyze this Mississauga investment property:\n\nAddress: ${listing.address}\nPrice: $${listing.price.toLocaleString()}\nType: ${listing.type} (${listing.subType || 'N/A'})\nBeds/Baths: ${listing.beds}/${listing.baths}\nEst. Rent: $${listing.estimatedRent.toLocaleString()}/mo\nCap Rate: ${listing.capRate}%\nCash Flow: ${fmtNum(listing.cashFlow)}\nDOM: ${listing.dom}\nNeighbourhood: ${listing.neighbourhood}\nDeal Score: ${listing.hamzaScore}/10\nHas Suite: ${listing.hasSuite ? 'Yes' : 'No'}\nRemarks: ${listing.remarks?.substring(0, 400) || 'N/A'}\n\nProvide: 1) Quick verdict 2) Key strengths 3) Key risks 4) Recommended strategy`,
+          listingId: listing.id,
+          listing: {
+            address: listing.address,
+            price: listing.price,
+            type: listing.type,
+            subType: listing.subType,
+            beds: listing.beds,
+            baths: listing.baths,
+            estimatedRent: listing.estimatedRent,
+            capRate: listing.capRate,
+            cashFlow: listing.cashFlow,
+            cashOnCash: listing.cashOnCash,
+            dom: listing.dom,
+            neighbourhood: listing.neighbourhood,
+            hamzaScore: listing.hamzaScore,
+            basementTier: listing.basementTier,
+            priceDrop: listing.priceDrop,
+            remarks: listing.remarks,
+          },
+          price: listing.price,
+          dom: listing.dom,
+          force: forceRefresh,
         }),
       });
 
       const data = await res.json();
       if (data.content?.[0]?.text) {
         setAnalysis(data.content[0].text);
+        setIsCached(!!data.cached);
       } else if (data.error) {
         setError(data.error);
       } else {
@@ -315,11 +338,18 @@ function ExpertAnalysisTab({ listing }) {
     return (
       <div className="space-y-4">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Expert Analysis</h3>
-          <div className="whitespace-pre-wrap text-sm leading-relaxed text-navy/80">{analysis}</div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Expert Analysis</h3>
+            {isCached && (
+              <span className="text-[10px] font-medium text-slate-400 bg-slate-200 rounded-full px-2 py-0.5">cached</span>
+            )}
+          </div>
+          <div className="prose prose-sm max-w-none text-navy/80 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-navy [&_h2]:mt-4 [&_h2]:mb-1 [&_ul]:mt-1 [&_li]:text-sm">
+            <div dangerouslySetInnerHTML={{ __html: analysis.replace(/## /g, '<h2>').replace(/\n- /g, '<br/>• ').replace(/\n/g, '<br/>') }} />
+          </div>
         </div>
         <button
-          onClick={fetchAnalysis}
+          onClick={() => fetchAnalysis(true)}
           className="text-sm font-medium text-accent hover:text-accent-dark"
         >
           Regenerate analysis
@@ -334,10 +364,10 @@ function ExpertAnalysisTab({ listing }) {
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
       </svg>
       <p className="mb-2 text-sm font-medium text-navy">Get expert analysis on this deal</p>
-      <p className="mb-4 text-xs text-muted">Powered by advanced real estate analysis</p>
+      <p className="mb-4 text-xs text-muted">AI-powered investment analysis with Mississauga market context</p>
       {error && <p className="mb-3 text-sm text-danger">{error}</p>}
       <button
-        onClick={fetchAnalysis}
+        onClick={() => fetchAnalysis(false)}
         disabled={loading}
         className="rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
       >
