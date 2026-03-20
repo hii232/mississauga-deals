@@ -30,7 +30,7 @@ function formatValue(val, fmt) {
     case 'price':
       return fmtK(Math.round(val));
     case 'cf':
-      return (val >= 0 ? '+' : '') + fmtNum(Math.round(val));
+      return fmtNum(Math.round(val));
     case 'cfPlain':
       return fmtNum(Math.round(val));
     case 'score':
@@ -201,10 +201,10 @@ export function DealScreener({ listings }) {
             delay={120}
           />
           <OpportunityStat
-            label="Best CF"
+            label="Best Cash Flow"
             value={metrics.bestCf}
             format="cf"
-            subtitle="highest CF"
+            subtitle="highest cash flow"
             color="green"
             delay={180}
           />

@@ -113,7 +113,7 @@ export function ListingMap({ listings, photoMap }) {
                   <div style="font-size:12px;font-weight:700;color:#1B2A4A;">${listing.capRate.toFixed(1)}%</div>
                 </div>
                 <div>
-                  <div style="font-size:9px;text-transform:uppercase;color:#94A3B8;font-weight:500;">CF</div>
+                  <div style="font-size:8px;color:#94A3B8;font-weight:500;">Cash Flow/mo</div>
                   <div style="font-size:12px;font-weight:700;color:${listing.cashFlow >= 0 ? '#10B981' : '#EF4444'};">${fmtNum(listing.cashFlow)}</div>
                 </div>
               </div>

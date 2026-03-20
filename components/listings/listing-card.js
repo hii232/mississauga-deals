@@ -138,9 +138,9 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
             </div>
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400" title="Potential Cash Flow">PCF</p>
+              <p className="text-[9px] font-medium text-slate-400" title="Cash Flow per Month">Cash Flow/mo</p>
               <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-500' : listing.cashFlow === 0 ? 'text-blue-500' : 'text-slate-400'}`}>
-                {listing.cashFlow > 0 ? '+' : ''}{fmtNum(listing.cashFlow)}
+                {fmtNum(listing.cashFlow)}
               </p>
             </div>
           </div>

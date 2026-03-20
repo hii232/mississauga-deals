@@ -126,7 +126,7 @@ function HamzaTakeTab({ listing }) {
 
 function MortgageTab({ listing }) {
   const [downPct, setDownPct] = useState(20);
-  const [rate, setRate] = useState(5.5);
+  const [rate, setRate] = useState(4.5);
   const [amort, setAmort] = useState(25);
 
   const calc = useMemo(() => {

@@ -133,39 +133,39 @@ function DealCard({ deal, photo }) {
       href={`/listings/${deal.id}`}
       className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-lg transition-all duration-300 no-underline"
     >
-      <div className="relative h-44 w-full overflow-hidden bg-slate-100">
+      <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
         {photo ? (
           <img src={photo} alt={deal.address} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-            <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <svg className="h-8 w-8 sm:h-12 sm:w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" />
             </svg>
           </div>
         )}
         <div
-          className="absolute right-2 top-2 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-lg"
+          className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white shadow-lg"
           style={{ backgroundColor: scoreHex }}
         >
           {deal.hamzaScore}
         </div>
       </div>
-      <div className="p-4">
-        <p className="text-sm font-semibold text-navy truncate">{deal.address}</p>
-        <p className="text-lg font-bold text-navy mt-0.5">{fmtK(deal.price)}</p>
-        <p className="text-xs text-muted mt-0.5">{deal.beds} bed · {deal.baths} bath · {deal.type}</p>
-        <div className="mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-2">
+      <div className="p-2.5 sm:p-4">
+        <p className="text-xs sm:text-sm font-semibold text-navy truncate">{deal.address}</p>
+        <p className="text-base sm:text-lg font-bold text-navy mt-0.5">{fmtK(deal.price)}</p>
+        <p className="text-[10px] sm:text-xs text-muted mt-0.5">{deal.beds} bed · {deal.baths} bath</p>
+        <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-1.5 sm:p-2">
           <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
-            <p className="text-xs font-bold text-navy">{deal.capRate.toFixed(1)}%</p>
+            <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">CAP</p>
+            <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.capRate.toFixed(1)}%</p>
           </div>
           <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
-            <p className={`text-xs font-bold ${cfColor}`}>{cfPrefix}${Math.abs(Math.round(deal.cashFlow))}</p>
+            <p className="text-[7px] sm:text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
+            <p className={`text-[11px] sm:text-xs font-bold ${cfColor}`}>{cfPrefix}${Math.abs(Math.round(deal.cashFlow))}</p>
           </div>
           <div>
-            <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
-            <p className="text-xs font-bold text-navy">{deal.dom}</p>
+            <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">DOM</p>
+            <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
           </div>
         </div>
       </div>
@@ -465,7 +465,7 @@ export default async function HomePage() {
           <p className="section-subtitle mx-auto">The highest-scored properties currently on the market</p>
         </div>
         {topDeals.deals.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
             {topDeals.deals.map((deal) => (
               <DealCard
                 key={deal.id}
