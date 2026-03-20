@@ -167,11 +167,14 @@ REQUIREMENTS:
 12. DO NOT use generic filler — every paragraph must teach something specific
 13. DO NOT start with "As a real estate agent" or similar cliche openings
 
+Also provide 2-3 keywords for finding a relevant cover photo (e.g., "mississauga skyline", "real estate investment", "condo buildings").
+
 Respond in this exact JSON format (no markdown code blocks, just raw JSON):
 {
   "title": "Your SEO Title Here",
   "excerpt": "Your compelling excerpt here",
-  "content": "Your full markdown content here"
+  "content": "Your full markdown content here",
+  "image_keywords": "mississauga real estate, keyword2"
 }`;
 
   const response = await anthropic.messages.create({
@@ -193,6 +196,50 @@ Respond in this exact JSON format (no markdown code blocks, just raw JSON):
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) return JSON.parse(jsonMatch[0]);
     throw new Error('Could not parse blog post JSON from Claude response');
+  }
+}
+
+// ── Fetch a relevant cover image from Unsplash (free, no key needed) ──
+async function fetchCoverImage(keywords) {
+  try {
+    const searchTerms = keywords || 'mississauga real estate';
+    // Use Unsplash source URL — free, no API key, returns a random matching photo
+    // We'll use the search API via the public endpoint
+    const queries = [
+      searchTerms,
+      'mississauga skyline',
+      'real estate investment property',
+      'modern condo building',
+      'house neighbourhood canada',
+    ];
+
+    // Try each query until we get a working image
+    for (const query of [searchTerms, ...queries.slice(1)]) {
+      const encoded = encodeURIComponent(query);
+      const res = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encoded}&per_page=5&orientation=landscape`,
+        {
+          headers: {
+            Authorization: 'Client-ID 1WxD0s5G_uBZFIaGpXNqmKMmSS0LfuNFGBVQYh1JXOQ',
+          },
+        }
+      );
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          // Pick a random one from top 5 for variety
+          const pick = data.results[Math.floor(Math.random() * Math.min(data.results.length, 5))];
+          // Use the regular size (1080px wide) — good for blog covers
+          return pick.urls?.regular || pick.urls?.small || null;
+        }
+      }
+    }
+
+    return null;
+  } catch (err) {
+    console.error('Failed to fetch cover image:', err);
+    return null;
   }
 }
 
@@ -239,6 +286,9 @@ export async function GET(request) {
       slug = slug + '-' + Date.now().toString(36);
     }
 
+    // Fetch a relevant cover image
+    const coverImage = await fetchCoverImage(post.image_keywords);
+
     // Publish to Supabase
     const { data: newPost, error } = await supabase
       .from('blog_posts')
@@ -248,6 +298,7 @@ export async function GET(request) {
         excerpt: post.excerpt || '',
         content: post.content,
         category: topic.category,
+        cover_image_url: coverImage,
         published: true,
       })
       .select()
