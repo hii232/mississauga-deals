@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { href: '/listings', label: 'Listings' },
+  { href: '/listings', label: 'Listings', primary: true },
   { href: '/recent-sales', label: 'Recent Sales' },
   { href: '/market-pulse', label: 'Market Pulse' },
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
@@ -46,10 +46,10 @@ export default function Header({ savedCount = 0 }) {
 
       {/* Main Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-0.5 no-underline">
+            <Link href="/" className="flex items-center gap-0.5 no-underline flex-shrink-0">
               <span className="font-heading font-bold text-xl text-navy tracking-tight">
                 MississaugaInvestor
               </span>
@@ -57,15 +57,19 @@ export default function Header({ savedCount = 0 }) {
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 flex-1 mx-6">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline ${
-                    pathname === item.href || pathname?.startsWith(item.href + '/')
-                      ? 'text-accent bg-accent/5'
-                      : 'text-muted hover:text-navy hover:bg-cloud'
+                  className={`px-3 xl:px-4 py-2 rounded-lg text-sm transition-colors no-underline whitespace-nowrap ${
+                    item.primary
+                      ? pathname === item.href || pathname?.startsWith(item.href + '/')
+                        ? 'text-accent bg-accent/10 font-bold'
+                        : 'text-navy font-bold hover:text-accent hover:bg-accent/5'
+                      : pathname === item.href || pathname?.startsWith(item.href + '/')
+                        ? 'text-accent bg-accent/5 font-medium'
+                        : 'text-muted font-medium hover:text-navy hover:bg-cloud'
                   }`}
                 >
                   {item.label}
@@ -73,7 +77,7 @@ export default function Header({ savedCount = 0 }) {
               ))}
               <Link
                 href="/saved"
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline relative ${
+                className={`px-3 xl:px-4 py-2 rounded-lg text-sm font-medium transition-colors no-underline relative whitespace-nowrap ${
                   pathname === '/saved' ? 'text-accent bg-accent/5' : 'text-muted hover:text-navy hover:bg-cloud'
                 }`}
               >
@@ -87,7 +91,7 @@ export default function Header({ savedCount = 0 }) {
             </nav>
 
             {/* Auth Buttons */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
               {userEmail ? (
                 <>
                   <span className="text-sm text-muted truncate max-w-[200px]" title={userEmail}>
@@ -110,7 +114,7 @@ export default function Header({ savedCount = 0 }) {
                   </Link>
                   <Link
                     href="/signup"
-                    className="btn-primary text-sm !px-4 !py-2 no-underline"
+                    className="btn-primary text-sm !px-5 !py-2 no-underline"
                   >
                     Sign Up Free
                   </Link>
@@ -121,7 +125,7 @@ export default function Header({ savedCount = 0 }) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-lg text-muted hover:bg-cloud transition-colors"
+              className="lg:hidden p-2 rounded-lg text-muted hover:bg-cloud transition-colors"
               aria-label="Toggle menu"
             >
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -137,7 +141,7 @@ export default function Header({ savedCount = 0 }) {
 
         {/* Mobile Menu */}
         {menuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white animate-slideDown">
+          <div className="lg:hidden border-t border-gray-100 bg-white animate-slideDown">
             <nav className="px-4 py-3 space-y-1">
               {NAV_ITEMS.map((item) => (
                 <Link
