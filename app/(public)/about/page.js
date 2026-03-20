@@ -208,8 +208,7 @@ export default function AboutPage() {
             tools like MississaugaInvestor.ca that give his clients a competitive advantage in the market.
           </p>
           <p className="text-navy/80 leading-relaxed mb-6">
-            Hamza is a graduate of Sheridan College and holds certifications from the National Academy
-            of Sports Medicine (NASM). His analytical mindset and commitment to data-driven decision
+            His analytical mindset and commitment to data-driven decision
             making set him apart in the real estate industry.
           </p>
 

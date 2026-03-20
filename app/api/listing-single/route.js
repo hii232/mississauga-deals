@@ -24,7 +24,7 @@ function addr(l) {
 }
 
 /**
- * GET /api/listing-single?id=X12484887
+ * GET /api/listing-single?id=W12638790
  * Fetches a single listing by ListingKey — no city filter, works for any TREB listing
  */
 export async function GET(request) {
@@ -39,6 +39,7 @@ export async function GET(request) {
   }
 
   try {
+    // Only use fields known to work with AMPRE OData API
     const sel = [
       'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
       'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
@@ -46,78 +47,54 @@ export async function GET(request) {
       'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
       'StandardStatus', 'ListOfficeName', 'PublicRemarks',
       'Latitude', 'Longitude', 'ModificationTimestamp',
-      'OnMarketDate', 'ListingContractDate', 'OriginalEntryTimestamp',
       'LivingArea', 'BuildingAreaTotal',
     ].join(',');
-
-    const expand = 'Media($select=MediaURL,MediaKey;$orderby=Order)';
 
     const safeId = id.replace(/'/g, "''");
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
     let l = null;
-    const debug = {};
 
     // Approach 1: Direct entity access Property('{id}')
-    let url1 = BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel);
-    let resp = await fetch(url1, { headers });
-    debug.approach1 = { status: resp.status, url: url1 };
+    let resp = await fetch(
+      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel),
+      { headers }
+    );
     if (resp.ok) {
       const body = await resp.json();
-      debug.approach1.hasData = !!body?.ListingKey;
       if (body?.ListingKey) l = body;
-    } else {
-      try { debug.approach1.body = await resp.text(); } catch {}
     }
 
-    // Approach 2: Filter by ListingKey with StandardStatus
-    if (!l) {
-      const filter = "ListingKey eq '" + safeId + "' and StandardStatus eq 'Active'";
-      const url2 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
-      resp = await fetch(url2, { headers });
-      debug.approach2 = { status: resp.status };
-      if (resp.ok) {
-        const data = await resp.json();
-        debug.approach2.count = data.value?.length || 0;
-        l = data.value?.[0] || null;
-      } else {
-        try { debug.approach2.body = await resp.text(); } catch {}
-      }
-    }
-
-    // Approach 3: Filter by ListingKey WITHOUT StandardStatus
+    // Approach 2: Filter by ListingKey
     if (!l) {
       const filter = "ListingKey eq '" + safeId + "'";
-      const url3 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
-      resp = await fetch(url3, { headers });
-      debug.approach3 = { status: resp.status };
+      resp = await fetch(
+        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
+        { headers }
+      );
       if (resp.ok) {
         const data = await resp.json();
-        debug.approach3.count = data.value?.length || 0;
         l = data.value?.[0] || null;
-      } else {
-        try { debug.approach3.body = await resp.text(); } catch {}
       }
     }
 
-    // Approach 4: Filter by ListingId
+    // Approach 3: Filter by ListingId
     if (!l) {
       const filter = "ListingId eq '" + safeId + "'";
-      const url4 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
-      resp = await fetch(url4, { headers });
-      debug.approach4 = { status: resp.status };
+      resp = await fetch(
+        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
+        { headers }
+      );
       if (resp.ok) {
         const data = await resp.json();
-        debug.approach4.count = data.value?.length || 0;
         l = data.value?.[0] || null;
-      } else {
-        try { debug.approach4.body = await resp.text(); } catch {}
       }
     }
 
     if (!l) {
-      return NextResponse.json({ error: 'Listing not found', debug }, { status: 404 });
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
+
     const price = l.ListPrice || 0;
     const beds = l.BedroomsTotal || 0;
     const city = l.City || 'Unknown';
@@ -126,24 +103,7 @@ export async function GET(request) {
       ? Math.round(((l.OriginalListPrice - price) / l.OriginalListPrice) * 100)
       : 0;
     const rem = l.PublicRemarks || '';
-
-    let dom = l.DaysOnMarket || 0;
-    if (dom === 0) {
-      const listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
-      if (listDate) {
-        const diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
-        if (diff > 0 && diff < 1000) dom = diff;
-      }
-    }
-
-    const ph = [];
-    if (l.Media && Array.isArray(l.Media)) {
-      const seen = {};
-      for (const m of l.Media) {
-        const u = m.MediaURL || '';
-        if (u && !seen[u]) { seen[u] = true; ph.push(u); }
-      }
-    }
+    const dom = l.DaysOnMarket || 0;
 
     const listing = {
       id: l.ListingKey,
@@ -163,8 +123,8 @@ export async function GET(request) {
       status: l.StandardStatus,
       brokerage: l.ListOfficeName || '',
       remarks: rem,
-      photos: ph,
-      images: ph,
+      photos: [],
+      images: [],
       lat: l.Latitude,
       lng: l.Longitude,
       sqft: l.LivingArea || l.BuildingAreaTotal || 0,
