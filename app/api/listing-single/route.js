@@ -23,10 +23,28 @@ function addr(l) {
     .filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
 }
 
-/**
- * GET /api/listing-single?id=W12638790
- * Fetches a single listing by ListingKey — no city filter, works for any TREB listing
- */
+// Minimal safe fields that definitely work with AMPRE
+const SEL_SAFE = [
+  'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
+  'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
+  'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
+  'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
+  'StandardStatus', 'ListOfficeName', 'PublicRemarks',
+  'Latitude', 'Longitude', 'ModificationTimestamp',
+].join(',');
+
+async function tryFetch(url, headers) {
+  try {
+    const resp = await fetch(url, { headers });
+    const text = await resp.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch {}
+    return { ok: resp.ok, status: resp.status, json, text: text.substring(0, 300) };
+  } catch (e) {
+    return { ok: false, status: 0, error: e.message };
+  }
+}
+
 export async function GET(request) {
   if (!TOK) {
     return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
@@ -39,60 +57,44 @@ export async function GET(request) {
   }
 
   try {
-    // Only use fields known to work with AMPRE OData API
-    const sel = [
-      'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
-      'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
-      'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
-      'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
-      'StandardStatus', 'ListOfficeName', 'PublicRemarks',
-      'Latitude', 'Longitude', 'ModificationTimestamp',
-      'LivingArea', 'BuildingAreaTotal',
-    ].join(',');
-
     const safeId = id.replace(/'/g, "''");
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+    const dbg = {};
 
     let l = null;
 
-    // Approach 1: Direct entity access Property('{id}')
-    let resp = await fetch(
-      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel),
-      { headers }
+    // Approach 1: Direct entity key access
+    const r1 = await tryFetch(
+      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(SEL_SAFE),
+      headers
     );
-    if (resp.ok) {
-      const body = await resp.json();
-      if (body?.ListingKey) l = body;
-    }
+    dbg.a1 = { ok: r1.ok, status: r1.status, err: r1.ok ? undefined : r1.text };
+    if (r1.ok && r1.json?.ListingKey) l = r1.json;
 
-    // Approach 2: Filter by ListingKey
+    // Approach 2: $filter by ListingKey (safe fields only)
     if (!l) {
-      const filter = "ListingKey eq '" + safeId + "'";
-      resp = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
-        { headers }
+      const r2 = await tryFetch(
+        BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'")
+          + '&$select=' + encodeURIComponent(SEL_SAFE) + '&$top=1',
+        headers
       );
-      if (resp.ok) {
-        const data = await resp.json();
-        l = data.value?.[0] || null;
-      }
+      dbg.a2 = { ok: r2.ok, status: r2.status, count: r2.json?.value?.length, err: r2.ok ? undefined : r2.text };
+      if (r2.ok) l = r2.json?.value?.[0] || null;
     }
 
-    // Approach 3: Filter by ListingId
+    // Approach 3: $filter by ListingId
     if (!l) {
-      const filter = "ListingId eq '" + safeId + "'";
-      resp = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
-        { headers }
+      const r3 = await tryFetch(
+        BASE + '/Property?$filter=' + encodeURIComponent("ListingId eq '" + safeId + "'")
+          + '&$select=' + encodeURIComponent(SEL_SAFE) + '&$top=1',
+        headers
       );
-      if (resp.ok) {
-        const data = await resp.json();
-        l = data.value?.[0] || null;
-      }
+      dbg.a3 = { ok: r3.ok, status: r3.status, count: r3.json?.value?.length, err: r3.ok ? undefined : r3.text };
+      if (r3.ok) l = r3.json?.value?.[0] || null;
     }
 
     if (!l) {
-      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Listing not found', debug: dbg }, { status: 404 });
     }
 
     const price = l.ListPrice || 0;
@@ -127,7 +129,7 @@ export async function GET(request) {
       images: [],
       lat: l.Latitude,
       lng: l.Longitude,
-      sqft: l.LivingArea || l.BuildingAreaTotal || 0,
+      sqft: 0,
       originalPrice: l.OriginalListPrice || price,
       priceDrop: drop,
       priceReduction: drop,
