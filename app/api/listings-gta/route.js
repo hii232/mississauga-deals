@@ -7,7 +7,6 @@ const TOK = process.env.AMPRE_TOKEN;
 
 // Top 15 GTA cities — keeps the OData OR filter fast
 const GTA_CITIES = [
-  'Toronto',
   'Brampton', 'Caledon',
   'Vaughan', 'Richmond Hill', 'Markham', 'Newmarket', 'Aurora',
   'Oshawa', 'Whitby', 'Ajax', 'Pickering',
@@ -16,6 +15,10 @@ const GTA_CITIES = [
   'Barrie',
   'Halton Hills',
 ];
+
+// Toronto uses sub-area codes in TREB (e.g. "Toronto C01", "Toronto E05")
+// We use startswith() to capture all Toronto sub-areas
+const TORONTO_FILTER = "startswith(City, 'Toronto')";
 
 function mapType(sub, prop) {
   const s = (sub || '').toLowerCase();
@@ -75,10 +78,19 @@ export async function GET(request) {
     if (searchParams.get('beds')) filters.push('BedroomsTotal ge ' + parseInt(searchParams.get('beds')));
 
     // Filter by specific city or default to all GTA cities (excluding Mississauga — that's the main page)
-    if (searchParams.get('city')) {
-      filters.push("City eq '" + searchParams.get('city') + "'");
+    const cityParam = searchParams.get('city');
+    if (cityParam) {
+      // Toronto filter: use startswith to catch all sub-areas (Toronto C01, Toronto E05, etc.)
+      if (cityParam.toLowerCase() === 'toronto') {
+        filters.push(TORONTO_FILTER);
+      } else {
+        filters.push("City eq '" + cityParam + "'");
+      }
     } else {
-      filters.push('(' + GTA_CITIES.map((c) => "City eq '" + c + "'").join(' or ') + ')');
+      // Include all GTA cities + all Toronto sub-areas
+      const cityFilters = GTA_CITIES.map((c) => "City eq '" + c + "'");
+      cityFilters.push(TORONTO_FILTER);
+      filters.push('(' + cityFilters.join(' or ') + ')');
     }
 
     const sel = [
@@ -159,7 +171,11 @@ export async function GET(request) {
       const price = l.ListPrice || 0;
       const beds = l.BedroomsTotal || 0;
       const rawCity = l.City || 'Toronto';
-      const city = rawCity === 'Halton Hills' ? 'Georgetown' : rawCity;
+      // Normalize: Toronto sub-areas (Toronto C01, Toronto E05) → Toronto
+      // Halton Hills → Georgetown
+      const city = rawCity.startsWith('Toronto') ? 'Toronto'
+        : rawCity === 'Halton Hills' ? 'Georgetown'
+        : rawCity;
       const type = mapType(l.PropertySubType, l.PropertyType);
       const rent = estimateRent(price, beds, city, type);
       const drop = l.OriginalListPrice && l.OriginalListPrice > price

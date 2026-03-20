@@ -861,43 +861,44 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     async function fetchListing() {
       try {
-        // Fetch page 1 to get total pages
-        const res = await fetch('/api/listings?limit=200&page=1');
-        if (!res.ok) throw new Error('Failed to load');
-        const data = await res.json();
-        const raw = data.listings || data || [];
-        const totalPages = data.pages || 1;
+        let found = null;
 
-        // Check first page
-        let processed = processListings(raw);
-        let found = processed.find((l) => String(l.id) === String(params.id));
-
-        // Paginate through remaining pages if not found
-        if (!found && totalPages > 1) {
-          for (let p = 2; p <= totalPages; p++) {
-            const r = await fetch('/api/listings?limit=200&page=' + p);
-            if (!r.ok) continue;
-            const pg = await r.json();
-            if (pg?.listings?.length) {
-              const batch = processListings(pg.listings);
-              found = batch.find((l) => String(l.id) === String(params.id));
-              if (found) break;
+        // Fast path: try single-listing API first (direct AMPRE lookup, ~300ms)
+        try {
+          const singleRes = await fetch('/api/listing-single?id=' + encodeURIComponent(params.id));
+          if (singleRes.ok) {
+            const singleData = await singleRes.json();
+            if (singleData.listing) {
+              const enriched = processListings([singleData.listing]);
+              found = enriched[0] || null;
             }
           }
-        }
+        } catch { /* fall through to bulk lookup */ }
 
-        // If not found in Mississauga listings, try single-listing API (works for any TREB listing)
+        // Fallback: search Mississauga listings (for full processed data with rent estimates)
         if (!found) {
-          try {
-            const singleRes = await fetch('/api/listing-single?id=' + encodeURIComponent(params.id));
-            if (singleRes.ok) {
-              const singleData = await singleRes.json();
-              if (singleData.listing) {
-                const enriched = processListings([singleData.listing]);
-                found = enriched[0] || null;
+          const res = await fetch('/api/listings?limit=200&page=1');
+          if (res.ok) {
+            const data = await res.json();
+            const raw = data.listings || data || [];
+            const totalPages = data.pages || 1;
+
+            let processed = processListings(raw);
+            found = processed.find((l) => String(l.id) === String(params.id));
+
+            if (!found && totalPages > 1) {
+              for (let p = 2; p <= totalPages; p++) {
+                const r = await fetch('/api/listings?limit=200&page=' + p);
+                if (!r.ok) continue;
+                const pg = await r.json();
+                if (pg?.listings?.length) {
+                  const batch = processListings(pg.listings);
+                  found = batch.find((l) => String(l.id) === String(params.id));
+                  if (found) break;
+                }
               }
             }
-          } catch { /* fall through to error */ }
+          }
         }
 
         if (!found) {

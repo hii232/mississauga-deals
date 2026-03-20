@@ -23,8 +23,9 @@ function addr(l) {
     .filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
 }
 
-// Minimal safe fields that definitely work with AMPRE
-const SEL_SAFE = [
+// Fields confirmed to work with AMPRE OData API
+// Note: OnMarketDate, LivingArea, BuildingAreaTotal are NOT supported
+const SEL = [
   'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
   'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
   'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
@@ -33,18 +34,11 @@ const SEL_SAFE = [
   'Latitude', 'Longitude', 'ModificationTimestamp',
 ].join(',');
 
-async function tryFetch(url, headers) {
-  try {
-    const resp = await fetch(url, { headers });
-    const text = await resp.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch {}
-    return { ok: resp.ok, status: resp.status, json, text: text.substring(0, 300) };
-  } catch (e) {
-    return { ok: false, status: 0, error: e.message };
-  }
-}
-
+/**
+ * GET /api/listing-single?id=W12638790
+ * Fetches a single listing by ListingKey — no city filter, works for any TREB listing.
+ * Used as fallback when a GTA listing isn't found in the Mississauga listings API.
+ */
 export async function GET(request) {
   if (!TOK) {
     return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
@@ -59,42 +53,47 @@ export async function GET(request) {
   try {
     const safeId = id.replace(/'/g, "''");
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
-    const dbg = {};
 
     let l = null;
 
-    // Approach 1: Direct entity key access
-    const r1 = await tryFetch(
-      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(SEL_SAFE),
-      headers
+    // Approach 1: Direct entity key access — fastest
+    const resp1 = await fetch(
+      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(SEL),
+      { headers }
     );
-    dbg.a1 = { ok: r1.ok, status: r1.status, err: r1.ok ? undefined : r1.text };
-    if (r1.ok && r1.json?.ListingKey) l = r1.json;
+    if (resp1.ok) {
+      const body = await resp1.json();
+      if (body?.ListingKey) l = body;
+    }
 
-    // Approach 2: $filter by ListingKey (safe fields only)
+    // Approach 2: Filter by ListingKey
     if (!l) {
-      const r2 = await tryFetch(
+      const resp2 = await fetch(
         BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'")
-          + '&$select=' + encodeURIComponent(SEL_SAFE) + '&$top=1',
-        headers
+          + '&$select=' + encodeURIComponent(SEL) + '&$top=1',
+        { headers }
       );
-      dbg.a2 = { ok: r2.ok, status: r2.status, count: r2.json?.value?.length, err: r2.ok ? undefined : r2.text };
-      if (r2.ok) l = r2.json?.value?.[0] || null;
+      if (resp2.ok) {
+        const data = await resp2.json();
+        l = data.value?.[0] || null;
+      }
     }
 
-    // Approach 3: $filter by ListingId
+    // Approach 3: Filter by ListingId (some IDs may be ListingId)
     if (!l) {
-      const r3 = await tryFetch(
+      const resp3 = await fetch(
         BASE + '/Property?$filter=' + encodeURIComponent("ListingId eq '" + safeId + "'")
-          + '&$select=' + encodeURIComponent(SEL_SAFE) + '&$top=1',
-        headers
+          + '&$select=' + encodeURIComponent(SEL) + '&$top=1',
+        { headers }
       );
-      dbg.a3 = { ok: r3.ok, status: r3.status, count: r3.json?.value?.length, err: r3.ok ? undefined : r3.text };
-      if (r3.ok) l = r3.json?.value?.[0] || null;
+      if (resp3.ok) {
+        const data = await resp3.json();
+        l = data.value?.[0] || null;
+      }
     }
 
     if (!l) {
-      return NextResponse.json({ error: 'Listing not found', debug: dbg }, { status: 404 });
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
 
     const price = l.ListPrice || 0;
