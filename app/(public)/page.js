@@ -7,8 +7,11 @@ import { fmtK } from '@/lib/utils/format';
 import { HeroSearch } from '@/components/home/hero-search';
 
 export const metadata = {
-  title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals',
-  description: 'Find the best real estate investment deals in Mississauga. Cash flow analysis, cap rates, deal scores, and expert insights on every property.',
+  title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Royal LePage Signature Realty. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
+  alternates: {
+    canonical: '/',
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -317,6 +320,12 @@ function AgentProfile() {
                 </svg>
                 Email Me
               </a>
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-accent hover:border-accent/30 transition no-underline"
+              >
+                Learn More About Hamza &rarr;
+              </Link>
             </div>
           </div>
         </div>

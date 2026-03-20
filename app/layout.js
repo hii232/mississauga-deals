@@ -1,7 +1,7 @@
 import Script from 'next/script';
 import { Inter, DM_Sans } from 'next/font/google';
 import './globals.css';
-import { OrganizationJsonLd, WebSiteJsonLd } from '@/components/seo/json-ld';
+import { OrganizationJsonLd, WebSiteJsonLd, PersonJsonLd } from '@/components/seo/json-ld';
 import { Suspense } from 'react';
 import PageTracker from '@/components/PageTracker';
 
@@ -28,14 +28,25 @@ export const metadata = {
   description:
     'Find the best real estate investment deals in Mississauga. Cash flow analysis, cap rates, deal scores, and expert insights on every property.',
   keywords: [
+    'Hamza Nouman',
+    'Hamza Nouman Mississauga',
+    'Hamza Nouman real estate',
+    'Hamza Nouman Royal LePage',
+    'MississaugaInvestor.ca',
     'Mississauga real estate',
-    'investment properties',
+    'Mississauga investment properties',
+    'Mississauga real estate agent',
+    'Mississauga realtor',
     'cash flow analysis',
     'cap rate calculator',
     'Mississauga homes for sale',
-    'real estate investing',
-    'BRRR strategy',
+    'real estate investing Mississauga',
+    'BRRR strategy Mississauga',
     'rental properties Mississauga',
+    'Mississauga real estate investment',
+    'Royal LePage Mississauga',
+    'pre-construction Mississauga',
+    'investment property analysis',
   ],
   authors: [{ name: 'Hamza Nouman', url: 'https://www.mississaugainvestor.ca' }],
   creator: 'Hamza Nouman',
@@ -90,6 +101,7 @@ export default function RootLayout({ children }) {
       <body className="font-sans">
         <OrganizationJsonLd />
         <WebSiteJsonLd />
+        <PersonJsonLd />
         <Suspense fallback={null}>
           <PageTracker />
         </Suspense>

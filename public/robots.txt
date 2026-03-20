@@ -4,10 +4,24 @@ Disallow: /api/
 Disallow: /admin/
 Disallow: /admin.html
 Disallow: /_next/
+Disallow: /profile/
+Disallow: /saved/
 
 User-agent: Googlebot
+Allow: /
+Allow: /about
+Allow: /listings
+Allow: /blog
+Allow: /faq
+Allow: /neighbourhoods
+Disallow: /api/
+Disallow: /admin/
+
+User-agent: Bingbot
 Allow: /
 Disallow: /api/
 Disallow: /admin/
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
+
+# MississaugaInvestor.ca — Hamza Nouman, Royal LePage Signature Realty

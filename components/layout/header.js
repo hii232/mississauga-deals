@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
   { href: '/blog', label: 'Blog' },
   { href: '/news', label: 'News' },
+  { href: '/about', label: 'About Hamza' },
   { href: '/quiz', label: 'Find My Deal' },
 ];
 

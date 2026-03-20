@@ -17,6 +17,7 @@ export default async function sitemap() {
   // ── Static pages ──
   const staticPages = [
     { url: `${BASE}/`, changeFrequency: 'daily', priority: 1.0 },
+    { url: `${BASE}/about`, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/listings`, changeFrequency: 'hourly', priority: 0.9 },
     { url: `${BASE}/recent-sales`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${BASE}/market-pulse`, changeFrequency: 'daily', priority: 0.8 },
