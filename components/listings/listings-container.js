@@ -131,7 +131,7 @@ function TopPicks({ listings, photoMap }) {
   );
 }
 
-export function ListingsContainer({ initialListings }) {
+export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings' }) {
   const router = useRouter();
   const [listings, setListings] = useState(initialListings);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -203,7 +203,7 @@ export function ListingsContainer({ initialListings }) {
     let cancelled = false;
     async function fetchClient() {
       try {
-        const res = await fetch('/api/listings?limit=200&page=1');
+        const res = await fetch(apiEndpoint + '?limit=200&page=1');
         if (!res.ok) return;
         const data = await res.json();
         const raw = data.listings || data || [];
@@ -211,9 +211,10 @@ export function ListingsContainer({ initialListings }) {
 
         // Fetch remaining pages
         if (totalPages > 1) {
-          for (let p = 2; p <= totalPages && !cancelled; p++) {
+          const maxPages = Math.min(totalPages, 25);
+          for (let p = 2; p <= maxPages && !cancelled; p++) {
             try {
-              const r = await fetch('/api/listings?limit=200&page=' + p);
+              const r = await fetch(apiEndpoint + '?limit=200&page=' + p);
               if (r.ok) {
                 const pg = await r.json();
                 if (pg?.listings) raw.push(...pg.listings);

@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const NAV_ITEMS = [
-  { href: '/listings', label: 'Listings', primary: true },
+  { href: '/listings', label: 'Mississauga Deals', primary: true },
+  { href: '/gta', label: 'GTA Deals', primary: true },
   { href: '/recent-sales', label: 'Recent Sales' },
   { href: '/market-pulse', label: 'Market Pulse' },
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
   { href: '/blog', label: 'Blog' },
-  { href: '/news', label: 'News' },
   { href: '/about', label: 'About Hamza' },
   { href: '/quiz', label: 'Find My Deal' },
 ];
