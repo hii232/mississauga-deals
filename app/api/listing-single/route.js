@@ -52,39 +52,49 @@ export async function GET(request) {
 
     const expand = 'Media($select=MediaURL,MediaKey;$orderby=Order)';
 
-    // Query by ListingKey directly — no city filter needed
-    const filter = "ListingKey eq '" + id.replace(/'/g, "''") + "'";
+    const safeId = id.replace(/'/g, "''");
+    const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
-    let url = BASE + '/Property?$filter=' + encodeURIComponent(filter)
-      + '&$select=' + encodeURIComponent(sel)
-      + '&$expand=' + encodeURIComponent(expand)
-      + '&$top=1';
+    let l = null;
 
-    let resp = await fetch(url, {
-      headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
-    });
-
-    // Fallback without expand
-    if (!resp.ok) {
-      url = BASE + '/Property?$filter=' + encodeURIComponent(filter)
-        + '&$select=' + encodeURIComponent(sel)
-        + '&$top=1';
-      resp = await fetch(url, {
-        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
-      });
+    // Approach 1: Direct entity access Property('{id}')
+    let resp = await fetch(
+      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel),
+      { headers }
+    );
+    if (resp.ok) {
+      l = await resp.json();
     }
 
-    if (!resp.ok) {
-      return NextResponse.json({ error: 'API error ' + resp.status }, { status: resp.status });
+    // Approach 2: Filter by ListingKey
+    if (!l) {
+      const filter = "ListingKey eq '" + safeId + "'";
+      resp = await fetch(
+        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
+        { headers }
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        l = data.value?.[0] || null;
+      }
     }
 
-    const data = await resp.json();
-    const items = data.value || [];
-    if (items.length === 0) {
+    // Approach 3: Filter by ListingId (some IDs are ListingId not ListingKey)
+    if (!l) {
+      const filter = "ListingId eq '" + safeId + "'";
+      resp = await fetch(
+        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
+        { headers }
+      );
+      if (resp.ok) {
+        const data = await resp.json();
+        l = data.value?.[0] || null;
+      }
+    }
+
+    if (!l) {
       return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
     }
-
-    const l = items[0];
     const price = l.ListPrice || 0;
     const beds = l.BedroomsTotal || 0;
     const city = l.City || 'Unknown';
