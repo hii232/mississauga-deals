@@ -11,7 +11,7 @@
     },
     {
       "path": "/api/auto-blog",
-      "schedule": "23 2,8,14,20 * * *"
+      "schedule": "23 8 * * *"
     },
     {
       "path": "/api/newsletter/weekly",
