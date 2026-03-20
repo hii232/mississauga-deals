@@ -57,18 +57,18 @@ function TopPickCard({ listing, photo }) {
       <div className="p-3">
         <p className="text-sm font-semibold text-navy line-clamp-1">{listing.address}</p>
         <p className="text-base font-bold text-navy">{fmtK(listing.price)}</p>
-        <div className="mt-1.5 grid grid-cols-3 gap-1 text-center rounded-md bg-cloud p-1.5">
-          <div>
+        <div className="mt-1.5 grid grid-cols-3 gap-0.5 text-center rounded-md bg-cloud p-1.5">
+          <div className="min-w-0">
             <p className="text-[9px] font-medium uppercase text-slate-400">CAP</p>
-            <p className="text-[11px] font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy truncate">{listing.capRate.toFixed(1)}%</p>
           </div>
-          <div>
-            <p className="text-[8px] font-medium text-slate-400">Cash Flow/mo</p>
-            <p className="text-[11px] font-bold text-emerald-500">{fmtNum(listing.cashFlow)}</p>
+          <div className="min-w-0">
+            <p className="text-[9px] font-medium uppercase text-slate-400">CF/mo</p>
+            <p className="text-[11px] font-bold text-emerald-500 truncate">{listing.cashFlow >= 0 ? '+' : '-'}${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}</p>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[9px] font-medium uppercase text-slate-400">CoC</p>
-            <p className="text-[11px] font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy truncate">{listing.cashOnCash.toFixed(1)}%</p>
           </div>
         </div>
       </div>
