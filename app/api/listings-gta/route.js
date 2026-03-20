@@ -14,6 +14,7 @@ const GTA_CITIES = [
   'Oakville', 'Burlington', 'Milton',
   'Hamilton',
   'Barrie',
+  'Halton Hills',
 ];
 
 function mapType(sub, prop) {
@@ -36,6 +37,7 @@ const CITY_RENT_TIER = {
   'Aurora': 1.0, 'Newmarket': 0.95, 'Whitby': 0.95, 'Ajax': 0.95,
   'Pickering': 1.0, 'Milton': 0.95, 'Hamilton': 0.85, 'Oshawa': 0.80,
   'Barrie': 0.85, 'Brampton': 0.90, 'Caledon': 0.95,
+  'Halton Hills': 0.95,
 };
 
 function estimateRent(price, beds, city, type) {
@@ -156,7 +158,8 @@ export async function GET(request) {
     const listings = items.map((l) => {
       const price = l.ListPrice || 0;
       const beds = l.BedroomsTotal || 0;
-      const city = l.City || 'Toronto';
+      const rawCity = l.City || 'Toronto';
+      const city = rawCity === 'Halton Hills' ? 'Georgetown' : rawCity;
       const type = mapType(l.PropertySubType, l.PropertyType);
       const rent = estimateRent(price, beds, city, type);
       const drop = l.OriginalListPrice && l.OriginalListPrice > price

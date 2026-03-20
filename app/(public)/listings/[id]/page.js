@@ -886,6 +886,20 @@ export default function PropertyDetailPage() {
           }
         }
 
+        // If not found in Mississauga listings, try single-listing API (works for any TREB listing)
+        if (!found) {
+          try {
+            const singleRes = await fetch('/api/listing-single?id=' + encodeURIComponent(params.id));
+            if (singleRes.ok) {
+              const singleData = await singleRes.json();
+              if (singleData.listing) {
+                const enriched = processListings([singleData.listing]);
+                found = enriched[0] || null;
+              }
+            }
+          } catch { /* fall through to error */ }
+        }
+
         if (!found) {
           setError('Property not found.');
         } else {

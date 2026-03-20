@@ -27,13 +27,15 @@ export default function GtaListingsPage() {
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">Hamilton</span>
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">Markham</span>
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">Richmond Hill</span>
+            <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">Milton</span>
+            <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">Georgetown</span>
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">+ More</span>
           </div>
         </div>
         <ListingsContainer
           initialListings={[]}
           apiEndpoint="/api/listings-gta"
-          popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill']}
+          popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
         />
       </div>
     </main>
