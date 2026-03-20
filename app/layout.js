@@ -54,7 +54,7 @@ export const metadata = {
       'Find the best real estate investment deals in Mississauga. Cash flow analysis, cap rates, and expert insights.',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/opengraph-image',
         width: 1200,
         height: 630,
         alt: 'MississaugaInvestor.ca',

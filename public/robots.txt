@@ -1,6 +1,13 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /admin/
 Disallow: /admin.html
+Disallow: /_next/
+
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
