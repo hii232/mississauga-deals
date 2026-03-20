@@ -8,6 +8,10 @@
     {
       "path": "/api/seo/ping",
       "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/auto-blog",
+      "schedule": "23 * * * *"
     }
   ]
 }
