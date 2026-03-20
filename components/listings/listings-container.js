@@ -131,7 +131,7 @@ function TopPicks({ listings, photoMap }) {
   );
 }
 
-export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings' }) {
+export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
   const [listings, setListings] = useState(initialListings);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
@@ -262,7 +262,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       <TopPicks listings={listings} photoMap={photoMap} />
 
       {/* Investor Filters */}
-      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} />
+      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} />
 
       {/* View toggle */}
       <div className="flex justify-end">

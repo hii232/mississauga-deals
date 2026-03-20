@@ -61,10 +61,11 @@ function Tooltip({ text, children }) {
 }
 
 // ── Popular Neighbourhood Pills ──
-const POPULAR_HOODS = ['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton', 'Clarkson'];
+const DEFAULT_POPULAR_HOODS = ['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton', 'Clarkson'];
 
 // ── Main Filter Component ──
-export function InvestorFilters({ filters, setFilters, resultCount, totalCount }) {
+export function InvestorFilters({ filters, setFilters, resultCount, totalCount, popularHoods }) {
+  const POPULAR_HOODS = popularHoods || DEFAULT_POPULAR_HOODS;
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 

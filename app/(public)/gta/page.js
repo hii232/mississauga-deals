@@ -21,9 +21,9 @@ async function fetchGtaListings() {
     const raw = data.listings || data || [];
     const totalPages = data.pages || 1;
 
-    // Fetch remaining pages (cap at 25 pages = 5,000 listings for performance)
+    // Fetch remaining pages (cap at 10 pages = 2,000 listings for fast load)
     if (totalPages > 1) {
-      const maxPages = Math.min(totalPages, 25);
+      const maxPages = Math.min(totalPages, 10);
       const pagePromises = [];
       for (let p = 2; p <= maxPages; p++) {
         pagePromises.push(
@@ -68,7 +68,11 @@ export default async function GtaListingsPage() {
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">+ More</span>
           </div>
         </div>
-        <ListingsContainer initialListings={listings} apiEndpoint="/api/listings-gta" />
+        <ListingsContainer
+          initialListings={listings}
+          apiEndpoint="/api/listings-gta"
+          popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill']}
+        />
       </div>
     </main>
   );
