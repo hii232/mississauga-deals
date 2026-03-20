@@ -243,6 +243,59 @@ async function fetchCoverImage(keywords) {
   }
 }
 
+// ── Ping search engines to index the new post immediately ──
+async function pingSearchEngines(slug) {
+  const blogUrl = `https://www.mississaugainvestor.ca/blog/${slug}`;
+  const siteHost = 'www.mississaugainvestor.ca';
+  const indexNowKey = process.env.INDEXNOW_KEY;
+
+  const results = [];
+
+  // IndexNow — pings Bing, Yandex, Seznam, Naver simultaneously
+  if (indexNowKey) {
+    try {
+      const res = await fetch('https://api.indexnow.org/indexnow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: siteHost,
+          key: indexNowKey,
+          keyLocation: `https://${siteHost}/${indexNowKey}.txt`,
+          urlList: [
+            blogUrl,
+            `https://${siteHost}/blog`, // Also re-index the blog listing page
+          ],
+        }),
+      });
+      results.push({ engine: 'IndexNow', status: res.status });
+    } catch (err) {
+      results.push({ engine: 'IndexNow', error: err.message });
+    }
+  }
+
+  // Google Ping — sitemap ping (still works as of 2026)
+  try {
+    const res = await fetch(
+      `https://www.google.com/ping?sitemap=https://${siteHost}/sitemap.xml`
+    );
+    results.push({ engine: 'Google Ping', status: res.status });
+  } catch (err) {
+    results.push({ engine: 'Google Ping', error: err.message });
+  }
+
+  // Bing direct ping
+  try {
+    const res = await fetch(
+      `https://www.bing.com/ping?sitemap=https://${siteHost}/sitemap.xml`
+    );
+    results.push({ engine: 'Bing Ping', status: res.status });
+  } catch (err) {
+    results.push({ engine: 'Bing Ping', error: err.message });
+  }
+
+  return results;
+}
+
 // ── Main handler ──
 export async function GET(request) {
   try {
@@ -308,6 +361,9 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Failed to publish: ' + error.message }, { status: 500 });
     }
 
+    // Ping search engines to index immediately
+    const indexResults = await pingSearchEngines(newPost.slug);
+
     return NextResponse.json({
       success: true,
       post: {
@@ -316,6 +372,7 @@ export async function GET(request) {
         category: newPost.category,
         url: `https://www.mississaugainvestor.ca/blog/${newPost.slug}`,
       },
+      indexing: indexResults,
     });
   } catch (err) {
     console.error('Auto-blog error:', err);
