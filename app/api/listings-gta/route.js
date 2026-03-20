@@ -5,23 +5,15 @@ export const dynamic = 'force-dynamic';
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_TOKEN;
 
-// All major GTA cities/areas covered by TREB
+// Top 15 GTA cities — keeps the OData OR filter fast
 const GTA_CITIES = [
-  // Peel Region
-  'Brampton', 'Caledon',
-  // York Region
-  'Vaughan', 'Richmond Hill', 'Markham', 'Newmarket', 'Aurora',
-  'Stouffville', 'King', 'Georgina', 'East Gwillimbury', 'Whitchurch-Stouffville',
-  // Durham Region
-  'Oshawa', 'Whitby', 'Ajax', 'Pickering', 'Clarington', 'Uxbridge', 'Scugog', 'Brock',
-  // Halton Region
-  'Oakville', 'Burlington', 'Milton', 'Halton Hills',
-  // Toronto
   'Toronto',
-  // Hamilton
-  'Hamilton', 'Stoney Creek', 'Dundas', 'Ancaster', 'Flamborough', 'Glanbrook',
-  // Simcoe
-  'Barrie', 'Innisfil', 'Bradford West Gwillimbury', 'New Tecumseth',
+  'Brampton', 'Caledon',
+  'Vaughan', 'Richmond Hill', 'Markham', 'Newmarket', 'Aurora',
+  'Oshawa', 'Whitby', 'Ajax', 'Pickering',
+  'Oakville', 'Burlington', 'Milton',
+  'Hamilton',
+  'Barrie',
 ];
 
 function mapType(sub, prop) {

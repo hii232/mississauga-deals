@@ -1,5 +1,4 @@
 import { ListingsContainer } from '@/components/listings/listings-container';
-import { processListings } from '@/lib/listings/process-listings';
 
 export const metadata = {
   title: 'GTA Investment Properties | Toronto, Brampton, Vaughan & More',
@@ -7,46 +6,9 @@ export const metadata = {
     'Browse scored investment properties across the Greater Toronto Area. Cash flow analysis, cap rates, and deal scores on thousands of listings in Toronto, Brampton, Vaughan, Oakville, Hamilton and more.',
 };
 
-async function fetchGtaListings() {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
-
-    const res = await fetch(`${baseUrl}/api/listings-gta?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
-
-    // Fetch remaining pages (cap at 10 pages = 2,000 listings for fast load)
-    if (totalPages > 1) {
-      const maxPages = Math.min(totalPages, 10);
-      const pagePromises = [];
-      for (let p = 2; p <= maxPages; p++) {
-        pagePromises.push(
-          fetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`, {
-            next: { revalidate: 3600 },
-          }).then((r) => r.ok ? r.json() : null)
-        );
-      }
-      const pages = await Promise.all(pagePromises);
-      for (const pg of pages) {
-        if (pg?.listings) raw.push(...pg.listings);
-      }
-    }
-
-    return processListings(raw);
-  } catch {
-    return [];
-  }
-}
-
-export default async function GtaListingsPage() {
-  const listings = await fetchGtaListings();
-
+// GTA page loads instantly with skeletons, then fetches client-side.
+// This avoids SSR timeout from querying 30+ cities via AMPRE API.
+export default function GtaListingsPage() {
   return (
     <main className="min-h-screen bg-cloud">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -69,7 +31,7 @@ export default async function GtaListingsPage() {
           </div>
         </div>
         <ListingsContainer
-          initialListings={listings}
+          initialListings={[]}
           apiEndpoint="/api/listings-gta"
           popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill']}
         />
