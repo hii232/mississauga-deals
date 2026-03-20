@@ -56,44 +56,67 @@ export async function GET(request) {
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
     let l = null;
+    const debug = {};
 
     // Approach 1: Direct entity access Property('{id}')
-    let resp = await fetch(
-      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel),
-      { headers }
-    );
+    let url1 = BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(sel);
+    let resp = await fetch(url1, { headers });
+    debug.approach1 = { status: resp.status, url: url1 };
     if (resp.ok) {
-      l = await resp.json();
+      const body = await resp.json();
+      debug.approach1.hasData = !!body?.ListingKey;
+      if (body?.ListingKey) l = body;
+    } else {
+      try { debug.approach1.body = await resp.text(); } catch {}
     }
 
-    // Approach 2: Filter by ListingKey
+    // Approach 2: Filter by ListingKey with StandardStatus
+    if (!l) {
+      const filter = "ListingKey eq '" + safeId + "' and StandardStatus eq 'Active'";
+      const url2 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
+      resp = await fetch(url2, { headers });
+      debug.approach2 = { status: resp.status };
+      if (resp.ok) {
+        const data = await resp.json();
+        debug.approach2.count = data.value?.length || 0;
+        l = data.value?.[0] || null;
+      } else {
+        try { debug.approach2.body = await resp.text(); } catch {}
+      }
+    }
+
+    // Approach 3: Filter by ListingKey WITHOUT StandardStatus
     if (!l) {
       const filter = "ListingKey eq '" + safeId + "'";
-      resp = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
-        { headers }
-      );
+      const url3 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
+      resp = await fetch(url3, { headers });
+      debug.approach3 = { status: resp.status };
       if (resp.ok) {
         const data = await resp.json();
+        debug.approach3.count = data.value?.length || 0;
         l = data.value?.[0] || null;
+      } else {
+        try { debug.approach3.body = await resp.text(); } catch {}
       }
     }
 
-    // Approach 3: Filter by ListingId (some IDs are ListingId not ListingKey)
+    // Approach 4: Filter by ListingId
     if (!l) {
       const filter = "ListingId eq '" + safeId + "'";
-      resp = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1',
-        { headers }
-      );
+      const url4 = BASE + '/Property?$filter=' + encodeURIComponent(filter) + '&$select=' + encodeURIComponent(sel) + '&$top=1';
+      resp = await fetch(url4, { headers });
+      debug.approach4 = { status: resp.status };
       if (resp.ok) {
         const data = await resp.json();
+        debug.approach4.count = data.value?.length || 0;
         l = data.value?.[0] || null;
+      } else {
+        try { debug.approach4.body = await resp.text(); } catch {}
       }
     }
 
     if (!l) {
-      return NextResponse.json({ error: 'Listing not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Listing not found', debug }, { status: 404 });
     }
     const price = l.ListPrice || 0;
     const beds = l.BedroomsTotal || 0;
