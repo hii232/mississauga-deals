@@ -10,6 +10,13 @@ export function isPowerOfSale(remarks) {
   return POS_RE.test(remarks || '');
 }
 
+// ── Fixer Upper / TLC Detection ──
+const FIXER_RE = /\b(tlc|fixer[- ]upper|handyman[- ]special|needs work|needs updating|needs renovation|needs reno|requires work|requires updating|as[- ]is condition|sold as[- ]is|renovation potential|reno potential|investor special|diamond in the rough|bring your contractor|bring your vision|sweat equity|great bones|good bones|needs some love|needs love|cosmetic updates needed|needs cosmetic|renovator)/i;
+
+export function isFixerUpper(remarks) {
+  return FIXER_RE.test(remarks || '');
+}
+
 // ── Default Filter State ──
 export const DEFAULT_FILTERS = {
   search: '',
@@ -44,6 +51,7 @@ export const STRATEGY_CHIPS = [
   { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
   { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
   { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
+  { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work — keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
 ];
 
 // ── Sort Options ──
