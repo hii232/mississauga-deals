@@ -120,6 +120,11 @@ export function DealScreener({ listings }) {
 
     const sum = (fn) => listings.reduce((acc, l) => acc + fn(l), 0);
     const avg = (fn) => sum(fn) / listings.length;
+    // Average only non-zero values to avoid skewing from missing data
+    const avgNonZero = (fn) => {
+      const valid = listings.filter((l) => fn(l) > 0);
+      return valid.length ? valid.reduce((acc, l) => acc + fn(l), 0) / valid.length : 0;
+    };
     const cfPlusListings = listings.filter((l) => l.cashFlow > 0);
     const bestCfListing = listings.reduce((best, l) => l.cashFlow > best.cashFlow ? l : best);
     const bestCapListing = listings.reduce((best, l) => l.capRate > best.capRate ? l : best);
@@ -127,10 +132,10 @@ export function DealScreener({ listings }) {
 
     return {
       total: listings.length,
-      avgPrice: avg((l) => l.price),
-      avgScore: avg((l) => l.hamzaScore),
-      avgDom: avg((l) => l.dom),
-      avgRent: avg((l) => l.estimatedRent),
+      avgPrice: avgNonZero((l) => l.price),
+      avgScore: avgNonZero((l) => l.hamzaScore),
+      avgDom: avgNonZero((l) => l.dom),
+      avgRent: avgNonZero((l) => l.estimatedRent),
       avgCf: avg((l) => l.cashFlow),
       avgCoc: avg((l) => l.cashOnCash),
       bestCf: bestCfListing.cashFlow,
@@ -185,10 +190,10 @@ export function DealScreener({ listings }) {
             delay={0}
           />
           <OpportunityStat
-            label="CF+ Deals"
+            label="CF+ DEALS"
             value={metrics.cfPlusCount}
             format="int"
-            subtitle="cash flow +"
+            subtitle="cash flowing"
             color="green"
             delay={60}
           />
@@ -208,14 +213,16 @@ export function DealScreener({ listings }) {
             color="green"
             delay={180}
           />
-          <OpportunityStat
-            label="Price Drops"
-            value={metrics.priceDropCount}
-            format="int"
-            subtitle="motivated"
-            color="amber"
-            delay={240}
-          />
+          {metrics.priceDropCount > 0 && (
+            <OpportunityStat
+              label="Price Drops"
+              value={metrics.priceDropCount}
+              format="int"
+              subtitle="motivated"
+              color="amber"
+              delay={240}
+            />
+          )}
           <OpportunityStat
             label="Avg Score"
             value={metrics.avgScore}
@@ -231,11 +238,11 @@ export function DealScreener({ listings }) {
           <ContextStat label="Total Listings" value={metrics.total} format="int" icon="🏠" delay={340} />
           <ContextStat label="Avg Price" value={metrics.avgPrice} format="price" icon="💰" delay={380} />
           <ContextStat label="Avg Rent" value={metrics.avgRent} format="price" icon="🔑" delay={420} />
-          <ContextStat label="Avg DOM" value={metrics.avgDom} format="int" icon="⏱" delay={460} />
-          {soldStats && (
+          {metrics.avgDom > 0 && <ContextStat label="Avg DOM" value={metrics.avgDom} format="int" icon="⏱" delay={460} />}
+          {soldStats && soldStats.avgSoldPrice > 0 && (
             <ContextStat label="Avg Sold" value={soldStats.avgSoldPrice} format="price" icon="✅" delay={500} />
           )}
-          {soldStats && (
+          {soldStats && soldStats.avgSoldPrice > 0 && (
             <ContextStat
               label="Sale-to-List"
               value={100 + (soldStats.avgNegotiationGap || 0)}
