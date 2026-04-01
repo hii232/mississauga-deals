@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -25,27 +28,39 @@ export async function GET(request) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data: views, error } = await supabase
-      .from('page_views')
-      .select('path, referrer, utm_source, created_at')
-      .gte('created_at', thirtyDaysAgo.toISOString())
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      // Table might not exist yet
-      if (error.code === '42P01' || error.message?.includes('does not exist')) {
-        return NextResponse.json({
-          visitors: { daily: [], total: 0, today: 0 },
-          sources: [],
-          topPages: [],
-          needsSetup: true,
-        });
+    // Fetch in batches to overcome Supabase 1000-row default limit
+    let allViews = [];
+    let offset = 0;
+    const batchSize = 1000;
+    while (true) {
+      const { data: batch, error: batchErr } = await supabase
+        .from('page_views')
+        .select('path, referrer, utm_source, created_at')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: true })
+        .range(offset, offset + batchSize - 1);
+      if (batchErr) {
+        if (batchErr.code === '42P01' || batchErr.message?.includes('does not exist')) {
+          return NextResponse.json({
+            visitors: { daily: [], total: 0, today: 0 },
+            sources: [],
+            topPages: [],
+            needsSetup: true,
+          });
+        }
+        return NextResponse.json({ error: batchErr.message }, { status: 500 });
       }
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      allViews = allViews.concat(batch || []);
+      if (!batch || batch.length < batchSize) break;
+      offset += batchSize;
     }
+    const views = allViews;
+    const error = null;
+
 
     const rows = views || [];
     const now = new Date();
+
 
     // Daily visitor counts (30 days)
     const dailyMap = {};
@@ -87,7 +102,7 @@ export async function GET(request) {
       .slice(0, 10)
       .map(([page, count]) => ({ page, count }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       visitors: {
         daily,
         total: rows.length,
@@ -97,6 +112,8 @@ export async function GET(request) {
       topPages,
       needsSetup: false,
     });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return response;
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
   }
