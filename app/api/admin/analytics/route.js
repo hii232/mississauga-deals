@@ -28,17 +28,18 @@ export async function GET(request) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Fetch in batches to overcome Supabase 1000-row default limit
+    // Cursor-based pagination to bypass Supabase 1000-row API limit
+    // (.range() offset pagination still caps at 1000 total rows)
     let allViews = [];
-    let offset = 0;
+    let cursor = thirtyDaysAgo.toISOString();
     const batchSize = 1000;
     while (true) {
       const { data: batch, error: batchErr } = await supabase
         .from('page_views')
         .select('path, referrer, utm_source, created_at')
-        .gte('created_at', thirtyDaysAgo.toISOString())
+        .gt('created_at', cursor)
         .order('created_at', { ascending: true })
-        .range(offset, offset + batchSize - 1);
+        .limit(batchSize);
       if (batchErr) {
         if (batchErr.code === '42P01' || batchErr.message?.includes('does not exist')) {
           return NextResponse.json({
@@ -50,9 +51,10 @@ export async function GET(request) {
         }
         return NextResponse.json({ error: batchErr.message }, { status: 500 });
       }
-      allViews = allViews.concat(batch || []);
-      if (!batch || batch.length < batchSize) break;
-      offset += batchSize;
+      if (!batch || batch.length === 0) break;
+      allViews = allViews.concat(batch);
+      if (batch.length < batchSize) break;
+      cursor = batch[batch.length - 1].created_at;
     }
     const views = allViews;
     const error = null;
