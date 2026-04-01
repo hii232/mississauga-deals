@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
-export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto }) {
+export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick }) {
   const [saved, setSaved] = useState(false);
 
   // Initialize saved state from localStorage
@@ -50,13 +50,18 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Score badge */}
-        {!isGated && (
-          <div
-            className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
-            style={{ backgroundColor: scoreHex }}
-          >
-            {listing.hamzaScore}
+        {/* Score badge — always visible */}
+        <div
+          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md ${isGated ? 'blur-[5px] select-none' : ''}`}
+          style={{ backgroundColor: scoreHex }}
+        >
+          {listing.hamzaScore}
+        </div>
+        {isGated && (
+          <div className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-600/80 text-white shadow-md">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
           </div>
         )}
 
@@ -84,12 +89,12 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           )}
           {listing.cashFlow > 0 && (
             <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-              CF+
+              Cash Flowing
             </span>
           )}
           {listing.priceDrop > 0 && (
             <span className="rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-              -{listing.priceDrop.toFixed(0)}%
+              Price Drop -{listing.priceDrop.toFixed(0)}%
             </span>
           )}
           {listing.dom >= 45 && (
@@ -124,40 +129,74 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
         {/* Metrics row */}
         <div className="relative">
-          <div className={`grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center ${isGated ? 'select-none blur-sm pointer-events-none' : ''}`}>
+          <div className="grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center">
             <div>
               <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
               <p className="text-sm font-bold text-navy">{listing.dom}</p>
             </div>
-            <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
-              <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
-              <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
-            </div>
-            <div>
-              <p className="text-[9px] font-medium text-slate-400" title="Cash Flow per Month">Cash Flow/mo</p>
-              <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-500' : listing.cashFlow === 0 ? 'text-blue-500' : 'text-slate-400'}`}>
-                {fmtNum(listing.cashFlow)}
-              </p>
-            </div>
+            {isGated ? (
+              <>
+                <div className="select-none blur-[6px]">
+                  <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                  <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+                </div>
+                <div className="select-none blur-[6px]">
+                  <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+                  <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+                </div>
+                <div className="select-none blur-[6px]">
+                  <p className="text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
+                  <p className="text-sm font-bold text-emerald-500">{fmtNum(listing.cashFlow)}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                  <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+                  <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-medium text-slate-400" title="Cash Flow per Month">Cash Flow/mo</p>
+                  <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-500' : listing.cashFlow === 0 ? 'text-blue-500' : 'text-slate-400'}`}>
+                    {fmtNum(listing.cashFlow)}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Gated CTA overlay */}
+          {/* Gated CTA overlay — inline signup trigger */}
           {isGated && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <Link
-                href="/signup"
-                className="rounded-lg bg-navy px-5 py-2.5 text-center text-sm font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
+            <div className="mt-1.5 text-center">
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignupClick?.(); }}
+                className="text-[11px] font-medium text-accent hover:text-accent/80 cursor-pointer bg-transparent border-none"
               >
-                Sign up free to see deal analysis
-              </Link>
-              <p className="mt-1.5 text-[11px] text-slate-500">Takes 10 seconds. No credit card.</p>
+                Unlock deal analysis — free, 10 seconds →
+              </button>
             </div>
           )}
         </div>
+
+        {/* Transit & School Scores */}
+        {(listing.transitScore > 0 || listing.schoolScore > 0) && (
+          <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-500">
+            {listing.transitScore > 0 && (
+              <span title="Transit Score — proximity to GO, LRT, MiWay, highways">
+                🚇 Transit: <span className="font-semibold text-navy">{listing.transitScore}/10</span>
+              </span>
+            )}
+            {listing.schoolScore > 0 && (
+              <span title="School Score — school quality ratings in the area">
+                🏫 Schools: <span className="font-semibold text-navy">{listing.schoolScore}/10</span>
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Rent and mortgage */}
         {!isGated && (
@@ -174,47 +213,41 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Actions */}
-        {!isGated ? (
-          <div className="mt-3 flex items-center justify-between">
-            {/* Compare checkbox */}
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-500 hover:text-navy">
-              <input
-                type="checkbox"
-                checked={isCompared}
-                onChange={() => onToggleCompare(listing.id)}
-                className="h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent/20"
-              />
-              Compare
-            </label>
+        {/* Actions — always visible */}
+        <div className="mt-3 flex items-center justify-between">
+          {/* Compare checkbox */}
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-500 hover:text-navy">
+            <input
+              type="checkbox"
+              checked={isCompared}
+              onChange={() => onToggleCompare(listing.id)}
+              className="h-4 w-4 rounded border-slate-300 text-accent focus:ring-accent/20"
+            />
+            Compare
+          </label>
 
-            {/* Save button */}
-            <button
-              onClick={toggleSave}
-              className={`flex items-center gap-1 text-xs transition-colors ${saved ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
-              aria-label={saved ? 'Unsave' : 'Save'}
+          {/* Save button */}
+          <button
+            onClick={toggleSave}
+            className={`flex items-center gap-1 text-xs transition-colors ${saved ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+            aria-label={saved ? 'Unsave' : 'Save'}
+          >
+            <svg
+              className="h-4 w-4"
+              fill={saved ? 'currentColor' : 'none'}
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
             >
-              <svg
-                className="h-4 w-4"
-                fill={saved ? 'currentColor' : 'none'}
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-              {saved ? 'Saved' : 'Save'}
-            </button>
-          </div>
-        ) : (
-          <div className="mt-3 pt-3 border-t border-slate-100">
-            <p className="text-[11px] text-slate-400">Listed by: {listing.brokerage || 'Royal LePage Signature Realty'}</p>
-          </div>
-        )}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+            {saved ? 'Saved' : 'Save'}
+          </button>
+        </div>
       </div>
     </div>
   );

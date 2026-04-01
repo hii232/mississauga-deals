@@ -5,5 +5,6 @@ export const metadata = {
     title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
     description: 'Discover your ideal Mississauga investment strategy in 60 seconds.',
   },
+  alternates: { canonical: '/quiz' },
 };
 export default function Layout({ children }) { return children; }

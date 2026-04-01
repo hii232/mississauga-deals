@@ -4,6 +4,7 @@ export const metadata = {
   title: 'GTA Investment Properties | Toronto, Brampton, Vaughan & More',
   description:
     'Browse scored investment properties across the Greater Toronto Area. Cash flow analysis, cap rates, and deal scores on thousands of listings in Toronto, Brampton, Vaughan, Oakville, Hamilton and more.',
+  alternates: { canonical: '/gta' },
 };
 
 // GTA page loads instantly with skeletons, then fetches client-side.

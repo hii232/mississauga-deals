@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Privacy Policy — MississaugaInvestor.ca',
   description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {
@@ -13,7 +14,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">1. Who We Are</h2>
           <p>
-            MississaugaInvestor.ca is operated by Hamza Nouman, Sales Representative at Royal LePage
+            MississaugaInvestor.ca is operated by Hamza Nouman, Sales Representative at Cityscape Real Estate Ltd.
             Signature Realty, Brokerage. We are committed to protecting your privacy and complying with
             all applicable Canadian privacy legislation, including PIPEDA (Personal Information Protection
             and Electronic Documents Act).
@@ -59,7 +60,7 @@ export default function PrivacyPage() {
             information with:
           </p>
           <ul className="list-disc pl-6 space-y-1 mt-2">
-            <li><strong>Royal LePage Signature Realty, Brokerage:</strong> As required for real estate transaction purposes.</li>
+            <li><strong>Cityscape Real Estate Ltd., Brokerage:</strong> As required for real estate transaction purposes.</li>
             <li><strong>Service Providers:</strong> Trusted third-party services that help us operate our website (e.g., hosting, analytics), bound by confidentiality agreements.</li>
             <li><strong>Legal Requirements:</strong> When required by law, regulation, or legal process.</li>
           </ul>
@@ -115,8 +116,8 @@ export default function PrivacyPage() {
           </p>
           <div className="bg-cloud rounded-lg p-4 mt-3 text-sm">
             <p className="font-semibold text-navy">Hamza Nouman, Sales Representative</p>
-            <p>Royal LePage Signature Realty, Brokerage</p>
-            <p>30 Eglinton Ave W, Mississauga, ON</p>
+            <p>Cityscape Real Estate Ltd., Brokerage</p>
+            <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
             <p>
               Phone: <a href="tel:6476091289" className="text-accent hover:underline">647-609-1289</a>
             </p>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 export const metadata = {
   title: 'How the Deal Score Works — MississaugaInvestor.ca',
   description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
+  alternates: { canonical: '/score-methodology' },
 };
 
 export default function ScoreMethodologyPage() {
@@ -79,10 +80,50 @@ export default function ScoreMethodologyPage() {
                 <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">20% weight</span>
               </div>
               <p className="text-xs text-muted">
-                Days on market and price reductions. Properties that have been listed longer or have
-                had price drops may represent negotiation opportunities.
+                Combines days on market, price reductions, basement suite potential, transit access,
+                and school quality. Properties with longer DOM or price drops may represent negotiation
+                opportunities. Transit and school scores add bonus points reflecting location quality
+                for rental demand and long-term value.
               </p>
             </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="font-heading font-semibold text-xl text-navy mb-3">Transit Score</h2>
+          <p>
+            Each Mississauga neighbourhood is assigned a Transit Score from 1 to 10 based on proximity
+            and access to GO Transit stations, the Hurontario LRT line, MiWay bus routes, and major
+            highway interchanges. Higher transit scores indicate better connectivity, which drives
+            stronger rental demand and faster appreciation.
+          </p>
+          <div className="mt-3 bg-cloud rounded-lg p-4">
+            <p className="text-xs text-muted mb-2"><strong>How Transit Score affects Deal Score (within Market Signals, 20% weight):</strong></p>
+            <ul className="list-disc pl-5 text-xs text-muted space-y-1">
+              <li>Transit Score 8-10: +2.0 bonus points</li>
+              <li>Transit Score 6-7: +1.0 bonus point</li>
+              <li>Transit Score 4-5: +0.5 bonus points</li>
+              <li>Transit Score below 4: no bonus</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="font-heading font-semibold text-xl text-navy mb-3">School Score</h2>
+          <p>
+            Each neighbourhood receives a School Score from 1 to 10 reflecting the quality of nearby
+            public and Catholic schools based on provincial test results, Fraser Institute ratings, and
+            parent reviews. Top-rated school zones attract stable family tenants, reduce vacancy, and
+            support long-term property values.
+          </p>
+          <div className="mt-3 bg-cloud rounded-lg p-4">
+            <p className="text-xs text-muted mb-2"><strong>How School Score affects Deal Score (within Market Signals, 20% weight):</strong></p>
+            <ul className="list-disc pl-5 text-xs text-muted space-y-1">
+              <li>School Score 8-10: +1.5 bonus points</li>
+              <li>School Score 6-7: +1.0 bonus point</li>
+              <li>School Score 4-5: +0.5 bonus points</li>
+              <li>School Score below 4: no bonus</li>
+            </ul>
           </div>
         </section>
 
@@ -128,7 +169,7 @@ export default function ScoreMethodologyPage() {
             income, and operating costs. A low investment score does not mean the property is undesirable — it
             means the current asking price relative to estimated rental income produces lower investor returns.
             Scores update as prices change. This is not an appraisal. Hamza Nouman, Sales Representative,
-            Royal LePage Signature Realty, Brokerage.
+            Cityscape Real Estate Ltd., Brokerage.
           </p>
         </div>
 

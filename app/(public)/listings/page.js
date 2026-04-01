@@ -1,52 +1,15 @@
 import { ListingsContainer } from '@/components/listings/listings-container';
-import { processListings } from '@/lib/listings/process-listings';
 
 export const metadata = {
-  title: 'Investment Listings | Mississauga Deals',
+  title: 'Mississauga Investment Properties — 1,800+ Listings Scored for Cash Flow | MississaugaInvestor.ca',
   description:
-    'Browse scored investment properties in Mississauga. Cash flow analysis, cap rates, and deal scores on every listing.',
+    'Browse 1,800+ scored investment properties in Mississauga. Cash flow analysis, cap rates, deal scores, legal suite detection, and price drop alerts on every listing. Free for investors.',
+  alternates: { canonical: '/listings' },
 };
 
-async function fetchListings() {
-  try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
-
-    // Fetch first page to get total count
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
-
-    // Fetch remaining pages if any
-    if (totalPages > 1) {
-      const pagePromises = [];
-      for (let p = 2; p <= totalPages; p++) {
-        pagePromises.push(
-          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-            next: { revalidate: 3600 },
-          }).then((r) => r.ok ? r.json() : null)
-        );
-      }
-      const pages = await Promise.all(pagePromises);
-      for (const pg of pages) {
-        if (pg?.listings) raw.push(...pg.listings);
-      }
-    }
-
-    return processListings(raw);
-  } catch {
-    return [];
-  }
-}
-
-export default async function ListingsPage() {
-  const listings = await fetchListings();
-
+// Loads instantly with skeletons, then fetches client-side progressively.
+// Page 1 (200 listings) appears in ~1-2s, remaining pages load in background.
+export default function ListingsPage() {
   return (
     <main className="min-h-screen bg-cloud">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -58,7 +21,10 @@ export default async function ListingsPage() {
             All active listings scored and analyzed
           </p>
         </div>
-        <ListingsContainer initialListings={listings} />
+        <ListingsContainer
+          initialListings={[]}
+          apiEndpoint="/api/listings"
+        />
       </div>
     </main>
   );

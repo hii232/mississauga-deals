@@ -31,6 +31,8 @@ export default async function sitemap() {
     { url: `${BASE}/faq`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/blog`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${BASE}/score-methodology`, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${BASE}/alerts`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE}/compare`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE}/terms`, changeFrequency: 'yearly', priority: 0.2 },
   ].map((p) => ({ ...p, lastModified: now }));

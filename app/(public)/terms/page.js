@@ -1,6 +1,7 @@
 export const metadata = {
   title: 'Terms of Service — MississaugaInvestor.ca',
   description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {
@@ -21,7 +22,7 @@ export default function TermsPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">2. About the Website</h2>
           <p>
-            MississaugaInvestor.ca is operated by Hamza Nouman, a licensed Sales Representative at Royal LePage
+            MississaugaInvestor.ca is operated by Hamza Nouman, a licensed Sales Representative at Cityscape Real Estate Ltd.
             Signature Realty, Brokerage, licensed by the Real Estate Council of Ontario (RECO). The Website
             provides real estate investment analysis tools, property listings, and market data for informational
             purposes.
@@ -77,7 +78,7 @@ export default function TermsPage() {
           <p>
             The information provided on this Website does not constitute financial, investment, legal, tax,
             or other professional advice. You should consult with appropriate professionals before making any
-            real estate investment decisions. Hamza Nouman and Royal LePage Signature Realty are not responsible
+            real estate investment decisions. Hamza Nouman and Cityscape Real Estate Ltd. are not responsible
             for investment decisions made based on information from this Website.
           </p>
         </section>
@@ -104,7 +105,7 @@ export default function TermsPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">9. Limitation of Liability</h2>
           <p>
-            To the fullest extent permitted by law, MississaugaInvestor.ca, Hamza Nouman, and Royal LePage
+            To the fullest extent permitted by law, MississaugaInvestor.ca, Hamza Nouman, and Cityscape Real Estate Ltd.
             Signature Realty shall not be liable for any indirect, incidental, special, consequential, or
             punitive damages arising from your use of the Website, including but not limited to losses from
             investment decisions made using information from this platform.
@@ -144,8 +145,8 @@ export default function TermsPage() {
           <p>If you have questions about these Terms of Service, please contact:</p>
           <div className="bg-cloud rounded-lg p-4 mt-3 text-sm">
             <p className="font-semibold text-navy">Hamza Nouman, Sales Representative</p>
-            <p>Royal LePage Signature Realty, Brokerage</p>
-            <p>30 Eglinton Ave W, Mississauga, ON</p>
+            <p>Cityscape Real Estate Ltd., Brokerage</p>
+            <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
             <p>
               Phone: <a href="tel:6476091289" className="text-accent hover:underline">647-609-1289</a>
             </p>

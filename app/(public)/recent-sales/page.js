@@ -4,6 +4,7 @@ export const metadata = {
   title: 'Recent Sales — MississaugaInvestor.ca',
   description:
     'Browse recently sold properties in Mississauga. See sold prices, days on market, and negotiation gaps to understand the real market.',
+  alternates: { canonical: '/recent-sales' },
 };
 
 export default function RecentSalesPage() {

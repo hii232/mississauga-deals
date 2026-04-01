@@ -42,7 +42,7 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Dupl
 
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
-  { key: 'cf', label: 'CF+', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
+  { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
   { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate above 4% — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
   { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
   { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
@@ -52,6 +52,8 @@ export const STRATEGY_CHIPS = [
   { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
   { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
   { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work — keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
+  { key: 'hightransit', label: 'HIGH TRANSIT', tooltip: 'Transit score 7+ — near GO stations, LRT, major bus routes', filter: (l) => (l.transitScore || 0) >= 7 },
+  { key: 'topschools', label: 'TOP SCHOOLS', tooltip: 'School score 8+ — highly rated school district', filter: (l) => (l.schoolScore || 0) >= 8 },
 ];
 
 // ── Sort Options ──
@@ -66,6 +68,8 @@ export const SORT_OPTIONS = [
   { key: 'drop', label: 'Price Drop (Biggest Cuts)', fn: (a, b) => b.priceDrop - a.priceDrop },
   { key: 'rent', label: 'Rent (Highest)', fn: (a, b) => b.estimatedRent - a.estimatedRent },
   { key: 'coc', label: 'CoC Return', fn: (a, b) => b.cashOnCash - a.cashOnCash },
+  { key: 'transit', label: 'Transit Score', fn: (a, b) => (b.transitScore || 0) - (a.transitScore || 0) },
+  { key: 'school', label: 'School Score', fn: (a, b) => (b.schoolScore || 0) - (a.schoolScore || 0) },
 ];
 
 // ── Neighbourhood List (from HOOD_DATA keys) ──

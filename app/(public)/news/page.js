@@ -6,6 +6,7 @@ export const metadata = {
   title: 'Real Estate Intelligence — MississaugaInvestor.ca',
   description:
     'Stay updated with the latest Canadian real estate news, Bank of Canada rate decisions, market reports, and investment insights.',
+  alternates: { canonical: '/news' },
 };
 
 export default async function NewsPage() {
