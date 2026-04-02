@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 
 const BUDGETS = [
@@ -91,12 +92,36 @@ export default function PreConstructionPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* HST Rebate Highlight */}
+      <div className="mb-8 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-5 md:p-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+          <div className="flex-shrink-0 w-12 h-12 bg-amber-500/15 rounded-xl flex items-center justify-center">
+            <span className="text-2xl">🔥</span>
+          </div>
+          <div className="flex-1">
+            <h2 className="font-heading font-bold text-lg text-navy mb-1">
+              Save Up to $130,000 — Ontario HST Rebate Now Active
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Get VIP access to pre-construction projects <strong>plus save up to $130,000 in HST</strong> on new builds.
+              APS must be signed between April 1, 2026 and March 31, 2027. This changes the investment math entirely.
+            </p>
+          </div>
+          <Link
+            href="/pre-construction/hst-rebate"
+            className="flex-shrink-0 btn-primary !px-5 !py-2.5 no-underline text-sm"
+          >
+            Full HST Breakdown
+          </Link>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         {/* Left side - Info */}
         <div>
           <h1 className="section-title mb-3">Pre-Construction VIP Access</h1>
           <p className="section-subtitle mb-8">
-            Get exclusive first access to new developments in Mississauga before they go public
+            Get exclusive first access to new developments in Mississauga + save up to $130K in HST
           </p>
 
           <div className="space-y-5 mb-8">

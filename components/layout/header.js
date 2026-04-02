@@ -39,9 +39,26 @@ export default function Header({ savedCount = 0 }) {
 
   return (
     <>
+      {/* HST Rebate Announcement Banner */}
+      <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-white text-xs sm:text-sm py-2 px-4 text-center font-semibold">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <span className="hidden sm:inline">🔥</span>
+          <span>NEW: Save Up to $130,000 on New Homes — Ontario HST Rebate Now Active</span>
+          <span className="hidden md:inline text-white/80 text-xs font-normal">(Apr 1, 2026 – Mar 31, 2027)</span>
+          <div className="flex items-center gap-2">
+            <Link href="/pre-construction/hst-rebate" className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-0.5 text-xs font-bold text-white no-underline transition-colors">
+              Learn More
+            </Link>
+            <a href="tel:+16476091289" className="hidden sm:inline-flex items-center rounded-full bg-white text-orange-600 px-3 py-0.5 text-xs font-bold no-underline hover:bg-white/90 transition-colors">
+              Book a Call
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* RECO Compliance Bar */}
       <div className="bg-navy text-white/70 text-[10px] py-1 px-4 text-center font-mono">
-        Hamza Nouman, Sales Representative · Royal LePage Signature Realty, Brokerage · Licensed by RECO
+        Hamza Nouman, REALTOR® · Cityscape Real Estate Ltd., Brokerage · Licensed by RECO
       </div>
 
       {/* Main Header */}
