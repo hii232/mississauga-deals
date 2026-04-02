@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Pre-Construction Condos Mississauga — VIP Access by Hamza Nouman',
-  description: 'Browse pre-construction condo projects in Mississauga with Hamza Nouman, Royal LePage Signature Realty. Get VIP early access to new developments with investment analysis, floor plans, and pricing.',
+  title: 'Pre-Construction Condos Mississauga — VIP Access + Save $130K HST | Hamza Nouman',
+  description: 'Get VIP early access to pre-construction condos in Mississauga plus save up to $130,000 with the Ontario HST rebate. Investment analysis, floor plans, and pricing from Hamza Nouman, Cityscape Real Estate Ltd.',
   alternates: { canonical: '/pre-construction' },
   openGraph: {
-    title: 'Pre-Construction Condos Mississauga — VIP Access by Hamza Nouman',
-    description: 'Pre-construction condo projects in Mississauga with VIP access and investment analysis.',
+    title: 'Pre-Construction Condos Mississauga — VIP Access + Save $130K HST',
+    description: 'VIP access to pre-construction projects in Mississauga. Save up to $130,000 with the Ontario HST rebate on new homes.',
     url: 'https://www.mississaugainvestor.ca/pre-construction',
   },
 };

@@ -18,8 +18,8 @@ export default function Footer() {
             </p>
             <div className="text-xs text-white/60 space-y-1">
               <p>Hamza Nouman, Sales Representative</p>
-              <p>Royal LePage Signature Realty, Brokerage</p>
-              <p>30 Eglinton Ave W, Mississauga, ON</p>
+              <p>Cityscape Real Estate Ltd., Brokerage</p>
+              <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
               <p>
                 <a href="tel:6476091289" className="text-accent hover:text-accent/80 no-underline">647-609-1289</a>
                 {' · '}
@@ -42,6 +42,7 @@ export default function Footer() {
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
               <li><Link href="/pre-construction" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
+              <li><Link href="/pre-construction/hst-rebate" className="text-white/50 hover:text-white no-underline transition-colors">HST Rebate Guide</Link></li>
               <li><Link href="/mortgage-calculator" className="text-white/50 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>
               <li><Link href="/blog" className="text-white/50 hover:text-white no-underline transition-colors">Blog</Link></li>
               <li><Link href="/about" className="text-white/50 hover:text-white no-underline transition-colors">About Hamza Nouman</Link></li>
@@ -66,8 +67,8 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-semibold text-sm text-white mb-3">Compliance</h4>
             <div className="space-y-3 text-xs">
-              <a href="https://www.royallepage.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
-                <Image src="/images/royal-lepage-logo.svg" alt="Royal LePage" width={120} height={64} className="rounded" />
+              <a href="https://www.cityscaperealestate.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
+                <span className="text-base">🏢</span> Cityscape Real Estate Ltd., Brokerage
               </a>
               <a href="https://www.reco.on.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
                 <span className="text-base">🏛️</span> Licensed by RECO
@@ -109,7 +110,7 @@ export default function Footer() {
             income, and operating costs. A low investment score does not mean the property is undesirable — it
             means the current asking price relative to estimated rental income produces lower investor returns.
             Scores update as prices change. This is not an appraisal. Hamza Nouman, Sales Representative,
-            Royal LePage Signature Realty, Brokerage.
+            Cityscape Real Estate Ltd., Brokerage.
           </p>
 
           {/* PIPEDA */}

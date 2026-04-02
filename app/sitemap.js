@@ -26,6 +26,7 @@ export default async function sitemap() {
     { url: `${BASE}/news`, changeFrequency: 'daily', priority: 0.7 },
     { url: `${BASE}/quiz`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/pre-construction`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${BASE}/pre-construction/hst-rebate`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/sell`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/mortgage-calculator`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/faq`, changeFrequency: 'monthly', priority: 0.6 },
