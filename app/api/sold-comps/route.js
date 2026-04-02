@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BASE = 'https://query.ampre.ca/odata';
-const TOK = process.env.AMPRE_TOKEN;
+const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 function addr(l) {
   return [l.UnitNumber ? l.UnitNumber + '-' : '', l.StreetNumber || '', l.StreetName || '', l.StreetSuffix || '']
@@ -45,7 +45,12 @@ export async function GET(request) {
 
     for (const statusFilter of statusAttempts) {
       const filters = [statusFilter];
-      filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+      // Toronto sub-areas in TREB: "Toronto W03", "Toronto C01", etc.
+      if (city.toLowerCase() === 'toronto') {
+        filters.push("startswith(City, 'Toronto')");
+      } else {
+        filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+      }
 
       // Similar property type (handle compound types like "Condo Townhouse")
       if (type) {
@@ -135,9 +140,12 @@ export async function GET(request) {
 
     // If no sold data found, try broader search without type/bed filters
     if (items.length === 0) {
+      const cityFilter = city.toLowerCase() === 'toronto'
+        ? "startswith(City, 'Toronto')"
+        : "City eq '" + city.replace(/'/g, "''") + "'";
       const broadFilters = [
         "StandardStatus eq 'Closed'",
-        "City eq '" + city.replace(/'/g, "''") + "'",
+        cityFilter,
         "PropertyType ne 'Commercial'",
         "PropertyType ne 'Business'",
         'ListPrice ge 100000',

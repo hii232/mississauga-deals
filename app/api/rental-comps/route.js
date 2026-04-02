@@ -91,9 +91,12 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
     'Condo Apt': "PropertySubType eq 'Condo Apt'",
   };
 
+  const cityFilter = city.toLowerCase() === 'toronto'
+    ? "startswith(City, 'Toronto')"
+    : `City eq '${city}'`;
   const filters = [
     "(StandardStatus eq 'Closed' or StandardStatus eq 'Leased')",
-    `City eq '${city}'`,
+    cityFilter,
     `BedroomsTotal ge ${Math.max(0, beds - bedRange)}`,
     `BedroomsTotal le ${beds + bedRange}`,
     `ModificationTimestamp ge ${cutoffStr}T00:00:00Z`,
@@ -139,9 +142,12 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
 }
 
 async function fetchActiveRentals(city, type, beds) {
+  const cityFilter = city.toLowerCase() === 'toronto'
+    ? "startswith(City, 'Toronto')"
+    : `City eq '${city}'`;
   const filters = [
     "StandardStatus eq 'Active'",
-    `City eq '${city}'`,
+    cityFilter,
     `BedroomsTotal ge ${Math.max(0, beds - 1)}`,
     `BedroomsTotal le ${beds + 1}`,
     "ListPrice le 8000", // Active lease listings have monthly rent as price

@@ -25,7 +25,12 @@ export async function GET(request) {
       filters.push("StreetNumber eq '" + streetNumber.replace(/'/g, "''") + "'");
     }
     filters.push("contains(StreetName, '" + streetName.replace(/'/g, "''") + "')");
-    filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+    // Toronto sub-areas in TREB: "Toronto W03", "Toronto C01", etc.
+    if (city.toLowerCase() === 'toronto') {
+      filters.push("startswith(City, 'Toronto')");
+    } else {
+      filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+    }
     if (unit) {
       filters.push("UnitNumber eq '" + unit.replace(/'/g, "''") + "'");
     }
