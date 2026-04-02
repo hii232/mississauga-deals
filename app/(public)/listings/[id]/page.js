@@ -91,14 +91,39 @@ function OverviewTab({ listing }) {
           ))}
         </div>
       </div>
-      {listing.basementIncome > 0 && (
-        <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3">
-          <p className="text-sm text-success font-medium">
-            Potential cash flow includes estimated basement rental income of ${listing.basementIncome.toLocaleString()}/mo
-            {listing.basementTier === 'potential' && ' — verify suite legality with the City of Mississauga before relying on this income'}
-          </p>
-        </div>
-      )}
+      {/* Rent Estimate Breakdown */}
+      <div className="rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-2">Rent Estimate</h4>
+        {listing.basementIncome > 0 ? (
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span className="text-navy/70">Main unit ({listing.mainBeds || listing.beds} bed)</span>
+              <span className="font-semibold text-navy">${(listing.baseRent || 0).toLocaleString()}/mo</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-navy/70">
+                {listing.basementTier === 'legal' ? 'Legal suite' : 'Basement suite'} ({listing.basementBeds || 1} bed)
+              </span>
+              <span className="font-semibold text-navy">${(listing.basementIncome || 0).toLocaleString()}/mo</span>
+            </div>
+            <div className="flex justify-between text-sm border-t border-accent/20 pt-1 mt-1">
+              <span className="font-semibold text-navy">Total Est. Rent</span>
+              <span className="font-bold text-accent">${(listing.estimatedRent || 0).toLocaleString()}/mo</span>
+            </div>
+            <p className="text-[10px] text-muted mt-1">
+              {listing.rentSource === 'neighbourhood' ? `Based on ${listing.neighbourhood} neighbourhood rental data` : 'Estimated from market price-to-rent ratios'}
+              {listing.basementTier === 'potential' && ' · Verify suite legality with the City of Mississauga'}
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm font-semibold text-navy">${(listing.estimatedRent || 0).toLocaleString()}/mo</p>
+            <p className="text-[10px] text-muted mt-1">
+              {listing.rentSource === 'neighbourhood' ? `Based on ${listing.neighbourhood} neighbourhood rental data for ${listing.beds}-bed ${listing.subType || listing.type}` : 'Estimated from market price-to-rent ratios'}
+            </p>
+          </div>
+        )}
+      </div>
       {listing.remarks && (
         <div>
           <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
