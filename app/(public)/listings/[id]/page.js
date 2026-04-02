@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR } from '@/lib/cash-flow-engine';
+import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
@@ -125,29 +125,51 @@ function HamzaTakeTab({ listing }) {
 }
 
 function MortgageTab({ listing }) {
-  const [downPct, setDownPct] = useState(20);
-  const [rate, setRate] = useState(4.5);
-  const [amort, setAmort] = useState(25);
+  const [downPct, setDownPct] = useState(DEFAULT_ASSUMPTIONS.downPaymentPercent);
+  const [rate, setRate] = useState(DEFAULT_ASSUMPTIONS.annualInterestRate);
+  const [amort, setAmort] = useState(DEFAULT_ASSUMPTIONS.amortizationYears);
+  const [insurance, setInsurance] = useState(DEFAULT_ASSUMPTIONS.monthlyInsurance);
+  const [maintenancePct, setMaintenancePct] = useState(DEFAULT_ASSUMPTIONS.maintenancePercent);
+  const [vacancyPct, setVacancyPct] = useState(DEFAULT_ASSUMPTIONS.vacancyPercent);
+  const [managementPct, setManagementPct] = useState(DEFAULT_ASSUMPTIONS.managementPercent);
 
   const calc = useMemo(() => {
-    const monthly = calcMonthly(listing.price, downPct, rate, amort);
-    const cf = calculateCashFlow(listing.price, listing.estimatedRent, downPct, rate, amort);
-    return { monthly, ...cf, downPayment: listing.price * (downPct / 100) };
-  }, [listing.price, listing.estimatedRent, downPct, rate, amort]);
+    const cf = calculateCashFlow(listing.price, listing.estimatedRent, {
+      downPct, rate, amortYears: amort,
+      annualPropertyTax: listing.annualPropertyTax || null,
+      city: listing.neighbourhood,
+      monthlyInsurance: insurance,
+      maintenancePct, vacancyPct, managementPct,
+    });
+    const closing = getClosingCosts(listing.price, downPct);
+    const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct);
+    return { ...cf, ...closing, cashOnCash: cocReturn };
+  }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, downPct, rate, amort, insurance, maintenancePct, vacancyPct, managementPct]);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
-        <Slider label="Down Payment" value={downPct} onChange={setDownPct} min={5} max={50} step={5} suffix="%" />
-        <Slider label="Interest Rate" value={rate} onChange={setRate} min={3} max={8} step={0.25} suffix="%" />
+        <Slider label="Down Payment" value={downPct} onChange={setDownPct} min={20} max={50} step={5} suffix="%" />
+        <Slider label="Interest Rate" value={rate} onChange={setRate} min={1} max={10} step={0.25} suffix="%" />
         <Slider label="Amortization" value={amort} onChange={setAmort} min={15} max={30} step={5} suffix=" yr" />
       </div>
+      <div className="grid gap-4 sm:grid-cols-4">
+        <Slider label="Insurance" value={insurance} onChange={setInsurance} min={50} max={500} step={25} suffix="/mo" />
+        <Slider label="Maintenance" value={maintenancePct} onChange={setMaintenancePct} min={1} max={15} step={1} suffix="%" />
+        <Slider label="Vacancy" value={vacancyPct} onChange={setVacancyPct} min={0} max={15} step={1} suffix="%" />
+        <Slider label="Management" value={managementPct} onChange={setManagementPct} min={0} max={12} step={1} suffix="%" />
+      </div>
+      {downPct < 20 && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800">
+          Canadian lenders require minimum 20% down for investment properties.
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ResultCard label="Down Payment" value={fmtK(calc.downPayment)} />
         <ResultCard label="Monthly Mortgage" value={`$${calc.mortgage.toLocaleString()}`} />
         <ResultCard label="Est. Rent" value={`$${listing.estimatedRent.toLocaleString()}`} />
         <ResultCard label="Potential Cash Flow" value={fmtNum(calc.cashFlow)} positive={calc.cashFlow >= 0} />
+        <ResultCard label="Cash-on-Cash" value={`${calc.cashOnCash}%`} positive={calc.cashOnCash > 0} />
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -155,125 +177,180 @@ function MortgageTab({ listing }) {
         <div className="space-y-2">
           <BreakdownRow label="Mortgage" value={calc.mortgage} />
           <BreakdownRow label="Property Tax" value={calc.propTax} />
-          <BreakdownRow label="Insurance" value={calc.insurance} />
-          <BreakdownRow label="Maintenance (5%)" value={calc.maintenance} />
-          <BreakdownRow label="Vacancy (4%)" value={calc.vacancy} />
+          <BreakdownRow label={`Insurance`} value={calc.insurance} />
+          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+          <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={calc.vacancy} />
+          {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={calc.management} />}
           <div className="border-t border-slate-300 pt-2">
             <BreakdownRow label="Total Expenses" value={calc.totalExpenses} bold />
           </div>
         </div>
       </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <h4 className="mb-3 text-sm font-semibold text-navy">Total Cash Required to Close</h4>
+        <div className="space-y-2">
+          <BreakdownRow label="Down Payment" value={calc.downPayment} annual />
+          <BreakdownRow label="Ontario Land Transfer Tax" value={calc.ltt} annual />
+          <BreakdownRow label="Legal & Title Insurance" value={calc.legalAndTitle} annual />
+          <BreakdownRow label="Inspection & Misc" value={calc.inspectionMisc} annual />
+          <div className="border-t border-slate-300 pt-2">
+            <BreakdownRow label="Total Cash Required" value={calc.totalCashRequired} annual bold />
+          </div>
+        </div>
+        <p className="mt-2 text-[10px] text-muted">Land transfer tax calculated for Ontario only. Toronto properties are subject to additional municipal LTT.</p>
+      </div>
+
+      <p className="text-[10px] text-muted">Canadian fixed-rate mortgage with semi-annual compounding. All figures are estimates.</p>
     </div>
   );
 }
 
 function CapRateTab({ listing }) {
-  const [vacancyRate, setVacancyRate] = useState(9);
-  const [opexRate, setOpexRate] = useState(30);
+  const [insurance, setInsurance] = useState(DEFAULT_ASSUMPTIONS.monthlyInsurance);
+  const [maintenancePct, setMaintenancePct] = useState(DEFAULT_ASSUMPTIONS.maintenancePercent);
+  const [vacancyPct, setVacancyPct] = useState(DEFAULT_ASSUMPTIONS.vacancyPercent);
+  const [managementPct, setManagementPct] = useState(DEFAULT_ASSUMPTIONS.managementPercent);
 
   const calc = useMemo(() => {
-    const vr = vacancyRate / 100;
-    const or = opexRate / 100;
-    const gri = listing.estimatedRent * 12;
-    const egi = gri * (1 - vr);
-    const opex = egi * or;
-    const noi = egi - opex;
-    const capRate = calculateCapRate(noi, listing.price);
-    const grm = listing.price / gri;
-    const cashOnCash = calculateCashOnCash(
-      (listing.estimatedRent - calcMonthly(listing.price) - Math.round((listing.price * 0.0095) / 12) - Math.round((listing.price * 0.003) / 12) - Math.round(listing.estimatedRent * 0.05) - Math.round(listing.estimatedRent * 0.04)) * 12,
-      listing.price,
-      20
+    const annualPropertyTax = listing.annualPropertyTax || Math.round(listing.price * 0.0084);
+    const noiResult = calculateNOI(listing.estimatedRent, {
+      annualPropertyTax,
+      monthlyInsurance: insurance,
+      maintenancePct, vacancyPct, managementPct,
+    });
+    const capRate = calculateCapRate(noiResult.noi, listing.price);
+    const grm = calculateGRM(listing.price, listing.estimatedRent);
+    const cocReturn = calculateCashOnCash(
+      calculateCashFlow(listing.price, listing.estimatedRent, {
+        annualPropertyTax, city: listing.neighbourhood,
+        monthlyInsurance: insurance, maintenancePct, vacancyPct, managementPct,
+      }).cashFlow * 12,
+      listing.price, 20
     );
-    return { gri, egi, opex, noi, capRate, grm, cashOnCash };
-  }, [listing.price, listing.estimatedRent, vacancyRate, opexRate]);
+    return { ...noiResult, capRate, grm, cashOnCash: cocReturn };
+  }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, insurance, maintenancePct, vacancyPct, managementPct]);
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Slider label="Vacancy Rate" value={vacancyRate} onChange={setVacancyRate} min={0} max={20} step={1} suffix="%" />
-        <Slider label="Operating Expenses" value={opexRate} onChange={setOpexRate} min={15} max={50} step={1} suffix="%" />
+      <div className="grid gap-4 sm:grid-cols-4">
+        <Slider label="Insurance" value={insurance} onChange={setInsurance} min={50} max={500} step={25} suffix="/mo" />
+        <Slider label="Maintenance" value={maintenancePct} onChange={setMaintenancePct} min={1} max={15} step={1} suffix="%" />
+        <Slider label="Vacancy" value={vacancyPct} onChange={setVacancyPct} min={0} max={15} step={1} suffix="%" />
+        <Slider label="Management" value={managementPct} onChange={setManagementPct} min={0} max={12} step={1} suffix="%" />
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <ResultCard label="Cap Rate" value={`${calc.capRate}%`} />
-        <ResultCard label="NOI" value={`$${Math.round(calc.noi).toLocaleString()}`} />
-        <ResultCard label="GRM" value={calc.grm.toFixed(1)} />
+        <ResultCard label="Annual NOI" value={`$${Math.round(calc.noi).toLocaleString()}`} />
+        <ResultCard label="GRM" value={calc.grm} />
         <ResultCard label="Cash-on-Cash" value={`${calc.cashOnCash}%`} />
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
         <h4 className="mb-3 text-sm font-semibold text-navy">NOI Breakdown</h4>
         <div className="space-y-2">
-          <BreakdownRow label="Gross Rental Income" value={Math.round(calc.gri)} annual />
-          <BreakdownRow label={`Vacancy (${vacancyRate}%)`} value={Math.round(calc.gri - calc.egi)} annual negative />
-          <BreakdownRow label="Effective Gross Income" value={Math.round(calc.egi)} annual />
-          <BreakdownRow label={`Operating Expenses (${opexRate}%)`} value={Math.round(calc.opex)} annual negative />
+          <BreakdownRow label="Gross Rental Income" value={Math.round(calc.annualGrossRent)} annual />
+          <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={Math.round(calc.annualVacancyLoss)} annual negative />
+          <div className="border-t border-slate-200 pt-2">
+            <BreakdownRow label="Effective Gross Income" value={Math.round(calc.effectiveGrossIncome)} annual bold />
+          </div>
+          <BreakdownRow label="Property Tax" value={Math.round(calc.annualOpExPropertyTax)} annual negative />
+          <BreakdownRow label="Insurance" value={Math.round(calc.annualOpExInsurance)} annual negative />
+          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+          {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={Math.round(calc.annualOpExManagement)} annual negative />}
           <div className="border-t border-slate-300 pt-2">
             <BreakdownRow label="Net Operating Income" value={Math.round(calc.noi)} annual bold />
           </div>
         </div>
       </div>
+
+      <p className="text-[10px] text-muted">NOI measures property performance independent of financing. It does not include mortgage payments.</p>
     </div>
   );
 }
 
 function BRRRTab({ listing, initialARV }) {
-  const [renoCost, setRenoCost] = useState(50000);
-  const [arv, setArv] = useState(initialARV || Math.round(listing.price * 1.2));
+  const [renoCost, setRenoCost] = useState(0);
+  const [arv, setArv] = useState(initialARV || listing.price);
+  const [refinanceLTV, setRefinanceLTV] = useState(80);
 
-  // Update ARV when initialARV changes (from sold comps "Use as ARV" button)
   useEffect(() => {
     if (initialARV) setArv(initialARV);
   }, [initialARV]);
 
-  const calc = useMemo(() => calculateBRRR(listing.price, renoCost, arv), [listing.price, renoCost, arv]);
+  const calc = useMemo(() => calculateBRRR(listing.price, renoCost, arv, refinanceLTV), [listing.price, renoCost, arv, refinanceLTV]);
+  const isDefault = renoCost === 0 && arv === listing.price;
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <label className="mb-1 block text-sm text-muted">Renovation Cost</label>
+          <p className="text-[10px] text-muted mb-1">Enter your estimated renovation budget based on contractor quotes.</p>
           <input
             type="number"
             value={renoCost}
-            onChange={(e) => setRenoCost(Number(e.target.value))}
+            onChange={(e) => setRenoCost(Number(e.target.value) || 0)}
+            placeholder="0"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
         <div>
           <label className="mb-1 block text-sm text-muted">After Repair Value (ARV)</label>
+          <p className="text-[10px] text-muted mb-1">Estimated value after renovations. Research recent sold prices nearby.</p>
           <input
             type="number"
             value={arv}
-            onChange={(e) => setArv(Number(e.target.value))}
+            onChange={(e) => setArv(Number(e.target.value) || 0)}
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ResultCard label="Total Invested" value={fmtK(calc.totalInvested)} />
-        <ResultCard label="Equity Gain" value={fmtK(calc.equityGain)} positive={calc.equityGain > 0} />
-        <ResultCard label="Refinance (80% LTV)" value={fmtK(calc.refinanceAmount)} />
-        <ResultCard label="Cash Recovered" value={fmtK(calc.cashRecovered)} positive={calc.cashRecovered > 0} />
-      </div>
-
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-        <h4 className="mb-3 text-sm font-semibold text-navy">BRRR Breakdown</h4>
-        <div className="space-y-2">
-          <BreakdownRow label="Purchase Price" value={listing.price} annual />
-          <BreakdownRow label="Renovation Cost" value={renoCost} annual />
-          <div className="border-t border-slate-300 pt-2">
-            <BreakdownRow label="Total Invested" value={calc.totalInvested} annual bold />
-          </div>
-          <BreakdownRow label="After Repair Value" value={arv} annual />
-          <BreakdownRow label="Refinance Amount (80% LTV)" value={calc.refinanceAmount} annual />
-          <div className="border-t border-slate-300 pt-2">
-            <BreakdownRow label="Cash Left In Deal" value={calc.cashLeftIn} annual bold />
-          </div>
+        <div>
+          <label className="mb-1 block text-sm text-muted">Refinance LTV</label>
+          <Slider label="" value={refinanceLTV} onChange={setRefinanceLTV} min={50} max={80} step={5} suffix="%" />
         </div>
       </div>
+
+      {isDefault ? (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 text-center">
+          <p className="text-sm text-muted">Enter your renovation budget and after-repair value estimate to see BRRR projections.</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <ResultCard label="Total Invested" value={fmtK(calc.totalInvested)} />
+            <ResultCard label="Equity Created" value={fmtK(calc.equityCreated)} positive={calc.equityCreated > 0} />
+            <ResultCard label={`Refinance (${refinanceLTV}% LTV)`} value={fmtK(calc.refinanceAmount)} />
+            {calc.cashRecovered > 0
+              ? <ResultCard label="Cash Recovered" value={fmtK(calc.cashRecovered)} positive />
+              : <ResultCard label="Cash Left in Deal" value={fmtK(calc.cashLeftInDeal)} positive={false} />
+            }
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <h4 className="mb-3 text-sm font-semibold text-navy">BRRR Breakdown</h4>
+            <div className="space-y-2">
+              <BreakdownRow label="Purchase Price" value={listing.price} annual />
+              <BreakdownRow label="Renovation Cost" value={renoCost} annual />
+              <div className="border-t border-slate-300 pt-2">
+                <BreakdownRow label="Total Invested" value={calc.totalInvested} annual bold />
+              </div>
+              <BreakdownRow label="After Repair Value (ARV)" value={arv} annual />
+              <BreakdownRow label={`Refinance Amount (${refinanceLTV}% LTV)`} value={calc.refinanceAmount} annual />
+              <div className="border-t border-slate-300 pt-2">
+                {calc.cashRecovered > 0
+                  ? <BreakdownRow label="Cash Recovered" value={calc.cashRecovered} annual bold />
+                  : <BreakdownRow label="Cash Left in Deal" value={calc.cashLeftInDeal} annual bold />
+                }
+              </div>
+              <BreakdownRow label="Equity Created" value={calc.equityCreated} annual />
+            </div>
+          </div>
+
+          <p className="text-[10px] text-muted">BRRR analysis assumes all-cash initial purchase (standard BRRR strategy).</p>
+        </>
+      )}
     </div>
   );
 }
@@ -978,6 +1055,8 @@ export default function PropertyDetailPage() {
   }
 
   const scoreColor = scoreColorHex(listing.hamzaScore);
+  const isPremium = listing.hamzaScore >= 7;
+  const isGated = !isAuthenticated && isPremium;
 
   return (
     <main className="min-h-screen bg-cloud overflow-x-hidden">
@@ -1000,22 +1079,14 @@ export default function PropertyDetailPage() {
           {/* Right Column: Header Info */}
           <div className="lg:col-span-2 min-w-0">
             <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-              {/* Score Badge */}
+              {/* Score Badge — always visible */}
               <div className="mb-4 flex items-start justify-between">
-                {isAuthenticated ? (
-                  <div
-                    className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
-                    style={{ backgroundColor: scoreColor }}
-                  >
-                    {listing.hamzaScore}
-                  </div>
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-slate-200 text-slate-400">
-                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    </svg>
-                  </div>
-                )}
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
+                  style={{ backgroundColor: scoreColor }}
+                >
+                  {listing.hamzaScore}
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleShare}
@@ -1066,7 +1137,7 @@ export default function PropertyDetailPage() {
               </div>
 
               {/* Key Metrics */}
-              {isAuthenticated ? (
+              {!isGated ? (
                 <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
                   <div className="text-center">
                     <p className="text-xs text-muted">Cap Rate</p>
@@ -1085,13 +1156,14 @@ export default function PropertyDetailPage() {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
+                  <p className="mb-2 text-xs font-medium text-navy">This is a premium deal</p>
                   <Link
                     href="/signup"
-                    className="rounded-lg bg-navy px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-navy/90 no-underline"
+                    className="rounded-lg bg-accent px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-accent/90 no-underline"
                   >
-                    Sign up to unlock metrics
+                    Sign up free to unlock analysis
                   </Link>
-                  <p className="mt-1 text-[10px] text-slate-500">Free. No credit card.</p>
+                  <p className="mt-1 text-[10px] text-slate-500">See cash flow, cap rate & deal score</p>
                 </div>
               )}
 
@@ -1128,7 +1200,7 @@ export default function PropertyDetailPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
             {activeTab === 'comps' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
+              <AuthGate isAuthenticated={!isGated}>
                 <SoldCompsTab
                   listing={listing}
                   onUseAsARV={(price) => {
@@ -1140,22 +1212,22 @@ export default function PropertyDetailPage() {
             )}
             {activeTab === 'history' && <PriceHistoryTab listing={listing} />}
             {activeTab === 'mortgage' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
+              <AuthGate isAuthenticated={!isGated}>
                 <MortgageTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'caprate' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
+              <AuthGate isAuthenticated={!isGated}>
                 <CapRateTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'brrr' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
+              <AuthGate isAuthenticated={!isGated}>
                 <BRRRTab listing={listing} initialARV={arvFromComps} />
               </AuthGate>
             )}
             {activeTab === 'expert' && (
-              <AuthGate isAuthenticated={isAuthenticated}>
+              <AuthGate isAuthenticated={!isGated}>
                 <ExpertAnalysisTab listing={listing} />
               </AuthGate>
             )}
