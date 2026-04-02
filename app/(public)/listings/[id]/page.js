@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
@@ -850,6 +850,7 @@ function PhotoGallery({ photos, listingId }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [fetchedPhotos, setFetchedPhotos] = useState(null);
+  const thumbContainerRef = useRef(null);
 
   // Fetch photos from API if listing has none
   useEffect(() => {
@@ -876,10 +877,13 @@ function PhotoGallery({ photos, listingId }) {
   const images = dedupedPhotos?.length ? dedupedPhotos : ['/images/placeholder-property.jpg'];
   const hasRealPhotos = dedupedPhotos?.length > 0;
 
+  const goPrev = (e) => { e.stopPropagation(); setActiveIdx((prev) => (prev - 1 + images.length) % images.length); };
+  const goNext = (e) => { e.stopPropagation(); setActiveIdx((prev) => (prev + 1) % images.length); };
+
   return (
     <div className="space-y-3 w-full min-w-0">
       <div
-        className="relative aspect-[4/3] sm:aspect-[16/10] max-h-[50vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer w-full"
+        className="group relative aspect-[4/3] sm:aspect-[16/10] max-h-[50vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer w-full"
         onClick={() => hasRealPhotos && setLightboxOpen(true)}
       >
         <img
@@ -888,6 +892,29 @@ function PhotoGallery({ photos, listingId }) {
           className="h-full w-full object-cover object-center"
           onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
         />
+        {/* Left/Right arrows on main image */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={goPrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition hover:bg-black/70 group-hover:opacity-100"
+              aria-label="Previous photo"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              onClick={goNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white opacity-0 transition hover:bg-black/70 group-hover:opacity-100"
+              aria-label="Next photo"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </>
+        )}
         {/* Photo count overlay */}
         {images.length > 1 && (
           <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
@@ -899,23 +926,44 @@ function PhotoGallery({ photos, listingId }) {
         )}
       </div>
       {images.length > 1 && (
-        <div className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          {images.map((src, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveIdx(i)}
-              className={`h-12 w-16 sm:h-16 sm:w-20 flex-shrink-0 overflow-hidden rounded-md sm:rounded-lg border-2 transition ${
-                i === activeIdx ? 'border-accent' : 'border-transparent opacity-70 hover:opacity-100'
-              }`}
-            >
-              <img
-                src={src}
-                alt={`Thumbnail ${i + 1}`}
-                className="h-full w-full object-cover"
-                onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
-              />
-            </button>
-          ))}
+        <div className="relative group/thumbs">
+          <div ref={thumbContainerRef} className="flex gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-smooth">
+            {images.map((src, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveIdx(i)}
+                className={`h-12 w-16 sm:h-16 sm:w-20 flex-shrink-0 overflow-hidden rounded-md sm:rounded-lg border-2 transition ${
+                  i === activeIdx ? 'border-accent' : 'border-transparent opacity-70 hover:opacity-100'
+                }`}
+              >
+                <img
+                  src={src}
+                  alt={`Thumbnail ${i + 1}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
+                />
+              </button>
+            ))}
+          </div>
+          {/* Thumbnail scroll arrows */}
+          <button
+            onClick={() => { const el = thumbContainerRef.current; if (el) el.scrollBy({ left: -200, behavior: 'smooth' }); }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow border border-slate-200 text-navy opacity-0 transition hover:bg-white group-hover/thumbs:opacity-100"
+            aria-label="Scroll thumbnails left"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+          <button
+            onClick={() => { const el = thumbContainerRef.current; if (el) el.scrollBy({ left: 200, behavior: 'smooth' }); }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow border border-slate-200 text-navy opacity-0 transition hover:bg-white group-hover/thumbs:opacity-100"
+            aria-label="Scroll thumbnails right"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
         </div>
       )}
 
