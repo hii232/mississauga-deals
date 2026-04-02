@@ -49,9 +49,9 @@ export default function Header({ savedCount = 0 }) {
             <Link href="/pre-construction/hst-rebate" className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-0.5 text-xs font-bold text-white no-underline transition-colors">
               Learn More
             </Link>
-            <a href="tel:+16476091289" className="hidden sm:inline-flex items-center rounded-full bg-white text-orange-600 px-3 py-0.5 text-xs font-bold no-underline hover:bg-white/90 transition-colors">
+            <Link href="/book-call" className="hidden sm:inline-flex items-center rounded-full bg-white text-orange-600 px-3 py-0.5 text-xs font-bold no-underline hover:bg-white/90 transition-colors">
               Book a Call
-            </a>
+            </Link>
           </div>
         </div>
       </div>

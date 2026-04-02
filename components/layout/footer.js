@@ -45,6 +45,7 @@ export default function Footer() {
               <li><Link href="/pre-construction/hst-rebate" className="text-white/50 hover:text-white no-underline transition-colors">HST Rebate Guide</Link></li>
               <li><Link href="/mortgage-calculator" className="text-white/50 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>
               <li><Link href="/blog" className="text-white/50 hover:text-white no-underline transition-colors">Blog</Link></li>
+              <li><Link href="/book-call" className="text-white/50 hover:text-white no-underline transition-colors">Book a Free Call</Link></li>
               <li><Link href="/about" className="text-white/50 hover:text-white no-underline transition-colors">About Hamza Nouman</Link></li>
               <li><Link href="/faq" className="text-white/50 hover:text-white no-underline transition-colors">FAQ</Link></li>
             </ul>
