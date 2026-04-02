@@ -85,6 +85,13 @@ export default function Footer() {
       {/* Disclaimers */}
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+          {/* Bona Fide Interest Notice (PropTx VOW Datafeed Agreement Section 6.3(k)) */}
+          <p className="text-[10px] text-white/30 leading-relaxed">
+            The information provided herein must only be used by consumers that have a bona fide interest
+            in the purchase, sale, or lease of real estate and may not be used for any commercial purpose
+            or any other purpose.
+          </p>
+
           {/* TRREB Disclaimer */}
           <p className="text-[10px] text-white/30 leading-relaxed">
             The listing data is provided under copyright by the Toronto Regional Real Estate Board (TRREB).

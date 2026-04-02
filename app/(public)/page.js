@@ -1,14 +1,16 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS } from '@/lib/constants';
+import { GOOGLE_REVIEWS, HOOD_DATA } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK } from '@/lib/utils/format';
 import { HeroSearch } from '@/components/home/hero-search';
+import { HeroButtons } from '@/components/home/hero-buttons';
+import { EmailCapture } from '@/components/home/email-capture';
 
 export const metadata = {
   title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Royal LePage Signature Realty. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
   alternates: {
     canonical: '/',
   },
@@ -143,16 +145,46 @@ function DealCard({ deal, photo }) {
             </svg>
           </div>
         )}
+        {/* Score badge */}
         <div
           className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white shadow-lg"
           style={{ backgroundColor: scoreHex }}
         >
           {deal.hamzaScore}
         </div>
+        {/* Investor tags */}
+        <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex flex-wrap gap-1">
+          {(deal.basementTier === 'legal' || deal.basementTier === 'potential') && (
+            <span className="rounded-full bg-success/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              Suite
+            </span>
+          )}
+          {deal.priceDrop > 0 && (
+            <span className="rounded-full bg-amber-500/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              Reduced
+            </span>
+          )}
+          {deal.dom >= 45 && (
+            <span className="rounded-full bg-gold/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              Motivated
+            </span>
+          )}
+          {deal.cashFlow > 0 && (
+            <span className="rounded-full bg-emerald-500/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+              CF+
+            </span>
+          )}
+        </div>
       </div>
       <div className="p-2.5 sm:p-4">
         <p className="text-xs sm:text-sm font-semibold text-navy truncate">{deal.address}</p>
-        <p className="text-base sm:text-lg font-bold text-navy mt-0.5">{fmtK(deal.price)}</p>
+        <p className="text-[10px] sm:text-xs text-muted truncate">{deal.neighbourhood || deal.city}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <p className="text-base sm:text-lg font-bold text-navy">{fmtK(deal.price)}</p>
+          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium text-navy/70">
+            {deal.subType || deal.type}
+          </span>
+        </div>
         <p className="text-[10px] sm:text-xs text-muted mt-0.5">{deal.beds} bed · {deal.baths} bath</p>
         <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-1.5 sm:p-2">
           <div>
@@ -275,7 +307,7 @@ function AgentProfile() {
               Hamza Nouman
             </h2>
             <p className="text-accent font-semibold text-sm mb-1">
-              Sales Representative — Royal LePage Signature Realty, Brokerage
+              Sales Representative — Cityscape Real Estate Ltd., Brokerage
             </p>
             <p className="text-xs text-muted mb-5">Licensed by RECO</p>
 
@@ -381,18 +413,89 @@ function CTASection() {
         <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mb-3">
           Ready to Find Your Next Investment?
         </h2>
-        <p className="text-white/60 text-sm md:text-base mb-8 max-w-lg mx-auto">
+        <p className="text-white/60 text-sm md:text-base mb-4 max-w-lg mx-auto">
           Get free access to deal scores, cash flow analysis, and expert insights on every
           Mississauga investment property.
         </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/signup" className="btn-primary !text-base !px-8 !py-3.5 no-underline">
+        <p className="text-emerald-400 text-sm font-semibold mb-8">
+          Close with Hamza — First month&apos;s mortgage on us.
+        </p>
+        <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+          <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">
             Get Free Access
           </Link>
-          <Link href="/pre-construction" className="btn-gold !text-base !px-8 !py-3.5 no-underline">
-            Pre-Con VIP Access
+          <Link href="/pre-construction" className="text-sm text-white/50 hover:text-white/80 transition no-underline">
+            Interested in pre-construction? Get VIP access &rarr;
           </Link>
         </div>
+        <p className="text-white/30 text-[10px] mt-6 max-w-md mx-auto">
+          Commission rebate applied as credit on closing. Buyer clients of Hamza Nouman, Cityscape Real Estate Ltd., Brokerage. Terms apply.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────
+//   NEIGHBOURHOOD PREVIEW (Change 4)
+// ─────────────────────────────────────────────
+function NeighbourhoodPreview() {
+  // Pick top 4 neighbourhoods by rent yield
+  const topHoods = Object.entries(HOOD_DATA)
+    .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))
+    .slice(0, 4);
+
+  return (
+    <section className="max-w-7xl mx-auto px-4 py-16">
+      <div className="text-center mb-10">
+        <h2 className="section-title mb-3">Top neighbourhoods for investors</h2>
+        <p className="section-subtitle mx-auto">Yield, price trends, and expert analysis on 24 Mississauga neighbourhoods</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {topHoods.map(([name, data]) => {
+          const trendColor =
+            data.trend === 'hot'
+              ? 'bg-red-50 text-red-600 border-red-100'
+              : data.trend === 'warm'
+              ? 'bg-amber-50 text-amber-700 border-amber-100'
+              : 'bg-blue-50 text-blue-600 border-blue-100';
+
+          return (
+            <div key={name} className="card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-heading font-semibold text-navy">{name}</h3>
+                <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`}>
+                  {data.trend}
+                </span>
+              </div>
+              <div className="text-center mb-4">
+                <p className="text-3xl font-bold text-accent">{data.rentYield}%</p>
+                <p className="text-[10px] text-muted uppercase font-medium">Rent Yield</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-lg bg-cloud p-2">
+                  <p className="text-xs font-bold text-navy">{fmtK(data.avgPrice)}</p>
+                  <p className="text-[9px] text-muted">Avg Price</p>
+                </div>
+                <div className="rounded-lg bg-cloud p-2">
+                  <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
+                    {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
+                  </p>
+                  <p className="text-[9px] text-muted">YoY</p>
+                </div>
+                <div className="rounded-lg bg-cloud p-2">
+                  <p className="text-xs font-bold text-navy">{data.avgDOM}d</p>
+                  <p className="text-[9px] text-muted">Avg DOM</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="text-center mt-8">
+        <Link href="/neighbourhoods" className="text-sm font-semibold text-accent hover:text-accent/80 transition no-underline">
+          Explore All 24 Neighbourhoods &rarr;
+        </Link>
       </div>
     </section>
   );
@@ -414,15 +517,17 @@ export default async function HomePage() {
               <span className="text-success text-xs font-medium">Live Data</span>
               <span className="text-white/50 text-xs">Updated every 24 hours</span>
             </div>
-            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-5">
+            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4">
               Mississauga Investment
               <br />
               <span className="text-accent">Deal Finder</span>
             </h1>
-            <p className="text-white/70 text-base md:text-lg leading-relaxed mb-6 max-w-xl">
-              Every active listing scored for cash flow, cap rate, and investment potential.
-              Data-driven analysis to help you make smarter real estate decisions.
+            <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
+              4,000+ GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
             </p>
+            <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
+              <span className="text-accent text-sm font-bold">The Only Platform That Does It.</span>
+            </div>
 
             {/* Search Bar */}
             <HeroSearch />
@@ -441,14 +546,7 @@ export default async function HomePage() {
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link href="/listings" className="btn-primary !text-base !px-8 !py-3.5 no-underline text-center">
-                Browse All Deals
-              </Link>
-              <Link href="/signup" className="bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg px-8 py-3.5 text-base no-underline text-center hover:bg-white/20 transition-colors border border-white/20">
-                Sign Up Free
-              </Link>
-            </div>
+            <HeroButtons />
           </div>
         </div>
         {/* Decorative gradient orbs */}
@@ -477,14 +575,56 @@ export default async function HomePage() {
         ) : null}
         <div className="text-center">
           <Link href="/listings" className="btn-primary !px-8 !py-3 no-underline">
-            View All {topDeals.totalCount ? topDeals.totalCount.toLocaleString() + '+' : ''} Listings →
+            View All {liveStats?.count ? liveStats.count.toLocaleString() : topDeals.totalCount ? topDeals.totalCount.toLocaleString() : ''} Listings &rarr;
           </Link>
         </div>
       </section>
 
+      {/* Weekly Email Capture (Change 1) */}
+      <EmailCapture />
+
+      {/* First Month's Mortgage Offer */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="relative bg-gradient-to-r from-accent/10 via-success/5 to-accent/10 border border-accent/20 rounded-2xl p-8 md:p-12 overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-shrink-0 w-20 h-20 bg-accent/15 rounded-2xl flex items-center justify-center">
+              <span className="text-4xl">🏦</span>
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 bg-success/15 border border-success/30 rounded-full px-3 py-1 mb-3">
+                <span className="text-success text-xs font-bold">EXCLUSIVE OFFER</span>
+              </div>
+              <h2 className="font-heading font-bold text-2xl md:text-3xl text-navy mb-2">
+                Close With Hamza — First Month&apos;s Mortgage On Us
+              </h2>
+              <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-4 max-w-2xl">
+                Buy an investment property through MississaugaInvestor.ca and we cover your first mortgage payment —
+                so you cash flow from day one. No vacancy stress while you find your tenant.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> Applied as credit on closing</span>
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> All investment properties qualify</span>
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> RECO compliant commission rebate</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Link href="/about" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+                Learn More
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <HowItWorks />
-      <AgentProfile />
+
+      {/* Neighbourhood Preview (Change 4) */}
+      <NeighbourhoodPreview />
+
+      {/* Testimonials BEFORE About Hamza (Change 3) */}
       <GoogleReviews />
+      <AgentProfile />
       <CTASection />
     </>
   );
