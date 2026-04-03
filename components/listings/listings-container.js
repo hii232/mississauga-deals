@@ -50,7 +50,7 @@ function TopPickCard({ listing, photo }) {
         </div>
         {/* CF+ badge */}
         <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-          CF+
+          Cash Flowing
         </span>
       </div>
       {/* Info */}
@@ -77,7 +77,7 @@ function TopPickCard({ listing, photo }) {
 }
 
 // ── Top Picks Section ──
-function TopPicks({ listings, photoMap }) {
+function TopPicks({ listings, photoMap, isRegistered }) {
   const scrollRef = useRef(null);
   const topPicks = useMemo(() => {
     return listings
@@ -100,32 +100,50 @@ function TopPicks({ listings, photoMap }) {
           <span className="text-base">🏆</span>
           <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Top Picks</h3>
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
-            Best CF+ Deals
+            Best Cash Flowing Deals
           </span>
         </div>
-        <div className="hidden sm:flex items-center gap-1">
-          <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
-        style={{ scrollSnapType: 'x mandatory' }}
-      >
-        {topPicks.map((listing) => (
-          <div key={listing.id} style={{ scrollSnapAlign: 'start' }}>
-            <TopPickCard listing={listing} photo={listing.photos?.[0] || photoMap[listing.id] || null} />
+        {isRegistered && (
+          <div className="hidden sm:flex items-center gap-1">
+            <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
-        ))}
+        )}
+      </div>
+      <div className="relative">
+        <div
+          ref={scrollRef}
+          className={`flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${!isRegistered ? 'blur-sm pointer-events-none select-none' : ''}`}
+          style={{ scrollSnapType: 'x mandatory' }}
+        >
+          {topPicks.map((listing) => (
+            <div key={listing.id} style={{ scrollSnapAlign: 'start' }}>
+              <TopPickCard listing={listing} photo={listing.photos?.[0] || photoMap[listing.id] || null} />
+            </div>
+          ))}
+        </div>
+        {!isRegistered && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/60 backdrop-blur-[2px]">
+            <svg className="mb-2 h-8 w-8 text-navy/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+            </svg>
+            <p className="mb-2 text-sm font-semibold text-navy">Top {topPicks.length} cash-flowing deals are locked</p>
+            <Link
+              href="/signup"
+              className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-accent/90 no-underline"
+            >
+              Sign up free to unlock
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -198,35 +216,50 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
   }, [listings]);
 
   // Client-side fallback: if SSR returned no listings, fetch on client
+  // Shows page 1 instantly, then loads remaining pages in background
   useEffect(() => {
     if (initialListings.length > 0) return;
     let cancelled = false;
     async function fetchClient() {
       try {
+        const { processListings } = await import('@/lib/listings/process-listings');
+
+        // Fetch page 1 and show immediately
         const res = await fetch(apiEndpoint + '?limit=200&page=1');
         if (!res.ok) return;
         const data = await res.json();
-        const raw = data.listings || data || [];
+        const page1 = data.listings || data || [];
         const totalPages = data.pages || 1;
 
-        // Fetch remaining pages
-        if (totalPages > 1) {
-          const maxPages = Math.min(totalPages, 25);
-          for (let p = 2; p <= maxPages && !cancelled; p++) {
-            try {
-              const r = await fetch(apiEndpoint + '?limit=200&page=' + p);
-              if (r.ok) {
-                const pg = await r.json();
-                if (pg?.listings) raw.push(...pg.listings);
-              }
-            } catch { /* continue */ }
-          }
+        if (!cancelled && page1.length > 0) {
+          setListings(processListings(page1));
+          setIsLoading(false);
         }
 
-        if (!cancelled && raw.length > 0) {
-          const { processListings } = await import('@/lib/listings/process-listings');
-          setListings(processListings(raw));
-          setIsLoading(false);
+        // Fetch remaining pages in parallel batches, appending as they arrive
+        if (totalPages > 1 && !cancelled) {
+          const maxPages = Math.min(totalPages, 25);
+          const batchSize = 5;
+          const allExtra = [];
+
+          for (let batchStart = 2; batchStart <= maxPages && !cancelled; batchStart += batchSize) {
+            const batch = [];
+            for (let p = batchStart; p < batchStart + batchSize && p <= maxPages; p++) {
+              batch.push(
+                fetch(apiEndpoint + '?limit=200&page=' + p)
+                  .then(r => r.ok ? r.json() : null)
+                  .then(pg => pg?.listings || [])
+                  .catch(() => [])
+              );
+            }
+            const results = await Promise.all(batch);
+            for (const r of results) allExtra.push(...r);
+
+            // Update listings after each batch so user sees more appearing
+            if (!cancelled && allExtra.length > 0) {
+              setListings(processListings([...page1, ...allExtra]));
+            }
+          }
         }
       } catch {
         // silently fail
@@ -259,10 +292,31 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       <DealScreener listings={filtered} />
 
       {/* Top Picks — highest-scored CF+ deals */}
-      <TopPicks listings={listings} photoMap={photoMap} />
+      <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
 
       {/* Investor Filters */}
       <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} />
+
+      {/* Signup prompt — show when not registered */}
+      {!isRegistered && filtered.length > 0 && (
+        <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-gradient-to-r from-accent/5 to-emerald-50 px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-3 w-3">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+            </span>
+            <p className="text-sm font-medium text-navy">
+              Sign up free to unlock <span className="font-bold text-accent">cash flow, cap rate & deal analysis</span> on every listing
+            </p>
+          </div>
+          <Link
+            href="/signup"
+            className="flex-shrink-0 rounded-lg bg-accent px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-accent/90 no-underline"
+          >
+            Sign up free
+          </Link>
+        </div>
+      )}
 
       {/* View toggle */}
       <div className="flex justify-end">

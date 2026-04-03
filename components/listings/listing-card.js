@@ -50,20 +50,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Score badge — always visible */}
+        {/* Score badge — always visible (curiosity hook) */}
         <div
-          className={`absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md ${isGated ? 'blur-[5px] select-none' : ''}`}
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
           {listing.hamzaScore}
         </div>
-        {isGated && (
-          <div className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-600/80 text-white shadow-md">
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
-          </div>
-        )}
 
         {/* Tags row */}
         <div className="absolute bottom-3 left-3 flex gap-1.5">

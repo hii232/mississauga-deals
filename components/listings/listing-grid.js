@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ListingCard } from './listing-card';
+import SignupGateModal from '@/components/ui/signup-gate-modal';
 
 const PAGE_SIZE = 30;
-const FREE_LIMIT = 4;
+const FREE_CARD_CLICKS = 3; // After this many card clicks, show signup modal
+
+// All listings are gated for non-registered users
+function isGatedDeal() {
+  return true;
+}
 
 function SkeletonCard() {
   return (
@@ -31,19 +37,69 @@ function SkeletonCard() {
 
 export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [accessVerified, setAccessVerified] = useState(isRegistered);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [cardClicks, setCardClicks] = useState(0);
+  const [signupTrigger, setSignupTrigger] = useState('gate');
 
-  // Reset to page 1 when listings change (filters, sort, etc.)
+  // Verify access server-side (catches revoked users)
+  useEffect(() => {
+    if (!isRegistered) { setAccessVerified(false); return; }
+    const email = typeof window !== 'undefined' ? localStorage.getItem('user_email') : null;
+    if (!email) { setAccessVerified(true); return; }
+    fetch('/api/check-access?email=' + encodeURIComponent(email))
+      .then(r => r.json())
+      .then(d => {
+        if (d.access === false) {
+          localStorage.removeItem('user_registered');
+          localStorage.removeItem('user_name');
+          localStorage.removeItem('user_email');
+          setAccessVerified(false);
+        } else {
+          setAccessVerified(true);
+        }
+      })
+      .catch(() => setAccessVerified(true));
+  }, [isRegistered]);
+
+  // Track card clicks for view-limit gate
+  const handleCardClick = useCallback(() => {
+    if (accessVerified) return; // registered users — no limit
+    const newCount = cardClicks + 1;
+    setCardClicks(newCount);
+    if (newCount >= FREE_CARD_CLICKS) {
+      setSignupTrigger('view-limit');
+      setShowSignupModal(true);
+    }
+  }, [cardClicks, accessVerified]);
+
+  // Reset to page 1 when listings change
   useEffect(() => {
     setCurrentPage(1);
   }, [listings]);
 
+  function handleSignupSuccess() {
+    setAccessVerified(true);
+    setShowSignupModal(false);
+    // Force re-render with registration
+    window.location.reload();
+  }
+
   // Show skeletons while loading
   if (isLoading && listings.length === 0) {
     return (
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 9 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
+      <div>
+        <div className="mb-6 flex items-center justify-center gap-3 rounded-xl bg-accent/5 border border-accent/10 px-4 py-3">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <p className="text-sm font-medium text-accent">
+            Analyzing investment properties — scoring deals in real time...
+          </p>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -71,7 +127,6 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Build page numbers: show 1, ..., nearby pages, ..., last
   function getPageNumbers() {
     const pages = [];
     if (totalPages <= 7) {
@@ -92,20 +147,38 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
     <div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {pageListings.map((listing, index) => {
-          const globalIndex = startIndex + index;
-          const isGated = !isRegistered && globalIndex >= FREE_LIMIT;
+          const isGated = !accessVerified;
           return (
-            <ListingCard
-              key={listing.id}
-              listing={listing}
-              isGated={isGated}
-              isCompared={compareIds.includes(listing.id)}
-              onToggleCompare={onToggleCompare}
-              batchPhoto={photoMap?.[listing.id]}
-            />
+            <div key={listing.id} onClick={handleCardClick}>
+              <ListingCard
+                listing={listing}
+                isGated={isGated}
+                isCompared={compareIds.includes(listing.id)}
+                onToggleCompare={onToggleCompare}
+                batchPhoto={photoMap?.[listing.id]}
+                onSignupClick={() => { setSignupTrigger('gate'); setShowSignupModal(true); }}
+              />
+            </div>
           );
         })}
       </div>
+
+      {/* Mid-page signup nudge for non-registered users */}
+      {!accessVerified && currentPage === 1 && pageListings.length > 9 && (
+        <div className="my-8 rounded-2xl bg-gradient-to-r from-navy to-accent/80 px-8 py-8 text-center">
+          <h3 className="text-lg font-bold text-white mb-2">You&apos;re browsing blind.</h3>
+          <p className="text-sm text-white/60 mb-4 max-w-md mx-auto">
+            The best deals have cash flow, cap rate, and deal scores hidden. Unlock them in 10 seconds.
+          </p>
+          <button
+            onClick={() => { setSignupTrigger('gate'); setShowSignupModal(true); }}
+            className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-navy transition hover:bg-white/90"
+          >
+            Unlock All Deals — Free
+          </button>
+          <p className="mt-2 text-[11px] text-white/40">No credit card. No spam. 10 seconds.</p>
+        </div>
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (
@@ -149,6 +222,14 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
       <p className="py-4 text-center text-xs text-slate-400">
         Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, listings.length)} of {listings.length} properties
       </p>
+
+      {/* Two-step signup modal */}
+      <SignupGateModal
+        open={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onSuccess={handleSignupSuccess}
+        trigger={signupTrigger}
+      />
     </div>
   );
 }

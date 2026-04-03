@@ -1128,8 +1128,7 @@ export default function PropertyDetailPage() {
   }
 
   const scoreColor = scoreColorHex(listing.hamzaScore);
-  const isPremium = listing.hamzaScore >= 7;
-  const isGated = !isAuthenticated && isPremium;
+  const isGated = !isAuthenticated;
 
   return (
     <main className="min-h-screen bg-cloud overflow-x-hidden">

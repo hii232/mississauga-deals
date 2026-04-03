@@ -6,7 +6,8 @@ import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
 const PAGE_SIZE = 30;
-const FREE_LIMIT = 4;
+
+// All listings gated for non-registered users
 
 export function ListingTable({ listings, isRegistered, compareIds, onToggleCompare }) {
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,8 +72,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
           </thead>
           <tbody className="divide-y divide-slate-50">
             {pageListings.map((listing, index) => {
-              const globalIndex = startIndex + index;
-              const isGated = !isRegistered && globalIndex >= FREE_LIMIT;
+              const isGated = !isRegistered;
               const scoreHex = scoreColorHex(listing.hamzaScore);
 
               return (
