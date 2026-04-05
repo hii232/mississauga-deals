@@ -21,10 +21,9 @@ export function isFixerUpper(remarks) {
 export const DEFAULT_FILTERS = {
   search: '',
   propertyType: 'All',
-  strategy: null,        // single-select strategy key
+  activeStrategies: [],
   sortKey: 'score',
   priceRange: [0, 3000000],
-  pricePreset: null,     // key from PRICE_PRESETS
   beds: null,
   baths: null,
   minCapRate: null,
@@ -41,47 +40,20 @@ export const DEFAULT_FILTERS = {
 // ── Property Types ──
 export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Duplex/Multi'];
 
-// ── Strategy Presets (single-select dropdown) ──
-export const STRATEGIES = [
-  {
-    key: 'cashflow',
-    label: 'Cash Flow',
-    description: 'Cash flow positive or near-positive properties',
-    filter: (l) => l.cashFlow >= -50,
-  },
-  {
-    key: 'brrr',
-    label: 'BRRR',
-    description: 'Buy Rehab Rent Refinance — reduced/motivated + renovation potential',
-    filter: (l) => (l.priceDrop > 0 || l.dom >= 45) && (isFixerUpper(l.remarks) || l.priceDrop >= 5),
-  },
-  {
-    key: 'suite',
-    label: 'Suite Income',
-    description: 'Properties with legal suite or suite potential for rental income',
-    filter: (l) => l.hasSuite || l.basementTier === 'legal' || l.basementTier === 'potential',
-  },
-  {
-    key: 'appreciation',
-    label: 'Appreciation',
-    description: 'New listings in high-demand areas — growth play',
-    filter: (l) => l.dom <= 14,
-  },
-  {
-    key: 'value',
-    label: 'Value Buy',
-    description: 'Fixer uppers, TLC, handyman specials, power of sale, price drops, motivated sellers',
-    filter: (l) => l.priceDrop > 0 || l.dom >= 45 || isPowerOfSale(l.remarks) || isFixerUpper(l.remarks),
-  },
-];
-
-// ── Price Presets ──
-export const PRICE_PRESETS = [
-  { key: 'under600', label: 'Under $600K', range: [0, 600000] },
-  { key: '600-800', label: '$600K – $800K', range: [600000, 800000] },
-  { key: '800-1m', label: '$800K – $1M', range: [800000, 1000000] },
-  { key: '1m-1.5m', label: '$1M – $1.5M', range: [1000000, 1500000] },
-  { key: 'over1.5m', label: '$1.5M+', range: [1500000, 3000000] },
+// ── Strategy Chips ──
+export const STRATEGY_CHIPS = [
+  { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
+  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate above 4% — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
+  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
+  { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
+  { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
+  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom <= 3 },
+  { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
+  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
+  { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
+  { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work — keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
+  { key: 'hightransit', label: 'HIGH TRANSIT', tooltip: 'Transit score 7+ — near GO stations, LRT, major bus routes', filter: (l) => (l.transitScore || 0) >= 7 },
+  { key: 'topschools', label: 'TOP SCHOOLS', tooltip: 'School score 8+ — highly rated school district', filter: (l) => (l.schoolScore || 0) >= 8 },
 ];
 
 // ── Sort Options ──
@@ -110,13 +82,12 @@ export const NEIGHBOURHOODS = [
   'Heartland', 'Malton',
 ];
 
-// ── Count Active Filters (for badge) ──
+// ── Count Active Filters ──
 export function countActiveFilters(filters) {
   let count = 0;
   if (filters.priceRange[0] > 0 || filters.priceRange[1] < 3000000) count++;
   if (filters.beds !== null) count++;
   if (filters.baths !== null) count++;
-  if (filters.strategy) count++;
   if (filters.minCapRate !== null) count++;
   if (filters.minCashFlow !== null) count++;
   if (filters.minCashOnCash !== null) count++;
@@ -154,10 +125,10 @@ export function applyFilters(listings, filters) {
     });
   }
 
-  // Strategy preset (single-select)
-  if (filters.strategy) {
-    const strat = STRATEGIES.find((s) => s.key === filters.strategy);
-    if (strat) result = result.filter(strat.filter);
+  // Strategy filters (AND logic)
+  for (const sKey of filters.activeStrategies) {
+    const chip = STRATEGY_CHIPS.find((c) => c.key === sKey);
+    if (chip) result = result.filter(chip.filter);
   }
 
   // Price range

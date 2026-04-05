@@ -1,99 +1,62 @@
 'use client';
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { InvestorFiltersAdvanced } from './investor-filters-advanced';
 import { SaveSearchButton } from './save-search-button';
 import {
   DEFAULT_FILTERS,
   PROPERTY_TYPES,
-  STRATEGIES,
-  PRICE_PRESETS,
+  STRATEGY_CHIPS,
   SORT_OPTIONS,
-  NEIGHBOURHOODS,
   countActiveFilters,
+  NEIGHBOURHOODS,
 } from './filter-utils';
 
-// ── Dropdown wrapper (click-outside close) ──
-function Dropdown({ trigger, children, align = 'left' }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    function handleClick(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
-
+// ── Select Dropdown ──
+function QuickSelect({ label, value, onChange, options }) {
   return (
-    <div ref={ref} className="relative">
-      <div onClick={() => setOpen(!open)}>{trigger(open)}</div>
-      {open && (
-        <div
-          className={`absolute top-full z-40 mt-1 min-w-[200px] rounded-xl border border-slate-200 bg-white py-1 shadow-xl ${
-            align === 'right' ? 'right-0' : 'left-0'
-          }`}
-          onClick={() => setOpen(false)}
-        >
-          {children}
-        </div>
-      )}
+    <div className="flex-1 min-w-[100px]">
+      <select
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+      >
+        <option value="">{label}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
     </div>
   );
 }
 
-// ── Dropdown trigger button ──
-function FilterButton({ label, active, open, count }) {
+// ── Price Input ──
+function PriceInput({ value, onChange, placeholder }) {
+  const display = value > 0 ? value : '';
   return (
-    <button
-      className={`flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
-        active
-          ? 'border-accent bg-accent/5 text-accent'
-          : 'border-slate-200 bg-white text-navy hover:border-slate-300'
-      }`}
-    >
-      {label}
-      {count > 0 && (
-        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-          {count}
-        </span>
-      )}
-      <svg
-        className={`h-3.5 w-3.5 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-      </svg>
-    </button>
+    <div className="relative flex-1 min-w-[110px]">
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+      <input
+        type="number"
+        value={display}
+        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-7 pr-3 text-sm text-navy placeholder:text-slate-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+      />
+    </div>
   );
 }
 
-// ── Dropdown option ──
-function DropdownOption({ label, selected, onClick, description }) {
+// ── Tooltip wrapper ──
+function Tooltip({ text, children }) {
   return (
-    <button
-      onClick={onClick}
-      className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-sm transition-colors ${
-        selected ? 'bg-accent/5 text-accent font-medium' : 'text-navy hover:bg-slate-50'
-      }`}
-    >
-      <span
-        className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border ${
-          selected ? 'border-accent bg-accent' : 'border-slate-300'
-        }`}
-      >
-        {selected && (
-          <svg className="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 16 16">
-            <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z" />
-          </svg>
-        )}
-      </span>
-      <div>
-        <span>{label}</span>
-        {description && <p className="text-[11px] text-slate-400 mt-0.5">{description}</p>}
+    <div className="relative group/tip">
+      {children}
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-lg bg-navy px-3 py-2 text-[11px] leading-relaxed text-white shadow-lg opacity-0 group-hover/tip:opacity-100 transition-opacity duration-200 z-50 hidden sm:block">
+        {text}
+        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-navy rotate-45" />
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -112,6 +75,15 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, [setFilters]);
 
+  const toggleStrategy = useCallback((key) => {
+    setFilters((prev) => ({
+      ...prev,
+      activeStrategies: prev.activeStrategies.includes(key)
+        ? prev.activeStrategies.filter((k) => k !== key)
+        : [...prev.activeStrategies, key],
+    }));
+  }, [setFilters]);
+
   const toggleHood = useCallback((hood) => {
     setFilters((prev) => ({
       ...prev,
@@ -121,298 +93,167 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
     }));
   }, [setFilters]);
 
-  const selectPricePreset = useCallback((presetKey) => {
-    if (filters.pricePreset === presetKey) {
-      // Deselect
-      setFilters((prev) => ({ ...prev, pricePreset: null, priceRange: [0, 3000000] }));
-    } else {
-      const preset = PRICE_PRESETS.find((p) => p.key === presetKey);
-      if (preset) {
-        setFilters((prev) => ({ ...prev, pricePreset: presetKey, priceRange: preset.range }));
-      }
-    }
-  }, [filters.pricePreset, setFilters]);
-
-  const selectStrategy = useCallback((stratKey) => {
-    setFilters((prev) => ({
-      ...prev,
-      strategy: prev.strategy === stratKey ? null : stratKey,
-    }));
-  }, [setFilters]);
-
   const clearAll = useCallback(() => {
     setFilters({ ...DEFAULT_FILTERS });
   }, [setFilters]);
 
-  const hasPriceFilter = filters.priceRange[0] > 0 || filters.priceRange[1] < 3000000;
-  const totalActive = advancedCount +
-    (filters.propertyType !== 'All' ? 1 : 0) +
-    (filters.search ? 1 : 0) +
+  const totalActive = advancedCount + filters.activeStrategies.length +
+    (filters.propertyType !== 'All' ? 1 : 0) + (filters.search ? 1 : 0) +
     filters.neighbourhoods.length;
 
-  // Build active filter tags
+  // Build active filter tags for summary bar
   const activeFilterTags = useMemo(() => {
     const tags = [];
     if (filters.propertyType !== 'All') {
       tags.push({ label: filters.propertyType, clear: () => updateFilter('propertyType', 'All') });
     }
-    if (filters.strategy) {
-      const strat = STRATEGIES.find((s) => s.key === filters.strategy);
-      if (strat) tags.push({ label: strat.label, clear: () => updateFilter('strategy', null) });
-    }
-    if (filters.pricePreset) {
-      const preset = PRICE_PRESETS.find((p) => p.key === filters.pricePreset);
-      if (preset) tags.push({ label: preset.label, clear: () => { updateFilter('pricePreset', null); updateFilter('priceRange', [0, 3000000]); } });
-    } else if (hasPriceFilter) {
-      tags.push({ label: `$${(filters.priceRange[0] / 1000).toFixed(0)}K–$${(filters.priceRange[1] / 1000).toFixed(0)}K`, clear: () => updateFilter('priceRange', [0, 3000000]) });
-    }
+    filters.activeStrategies.forEach((key) => {
+      const chip = STRATEGY_CHIPS.find((c) => c.key === key);
+      if (chip) tags.push({ label: chip.label, clear: () => toggleStrategy(key) });
+    });
+    filters.neighbourhoods.forEach((hood) => {
+      tags.push({ label: hood, clear: () => toggleHood(hood) });
+    });
     if (filters.beds !== null) {
       tags.push({ label: `${filters.beds}+ beds`, clear: () => updateFilter('beds', null) });
     }
     if (filters.baths !== null) {
       tags.push({ label: `${filters.baths}+ baths`, clear: () => updateFilter('baths', null) });
     }
-    filters.neighbourhoods.forEach((hood) => {
-      tags.push({ label: hood, clear: () => toggleHood(hood) });
-    });
-    if (filters.minCapRate !== null) {
-      tags.push({ label: `Cap ${filters.minCapRate}%+`, clear: () => updateFilter('minCapRate', null) });
+    if (filters.priceRange[0] > 0) {
+      tags.push({ label: `Min $${(filters.priceRange[0] / 1000).toFixed(0)}K`, clear: () => updateFilter('priceRange', [0, filters.priceRange[1]]) });
     }
-    if (filters.minCashFlow !== null) {
-      tags.push({ label: `CF $${filters.minCashFlow}+`, clear: () => updateFilter('minCashFlow', null) });
-    }
-    if (filters.minCashOnCash !== null) {
-      tags.push({ label: `CoC ${filters.minCashOnCash}%+`, clear: () => updateFilter('minCashOnCash', null) });
-    }
-    if (filters.minDealScore !== null) {
-      tags.push({ label: `Score ${filters.minDealScore}+`, clear: () => updateFilter('minDealScore', null) });
-    }
-    if (filters.lrtOnly) {
-      tags.push({ label: 'LRT Only', clear: () => updateFilter('lrtOnly', false) });
-    }
-    if (filters.hasBasementSuite) {
-      tags.push({ label: 'Legal Suite', clear: () => updateFilter('hasBasementSuite', false) });
-    }
-    if (filters.isPowerOfSale) {
-      tags.push({ label: 'Power of Sale', clear: () => updateFilter('isPowerOfSale', false) });
+    if (filters.priceRange[1] < 3000000) {
+      tags.push({ label: `Max $${(filters.priceRange[1] / 1000).toFixed(0)}K`, clear: () => updateFilter('priceRange', [filters.priceRange[0], 3000000]) });
     }
     return tags;
-  }, [filters, updateFilter, toggleHood, hasPriceFilter]);
+  }, [filters, updateFilter, toggleStrategy, toggleHood]);
 
-  return (
-    <div className="space-y-3">
-      {/* ── Desktop Layout ── */}
-      <div className="hidden sm:block space-y-3">
-        {/* Search bar */}
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search by address, neighbourhood, postal code..."
-            value={filters.search}
-            onChange={(e) => updateFilter('search', e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-          />
-        </div>
-
-        {/* Property type pills */}
-        <div className="flex flex-wrap gap-2">
-          {PROPERTY_TYPES.map((pt) => (
-            <button
-              key={pt}
-              onClick={() => updateFilter('propertyType', pt)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                filters.propertyType === pt
-                  ? 'bg-navy text-white'
-                  : 'bg-white text-navy border border-slate-200 hover:border-navy/30'
-              }`}
-            >
-              {pt}
-            </button>
-          ))}
-        </div>
-
-        {/* Dropdown filters row */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Price dropdown */}
-          <Dropdown
-            trigger={(open) => (
-              <FilterButton
-                label={filters.pricePreset ? PRICE_PRESETS.find(p => p.key === filters.pricePreset)?.label : 'Price'}
-                active={hasPriceFilter}
-                open={open}
-              />
-            )}
-          >
-            <div className="py-1">
-              <button
-                onClick={() => { updateFilter('pricePreset', null); updateFilter('priceRange', [0, 3000000]); }}
-                className={`flex w-full items-center px-4 py-2.5 text-left text-sm ${
-                  !hasPriceFilter ? 'text-accent font-medium bg-accent/5' : 'text-navy hover:bg-slate-50'
-                }`}
-              >
-                Any Price
-              </button>
-              {PRICE_PRESETS.map((preset) => (
-                <DropdownOption
-                  key={preset.key}
-                  label={preset.label}
-                  selected={filters.pricePreset === preset.key}
-                  onClick={() => selectPricePreset(preset.key)}
-                />
-              ))}
-            </div>
-          </Dropdown>
-
-          {/* Beds dropdown */}
-          <Dropdown
-            trigger={(open) => (
-              <FilterButton
-                label={filters.beds ? `${filters.beds}+ Beds` : 'Beds'}
-                active={filters.beds !== null}
-                open={open}
-              />
-            )}
-          >
-            <div className="py-1">
-              <button
-                onClick={() => updateFilter('beds', null)}
-                className={`flex w-full items-center px-4 py-2.5 text-left text-sm ${
-                  filters.beds === null ? 'text-accent font-medium bg-accent/5' : 'text-navy hover:bg-slate-50'
-                }`}
-              >
-                Any
-              </button>
-              {[1, 2, 3, 4, 5].map((n) => (
-                <DropdownOption
-                  key={n}
-                  label={`${n}+ ${n === 1 ? 'bed' : 'beds'}`}
-                  selected={filters.beds === n}
-                  onClick={() => updateFilter('beds', filters.beds === n ? null : n)}
-                />
-              ))}
-            </div>
-          </Dropdown>
-
-          {/* Baths dropdown */}
-          <Dropdown
-            trigger={(open) => (
-              <FilterButton
-                label={filters.baths ? `${filters.baths}+ Baths` : 'Baths'}
-                active={filters.baths !== null}
-                open={open}
-              />
-            )}
-          >
-            <div className="py-1">
-              <button
-                onClick={() => updateFilter('baths', null)}
-                className={`flex w-full items-center px-4 py-2.5 text-left text-sm ${
-                  filters.baths === null ? 'text-accent font-medium bg-accent/5' : 'text-navy hover:bg-slate-50'
-                }`}
-              >
-                Any
-              </button>
-              {[1, 2, 3, 4].map((n) => (
-                <DropdownOption
-                  key={n}
-                  label={`${n}+ ${n === 1 ? 'bath' : 'baths'}`}
-                  selected={filters.baths === n}
-                  onClick={() => updateFilter('baths', filters.baths === n ? null : n)}
-                />
-              ))}
-            </div>
-          </Dropdown>
-
-          {/* Strategy dropdown */}
-          <Dropdown
-            trigger={(open) => (
-              <FilterButton
-                label={filters.strategy ? STRATEGIES.find(s => s.key === filters.strategy)?.label : 'Strategy'}
-                active={!!filters.strategy}
-                open={open}
-              />
-            )}
-          >
-            <div className="py-1 w-[280px]">
-              <button
-                onClick={() => updateFilter('strategy', null)}
-                className={`flex w-full items-center px-4 py-2.5 text-left text-sm ${
-                  !filters.strategy ? 'text-accent font-medium bg-accent/5' : 'text-navy hover:bg-slate-50'
-                }`}
-              >
-                All Strategies
-              </button>
-              {STRATEGIES.map((strat) => (
-                <DropdownOption
-                  key={strat.key}
-                  label={strat.label}
-                  description={strat.description}
-                  selected={filters.strategy === strat.key}
-                  onClick={() => selectStrategy(strat.key)}
-                />
-              ))}
-            </div>
-          </Dropdown>
-
-          {/* More Filters button */}
-          <button
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
-              showAdvanced
-                ? 'border-accent bg-accent/5 text-accent'
-                : 'border-slate-200 bg-white text-navy hover:border-slate-300'
-            }`}
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-            </svg>
-            More Filters
-            {advancedCount > 0 && (
-              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-white">
-                {advancedCount}
-              </span>
-            )}
-          </button>
-
-          {/* Clear All — only show when filters are active */}
-          {totalActive > 0 && (
-            <button
-              onClick={clearAll}
-              className="text-sm font-medium text-slate-400 hover:text-red-500 transition-colors px-2 py-2.5"
-            >
-              Clear All
-            </button>
-          )}
-        </div>
-
-        {/* Popular neighbourhood pills */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Popular:</span>
-          {POPULAR_HOODS.map((hood) => (
-            <button
-              key={hood}
-              onClick={() => toggleHood(hood)}
-              className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
-                filters.neighbourhoods.includes(hood)
-                  ? 'bg-accent text-white'
-                  : 'bg-white text-slate-500 border border-slate-200 hover:border-accent/30 hover:text-accent'
-              }`}
-            >
-              {hood}
-            </button>
-          ))}
-        </div>
+  // Shared filter content
+  const filterContent = (
+    <>
+      {/* Search bar */}
+      <div className="relative">
+        <svg
+          className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search by address, neighbourhood, postal code..."
+          value={filters.search}
+          onChange={(e) => updateFilter('search', e.target.value)}
+          className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+        />
       </div>
 
-      {/* ── Mobile: Search + Property Type + Strategy + Filters Button ── */}
+      {/* Popular neighbourhood pills */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Popular:</span>
+        {POPULAR_HOODS.map((hood) => (
+          <button
+            key={hood}
+            onClick={() => toggleHood(hood)}
+            className={`rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors ${
+              filters.neighbourhoods.includes(hood)
+                ? 'bg-accent text-white'
+                : 'bg-white text-slate-500 border border-slate-200 hover:border-accent/30 hover:text-accent'
+            }`}
+          >
+            {hood}
+          </button>
+        ))}
+      </div>
+
+      {/* Property type pills */}
+      <div className="flex flex-wrap gap-2">
+        {PROPERTY_TYPES.map((pt) => (
+          <button
+            key={pt}
+            onClick={() => updateFilter('propertyType', pt)}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+              filters.propertyType === pt
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-slate-200 hover:border-navy/30'
+            }`}
+          >
+            {pt}
+          </button>
+        ))}
+      </div>
+
+      {/* Quick filters row: Price + Beds + Baths */}
+      <div className="flex flex-wrap gap-2">
+        <PriceInput
+          value={filters.priceRange[0]}
+          onChange={(v) => updateFilter('priceRange', [v, filters.priceRange[1]])}
+          placeholder="Min price"
+        />
+        <PriceInput
+          value={filters.priceRange[1] >= 3000000 ? 0 : filters.priceRange[1]}
+          onChange={(v) => updateFilter('priceRange', [filters.priceRange[0], v === 0 ? 3000000 : v])}
+          placeholder="Max price"
+        />
+        <QuickSelect
+          label="Beds"
+          value={filters.beds}
+          onChange={(v) => updateFilter('beds', v)}
+          options={[
+            { value: 1, label: '1+ bed' },
+            { value: 2, label: '2+ beds' },
+            { value: 3, label: '3+ beds' },
+            { value: 4, label: '4+ beds' },
+            { value: 5, label: '5+ beds' },
+          ]}
+        />
+        <QuickSelect
+          label="Baths"
+          value={filters.baths}
+          onChange={(v) => updateFilter('baths', v)}
+          options={[
+            { value: 1, label: '1+ bath' },
+            { value: 2, label: '2+ baths' },
+            { value: 3, label: '3+ baths' },
+            { value: 4, label: '4+ baths' },
+          ]}
+        />
+      </div>
+
+      {/* Strategy chips with tooltips */}
+      <div className="flex flex-wrap gap-2">
+        {STRATEGY_CHIPS.map((chip) => (
+          <Tooltip key={chip.key} text={chip.tooltip}>
+            <button
+              onClick={() => toggleStrategy(chip.key)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-all duration-150 active:scale-95 ${
+                filters.activeStrategies.includes(chip.key)
+                  ? chip.key === 'pos'
+                    ? 'bg-amber-500 text-white'
+                    : 'bg-accent text-white scale-105'
+                  : chip.key === 'pos'
+                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {chip.label}
+            </button>
+          </Tooltip>
+        ))}
+      </div>
+    </>
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* ── Desktop Layout ── */}
+      <div className="hidden sm:block space-y-3">
+        {filterContent}
+      </div>
+
+      {/* ── Mobile: Search + Filter Button ── */}
       <div className="sm:hidden space-y-3">
-        {/* Search bar */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <svg
@@ -444,38 +285,9 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
             )}
           </button>
         </div>
-
-        {/* Property type pills — horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-          {PROPERTY_TYPES.map((pt) => (
-            <button
-              key={pt}
-              onClick={() => updateFilter('propertyType', pt)}
-              className={`flex-shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
-                filters.propertyType === pt
-                  ? 'bg-navy text-white'
-                  : 'bg-white text-navy border border-slate-200'
-              }`}
-            >
-              {pt}
-            </button>
-          ))}
-        </div>
-
-        {/* Strategy dropdown on mobile */}
-        <select
-          value={filters.strategy || ''}
-          onChange={(e) => updateFilter('strategy', e.target.value || null)}
-          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-        >
-          <option value="">All Strategies</option>
-          {STRATEGIES.map((strat) => (
-            <option key={strat.key} value={strat.key}>{strat.label}</option>
-          ))}
-        </select>
       </div>
 
-      {/* ── Mobile Drawer ── */}
+      {/* ── Mobile Drawer (animated) ── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 sm:hidden">
           <div
@@ -487,6 +299,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
             className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-cloud shadow-2xl"
             style={{ animation: 'slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards' }}
           >
+            {/* Drag handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="h-1 w-10 rounded-full bg-slate-300" />
             </div>
@@ -501,90 +314,24 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
             </div>
 
             <div className="space-y-5 p-4 pb-28">
-              {/* Price */}
+              {/* Section: Search */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price Range</h3>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => { updateFilter('pricePreset', null); updateFilter('priceRange', [0, 3000000]); }}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-                      !hasPriceFilter ? 'bg-accent text-white' : 'bg-white text-slate-500 border border-slate-200'
-                    }`}
-                  >
-                    Any
-                  </button>
-                  {PRICE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.key}
-                      onClick={() => selectPricePreset(preset.key)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-                        filters.pricePreset === preset.key
-                          ? 'bg-accent text-white'
-                          : 'bg-white text-slate-500 border border-slate-200'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Search</h3>
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Address, neighbourhood, postal code..."
+                    value={filters.search}
+                    onChange={(e) => updateFilter('search', e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  />
                 </div>
               </div>
 
-              {/* Beds & Baths */}
-              <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Beds & Baths</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  <select
-                    value={filters.beds ?? ''}
-                    onChange={(e) => updateFilter('beds', e.target.value === '' ? null : Number(e.target.value))}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                  >
-                    <option value="">Any Beds</option>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <option key={n} value={n}>{n}+ {n === 1 ? 'bed' : 'beds'}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={filters.baths ?? ''}
-                    onChange={(e) => updateFilter('baths', e.target.value === '' ? null : Number(e.target.value))}
-                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                  >
-                    <option value="">Any Baths</option>
-                    {[1, 2, 3, 4].map((n) => (
-                      <option key={n} value={n}>{n}+ {n === 1 ? 'bath' : 'baths'}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Strategy */}
-              <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Strategy</h3>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => updateFilter('strategy', null)}
-                    className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-                      !filters.strategy ? 'bg-accent text-white' : 'bg-white text-slate-500 border border-slate-200'
-                    }`}
-                  >
-                    All
-                  </button>
-                  {STRATEGIES.map((strat) => (
-                    <button
-                      key={strat.key}
-                      onClick={() => selectStrategy(strat.key)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all active:scale-95 ${
-                        filters.strategy === strat.key
-                          ? 'bg-accent text-white'
-                          : 'bg-white text-slate-500 border border-slate-200'
-                      }`}
-                    >
-                      {strat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Neighbourhoods */}
+              {/* Section: Neighbourhoods */}
               <div className="space-y-2">
                 <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Neighbourhoods</h3>
                 <div className="flex flex-wrap gap-2">
@@ -604,7 +351,93 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
                 </div>
               </div>
 
-              {/* Advanced */}
+              {/* Section: Property Type */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Property Type</h3>
+                <div className="flex flex-wrap gap-2">
+                  {PROPERTY_TYPES.map((pt) => (
+                    <button
+                      key={pt}
+                      onClick={() => updateFilter('propertyType', pt)}
+                      className={`rounded-full px-4 py-2 text-sm font-medium transition-all active:scale-95 ${
+                        filters.propertyType === pt
+                          ? 'bg-navy text-white'
+                          : 'bg-white text-navy border border-slate-200'
+                      }`}
+                    >
+                      {pt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section: Price & Rooms */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price & Rooms</h3>
+                <div className="flex flex-wrap gap-2">
+                  <PriceInput
+                    value={filters.priceRange[0]}
+                    onChange={(v) => updateFilter('priceRange', [v, filters.priceRange[1]])}
+                    placeholder="Min price"
+                  />
+                  <PriceInput
+                    value={filters.priceRange[1] >= 3000000 ? 0 : filters.priceRange[1]}
+                    onChange={(v) => updateFilter('priceRange', [filters.priceRange[0], v === 0 ? 3000000 : v])}
+                    placeholder="Max price"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <QuickSelect
+                    label="Beds"
+                    value={filters.beds}
+                    onChange={(v) => updateFilter('beds', v)}
+                    options={[
+                      { value: 1, label: '1+ bed' },
+                      { value: 2, label: '2+ beds' },
+                      { value: 3, label: '3+ beds' },
+                      { value: 4, label: '4+ beds' },
+                      { value: 5, label: '5+ beds' },
+                    ]}
+                  />
+                  <QuickSelect
+                    label="Baths"
+                    value={filters.baths}
+                    onChange={(v) => updateFilter('baths', v)}
+                    options={[
+                      { value: 1, label: '1+ bath' },
+                      { value: 2, label: '2+ baths' },
+                      { value: 3, label: '3+ baths' },
+                      { value: 4, label: '4+ baths' },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Section: Strategy */}
+              <div className="space-y-2">
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Strategy</h3>
+                <div className="flex flex-wrap gap-2">
+                  {STRATEGY_CHIPS.map((chip) => (
+                    <button
+                      key={chip.key}
+                      onClick={() => toggleStrategy(chip.key)}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all active:scale-95 ${
+                        filters.activeStrategies.includes(chip.key)
+                          ? chip.key === 'pos'
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-accent text-white'
+                          : chip.key === 'pos'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section: Advanced */}
               <div className="space-y-2">
                 <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Advanced Filters</h3>
                 <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
@@ -629,17 +462,38 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
         </div>
       )}
 
-      {/* ── Controls Row: Result count + Sort ── */}
+      {/* ── Controls Row ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
-          Showing <span className="font-semibold text-navy">{resultCount.toLocaleString()}</span>{' '}
-          {totalCount && resultCount !== totalCount && (
-            <>of <span className="font-semibold text-navy">{totalCount.toLocaleString()}</span>{' '}</>
-          )}
-          investment {resultCount === 1 ? 'property' : 'properties'}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-slate-500">
+            Showing <span className="font-semibold text-navy">{resultCount.toLocaleString()}</span>{' '}
+            {totalCount && resultCount !== totalCount && (
+              <>of <span className="font-semibold text-navy">{totalCount.toLocaleString()}</span>{' '}</>
+            )}
+            investment {resultCount === 1 ? 'property' : 'properties'}
+          </p>
+        </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className={`hidden sm:flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              showAdvanced
+                ? 'border-accent bg-accent/5 text-accent'
+                : 'border-slate-200 bg-white text-navy hover:border-navy/30'
+            }`}
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+            Advanced
+            {advancedCount > 0 && (
+              <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-bold text-white">
+                {advancedCount}
+              </span>
+            )}
+          </button>
+
           <select
             value={filters.sortKey}
             onChange={(e) => updateFilter('sortKey', e.target.value)}
@@ -657,7 +511,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
       {/* ── Active Filter Tags ── */}
       {activeFilterTags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
-          <span className="text-[11px] font-medium text-slate-400 uppercase">Active:</span>
+          <span className="text-[11px] font-medium text-slate-400 uppercase">Filters:</span>
           {activeFilterTags.map((tag, i) => (
             <span
               key={i}
