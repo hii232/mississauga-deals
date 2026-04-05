@@ -31,6 +31,14 @@ const VARIANTS = {
     secondary: { label: 'See Listings', href: '/listings' },
     gradient: 'from-navy to-accent/30',
   },
+  newsletter: {
+    icon: '🏆',
+    headline: 'Get the Top 5 Deals Every Week',
+    sub: 'Join 200+ Mississauga investors who get our free weekly deal breakdown — scored, analyzed, and ranked.',
+    primary: { label: 'Sign Up Free', href: '/listings' },
+    secondary: { label: 'See All Deals', href: '/listings' },
+    gradient: 'from-navy via-accent/30 to-navy',
+  },
 };
 
 export default function InlineCTA({ variant = 'deals', className = '' }) {

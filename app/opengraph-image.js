@@ -102,7 +102,7 @@ export default function Image() {
           >
             <span>Hamza Nouman</span>
             <span>·</span>
-            <span>Royal LePage Signature Realty</span>
+            <span>Cityscape Real Estate Ltd.</span>
             <span>·</span>
             <span>Licensed by RECO</span>
           </div>

@@ -44,7 +44,7 @@ export function SaveSearchButton({ filters }) {
       const serializable = {
         search: filters.search || '',
         propertyType: filters.propertyType || 'All',
-        activeStrategies: filters.activeStrategies || [],
+        strategy: filters.strategy || null,
         priceRange: filters.priceRange || [0, 3000000],
         beds: filters.beds,
         baths: filters.baths,
@@ -95,7 +95,7 @@ export function SaveSearchButton({ filters }) {
     if (filters.propertyType !== 'All') parts.push(filters.propertyType);
     if (filters.priceRange[1] < 3000000) parts.push(`under $${(filters.priceRange[1] / 1000).toFixed(0)}K`);
     if (filters.beds) parts.push(`${filters.beds}+ beds`);
-    if (filters.activeStrategies?.length > 0) parts.push(filters.activeStrategies.join(', '));
+    if (filters.strategy) parts.push(filters.strategy);
     if (filters.neighbourhoods?.length > 0) parts.push(filters.neighbourhoods.slice(0, 2).join(', '));
     return parts.length > 0 ? parts.join(' · ') : 'All listings';
   };

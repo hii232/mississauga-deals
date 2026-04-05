@@ -11,23 +11,23 @@ export function PersonJsonLd() {
     familyName: 'Nouman',
     jobTitle: 'Sales Representative',
     description:
-      'Hamza Nouman is a licensed real estate Sales Representative with Royal LePage Signature Realty in Mississauga, Ontario. He specializes in investment properties and data-driven real estate analysis. Creator of MississaugaInvestor.ca.',
+      'Hamza Nouman is a licensed real estate Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. He specializes in investment properties and data-driven real estate analysis. Creator of MississaugaInvestor.ca.',
     url: 'https://www.mississaugainvestor.ca/about',
     image: 'https://www.mississaugainvestor.ca/images/hamza-headshot.jpg',
     email: 'hamza@nouman.ca',
     telephone: '+1-647-609-1289',
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '30 Eglinton Ave W, Suite 201',
+      streetAddress: '885 Plymouth Dr UNIT 2',
       addressLocality: 'Mississauga',
       addressRegion: 'ON',
-      postalCode: 'L5R 3E7',
+      postalCode: 'L5V 0B5',
       addressCountry: 'CA',
     },
     worksFor: {
       '@type': 'RealEstateAgent',
-      name: 'Royal LePage Signature Realty, Brokerage',
-      url: 'https://www.royallepage.ca',
+      name: 'Cityscape Real Estate Ltd., Brokerage',
+      url: 'https://www.cityscaperealestate.ca',
     },
     alumniOf: [
       {
@@ -48,7 +48,7 @@ export function PersonJsonLd() {
     sameAs: [
       'https://www.mississaugainvestor.ca',
       'https://www.hamzahomes.ca',
-      'https://www.royallepage.ca/en/agent/ontario/mississauga/hamza-nouman/73794/',
+      'https://www.cityscaperealestate.ca',
       'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7',
       'https://www.linkedin.com/in/homeswithhamza/',
       'https://www.facebook.com/Homeswithhamza/',
@@ -86,10 +86,10 @@ export function OrganizationJsonLd() {
     },
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '30 Eglinton Ave W, Suite 201',
+      streetAddress: '885 Plymouth Dr UNIT 2',
       addressLocality: 'Mississauga',
       addressRegion: 'ON',
-      postalCode: 'L5R 3E7',
+      postalCode: 'L5V 0B5',
       addressCountry: 'CA',
     },
     geo: {
@@ -121,13 +121,13 @@ export function OrganizationJsonLd() {
     },
     parentOrganization: {
       '@type': 'RealEstateAgent',
-      name: 'Royal LePage Signature Realty, Brokerage',
-      url: 'https://www.royallepage.ca',
+      name: 'Cityscape Real Estate Ltd., Brokerage',
+      url: 'https://www.cityscaperealestate.ca',
     },
     sameAs: [
       'https://www.mississaugainvestor.ca',
       'https://www.hamzahomes.ca',
-      'https://www.royallepage.ca/en/agent/ontario/mississauga/hamza-nouman/73794/',
+      'https://www.cityscaperealestate.ca',
       'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7',
       'https://www.linkedin.com/in/homeswithhamza/',
       'https://www.facebook.com/Homeswithhamza/',

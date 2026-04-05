@@ -1,7 +1,7 @@
 export const metadata = {
   title: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman',
   description:
-    'Frequently asked questions about investing in Mississauga real estate with Hamza Nouman, Royal LePage Signature Realty. Learn how deal scores work, what cap rates mean, BRRR strategy, and how to find cash flow positive investment properties.',
+    'Frequently asked questions about investing in Mississauga real estate with Hamza Nouman, Cityscape Real Estate Ltd.. Learn how deal scores work, what cap rates mean, BRRR strategy, and how to find cash flow positive investment properties.',
   keywords: [
     'Mississauga real estate FAQ',
     'Hamza Nouman FAQ',

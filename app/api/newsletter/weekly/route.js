@@ -228,7 +228,7 @@ function buildEmailHTML(stats, date) {
     <tr>
       <td>
         <div style="font-size:14px;font-weight:700;color:#fff;">Hamza Nouman</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">Sales Representative &middot; Royal LePage Signature Realty, Brokerage</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Licensed by RECO</div>
         <div style="margin-top:10px;">
           <a href="tel:+16476091289" style="font-size:12px;color:#3b82f6;text-decoration:none;margin-right:16px;">&#9742; 647-609-1289</a>
@@ -243,7 +243,7 @@ function buildEmailHTML(stats, date) {
   <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
     <div style="font-size:10px;color:rgba(255,255,255,0.3);line-height:1.5;">
       Data sourced from TRREB MLS. Estimates are for informational purposes only and do not constitute financial advice.
-      &copy; ${new Date().getFullYear()} MississaugaInvestor.ca &middot; 30 Eglinton Ave W, Mississauga, ON
+      &copy; ${new Date().getFullYear()} MississaugaInvestor.ca &middot; 885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5
     </div>
     <div style="margin-top:8px;">
       <a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?email={{EMAIL}}" style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:underline;">Unsubscribe from weekly reports</a>

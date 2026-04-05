@@ -221,7 +221,7 @@ function buildAlertEmail(listings, name, searches) {
             <td style="background: #F8FAFC; border-radius: 0 0 16px 16px; padding: 24px 32px; border-top: 1px solid #E2E8F0; text-align: center;">
               <div style="color: #64748B; font-size: 12px; line-height: 1.6;">
                 Hamza Nouman, Sales Representative<br>
-                Royal LePage Signature Realty, Brokerage<br>
+                Cityscape Real Estate Ltd., Brokerage<br>
                 647-609-1289 · hamza@nouman.ca
               </div>
               <div style="margin-top: 16px;">

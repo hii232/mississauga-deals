@@ -4,16 +4,16 @@ import { PersonJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 export const metadata = {
   title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
   description:
-    'Hamza Nouman is a licensed Sales Representative with Royal LePage Signature Realty in Mississauga, Ontario. Specializing in investment properties, cash flow analysis, and data-driven real estate decisions. Creator of MississaugaInvestor.ca.',
+    'Hamza Nouman is a licensed Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. Specializing in investment properties, cash flow analysis, and data-driven real estate decisions. Creator of MississaugaInvestor.ca.',
   keywords: [
     'Hamza Nouman',
     'Hamza Nouman Mississauga',
     'Hamza Nouman real estate',
-    'Hamza Nouman Royal LePage',
+    'Hamza Nouman Cityscape Real Estate',
     'Mississauga real estate agent',
     'Mississauga investment specialist',
     'MississaugaInvestor.ca',
-    'Royal LePage Signature Realty',
+    'Cityscape Real Estate Ltd.',
     'Mississauga realtor',
     'real estate investor Mississauga',
   ],
@@ -23,7 +23,7 @@ export const metadata = {
   openGraph: {
     title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
     description:
-      'Licensed Sales Representative with Royal LePage Signature Realty. Specializing in Mississauga investment properties and data-driven real estate analysis.',
+      'Licensed Sales Representative with Cityscape Real Estate Ltd.. Specializing in Mississauga investment properties and data-driven real estate analysis.',
     url: 'https://www.mississaugainvestor.ca/about',
     type: 'profile',
     profile: {
@@ -44,7 +44,7 @@ export const metadata = {
     card: 'summary',
     title: 'Hamza Nouman — Mississauga Real Estate Investment Specialist',
     description:
-      'Licensed Sales Representative with Royal LePage Signature Realty. Creator of MississaugaInvestor.ca.',
+      'Licensed Sales Representative with Cityscape Real Estate Ltd.. Creator of MississaugaInvestor.ca.',
     images: ['/images/hamza-headshot.jpg'],
   },
 };
@@ -67,7 +67,7 @@ export default function AboutPage() {
             <div className="flex-shrink-0">
               <img
                 src="/images/hamza-headshot.jpg"
-                alt="Hamza Nouman — Mississauga Real Estate Investment Specialist at Royal LePage Signature Realty"
+                alt="Hamza Nouman — Mississauga Real Estate Investment Specialist at Cityscape Real Estate Ltd."
                 className="w-48 h-48 md:w-64 md:h-64 rounded-2xl object-cover object-top shadow-2xl border-2 border-white/10"
                 width={256}
                 height={256}
@@ -81,7 +81,7 @@ export default function AboutPage() {
                 Sales Representative
               </p>
               <p className="text-white/60 text-sm mb-4">
-                Royal LePage Signature Realty, Brokerage | Licensed by RECO
+                Cityscape Real Estate Ltd., Brokerage | Licensed by RECO
               </p>
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 <a
@@ -140,8 +140,8 @@ export default function AboutPage() {
           </h2>
           <p className="text-navy/80 leading-relaxed mb-6">
             Hamza Nouman is a licensed real estate Sales Representative with{' '}
-            <a href="https://www.royallepage.ca/en/agent/ontario/mississauga/hamza-nouman/73794/" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">
-              Royal LePage Signature Realty, Brokerage
+            <a href="https://www.cityscaperealestate.ca" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">
+              Cityscape Real Estate Ltd., Brokerage
             </a>{' '}
             in Mississauga, Ontario. He specializes in helping investors find, analyze, and acquire
             income-producing properties across the Greater Toronto Area, with a primary focus on
@@ -203,7 +203,7 @@ export default function AboutPage() {
           </h2>
           <p className="text-navy/80 leading-relaxed mb-4">
             Licensed since 2020 with the Real Estate Council of Ontario (RECO), Hamza Nouman operates
-            under Royal LePage Signature Realty, Brokerage — one of Canada's most trusted real estate
+            under Cityscape Real Estate Ltd., Brokerage — one of Canada's most trusted real estate
             brands. He holds a background in technology and data analytics, which he leverages to build
             tools like MississaugaInvestor.ca that give his clients a competitive advantage in the market.
           </p>
@@ -235,7 +235,7 @@ export default function AboutPage() {
               </div>
               <div className="bg-white/10 rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Office</p>
-                <p className="text-white font-semibold">30 Eglinton Ave W, Mississauga</p>
+                <p className="text-white font-semibold">885 Plymouth Dr UNIT 2, Mississauga</p>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -259,7 +259,7 @@ export default function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { label: 'Royal LePage Profile', url: 'https://www.royallepage.ca/en/agent/ontario/mississauga/hamza-nouman/73794/', icon: '🏠' },
+              { label: 'Cityscape Real Estate', url: 'https://www.cityscaperealestate.ca/', icon: '🏠' },
               { label: 'REALTOR.ca Profile', url: 'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7', icon: '🏡' },
               { label: 'HamzaHomes.ca', url: 'https://www.hamzahomes.ca/', icon: '🌐' },
               { label: 'LinkedIn', url: 'https://www.linkedin.com/in/homeswithhamza/', icon: '💼' },

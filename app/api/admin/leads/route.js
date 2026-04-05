@@ -213,6 +213,38 @@ export async function PATCH(request) {
   });
 }
 
+// ── PUT: Revoke or restore access ────────────────────────
+export async function PUT(request) {
+  if (!checkAuth(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!id) {
+    return NextResponse.json({ error: 'Missing id' }, { status: 400 });
+  }
+
+  let body = {};
+  try { body = await request.json(); } catch {}
+
+  const revoke = body.revoke === true;
+
+  const { error } = await supabase
+    .from('leads')
+    .update({ access_revoked: revoke })
+    .eq('id', id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true, access_revoked: revoke });
+}
+
 // ── DELETE: Archive a lead ───────────────────────────────
 export async function DELETE(request) {
   if (!checkAuth(request)) {

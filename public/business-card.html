@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Card — Hamza Nouman</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family:'Inter',sans-serif;
+  background:#cdd4dc;
+  min-height:100vh;
+  padding:64px 24px 90px;
+  display:flex; flex-direction:column; align-items:center; gap:52px;
+}
+
+h1 { font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:#8a96a4; }
+.card-set { display:flex; flex-direction:column; align-items:center; gap:13px; }
+.card-label { font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#8a96a4; }
+
+.card-wrap {
+  transform:scale(0.65);
+  transform-origin:top center;
+  margin-bottom:-210px;
+}
+
+/* ═══════════════════════════════════════════
+   FRONT — light, editorial, photo-first
+   1050 × 600
+═══════════════════════════════════════════ */
+.front {
+  width:1050px; height:600px;
+  background:#f5f4f1;
+  display:flex;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 40px 100px rgba(0,0,0,.25), 0 8px 28px rgba(0,0,0,.12);
+  font-family:'Inter',sans-serif;
+}
+
+/* ── Photo: left 44% ── */
+.fp {
+  width:462px; flex-shrink:0;
+  position:relative; overflow:hidden;
+  background-image: url('/images/hamza-headshot.jpg');
+  background-size: cover;
+  background-position: 50% 6%;
+  background-repeat: no-repeat;
+  filter: contrast(1.06) brightness(1.02) saturate(.9);
+}
+
+/* Subtle right-edge and bottom fade into card bg */
+.fp::after {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    linear-gradient(to right,  transparent 60%, rgba(245,244,241,.85) 100%),
+    linear-gradient(to top,    rgba(245,244,241,.4) 0%, transparent 22%);
+  filter: none;
+}
+
+/* Navy top-left accent bracket */
+.fp::before {
+  content:'';
+  position:absolute;
+  top:0; left:0;
+  width:6px; height:100%;
+  background:linear-gradient(to bottom, #0a1628 0%, #1d4ed8 100%);
+  z-index:3;
+  filter: none;
+}
+
+/* ── Content: right 56% ── */
+.fc {
+  flex:1;
+  display:flex; flex-direction:column;
+  padding:40px 48px 34px 38px;
+  background:#f5f4f1;
+  position:relative;
+}
+
+/* Faint texture lines in background */
+.fc::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(10,22,40,.04) 1px, transparent 1px);
+  background-size:100% 30px;
+  pointer-events:none;
+}
+
+/* ── Logo ── */
+.fc-logo {
+  display:flex; align-items:center; gap:10px;
+  position:relative; z-index:1;
+}
+
+.logo-sq {
+  width:32px; height:32px;
+  background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+  border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 3px 12px rgba(29,78,216,.35);
+}
+.logo-sq span { color:#fff; font-size:11px; font-weight:900; letter-spacing:-.02em; }
+.logo-words .lw1 { font-size:10px; font-weight:700; color:#0a1628; }
+.logo-words .lw2 { font-size:7.5px; font-weight:500; color:#8a96a4; letter-spacing:.07em; text-transform:uppercase; }
+
+/* ── Name ── */
+.fc-name {
+  position:relative; z-index:1;
+  margin-top:18px; margin-bottom:4px;
+}
+
+.fc-pre {
+  font-size:10px; font-weight:600;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:#3b82f6; margin-bottom:6px;
+}
+
+.fc-main {
+  font-family:'Playfair Display', Georgia, serif;
+  font-size:54px; font-weight:800;
+  color:#0a1628;
+  letter-spacing:-.025em;
+  line-height:.95;
+}
+
+.fc-main em { color:#1d4ed8; font-style:normal; }
+
+/* ── Divider ── */
+.fc-div {
+  display:flex; align-items:center; gap:12px;
+  margin:16px 0 6px;
+  position:relative; z-index:1;
+}
+.fc-div-line { width:36px; height:2px; background:linear-gradient(90deg,#1d4ed8,#3b82f6); border-radius:99px; }
+.fc-div-text { font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:#3b82f6; }
+
+.fc-brok {
+  font-size:9px; font-weight:500;
+  color:#8a96a4; letter-spacing:.05em;
+  text-transform:uppercase; margin-bottom:20px;
+  position:relative; z-index:1;
+}
+
+/* ── Contacts ── */
+.fc-contacts {
+  display:flex; flex-direction:column; gap:8px;
+  flex:1; position:relative; z-index:1;
+}
+
+.fc-ci {
+  display:flex; align-items:center; gap:10px;
+  padding:7px 0;
+  border-bottom:1px solid rgba(10,22,40,.06);
+}
+.fc-ci:last-child { border-bottom:none; }
+
+.fc-ci-icon {
+  width:22px; height:22px;
+  background:#eef2ff; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.fc-ci-icon svg { width:11px; height:11px; stroke:#1d4ed8; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.fc-ci-val { font-size:12.5px; font-weight:600; color:#1e293b; }
+
+/* ── Bottom ── */
+.fc-bottom {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top:16px;
+  border-top:1px solid rgba(10,22,40,.08);
+  position:relative; z-index:1;
+}
+
+/* Stars */
+.fc-stars { display:flex; flex-direction:column; gap:3px; }
+.star-row  { display:flex; gap:2px; }
+.star      { font-size:16px; color:#f59e0b; line-height:1; }
+.star-lbl  { font-size:8px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#94a3b8; margin-top:2px; }
+
+/* Address */
+.fc-addr {
+  font-size:8.5px; font-weight:400; color:#94a3b8;
+  line-height:1.8; text-align:center; flex:1; padding:0 14px;
+}
+
+/* QR */
+.fc-qr { display:flex; flex-direction:column; align-items:center; gap:4px; }
+.qr-box {
+  width:72px; height:72px;
+  background:#ffffff; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  padding:5px;
+  box-shadow:0 4px 14px rgba(10,22,40,.25);
+}
+/* QR inside is dark card on white = navy on white */
+.qr-lbl { font-size:7px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:#94a3b8; }
+
+/* ═══════════════════════════════════════════
+   BACK — dark, impactful, brand-focused
+   1050 × 600
+═══════════════════════════════════════════ */
+.back {
+  width:1050px; height:600px;
+  background:#09121f;
+  position:relative; overflow:hidden;
+  border-radius:18px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 40px 100px rgba(0,0,0,.45), 0 8px 28px rgba(0,0,0,.2);
+  font-family:'Inter',sans-serif;
+}
+
+/* Radial center glow */
+.b-glow {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at 50% 42%, rgba(59,130,246,.22) 0%, transparent 62%);
+  pointer-events:none;
+}
+
+/* Fine dot grid */
+.b-dots {
+  position:absolute; inset:0;
+  background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size:22px 22px;
+  pointer-events:none;
+}
+
+/* Four-corner L-brackets */
+.b-tl,.b-tr,.b-bl,.b-br {
+  position:absolute; width:56px; height:56px; pointer-events:none;
+}
+.b-tl { top:26px; left:26px;  border-top:2px solid rgba(59,130,246,.4); border-left:2px solid rgba(59,130,246,.4);  border-radius:3px 0 0 0; }
+.b-tr { top:26px; right:26px; border-top:2px solid rgba(59,130,246,.4); border-right:2px solid rgba(59,130,246,.4); border-radius:0 3px 0 0; }
+.b-bl { bottom:26px; left:26px;  border-bottom:2px solid rgba(59,130,246,.4); border-left:2px solid rgba(59,130,246,.4);  border-radius:0 0 0 3px; }
+.b-br { bottom:26px; right:26px; border-bottom:2px solid rgba(59,130,246,.4); border-right:2px solid rgba(59,130,246,.4); border-radius:0 0 3px 0; }
+
+.b-content {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column;
+  align-items:center; gap:15px;
+  text-align:center; padding:50px;
+}
+
+/* Logo mark */
+.b-mark {
+  width:66px; height:66px;
+  background:linear-gradient(135deg,#1d4ed8 0%,#3b82f6 100%);
+  border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 10px 32px rgba(59,130,246,.55), 0 0 0 1px rgba(59,130,246,.2);
+}
+.b-mark span { font-size:24px; font-weight:900; color:#fff; letter-spacing:-.03em; }
+
+.b-headline {
+  font-family:'Playfair Display', Georgia, serif;
+  font-size:50px; font-weight:800;
+  color:#fff; letter-spacing:-.03em; line-height:.98;
+}
+.b-headline span { color:#60a5fa; }
+
+.b-sep { width:42px; height:2px; background:linear-gradient(90deg,#3b82f6,#60a5fa); border-radius:99px; }
+
+.b-sub {
+  font-size:13px; font-weight:400;
+  color:rgba(255,255,255,.38);
+  max-width:390px; line-height:1.7;
+}
+
+.b-pills { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; }
+.b-pill {
+  border:1px solid rgba(59,130,246,.28); border-radius:99px;
+  padding:5px 13px; font-size:10px; font-weight:600;
+  color:rgba(255,255,255,.48);
+  background:rgba(59,130,246,.08);
+  letter-spacing:.02em;
+}
+
+.b-url {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:10px; padding:10px 22px;
+}
+.b-url-text { font-size:14px; font-weight:700; color:rgba(255,255,255,.55); letter-spacing:-.01em; }
+.b-url-text em { color:#60a5fa; font-style:normal; }
+
+/* Bottom gradient line */
+.b-stripe {
+  position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, transparent 5%, #3b82f6 50%, transparent 95%);
+}
+
+/* ═══ PAGE CHROME ═══ */
+.controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.btn {
+  padding:13px 28px; border-radius:10px;
+  font-family:'Inter',sans-serif; font-size:13px; font-weight:600;
+  cursor:pointer; border:none; transition:all .15s;
+}
+.btn-dark  { background:#09121f; color:#fff; }
+.btn-dark:hover { background:#121f35; transform:translateY(-1px); box-shadow:0 8px 22px rgba(9,18,31,.5); }
+.btn-light { background:rgba(255,255,255,.9); color:#0a1628; border:1.5px solid #c8d0da; }
+.btn-light:hover { background:#fff; transform:translateY(-1px); }
+.note { font-size:11px; color:#7a8899; text-align:center; max-width:500px; line-height:1.8; }
+</style>
+</head>
+<body>
+
+<h1>Business Card · Hamza Nouman · Cityscape Real Estate</h1>
+
+<!-- ════ FRONT ════ -->
+<div class="card-set">
+  <div class="card-label">Front</div>
+  <div class="card-wrap" id="wrap-front">
+    <div id="card-front">
+      <div class="front">
+
+        <!-- Photo (CSS background-image for clean html2canvas capture) -->
+        <div class="fp"></div>
+
+        <!-- Content -->
+        <div class="fc">
+
+          <div class="fc-logo">
+            <div class="logo-sq"><span>MI</span></div>
+            <div class="logo-words">
+              <div class="lw1">MississaugaInvestor.ca</div>
+              <div class="lw2">Smart Real Estate Analytics</div>
+            </div>
+          </div>
+
+          <div class="fc-name">
+            <div class="fc-pre">Sales Representative</div>
+            <div class="fc-main">Hamza<br><em>Nouman</em></div>
+          </div>
+
+          <div class="fc-div">
+            <div class="fc-div-line"></div>
+            <div class="fc-div-text">Investment Property Specialist</div>
+          </div>
+
+          <div class="fc-brok">Cityscape Real Estate Ltd., Brokerage</div>
+
+          <div class="fc-contacts">
+            <div class="fc-ci">
+              <div class="fc-ci-icon">
+                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 12 19.79 19.79 0 01.22 3.37 2 2 0 012.2 1h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 8.09a16 16 0 006 6l.66-.65a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 15.92z"/></svg>
+              </div>
+              <span class="fc-ci-val">647.609.1289</span>
+            </div>
+            <div class="fc-ci">
+              <div class="fc-ci-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <span class="fc-ci-val">hamza@nouman.ca</span>
+            </div>
+            <div class="fc-ci">
+              <div class="fc-ci-icon">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+              </div>
+              <span class="fc-ci-val">MississaugaInvestor.ca</span>
+            </div>
+          </div>
+
+          <div class="fc-bottom">
+            <div class="fc-stars">
+              <div class="star-row">
+                <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+              </div>
+              <div class="star-lbl">5-Star Google Reviews</div>
+            </div>
+            <div class="fc-addr">885 Plymouth Dr, Unit 2<br>Mississauga, ON · L5V 0B5</div>
+            <div class="fc-qr">
+              <div class="qr-box"><div id="qr"></div></div>
+              <div class="qr-lbl">Scan to Visit</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ BACK ════ -->
+<div class="card-set">
+  <div class="card-label">Back</div>
+  <div class="card-wrap" id="wrap-back">
+    <div id="card-back">
+      <div class="back">
+        <div class="b-glow"></div>
+        <div class="b-dots"></div>
+        <div class="b-tl"></div><div class="b-tr"></div>
+        <div class="b-bl"></div><div class="b-br"></div>
+
+        <div class="b-content">
+          <div class="b-mark"><span>MI</span></div>
+          <div class="b-headline">Find Your <span>Best Deal.</span></div>
+          <div class="b-sep"></div>
+          <div class="b-sub">Every Mississauga &amp; GTA property scored for cash flow, cap rate &amp; return on investment.</div>
+          <div class="b-pills">
+            <div class="b-pill">Deal Scores</div>
+            <div class="b-pill">Cash Flow Analysis</div>
+            <div class="b-pill">1,800+ Live Listings</div>
+            <div class="b-pill">Full GTA Coverage</div>
+          </div>
+          <div class="b-url">
+            <span class="b-url-text">Mississauga<em>Investor</em>.ca</span>
+          </div>
+        </div>
+
+        <div class="b-stripe"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <button class="btn btn-dark"  onclick="dl('card-front','wrap-front','business-card-FRONT.png')">⬇ Download Front (Print-Ready)</button>
+  <button class="btn btn-light" onclick="dl('card-back','wrap-back','business-card-BACK.png')">⬇ Download Back</button>
+  <button class="btn btn-light" onclick="dlBoth()">⬇ Download Both</button>
+</div>
+
+<p class="note">
+  2100 × 1200 px · 3.5″ × 2″ @ 300 DPI · Print-ready PNG<br>
+  Print at <strong>Moo.com</strong> → Business Cards → Upload files → <strong>Soft-touch matte laminate</strong>
+</p>
+
+<script>
+new QRCode(document.getElementById('qr'), {
+  text:'https://www.mississaugainvestor.ca',
+  width:62, height:62,
+  colorDark:'#0a1628',
+  colorLight:'#ffffff',
+  correctLevel: QRCode.CorrectLevel.M,
+});
+
+async function dl(cardId, wrapId, filename) {
+  const wrap  = document.getElementById(wrapId);
+  const inner = document.getElementById(cardId).querySelector('.front,.back');
+
+  // Unscale the wrapper and pin it off-screen absolutely
+  wrap.style.transform    = 'none';
+  wrap.style.marginBottom = '0';
+  wrap.style.position     = 'absolute';
+  wrap.style.top          = '-9999px';
+  wrap.style.left         = '0px';
+  wrap.style.width        = '1050px';
+  wrap.style.height       = '600px';
+
+  await new Promise(r => setTimeout(r, 200));
+
+  const canvas = await html2canvas(inner, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: null,
+    width: 1050,
+    height: 600,
+    x: 0,
+    y: 0,
+    scrollX: 0,
+    scrollY: 9999,   // offset to match top: -9999px
+    logging: false,
+  });
+
+  // Restore
+  wrap.style.transform    = 'scale(0.65)';
+  wrap.style.marginBottom = '-210px';
+  wrap.style.position     = '';
+  wrap.style.top          = '';
+  wrap.style.left         = '';
+  wrap.style.width        = '';
+  wrap.style.height       = '';
+
+  const a    = document.createElement('a');
+  a.download = filename;
+  a.href     = canvas.toDataURL('image/png', 1.0);
+  a.click();
+}
+
+async function dlBoth() {
+  await dl('card-front','wrap-front','business-card-FRONT.png');
+  await new Promise(r => setTimeout(r, 1000));
+  await dl('card-back','wrap-back','business-card-BACK.png');
+}
+</script>
+</body>
+</html>

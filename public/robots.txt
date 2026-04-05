@@ -24,4 +24,4 @@ Disallow: /admin/
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
 
-# MississaugaInvestor.ca — Hamza Nouman, Royal LePage Signature Realty
+# MississaugaInvestor.ca — Hamza Nouman, Cityscape Real Estate Ltd.

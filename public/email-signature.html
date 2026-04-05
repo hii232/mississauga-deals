@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 40px; display: flex; flex-direction: column; align-items: center; gap: 30px; }
+  .label { color: #94a3b8; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 4px; }
+  .instructions { max-width: 600px; background: white; border-radius: 12px; padding: 24px; font-size: 14px; color: #334155; line-height: 1.8; }
+  .instructions h3 { margin-bottom: 12px; color: #0f172a; }
+  .instructions ol { padding-left: 20px; }
+  .instructions code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  .copy-btn { background: #10b981; color: white; border: none; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 10px; }
+  .copy-btn:hover { background: #059669; }
+  .preview-box { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+  .preview-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="label">Gmail Email Signature</div>
+
+<div class="preview-box">
+  <div class="preview-label">Preview</div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- THIS IS THE SIGNATURE — copy from here     -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div id="signature">
+    <table cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, Helvetica, sans-serif; font-size: 14px; color: #1a1a2e; max-width: 520px;">
+      <tr>
+        <td style="padding: 0;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <!-- Photo -->
+              <td width="90" valign="top" style="padding-right: 20px;">
+                <img src="https://www.mississaugainvestor.ca/images/hamza-headshot.jpg"
+                     alt="Hamza Nouman"
+                     width="80" height="80"
+                     style="border-radius: 12px; object-fit: cover; display: block; border: 2px solid #3b82f6;" />
+              </td>
+              <!-- Info -->
+              <td valign="top" style="border-left: 3px solid #3b82f6; padding-left: 18px;">
+                <!-- Name -->
+                <p style="margin: 0 0 2px 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">
+                  Hamza Nouman
+                </p>
+                <!-- Title -->
+                <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: 600; color: #3b82f6; text-transform: uppercase; letter-spacing: 1.5px;">
+                  Sales Representative
+                </p>
+                <!-- Separator -->
+                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 8px;">
+                  <tr><td style="width: 40px; height: 1px; background: #e2e8f0;"></td></tr>
+                </table>
+                <!-- Phone -->
+                <p style="margin: 0 0 3px 0; font-size: 13px; color: #334155;">
+                  <strong style="color: #0f172a;">C:</strong> 647.609.1289
+                </p>
+                <!-- Email -->
+                <p style="margin: 0 0 3px 0; font-size: 13px; color: #334155;">
+                  <strong style="color: #0f172a;">E:</strong>
+                  <a href="mailto:hamza@nouman.ca" style="color: #334155; text-decoration: none;">hamza@nouman.ca</a>
+                </p>
+                <!-- Website -->
+                <p style="margin: 0 0 8px 0; font-size: 13px;">
+                  <strong style="color: #0f172a;">W:</strong>
+                  <a href="https://www.mississaugainvestor.ca" style="color: #3b82f6; text-decoration: none; font-weight: 700;">MississaugaInvestor.ca</a>
+                </p>
+                <!-- CTA Button -->
+                <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 10px;">
+                  <tr>
+                    <td style="background: #3b82f6; border-radius: 6px; padding: 7px 16px;">
+                      <a href="https://www.mississaugainvestor.ca/listings"
+                         style="color: white; text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;">
+                        Browse Investment Deals
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <!-- Brokerage -->
+                <p style="margin: 0; font-size: 10px; color: #94a3b8; line-height: 1.5;">
+                  Cityscape Real Estate Ltd., Brokerage<br>
+                  885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5<br>
+                  Licensed by RECO
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <!-- Disclaimer -->
+      <tr>
+        <td style="padding-top: 12px;">
+          <p style="margin: 0; font-size: 9px; color: #cbd5e1; line-height: 1.4;">
+            Not intended to solicit those currently under contract with another brokerage. This email and any attachments are confidential.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- END SIGNATURE                              -->
+  <!-- ═══════════════════════════════════════════ -->
+
+</div>
+
+<button class="copy-btn" onclick="copySignature()">📋 Copy Signature to Clipboard</button>
+
+<div class="instructions">
+  <h3>How to add this to Gmail:</h3>
+  <ol>
+    <li>Click the <strong>"Copy Signature to Clipboard"</strong> button above</li>
+    <li>Go to <strong>Gmail Settings</strong> → <strong>General</strong> → <strong>Signature</strong></li>
+    <li>Click inside the signature editor, select all (<code>Ctrl+A</code>), then paste (<code>Ctrl+V</code>)</li>
+    <li>Scroll down and click <strong>"Save Changes"</strong></li>
+    <li>Done! Every email you send will include this signature.</li>
+  </ol>
+</div>
+
+<script>
+function copySignature() {
+  const sig = document.getElementById('signature');
+  const range = document.createRange();
+  range.selectNode(sig);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  document.execCommand('copy');
+  window.getSelection().removeAllRanges();
+
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = '✅ Copied! Now paste in Gmail';
+  btn.style.background = '#059669';
+  setTimeout(() => {
+    btn.textContent = '📋 Copy Signature to Clipboard';
+    btn.style.background = '#10b981';
+  }, 3000);
+}
+</script>
+
+</body>
+</html>

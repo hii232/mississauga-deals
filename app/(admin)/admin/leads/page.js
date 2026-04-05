@@ -351,6 +351,24 @@ export default function LeadsCRM() {
     }
   }
 
+  async function toggleAccess(id, currentlyRevoked) {
+    const action = currentlyRevoked ? 'restore access for' : 'revoke access for';
+    if (!confirm(`Are you sure you want to ${action} this lead?`)) return;
+    setActionLoading(id);
+    try {
+      await fetch(`/api/admin/leads?id=${id}`, {
+        method: 'PUT',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ revoke: !currentlyRevoked }),
+      });
+      setLeads((prev) =>
+        prev.map((l) => l.id === id ? { ...l, access_revoked: !currentlyRevoked } : l)
+      );
+    } catch {} finally {
+      setActionLoading(null);
+    }
+  }
+
   async function archiveLead(id) {
     if (!confirm('Archive this lead? You can find them later under the Archived filter.')) return;
     setActionLoading(id);
@@ -502,6 +520,11 @@ export default function LeadsCRM() {
                       <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
                         {badge.label}
                       </span>
+                      {lead.access_revoked && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-red-500/15 text-red-400 border-red-500/25">
+                          🚫 Revoked
+                        </span>
+                      )}
                       {urgency && (
                         <span className={`text-[10px] font-semibold ${urgency.cls}`}>
                           {urgency.label}
@@ -663,11 +686,22 @@ export default function LeadsCRM() {
                       >
                         ✏️ Log Activity
                       </button>
+                      <button
+                        onClick={() => toggleAccess(lead.id, lead.access_revoked)}
+                        disabled={isLoading}
+                        className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors disabled:opacity-50 ml-auto ${
+                          lead.access_revoked
+                            ? 'bg-green-500/10 border border-green-500/20 text-green-400 hover:bg-green-500/20'
+                            : 'bg-red-500/[0.06] border border-red-500/10 text-red-400/70 hover:bg-red-500/10'
+                        }`}
+                      >
+                        {lead.access_revoked ? '✅ Restore Access' : '🚫 Revoke Access'}
+                      </button>
                       {lead.status !== 'archived' && (
                         <button
                           onClick={() => archiveLead(lead.id)}
                           disabled={isLoading}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/[0.06] border border-red-500/10 text-red-400/70 text-xs font-medium hover:bg-red-500/10 transition-colors disabled:opacity-50 ml-auto"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-500/[0.06] border border-red-500/10 text-red-400/70 text-xs font-medium hover:bg-red-500/10 transition-colors disabled:opacity-50"
                         >
                           🗑 Archive
                         </button>

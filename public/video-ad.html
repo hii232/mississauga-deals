@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  body {
+    width: 1080px;
+    height: 1920px;
+    min-width: 1080px;
+    min-height: 1920px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    background: #0f172a;
+    position: relative;
+    transform-origin: center center;
+  }
+
+
+  /* Ambient background */
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0;
+  }
+  .bg-glow-1 {
+    width: 600px; height: 600px;
+    background: rgba(59,130,246,0.15);
+    top: -100px; right: -100px;
+    animation: glowIn 2s 0.5s ease forwards;
+  }
+  .bg-glow-2 {
+    width: 500px; height: 500px;
+    background: rgba(16,185,129,0.1);
+    bottom: 200px; left: -100px;
+    animation: glowIn 2s 1s ease forwards;
+  }
+  .bg-glow-3 {
+    width: 400px; height: 400px;
+    background: rgba(59,130,246,0.1);
+    bottom: -100px; right: -50px;
+    animation: glowIn 2s 1.5s ease forwards;
+  }
+
+  @keyframes glowIn {
+    to { opacity: 1; }
+  }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 1: Hook (0-4s)               */
+  /* ═══════════════════════════════════ */
+  .scene-1 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px;
+    opacity: 0;
+    animation: sceneIn 0.8s 0.3s ease forwards, sceneOut 0.6s 4s ease forwards;
+  }
+  .scene-1 .hook-line {
+    color: #94a3b8;
+    font-size: 32px;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: textUp 0.7s 0.8s ease forwards;
+  }
+  .scene-1 .hook-big {
+    color: white;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-top: 24px;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: textUp 0.7s 1.3s ease forwards;
+  }
+  .scene-1 .hook-big span { color: #3b82f6; }
+  .scene-1 .hook-sub {
+    color: #64748b;
+    font-size: 28px;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: textUp 0.6s 2s ease forwards;
+  }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 2: Problem (4-7.5s)          */
+  /* ═══════════════════════════════════ */
+  .scene-2 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px;
+    opacity: 0;
+    animation: sceneIn 0.6s 4.6s ease forwards, sceneOut 0.6s 7.5s ease forwards;
+  }
+  .scene-2 .pain-item {
+    color: #ef4444;
+    font-size: 38px;
+    font-weight: 700;
+    padding: 20px 0;
+    opacity: 0;
+    transform: translateX(-40px);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .scene-2 .pain-item .x-mark {
+    color: #ef4444;
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+  .scene-2 .pain-1 { animation: slideRight 0.5s 5.2s ease forwards; }
+  .scene-2 .pain-2 { animation: slideRight 0.5s 5.7s ease forwards; }
+  .scene-2 .pain-3 { animation: slideRight 0.5s 6.2s ease forwards; }
+  .scene-2 .pain-4 { animation: slideRight 0.5s 6.7s ease forwards; }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 3: Solution intro (7.5-11s)  */
+  /* ═══════════════════════════════════ */
+  .scene-3 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px;
+    opacity: 0;
+    animation: sceneIn 0.6s 8.1s ease forwards, sceneOut 0.6s 11s ease forwards;
+  }
+  .scene-3 .intro-label {
+    color: #10b981;
+    font-size: 22px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: textUp 0.5s 8.5s ease forwards;
+  }
+  .scene-3 .intro-big {
+    color: white;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: textUp 0.6s 9s ease forwards;
+  }
+  .scene-3 .intro-big span { color: #3b82f6; }
+  .scene-3 .counter-row {
+    display: flex;
+    gap: 60px;
+    opacity: 0;
+    animation: textUp 0.5s 9.6s ease forwards;
+  }
+  .scene-3 .counter {
+    text-align: center;
+  }
+  .scene-3 .counter-num {
+    color: #3b82f6;
+    font-size: 64px;
+    font-weight: 900;
+  }
+  .scene-3 .counter-label {
+    color: #64748b;
+    font-size: 18px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 4: Deal card demo (11-17s)   */
+  /* ═══════════════════════════════════ */
+  .scene-4 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+    opacity: 0;
+    animation: sceneIn 0.6s 11.6s ease forwards, sceneOut 0.6s 17s ease forwards;
+  }
+  .scene-4 .demo-label {
+    color: #94a3b8;
+    font-size: 22px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+    text-align: center;
+    opacity: 0;
+    animation: textUp 0.5s 12s ease forwards;
+  }
+  .scene-4 .demo-card {
+    background: white;
+    border-radius: 28px;
+    padding: 50px;
+    width: 100%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(60px) scale(0.95);
+    animation: cardIn 0.8s 12.4s ease forwards;
+  }
+  .scene-4 .dc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 36px;
+  }
+  .scene-4 .dc-address {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+  .scene-4 .dc-details {
+    font-size: 22px;
+    color: #64748b;
+    margin-top: 6px;
+  }
+  .scene-4 .dc-score {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 36px;
+    font-weight: 900;
+    box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+    opacity: 0;
+    animation: popIn 0.5s 13.4s ease forwards;
+  }
+  .scene-4 .dc-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .scene-4 .dc-metric {
+    background: #f1f5f9;
+    border-radius: 16px;
+    padding: 22px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .scene-4 .dc-m1 { animation: textUp 0.4s 13.8s ease forwards; }
+  .scene-4 .dc-m2 { animation: textUp 0.4s 14.1s ease forwards; }
+  .scene-4 .dc-m3 { animation: textUp 0.4s 14.4s ease forwards; }
+  .scene-4 .dc-m4 { animation: textUp 0.4s 14.7s ease forwards; }
+  .scene-4 .dc-metric-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .scene-4 .dc-metric-value {
+    font-size: 30px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 4px;
+  }
+  .scene-4 .dc-metric-value.green { color: #10b981; }
+  .scene-4 .dc-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: textUp 0.4s 15.2s ease forwards;
+  }
+  .scene-4 .dc-tag {
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .dc-tag-green { background: #d1fae5; color: #065f46; }
+  .dc-tag-blue { background: #dbeafe; color: #1e40af; }
+  .dc-tag-amber { background: #fef3c7; color: #92400e; }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 5: Features (17-22s)         */
+  /* ═══════════════════════════════════ */
+  .scene-5 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 70px;
+    opacity: 0;
+    animation: sceneIn 0.6s 17.6s ease forwards, sceneOut 0.6s 22s ease forwards;
+  }
+  .scene-5 .feat-title {
+    color: white;
+    font-size: 48px;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 50px;
+    opacity: 0;
+    animation: textUp 0.5s 18s ease forwards;
+  }
+  .scene-5 .feat-title span { color: #3b82f6; }
+  .scene-5 .feat-list {
+    width: 100%;
+  }
+  .scene-5 .feat-item {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 24px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  .scene-5 .fi-1 { animation: slideRight 0.4s 18.4s ease forwards; }
+  .scene-5 .fi-2 { animation: slideRight 0.4s 18.8s ease forwards; }
+  .scene-5 .fi-3 { animation: slideRight 0.4s 19.2s ease forwards; }
+  .scene-5 .fi-4 { animation: slideRight 0.4s 19.6s ease forwards; }
+  .scene-5 .fi-5 { animation: slideRight 0.4s 20s ease forwards; }
+  .scene-5 .fi-6 { animation: slideRight 0.4s 20.4s ease forwards; }
+  .scene-5 .feat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: rgba(59,130,246,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .scene-5 .feat-text {
+    color: white;
+    font-size: 26px;
+    font-weight: 600;
+  }
+  .scene-5 .feat-check {
+    color: #10b981;
+    font-size: 28px;
+    font-weight: 900;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  /* ═══════════════════════════════════ */
+  /* SCENE 6: CTA (22-30s)              */
+  /* ═══════════════════════════════════ */
+  .scene-6 {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px;
+    opacity: 0;
+    animation: sceneIn 0.8s 22.6s ease forwards;
+  }
+  .scene-6 .cta-free {
+    color: #10b981;
+    font-size: 24px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin-bottom: 30px;
+    opacity: 0;
+    animation: textUp 0.5s 23s ease forwards;
+  }
+  .scene-6 .cta-big {
+    color: white;
+    font-size: 68px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: textUp 0.6s 23.5s ease forwards;
+  }
+  .scene-6 .cta-big span { color: #3b82f6; }
+  .scene-6 .cta-url-box {
+    background: rgba(59,130,246,0.12);
+    border: 2px solid rgba(59,130,246,0.3);
+    border-radius: 20px;
+    padding: 28px 60px;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: popIn 0.6s 24.2s ease forwards;
+  }
+  .scene-6 .cta-url {
+    color: #3b82f6;
+    font-size: 36px;
+    font-weight: 900;
+  }
+  .scene-6 .cta-sub {
+    color: #64748b;
+    font-size: 22px;
+    opacity: 0;
+    animation: textUp 0.5s 24.8s ease forwards;
+  }
+  .scene-6 .cta-bullets {
+    list-style: none;
+    margin-top: 40px;
+    opacity: 0;
+    animation: textUp 0.5s 25.3s ease forwards;
+  }
+  .scene-6 .cta-bullets li {
+    color: #94a3b8;
+    font-size: 22px;
+    padding: 8px 0;
+  }
+  .scene-6 .cta-bullets li span {
+    color: #10b981;
+    margin-right: 10px;
+  }
+  .scene-6 .cta-arrow {
+    margin-top: 40px;
+    opacity: 0;
+    animation: textUp 0.5s 25.8s ease forwards, bounce 1.5s 26.3s ease-in-out infinite;
+  }
+  .scene-6 .cta-arrow svg {
+    width: 60px;
+    height: 60px;
+    stroke: #3b82f6;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(12px); }
+  }
+
+  /* ═══════════════════════════════════ */
+  /* SHARED ANIMATIONS                   */
+  /* ═══════════════════════════════════ */
+  @keyframes sceneIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes sceneOut {
+    from { opacity: 1; }
+    to { opacity: 0; pointer-events: none; }
+  }
+  @keyframes textUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideRight {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(60px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes popIn {
+    0% { opacity: 0; transform: scale(0.5); }
+    70% { transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Play button overlay */
+  .play-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15,23,42,0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: pointer;
+  }
+  .play-overlay.hidden { display: none; }
+  .play-btn {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 60px rgba(59,130,246,0.5);
+    margin-bottom: 30px;
+  }
+  .play-btn svg {
+    width: 50px;
+    height: 50px;
+    fill: white;
+    margin-left: 8px;
+  }
+  .play-text {
+    color: white;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  .play-hint {
+    color: #64748b;
+    font-size: 18px;
+    margin-top: 12px;
+  }
+
+  /* Paused state - freeze all animations */
+  body.paused * {
+    animation-play-state: paused !important;
+  }
+</style>
+</head>
+<body class="paused">
+
+<!-- Play overlay -->
+<div class="play-overlay" id="playOverlay" onclick="startAnimation()">
+  <div class="play-btn">
+    <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+  </div>
+  <div class="play-text">Click to Play (30 seconds)</div>
+  <div class="play-hint">Screen record this for your video ad</div>
+</div>
+
+<!-- Background glows -->
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+<div class="bg-glow bg-glow-3"></div>
+
+<!-- SCENE 1: Hook -->
+<div class="scene-1">
+  <div class="hook-line">Still scrolling through MLS?</div>
+  <div class="hook-big">Stop Guessing.<br>Start <span>Investing.</span></div>
+  <div class="hook-sub">There's a better way to find deals.</div>
+</div>
+
+<!-- SCENE 2: Pain Points -->
+<div class="scene-2">
+  <div class="pain-item pain-1"><span class="x-mark">✕</span> Running numbers on every listing</div>
+  <div class="pain-item pain-2"><span class="x-mark">✕</span> Calling your agent for comps</div>
+  <div class="pain-item pain-3"><span class="x-mark">✕</span> Missing deals that sell in days</div>
+  <div class="pain-item pain-4"><span class="x-mark">✕</span> Guessing if it'll cash flow</div>
+</div>
+
+<!-- SCENE 3: Solution -->
+<div class="scene-3">
+  <div class="intro-label">Introducing</div>
+  <div class="intro-big">Every GTA Listing.<br><span>Scored & Analyzed.</span></div>
+  <div class="counter-row">
+    <div class="counter">
+      <div class="counter-num">4,000+</div>
+      <div class="counter-label">Listings</div>
+    </div>
+    <div class="counter">
+      <div class="counter-num">388</div>
+      <div class="counter-label">Premium Deals</div>
+    </div>
+    <div class="counter">
+      <div class="counter-num">Free</div>
+      <div class="counter-label">Always</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENE 4: Deal Card Demo -->
+<div class="scene-4">
+  <div class="demo-label">Here's what an 8.6 looks like</div>
+  <div class="demo-card">
+    <div class="dc-top">
+      <div>
+        <div class="dc-address">493 Jones Avenue</div>
+        <div class="dc-details">$899K · 4 bed · 3 bath · Townhouse</div>
+      </div>
+      <div class="dc-score">8.6</div>
+    </div>
+    <div class="dc-metrics">
+      <div class="dc-metric dc-m1">
+        <div class="dc-metric-label">Cap Rate</div>
+        <div class="dc-metric-value">6.1%</div>
+      </div>
+      <div class="dc-metric dc-m2">
+        <div class="dc-metric-label">Cash Flow</div>
+        <div class="dc-metric-value green">+$1,420/mo</div>
+      </div>
+      <div class="dc-metric dc-m3">
+        <div class="dc-metric-label">CoC Return</div>
+        <div class="dc-metric-value">11.2%</div>
+      </div>
+      <div class="dc-metric dc-m4">
+        <div class="dc-metric-label">Days on Market</div>
+        <div class="dc-metric-value">4</div>
+      </div>
+    </div>
+    <div class="dc-tags">
+      <span class="dc-tag dc-tag-green">Legal Suite</span>
+      <span class="dc-tag dc-tag-green">Cash Flowing</span>
+      <span class="dc-tag dc-tag-amber">Price Drop -9%</span>
+      <span class="dc-tag dc-tag-blue">LRT Access</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCENE 5: Features -->
+<div class="scene-5">
+  <div class="feat-title">Everything You Get — <span>Free</span></div>
+  <div class="feat-list">
+    <div class="feat-item fi-1">
+      <div class="feat-icon">📊</div>
+      <div class="feat-text">Deal scores on every listing</div>
+      <div class="feat-check">✓</div>
+    </div>
+    <div class="feat-item fi-2">
+      <div class="feat-icon">💰</div>
+      <div class="feat-text">Cash flow calculated instantly</div>
+      <div class="feat-check">✓</div>
+    </div>
+    <div class="feat-item fi-3">
+      <div class="feat-icon">🏠</div>
+      <div class="feat-text">Legal suite detection</div>
+      <div class="feat-check">✓</div>
+    </div>
+    <div class="feat-item fi-4">
+      <div class="feat-icon">📉</div>
+      <div class="feat-text">Motivated seller alerts</div>
+      <div class="feat-check">✓</div>
+    </div>
+    <div class="feat-item fi-5">
+      <div class="feat-icon">🔍</div>
+      <div class="feat-text">Sold comps & price history</div>
+      <div class="feat-check">✓</div>
+    </div>
+    <div class="feat-item fi-6">
+      <div class="feat-icon">🧮</div>
+      <div class="feat-text">BRRR & cap rate calculators</div>
+      <div class="feat-check">✓</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCENE 6: CTA -->
+<div class="scene-6">
+  <div class="cta-free">100% Free for Investors</div>
+  <div class="cta-big">The Best Deals<br>Sell Fast.<br><span>See Them First.</span></div>
+  <div class="cta-url-box">
+    <div class="cta-url">MississaugaInvestor.ca</div>
+  </div>
+  <div class="cta-sub">No credit card. No spam. Just deals.</div>
+  <ul class="cta-bullets">
+    <li><span>✓</span> Sign up in 10 seconds</li>
+    <li><span>✓</span> Unlock 388 premium deals</li>
+    <li><span>✓</span> Link in bio ↓</li>
+  </ul>
+  <div class="cta-arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 5v14M19 12l-7 7-7-7"/>
+    </svg>
+  </div>
+</div>
+
+<script>
+function scaleToFit() {
+  const scaleX = window.innerWidth / 1080;
+  const scaleY = window.innerHeight / 1920;
+  const scale = Math.min(scaleX, scaleY);
+  document.body.style.transform = 'scale(' + scale + ')';
+}
+scaleToFit();
+window.addEventListener('resize', scaleToFit);
+
+function startAnimation() {
+  document.getElementById('playOverlay').classList.add('hidden');
+  document.body.classList.remove('paused');
+}
+</script>
+</body>
+</html>

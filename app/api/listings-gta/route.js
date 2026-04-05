@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 
 const BASE = 'https://query.ampre.ca/odata';
-const TOK = process.env.AMPRE_TOKEN;
+const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 // Top 15 GTA cities — keeps the OData OR filter fast
 const GTA_CITIES = [
@@ -185,6 +186,8 @@ export async function GET(request) {
 
       let dom = l.DaysOnMarket || 0;
       if (dom === 0) {
+        // OriginalEntryTimestamp = when listing first entered the system (best proxy for list date)
+        // ModificationTimestamp = last updated (less accurate but better than 0)
         const listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
         if (listDate) {
           const diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);

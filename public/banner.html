@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; flex-direction: column; gap: 40px; align-items: center; padding: 40px; }
+
+  .banner {
+    width: 1500px;
+    height: 500px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    background: #0f172a;
+  }
+
+  /* ── LEFT: Photo with gradient overlay ── */
+  .photo-section {
+    width: 400px;
+    height: 100%;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .photo-section img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+  /* Fade right edge into dark bg */
+  .photo-section::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px;
+    height: 100%;
+    background: linear-gradient(to right, transparent, #0f172a);
+  }
+  /* Blue accent bar on left edge */
+  .photo-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+    z-index: 2;
+  }
+
+  /* ── CENTER: Name block ── */
+  .name-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px 0 40px;
+    position: relative;
+  }
+  .name-first {
+    font-family: 'Inter', sans-serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: white;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .name-last {
+    font-family: 'Inter', sans-serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: #3b82f6;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-top: 4px;
+  }
+  .divider-line {
+    width: 50px;
+    height: 3px;
+    background: #3b82f6;
+    margin: 16px 0;
+    border-radius: 2px;
+  }
+  .role {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+  .tagline {
+    margin-top: 18px;
+    font-size: 15px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    max-width: 340px;
+  }
+  .tagline strong {
+    color: rgba(255,255,255,0.75);
+  }
+
+  /* ── Vertical separator ── */
+  .separator {
+    width: 1px;
+    height: 320px;
+    background: rgba(255,255,255,0.08);
+    align-self: center;
+    flex-shrink: 0;
+  }
+
+  /* ── RIGHT: Contact ── */
+  .contact-section {
+    width: 440px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 50px 40px 40px;
+    gap: 12px;
+  }
+  .c-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .c-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .c-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: #3b82f6;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .c-text {
+    color: #e2e8f0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+  .c-small {
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  /* Website highlight box */
+  .web-box {
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+  }
+  .web-box svg {
+    width: 22px;
+    height: 22px;
+    stroke: #60a5fa;
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+  .web-url {
+    font-size: 21px;
+    font-weight: 800;
+    color: #60a5fa;
+    letter-spacing: 0.3px;
+  }
+
+  /* Brokerage footer */
+  .brokerage {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  /* Bottom accent */
+  .banner .top-accent {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6, #60a5fa, #3b82f6, #1d4ed8);
+  }
+  .banner .reco-text {
+    position: absolute;
+    bottom: 10px;
+    right: 50px;
+    color: rgba(255,255,255,0.15);
+    font-size: 9px;
+  }
+
+  /* Subtle bg pattern */
+  .banner .bg-dots {
+    position: absolute;
+    top: 0; left: 400px; right: 0; bottom: 0;
+    background-image: radial-gradient(rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Download */
+  .dl-section { display: flex; gap: 12px; }
+  .dl-btn {
+    background: #3b82f6; color: white; border: none;
+    padding: 14px 32px; border-radius: 10px; font-size: 16px;
+    font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .dl-btn:hover { background: #2563eb; }
+  .label {
+    color: #94a3b8; font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="label">EMAIL / LINKEDIN BANNER — 1500 x 500</div>
+
+<div class="banner" id="banner1">
+  <div class="top-accent"></div>
+  <div class="bg-dots"></div>
+
+  <!-- Photo -->
+  <div class="photo-section">
+    <img src="/images/hamza-headshot.jpg" alt="Hamza Nouman">
+  </div>
+
+  <!-- Name -->
+  <div class="name-section">
+    <div class="name-first">HAMZA</div>
+    <div class="name-last">NOUMAN</div>
+    <div class="divider-line"></div>
+    <div class="role">Sales Representative</div>
+    <div class="tagline">
+      Helping investors find <strong>cash-flowing deals</strong> across Mississauga & the GTA — powered by data.
+    </div>
+  </div>
+
+  <div class="separator"></div>
+
+  <!-- Contact -->
+  <div class="contact-section">
+    <div class="c-row">
+      <div class="c-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      </div>
+      <div class="c-text">647.609.1289</div>
+    </div>
+    <div class="c-row">
+      <div class="c-icon">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </div>
+      <div class="c-text">hamza@nouman.ca</div>
+    </div>
+    <div class="web-box">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+      <div class="web-url">MississaugaInvestor.ca</div>
+    </div>
+    <div class="c-row">
+      <div class="c-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div>
+        <div class="c-small">885 Plymouth Dr UNIT 2</div>
+        <div class="c-small">Mississauga, ON L5V 0B5</div>
+      </div>
+    </div>
+    <div class="brokerage">Cityscape Real Estate Ltd., Brokerage &middot; Licensed by RECO</div>
+  </div>
+
+  <div class="reco-text">Not intended to solicit those currently under contract with another brokerage.</div>
+</div>
+
+<div class="dl-section">
+  <button class="dl-btn" onclick="downloadBanner()">⬇ Download Banner (PNG)</button>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+async function downloadBanner() {
+  const el = document.getElementById('banner1');
+  const canvas = await html2canvas(el, {
+    scale: 1, width: 1500, height: 500,
+    useCORS: true, backgroundColor: null,
+  });
+  const a = document.createElement('a');
+  a.download = 'Hamza-Nouman-Banner.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+</script>
+
+</body>
+</html>

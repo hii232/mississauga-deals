@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #f1f5f9; padding: 40px; display: flex; flex-direction: column; gap: 60px; align-items: center; }
+
+  .card {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  /* Swipe arrow — bottom right */
+  .swipe-arrow {
+    position: absolute;
+    bottom: 36px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.45);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    animation: nudge 1.5s ease-in-out infinite;
+  }
+  .swipe-arrow svg {
+    width: 22px;
+    height: 22px;
+    stroke: rgba(255,255,255,0.45);
+  }
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(6px); }
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* CARD 1: Hero / Value Prop               */
+  /* ═══════════════════════════════════════ */
+  .card-1 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px;
+  }
+  .card-1 .badge {
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: #60a5fa;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 100px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .card-1 h1 {
+    color: white;
+    font-size: 64px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .card-1 h1 span { color: #3b82f6; }
+  .card-1 p {
+    color: #94a3b8;
+    font-size: 24px;
+    line-height: 1.5;
+    max-width: 700px;
+    margin-bottom: 50px;
+  }
+  .card-1 .stats-row {
+    display: flex;
+    gap: 50px;
+    margin-bottom: 50px;
+  }
+  .card-1 .stat {
+    text-align: center;
+  }
+  .card-1 .stat-num {
+    color: #3b82f6;
+    font-size: 52px;
+    font-weight: 800;
+  }
+  .card-1 .stat-label {
+    color: #64748b;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  .card-1 .url {
+    color: #3b82f6;
+    font-size: 22px;
+    font-weight: 700;
+    background: rgba(59,130,246,0.1);
+    padding: 14px 36px;
+    border-radius: 12px;
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+  .card-1 .glow {
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%);
+    top: -100px;
+    right: -100px;
+  }
+  .card-1 .glow2 {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+    bottom: -50px;
+    left: -50px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* CARD 2: Features Grid                   */
+  /* ═══════════════════════════════════════ */
+  .card-2 {
+    background: linear-gradient(180deg, #0f172a 0%, #1a2744 100%);
+    padding: 70px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-2 .top {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .card-2 .top h2 {
+    color: white;
+    font-size: 48px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .card-2 .top h2 span { color: #3b82f6; }
+  .card-2 .top p {
+    color: #64748b;
+    font-size: 20px;
+  }
+  .card-2 .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+  }
+  .card-2 .feature {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .card-2 .feature-icon {
+    font-size: 36px;
+    margin-bottom: 14px;
+  }
+  .card-2 .feature h3 {
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .card-2 .feature p {
+    color: #94a3b8;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .card-2 .bottom-url {
+    text-align: center;
+    margin-top: 40px;
+    color: #3b82f6;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* CARD 3: Deal Score Explainer            */
+  /* ═══════════════════════════════════════ */
+  .card-3 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    padding: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .card-3 .header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+  .card-3 .header h2 {
+    color: white;
+    font-size: 44px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .card-3 .header p {
+    color: #64748b;
+    font-size: 20px;
+  }
+  .card-3 .deal-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    width: 100%;
+    max-width: 880px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+  }
+  .card-3 .deal-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 30px;
+  }
+  .card-3 .deal-address {
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .card-3 .deal-price {
+    font-size: 22px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+  .card-3 .score-badge {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    font-weight: 800;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.4);
+  }
+  .card-3 .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card-3 .metric {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 18px;
+    text-align: center;
+  }
+  .card-3 .metric-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .card-3 .metric-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 4px;
+  }
+  .card-3 .metric-value.green { color: #10b981; }
+  .card-3 .tags {
+    display: flex;
+    gap: 10px;
+  }
+  .card-3 .tag {
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .card-3 .tag-green { background: #d1fae5; color: #065f46; }
+  .card-3 .tag-blue { background: #dbeafe; color: #1e40af; }
+  .card-3 .tag-amber { background: #fef3c7; color: #92400e; }
+  .card-3 .bottom-text {
+    text-align: center;
+    margin-top: 40px;
+  }
+  .card-3 .bottom-text p {
+    color: #94a3b8;
+    font-size: 18px;
+  }
+  .card-3 .bottom-text .url {
+    color: #3b82f6;
+    font-weight: 700;
+    font-size: 22px;
+    margin-top: 8px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* CARD 4: CTA / Why Sign Up               */
+  /* ═══════════════════════════════════════ */
+  .card-4 {
+    background: linear-gradient(135deg, #0f172a 0%, #0c1f3d 50%, #0f172a 100%);
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+  }
+  .card-4 .eyebrow {
+    color: #10b981;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+  }
+  .card-4 h2 {
+    color: white;
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 40px;
+    max-width: 800px;
+  }
+  .card-4 h2 span { color: #3b82f6; }
+  .card-4 .checklist {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 50px;
+  }
+  .card-4 .checklist li {
+    color: #e2e8f0;
+    font-size: 24px;
+    font-weight: 500;
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .card-4 .check {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(16,185,129,0.15);
+    border: 2px solid #10b981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    font-size: 16px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .card-4 .cta-btn {
+    background: #3b82f6;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+    padding: 20px 48px;
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 8px 30px rgba(59,130,246,0.4);
+    margin-bottom: 16px;
+  }
+  .card-4 .sub {
+    color: #64748b;
+    font-size: 16px;
+  }
+  .card-4 .corner-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+  }
+  .card-4 .cg1 { top: -200px; left: -200px; }
+  .card-4 .cg2 { bottom: -200px; right: -200px; }
+
+  /* ═══════════════════════════════════════ */
+  /* CARD 5: Link in Bio / Description       */
+  /* ═══════════════════════════════════════ */
+  .card-5 {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px;
+    position: relative;
+  }
+  .card-5 .glow-ring {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    border: 2px solid rgba(59,130,246,0.08);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .card-5 .glow-ring:nth-child(2) { width: 750px; height: 750px; border-color: rgba(59,130,246,0.04); }
+  .card-5 .glow-ring:nth-child(3) { width: 900px; height: 900px; border-color: rgba(59,130,246,0.02); }
+  .card-5 .point-down {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 40px;
+    animation: bounce 1.5s ease-in-out infinite;
+    z-index: 1;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(12px); }
+  }
+  .card-5 .big-text {
+    color: white;
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 24px;
+    z-index: 1;
+  }
+  .card-5 .big-text span { color: #3b82f6; }
+  .card-5 .sub-text {
+    color: #94a3b8;
+    font-size: 26px;
+    line-height: 1.5;
+    max-width: 700px;
+    margin-bottom: 50px;
+    z-index: 1;
+  }
+  .card-5 .link-box {
+    background: rgba(59,130,246,0.12);
+    border: 2px solid rgba(59,130,246,0.3);
+    border-radius: 16px;
+    padding: 20px 50px;
+    z-index: 1;
+  }
+  .card-5 .link-box .site {
+    color: #3b82f6;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .card-5 .link-box .free {
+    color: #10b981;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 6px;
+  }
+
+  /* Download buttons */
+  .download-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .dl-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+  .dl-btn:hover { background: #2563eb; }
+  .dl-all-row {
+    margin-bottom: 40px;
+  }
+  .dl-all-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: background 0.2s;
+  }
+  .dl-all-btn:hover { background: #059669; }
+
+  .divider {
+    width: 1080px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    padding: 10px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="divider">POST 1 — HERO</div>
+
+<!-- CARD 1: Hero -->
+<div class="card card-1" id="card1">
+  <div class="glow"></div>
+  <div class="glow2"></div>
+  <div class="badge">Free Investment Tool</div>
+  <h1>Stop Guessing.<br>Start <span>Investing.</span></h1>
+  <p>Every active listing in Mississauga & the GTA — scored, analyzed, and ranked for investment potential. In real time.</p>
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-num">4,000+</div>
+      <div class="stat-label">Listings Analyzed</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">388</div>
+      <div class="stat-label">Premium Deals</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">10s</div>
+      <div class="stat-label">To Sign Up</div>
+    </div>
+  </div>
+  <div class="url">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    <span>Swipe</span>
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+  </div>
+</div>
+
+<div class="divider">POST 2 — FEATURES</div>
+
+<!-- CARD 2: Features -->
+<div class="card card-2" id="card2">
+  <div class="top">
+    <h2>What You Get — <span>For Free</span></h2>
+    <p>Built for investors, not homebuyers</p>
+  </div>
+  <div class="grid">
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>Deal Score (1-10)</h3>
+      <p>Every listing rated on cash flow, cap rate, market timing & basement income potential</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💰</div>
+      <h3>Cash Flow Analysis</h3>
+      <p>Estimated rent, mortgage, expenses & monthly cash flow calculated instantly</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🏠</div>
+      <h3>Legal Suite Detection</h3>
+      <p>AI scans remarks to flag properties with legal basements or suite potential</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📉</div>
+      <h3>Motivated Sellers</h3>
+      <p>Price drops, high DOM, power of sale & fixer uppers — all flagged automatically</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔍</div>
+      <h3>Sold Comps & History</h3>
+      <p>Recent sold prices, negotiation gaps & price appreciation for any property</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🧮</div>
+      <h3>BRRR & Cap Rate Tools</h3>
+      <p>Interactive calculators for mortgage, cap rate, cash-on-cash & BRRR strategy</p>
+    </div>
+  </div>
+  <div class="bottom-url">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    <span>Swipe</span>
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+  </div>
+</div>
+
+<div class="divider">POST 3 — DEAL SCORE DEMO</div>
+
+<!-- CARD 3: Deal Score -->
+<div class="card card-3" id="card3">
+  <div class="header">
+    <h2>This Is How We Score Deals</h2>
+    <p>Every listing gets a 1-10 investment score — here's what an 8.6 looks like</p>
+  </div>
+  <div class="deal-card">
+    <div class="deal-top">
+      <div>
+        <div class="deal-address">493 Jones Avenue, Mississauga</div>
+        <div class="deal-price">$899,000 · 4 bed · 3 bath · Townhouse</div>
+      </div>
+      <div class="score-badge">8.6</div>
+    </div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Cap Rate</div>
+        <div class="metric-value">6.1%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Cash Flow</div>
+        <div class="metric-value green">+$1,420/mo</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">CoC Return</div>
+        <div class="metric-value">11.2%</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">DOM</div>
+        <div class="metric-value">4</div>
+      </div>
+    </div>
+    <div class="tags">
+      <span class="tag tag-green">Legal Suite</span>
+      <span class="tag tag-green">Cash Flowing</span>
+      <span class="tag tag-amber">Price Drop -9%</span>
+      <span class="tag tag-blue">LRT Access</span>
+    </div>
+  </div>
+  <div class="bottom-text">
+    <p>We analyze every active listing in the GTA — so you don't have to</p>
+    <div class="url">MississaugaInvestor.ca</div>
+  </div>
+  <div class="swipe-arrow">
+    <span>Swipe</span>
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+  </div>
+</div>
+
+<div class="divider">POST 4 — CTA</div>
+
+<!-- CARD 4: CTA -->
+<div class="card card-4" id="card4">
+  <div class="corner-glow cg1"></div>
+  <div class="corner-glow cg2"></div>
+  <div class="eyebrow">Free for investors</div>
+  <h2>The Best Deals Sell Fast.<br><span>See Them First.</span></h2>
+  <ul class="checklist">
+    <li><span class="check">✓</span> Deal scores on 4,000+ GTA listings</li>
+    <li><span class="check">✓</span> Cash flow & cap rate calculated instantly</li>
+    <li><span class="check">✓</span> Legal suite & basement income detection</li>
+    <li><span class="check">✓</span> Price drop & motivated seller alerts</li>
+    <li><span class="check">✓</span> BRRR, mortgage & cap rate calculators</li>
+  </ul>
+  <div class="cta-btn">Sign Up Free — MississaugaInvestor.ca</div>
+  <div class="sub">No credit card. No spam. Just deals.</div>
+  <div class="swipe-arrow">
+    <span>Swipe</span>
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+  </div>
+</div>
+
+<div class="divider">POST 5 — LINK IN DESCRIPTION</div>
+
+<!-- CARD 5: Link in Description -->
+<div class="card card-5" id="card5">
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <div class="glow-ring"></div>
+  <svg class="point-down" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 5v14M19 12l-7 7-7-7"/>
+  </svg>
+  <div class="big-text">Link In The<br><span>Description</span></div>
+  <div class="sub-text">Browse 4,000+ investment deals scored & analyzed — completely free</div>
+  <div class="link-box">
+    <div class="site">MississaugaInvestor.ca</div>
+    <div class="free">100% Free · No Credit Card</div>
+  </div>
+</div>
+
+<!-- DOWNLOAD BUTTONS -->
+<div class="dl-all-row">
+  <button class="dl-all-btn" onclick="downloadAll()">⬇ Download All 5 Images</button>
+</div>
+<div class="download-row">
+  <button class="dl-btn" onclick="downloadCard('card1','MI-Hero.png')">⬇ Card 1</button>
+  <button class="dl-btn" onclick="downloadCard('card2','MI-Features.png')">⬇ Card 2</button>
+  <button class="dl-btn" onclick="downloadCard('card3','MI-DealScore.png')">⬇ Card 3</button>
+  <button class="dl-btn" onclick="downloadCard('card4','MI-CTA.png')">⬇ Card 4</button>
+  <button class="dl-btn" onclick="downloadCard('card5','MI-LinkInBio.png')">⬇ Card 5</button>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script>
+async function downloadCard(id, filename) {
+  const el = document.getElementById(id);
+  const canvas = await html2canvas(el, {
+    scale: 1,
+    width: 1080,
+    height: 1080,
+    useCORS: true,
+    backgroundColor: null,
+  });
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function downloadAll() {
+  const cards = [
+    ['card1', 'MI-1-Hero.png'],
+    ['card2', 'MI-2-Features.png'],
+    ['card3', 'MI-3-DealScore.png'],
+    ['card4', 'MI-4-CTA.png'],
+    ['card5', 'MI-5-LinkInBio.png'],
+  ];
+  for (const [id, name] of cards) {
+    await downloadCard(id, name);
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+</script>
+
+</body>
+</html>

@@ -36,10 +36,29 @@ export async function POST(request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { name, email, phone, listingId, listingAddress, listingPrice, source, notes, timestamp } = body;
+  const { name, firstName, lastName, email, phone, listingId, listingAddress, listingPrice, source, notes, timestamp } = body;
 
   if (!email || !email.includes('@')) {
     return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+  }
+
+  // Phone is mandatory for registration signups
+  if (source === 'registration') {
+    if (!phone) {
+      return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
+    }
+    const digits = phone.replace(/\D/g, '');
+    // Must be 10 digits or 11 starting with 1 (Canadian format)
+    if (!(digits.length === 10 || (digits.length === 11 && digits.startsWith('1')))) {
+      return NextResponse.json({ error: 'Please enter a valid phone number' }, { status: 400 });
+    }
+    // Block obvious fakes: all same digit, sequential, 555 numbers
+    const area = digits.slice(digits.length - 10, digits.length - 7);
+    const allSame = /^(\d)\1{9}$/.test(digits.slice(-10));
+    const is555 = area === '555' || digits.slice(-7, -4) === '555';
+    if (allSame || is555) {
+      return NextResponse.json({ error: 'Please enter a real phone number' }, { status: 400 });
+    }
   }
 
   // If Supabase is configured, check for duplicates and insert
@@ -53,24 +72,31 @@ export async function POST(request) {
 
     if (existing) {
       // Email already exists — still allow login, just don't create a duplicate lead
+      // But still send notification email so Hamza knows about the return visit
+      if (process.env.RESEND_API_KEY) {
+        sendLeadNotification({ name, email, phone, source: source + ' (returning)', listingAddress, listingPrice, notes }).catch(() => {});
+      }
       return NextResponse.json({ success: true, existing: true });
     }
 
     const { error: insertError } = await supabase.from('leads').insert({
-      name,
+      name: name || [firstName, lastName].filter(Boolean).join(' ') || null,
       email: email.toLowerCase().trim(),
       phone: phone || null,
       listing_id: listingId || null,
       listing_address: listingAddress || null,
       listing_price: listingPrice || null,
       source: source || 'unknown',
-      notes: notes || null,
+      notes: [firstName && lastName ? `Name: ${firstName} ${lastName}` : null, notes].filter(Boolean).join('. ') || null,
       created_at: timestamp || new Date().toISOString(),
     });
 
     if (insertError) {
-      console.error('Lead insert error:', insertError);
+      console.error('Lead insert error:', JSON.stringify(insertError));
+      console.error('Lead insert data:', JSON.stringify({ name, email, phone, source }));
       // Still return success so the user can sign up
+    } else {
+      console.log('Lead saved:', email, source);
     }
   }
 

@@ -144,7 +144,14 @@ function pickTopic(existingTitles) {
 async function generateBlogPost(topic, existingTitles) {
   const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-  const prompt = `You are Hamza Nouman, a licensed Sales Representative with Royal LePage Signature Realty in Mississauga, Ontario. You run MississaugaInvestor.ca — a data-driven investment property platform.
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const currentMonth = months[now.getMonth()];
+  const currentYear = now.getFullYear();
+
+  const prompt = `You are Hamza Nouman, a licensed Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. You run MississaugaInvestor.ca — a data-driven investment property platform.
+
+CRITICAL: Today's date is ${currentMonth} ${now.getDate()}, ${currentYear}. We are in the year ${currentYear}. ALL content, data, and references MUST be about ${currentYear}. Do NOT reference any year before ${currentYear - 1}. When discussing current market conditions, trends, or data — it is ${currentMonth} ${currentYear} right now.
 
 Write a blog post about: ${topic.angle}
 Category: ${topic.category}
@@ -153,7 +160,7 @@ EXISTING POSTS (DO NOT repeat these topics):
 ${existingTitles.map((t) => `- ${t}`).join('\n')}
 
 REQUIREMENTS:
-1. Title: 50-70 characters, must include "Mississauga", SEO-optimized
+1. Title: 50-70 characters, must include "Mississauga", SEO-optimized. Include "${currentYear}" in the title when relevant.
 2. Excerpt: 1-2 sentences, max 180 characters, compelling hook
 3. Content: 800-1200 words in Markdown format
 4. Naturally mention "Hamza Nouman" once (e.g., "As I often tell my clients at MississaugaInvestor.ca...")
@@ -166,6 +173,7 @@ REQUIREMENTS:
 11. Write in first person, confident but approachable tone
 12. DO NOT use generic filler — every paragraph must teach something specific
 13. DO NOT start with "As a real estate agent" or similar cliche openings
+14. ALL data and market references must be ${currentYear}. Never reference 2024 or earlier years as "current"
 
 Also provide 2-3 keywords for finding a relevant cover photo (e.g., "mississauga skyline", "real estate investment", "condo buildings").
 

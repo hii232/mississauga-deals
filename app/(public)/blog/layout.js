@@ -1,6 +1,6 @@
 export const metadata = {
   title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
-  description: 'Expert analysis, neighbourhood guides, and investment strategies for Mississauga real estate investors by Hamza Nouman, Royal LePage Signature Realty. Market updates, cash flow analysis, and data-driven insights.',
+  description: 'Expert analysis, neighbourhood guides, and investment strategies for Mississauga real estate investors by Hamza Nouman, Cityscape Real Estate Ltd.. Market updates, cash flow analysis, and data-driven insights.',
   alternates: { canonical: '/blog' },
   openGraph: {
     title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',

@@ -51,7 +51,7 @@ const FAQ_DATA = [
       {
         question: 'Who is Hamza Nouman?',
         answer:
-          'Hamza Nouman is a licensed Sales Representative with Royal LePage Signature Realty, Brokerage. He specializes in helping investors find, analyze, and acquire income-producing properties in Mississauga. He built MississaugaInvestor.ca to give his clients a data-driven edge in the market.',
+          'Hamza Nouman is a licensed Sales Representative with Cityscape Real Estate Ltd., Brokerage. He specializes in helping investors find, analyze, and acquire income-producing properties in Mississauga. He built MississaugaInvestor.ca to give his clients a data-driven edge in the market.',
       },
       {
         question: 'How do I get in touch?',

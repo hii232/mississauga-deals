@@ -99,7 +99,7 @@ export function FloatingContactButton() {
           {/* Footer */}
           <div className="px-5 py-3 bg-cloud/50 border-t border-slate-100">
             <p className="text-[10px] text-slate-400 text-center">
-              Royal LePage Signature Realty · Licensed by RECO
+              Cityscape Real Estate Ltd. · Licensed by RECO
             </p>
           </div>
         </div>

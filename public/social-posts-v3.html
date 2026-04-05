@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; background: #0a0f1a; padding: 40px; display: flex; flex-direction: column; gap: 60px; align-items: center; }
+
+  .card {
+    width: 1080px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 0;
+  }
+
+  /* Swipe arrow */
+  .swipe-arrow {
+    position: absolute;
+    bottom: 36px;
+    right: 40px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    animation: nudge 1.5s ease-in-out infinite;
+  }
+  .swipe-arrow svg {
+    width: 20px;
+    height: 20px;
+    stroke: rgba(255,255,255,0.4);
+  }
+  @keyframes nudge {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(6px); }
+  }
+
+  /* Brand footer */
+  .brand-footer {
+    position: absolute;
+    bottom: 36px;
+    left: 40px;
+    color: rgba(255,255,255,0.35);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Slide indicator dots */
+  .slide-dots {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+  }
+  .slide-dots .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+  }
+  .slide-dots .dot.active {
+    background: #3b82f6;
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* SLIDE 1: The Only Platform             */
+  /* ═══════════════════════════════════════ */
+  .slide-1 {
+    background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    padding: 70px 60px 80px;
+  }
+  .slide-1 .top-section {
+    flex: 0 0 auto;
+    margin-bottom: 32px;
+    margin-top: 20px;
+  }
+  .slide-1 h1 {
+    color: #ffffff;
+    font-size: 46px;
+    font-weight: 900;
+    line-height: 1.15;
+    max-width: 680px;
+  }
+  .slide-1 h1 span { color: #3b82f6; }
+  .slide-1 .subtext {
+    color: #94a3b8;
+    font-size: 20px;
+    margin-top: 14px;
+    font-weight: 500;
+  }
+
+  /* Mock listing card */
+  .mock-card {
+    background: #1e293b;
+    border-radius: 16px;
+    overflow: hidden;
+    width: 520px;
+    margin: 0 auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .mock-card .photo {
+    width: 100%;
+    height: 220px;
+    background: url('https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=800&q=80') center/cover no-repeat;
+    position: relative;
+  }
+  .mock-card .score-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: #10b981;
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.4);
+  }
+  .mock-card .tags {
+    position: absolute;
+    bottom: 12px;
+    left: 14px;
+    display: flex;
+    gap: 8px;
+  }
+  .mock-card .tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .mock-card .tag.blue { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .mock-card .tag.green { background: rgba(16,185,129,0.2); color: #34d399; }
+  .mock-card .card-body { padding: 18px 20px 20px; }
+  .mock-card .address { color: #f1f5f9; font-size: 17px; font-weight: 700; margin-bottom: 2px; }
+  .mock-card .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+  .mock-card .price { color: #3b82f6; font-size: 26px; font-weight: 800; }
+  .mock-card .specs { color: #94a3b8; font-size: 14px; font-weight: 500; }
+  .mock-card .metrics-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .mock-card .metric {
+    background: rgba(255,255,255,0.05);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #cbd5e1;
+  }
+  .mock-card .metric .label { color: #64748b; font-size: 10px; text-transform: uppercase; display: block; line-height: 1; margin-bottom: 2px; }
+  .mock-card .metric.green-val .val { color: #10b981; }
+  .mock-card .metric .val { font-size: 14px; font-weight: 700; }
+  .mock-card .scores-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+  }
+  .mock-card .mini-score {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .mock-card .mini-score span { color: #cbd5e1; font-weight: 700; }
+
+  /* ═══════════════════════════════════════ */
+  /* SLIDE 2: Metrics Breakdown             */
+  /* ═══════════════════════════════════════ */
+  .slide-2 {
+    background: linear-gradient(160deg, #0f172a 0%, #162544 60%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    padding: 70px 60px 80px;
+  }
+  .slide-2 h1 {
+    color: #ffffff;
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-top: 20px;
+    margin-bottom: 36px;
+  }
+  .slide-2 h1 span { color: #3b82f6; }
+
+  .metric-row {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    gap: 20px;
+  }
+  .metric-row .icon-area {
+    font-size: 32px;
+    width: 48px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .metric-row .metric-main {
+    flex: 1;
+  }
+  .metric-row .metric-title {
+    color: #f1f5f9;
+    font-size: 19px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .metric-row .metric-title .metric-value {
+    color: #3b82f6;
+    font-weight: 800;
+  }
+  .metric-row .metric-title .metric-value.green {
+    color: #10b981;
+  }
+  .metric-row .metric-desc {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* SLIDE 3: Filters                       */
+  /* ═══════════════════════════════════════ */
+  .slide-3 {
+    background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 70px 60px 80px;
+    text-align: center;
+  }
+  .slide-3 h1 {
+    color: #ffffff;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-top: 20px;
+    margin-bottom: 12px;
+  }
+  .slide-3 h1 span { color: #3b82f6; }
+  .slide-3 .sub { color: #94a3b8; font-size: 18px; margin-bottom: 44px; font-weight: 500; }
+
+  .filter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 44px;
+  }
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+  }
+  .filter-pill {
+    padding: 16px 28px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border: 1px solid;
+  }
+  .pill-green  { background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.3); color: #34d399; }
+  .pill-blue   { background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.3); color: #60a5fa; }
+  .pill-amber  { background: rgba(245,158,11,0.12); border-color: rgba(245,158,11,0.3); color: #fbbf24; }
+  .pill-purple { background: rgba(168,85,247,0.12); border-color: rgba(168,85,247,0.3); color: #c084fc; }
+  .pill-teal   { background: rgba(20,184,166,0.12); border-color: rgba(20,184,166,0.3); color: #2dd4bf; }
+  .pill-orange { background: rgba(249,115,22,0.12); border-color: rgba(249,115,22,0.3); color: #fb923c; }
+  .pill-red    { background: rgba(239,68,68,0.12);  border-color: rgba(239,68,68,0.3);  color: #f87171; }
+  .pill-slate  { background: rgba(148,163,184,0.12); border-color: rgba(148,163,184,0.3); color: #cbd5e1; }
+
+  .slide-3 .bottom-text {
+    color: #64748b;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: auto;
+  }
+  .slide-3 .bottom-text strong {
+    color: #94a3b8;
+    font-weight: 700;
+  }
+  .slide-3 .tagline {
+    color: #f1f5f9;
+    font-size: 28px;
+    font-weight: 800;
+    margin-top: 32px;
+    padding: 18px 36px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 14px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* SLIDE 4: Mortgage Offer                */
+  /* ═══════════════════════════════════════ */
+  .slide-4 {
+    background: linear-gradient(160deg, #0f172a 0%, #162544 60%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    padding: 70px 60px 80px;
+  }
+  .slide-4 .top-icon {
+    font-size: 52px;
+    margin-top: 10px;
+    margin-bottom: 16px;
+  }
+  .slide-4 h1 {
+    color: #ffffff;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    max-width: 800px;
+  }
+  .slide-4 h1 span { color: #10b981; }
+  .slide-4 .desc {
+    color: #94a3b8;
+    font-size: 20px;
+    margin-bottom: 36px;
+    line-height: 1.5;
+    max-width: 700px;
+  }
+
+  .math-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    max-width: 560px;
+  }
+  .math-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .math-row:last-child { border-bottom: none; }
+  .math-row .math-label { color: #94a3b8; font-size: 18px; font-weight: 500; }
+  .math-row .math-val { color: #f1f5f9; font-size: 20px; font-weight: 700; }
+  .math-row.highlight { padding: 14px 0; }
+  .math-row.highlight .math-label { color: #10b981; font-size: 20px; font-weight: 700; }
+  .math-row.highlight .math-val { color: #10b981; font-size: 22px; font-weight: 800; }
+
+  .check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #cbd5e1;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .check-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(16,185,129,0.15);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .slide-4 .disclaimer {
+    color: #475569;
+    font-size: 12px;
+    margin-top: auto;
+    line-height: 1.4;
+    max-width: 600px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* SLIDE 5: CTA                           */
+  /* ═══════════════════════════════════════ */
+  .slide-5 {
+    background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 60px;
+  }
+  .slide-5 .url {
+    color: #ffffff;
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    margin-bottom: 32px;
+  }
+  .slide-5 .url span { color: #3b82f6; }
+  .slide-5 .stats-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .slide-5 .stat-chip {
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: #60a5fa;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 12px;
+  }
+  .slide-5 .no-catch {
+    color: #94a3b8;
+    font-size: 22px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .slide-5 .only-line {
+    color: #64748b;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 48px;
+    max-width: 600px;
+  }
+  .slide-5 .bounce-arrow {
+    color: #3b82f6;
+    font-size: 36px;
+    animation: bounce 1.2s ease-in-out infinite;
+    margin-bottom: 12px;
+  }
+  .slide-5 .link-bio {
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(10px); }
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* Download buttons                        */
+  /* ═══════════════════════════════════════ */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    padding: 20px;
+  }
+  .controls button {
+    font-family: 'Inter', sans-serif;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .controls button:hover { background: #2563eb; }
+  .controls button.secondary {
+    background: #1e293b;
+    border: 1px solid #334155;
+  }
+  .controls button.secondary:hover { background: #334155; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SLIDE 1: "The Only Platform That Does This" -->
+<!-- ════════════════════════════════════════════ -->
+<div class="card slide-1" id="card1">
+  <div class="slide-dots">
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <div class="top-section">
+    <h1>The Only Platform in the GTA That <span>Scores Every Listing</span> for Cash Flow</h1>
+    <div class="subtext">4,000+ investment properties. Scored. Analyzed. Ranked.</div>
+  </div>
+
+  <div class="mock-card">
+    <div class="photo">
+      <div class="score-badge">8.5</div>
+      <div class="tags">
+        <span class="tag blue">SUITE POTENTIAL</span>
+        <span class="tag green">CASH FLOWING</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="address">1041 Cawthra Road</div>
+      <div class="price-row">
+        <span class="price">$801K</span>
+        <span class="specs">5 bed &middot; 2 bath &middot; Detached</span>
+      </div>
+      <div class="metrics-row">
+        <div class="metric"><span class="label">DOM</span><span class="val">28</span></div>
+        <div class="metric"><span class="label">CAP</span><span class="val">6.5%</span></div>
+        <div class="metric"><span class="label">COC</span><span class="val">13.9%</span></div>
+        <div class="metric green-val"><span class="label">Cash Flow</span><span class="val">+$1,853/mo</span></div>
+      </div>
+      <div class="scores-row">
+        <div class="mini-score">Transit: <span>7/10</span></div>
+        <div class="mini-score">Schools: <span>6/10</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="brand-footer">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    SWIPE
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SLIDE 2: "See What No Other Platform Shows" -->
+<!-- ════════════════════════════════════════════ -->
+<div class="card slide-2" id="card2">
+  <div class="slide-dots">
+    <div class="dot"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <h1>See What <span>No Other Platform</span> Shows You</h1>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F4CA;</div>
+    <div class="metric-main">
+      <div class="metric-title">Deal Score: <span class="metric-value">8.5/10</span></div>
+      <div class="metric-desc">AI rates every property for investment potential</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F4B0;</div>
+    <div class="metric-main">
+      <div class="metric-title">Cash Flow: <span class="metric-value green">+$1,853/mo</span></div>
+      <div class="metric-desc">Rent minus all expenses calculated instantly</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F4C8;</div>
+    <div class="metric-main">
+      <div class="metric-title">Cap Rate: <span class="metric-value">6.5%</span></div>
+      <div class="metric-desc">Your rental yield on this property</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F3E0;</div>
+    <div class="metric-main">
+      <div class="metric-title">Suite Potential: <span class="metric-value green">Detected</span></div>
+      <div class="metric-desc">We scan listing remarks to detect basement income</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F687;</div>
+    <div class="metric-main">
+      <div class="metric-title">Transit Score: <span class="metric-value">7/10</span></div>
+      <div class="metric-desc">Proximity to GO, LRT, highways scored</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="metric-row">
+    <div class="icon-area">&#x1F3EB;</div>
+    <div class="metric-main">
+      <div class="metric-title">Schools: <span class="metric-value">6/10</span></div>
+      <div class="metric-desc">School quality ratings in the area</div>
+    </div>
+    <!-- arrow removed -->
+  </div>
+
+  <div class="brand-footer">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    SWIPE
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SLIDE 3: "12 Investor Filters"              -->
+<!-- ════════════════════════════════════════════ -->
+<div class="card slide-3" id="card3">
+  <div class="slide-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+
+  <h1><span>12</span> Investor Filters.<br>Zero Guesswork.</h1>
+  <div class="sub">Filter 4,000+ listings by what actually matters to investors</div>
+
+  <div class="filter-grid">
+    <div class="filter-row">
+      <div class="filter-pill pill-green">Cash Flowing</div>
+      <div class="filter-pill pill-blue">High Cap</div>
+      <div class="filter-pill pill-amber">Motivated</div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-pill pill-blue">BRRR</div>
+      <div class="filter-pill pill-green">Legal Suite</div>
+      <div class="filter-pill pill-purple">High Transit</div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-pill pill-teal">Top Schools</div>
+      <div class="filter-pill pill-orange">Fixer Upper</div>
+      <div class="filter-pill pill-red">Power of Sale</div>
+    </div>
+    <div class="filter-row">
+      <div class="filter-pill pill-amber">Reduced</div>
+      <div class="filter-pill pill-blue">New</div>
+      <div class="filter-pill pill-slate">&lt;$800K</div>
+    </div>
+  </div>
+
+  <div class="tagline">No other platform lets you do this.</div>
+
+  <div class="brand-footer">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    SWIPE
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SLIDE 4: "Close With Hamza"                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="card slide-4" id="card4">
+  <div class="slide-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:20px;margin-top:10px;margin-bottom:16px;">
+    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#10b981);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:24px;flex-shrink:0;">HN</div>
+    <div style="color:#94a3b8;font-size:18px;font-weight:600;">Hamza Nouman · Sales Representative<br><span style="color:#64748b;font-size:14px;">Cityscape Real Estate Ltd., Brokerage</span></div>
+  </div>
+  <h1>Close With Hamza &mdash;<br><span>First Month's Mortgage On Us</span></h1>
+  <div class="desc">Buy an investment property through us and we cover your first mortgage payment.</div>
+
+  <div class="math-box">
+    <div class="math-row">
+      <span class="math-label">Purchase Price</span>
+      <span class="math-val">$801,000</span>
+    </div>
+    <div class="math-row">
+      <span class="math-label">First Month Mortgage</span>
+      <span class="math-val">~$3,800</span>
+    </div>
+    <div class="math-row highlight">
+      <span class="math-label">We cover it &rarr;</span>
+      <span class="math-val">You cash flow from Day 1</span>
+    </div>
+  </div>
+
+  <div class="check-list">
+    <div class="check-item">
+      <div class="check-icon">&#x2713;</div>
+      Applied as credit on closing
+    </div>
+    <div class="check-item">
+      <div class="check-icon">&#x2713;</div>
+      All investment properties qualify
+    </div>
+    <div class="check-item">
+      <div class="check-icon">&#x2713;</div>
+      RECO compliant
+    </div>
+  </div>
+
+  <div class="disclaimer">*Incentive applies to completed transactions where the buyer is represented by Hamza. Credit applied at closing. Subject to brokerage approval. This is not intended to solicit clients currently under contract.</div>
+
+  <div class="brand-footer">MississaugaInvestor.ca</div>
+  <div class="swipe-arrow">
+    SWIPE
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- SLIDE 5: CTA — "Start Browsing"             -->
+<!-- ════════════════════════════════════════════ -->
+<div class="card slide-5" id="card5">
+  <div class="slide-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot active"></div>
+  </div>
+
+  <div style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#10b981;font-size:16px;font-weight:700;padding:10px 24px;border-radius:100px;text-transform:uppercase;letter-spacing:2px;margin-bottom:28px;">Free for Investors</div>
+
+  <div class="url">Mississauga<span>Investor</span>.ca</div>
+
+  <div class="stats-row">
+    <div class="stat-chip">4,000+ Listings</div>
+    <div class="stat-chip">388 Premium Deals</div>
+    <div class="stat-chip">100% Free</div>
+  </div>
+
+  <div class="no-catch">No credit card. No spam. No catch.</div>
+  <div class="only-line">The Only Investment Property Scoring Platform in the GTA</div>
+
+  <div class="bounce-arrow">&#x2193;</div>
+  <div class="link-bio">Link in bio</div>
+</div>
+
+<!-- Download Buttons -->
+<div class="controls">
+  <button onclick="downloadAll()">Download All 5 Slides</button>
+  <button class="secondary" onclick="downloadCard('card1','MI-v3-1-OnlyPlatform.png')">Slide 1</button>
+  <button class="secondary" onclick="downloadCard('card2','MI-v3-2-Metrics.png')">Slide 2</button>
+  <button class="secondary" onclick="downloadCard('card3','MI-v3-3-Filters.png')">Slide 3</button>
+  <button class="secondary" onclick="downloadCard('card4','MI-v3-4-Mortgage.png')">Slide 4</button>
+  <button class="secondary" onclick="downloadCard('card5','MI-v3-5-CTA.png')">Slide 5</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+async function downloadCard(id, filename) {
+  const el = document.getElementById(id);
+  const canvas = await html2canvas(el, {
+    scale: 1,
+    width: 1080,
+    height: 1080,
+    useCORS: true,
+    backgroundColor: null,
+  });
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function downloadAll() {
+  const cards = [
+    ['card1', 'MI-v3-1-OnlyPlatform.png'],
+    ['card2', 'MI-v3-2-Metrics.png'],
+    ['card3', 'MI-v3-3-Filters.png'],
+    ['card4', 'MI-v3-4-Mortgage.png'],
+    ['card5', 'MI-v3-5-CTA.png'],
+  ];
+  for (const [id, name] of cards) {
+    await downloadCard(id, name);
+    await new Promise(r => setTimeout(r, 500));
+  }
+}
+</script>
+
+</body>
+</html>

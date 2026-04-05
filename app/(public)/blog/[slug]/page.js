@@ -116,12 +116,13 @@ export default async function BlogPostPage({ params }) {
             </div>
             <div>
               <p className="font-heading font-bold text-navy">Hamza Nouman</p>
-              <p className="text-xs text-muted">Sales Representative, Royal LePage Signature Realty</p>
+              <p className="text-xs text-muted">Sales Representative, Cityscape Real Estate Ltd.</p>
             </div>
           </div>
         </div>
 
-        <InlineCTA variant="deals" className="mt-12" />
+        <InlineCTA variant="newsletter" className="mt-12" />
+        <InlineCTA variant="deals" className="mt-6" />
       </article>
     </>
   );

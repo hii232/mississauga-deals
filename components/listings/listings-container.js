@@ -15,7 +15,7 @@ import { DEFAULT_FILTERS, applyFilters } from './filter-utils';
 const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[600px] items-center justify-center rounded-xl border border-slate-200 bg-white">
+    <div className="flex h-full min-h-[400px] items-center justify-center rounded-xl border border-slate-200 bg-white">
       <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent border-t-transparent" />
       <span className="ml-3 text-sm text-muted">Loading map...</span>
     </div>
@@ -30,7 +30,6 @@ function TopPickCard({ listing, photo }) {
       href={`/listings/${listing.id}`}
       className="relative flex-shrink-0 w-[280px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.02] no-underline"
     >
-      {/* Photo */}
       <div className="relative h-36 w-full overflow-hidden">
         {photo ? (
           <img src={photo} alt={listing.address} className="h-full w-full object-cover" loading="lazy" />
@@ -41,19 +40,16 @@ function TopPickCard({ listing, photo }) {
             </svg>
           </div>
         )}
-        {/* Score badge */}
         <div
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
           {listing.hamzaScore}
         </div>
-        {/* CF+ badge */}
         <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
           Cash Flowing
         </span>
       </div>
-      {/* Info */}
       <div className="p-3">
         <p className="text-sm font-semibold text-navy line-clamp-1">{listing.address}</p>
         <p className="text-base font-bold text-navy">{fmtK(listing.price)}</p>
@@ -149,22 +145,56 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
+// ── View mode icons ──
+const ViewIcon = ({ type, active }) => {
+  const cls = `h-4 w-4 ${active ? 'text-white' : 'text-slate-500'}`;
+  if (type === 'split') return (
+    <svg className={cls} fill="currentColor" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="6" height="14" rx="1" />
+      <rect x="9" y="1" width="6" height="14" rx="1" opacity="0.4" />
+    </svg>
+  );
+  if (type === 'grid') return (
+    <svg className={cls} fill="currentColor" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="6" height="6" rx="1" />
+      <rect x="9" y="1" width="6" height="6" rx="1" />
+      <rect x="1" y="9" width="6" height="6" rx="1" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+    </svg>
+  );
+  if (type === 'table') return (
+    <svg className={cls} fill="currentColor" viewBox="0 0 16 16">
+      <rect x="1" y="1" width="14" height="3" rx="0.5" />
+      <rect x="1" y="6" width="14" height="3" rx="0.5" />
+      <rect x="1" y="11" width="14" height="3" rx="0.5" />
+    </svg>
+  );
+  if (type === 'map') return (
+    <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+  return null;
+};
+
 export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
   const [listings, setListings] = useState(initialListings);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState('split');      // 'split' | 'grid' | 'table' | 'map'
+  const [mobileView, setMobileView] = useState('list'); // 'list' | 'map' for mobile
   const [compareIds, setCompareIds] = useState([]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(initialListings.length === 0);
-
+  const [hoveredListingId, setHoveredListingId] = useState(null);
   const [photoMap, setPhotoMap] = useState({});
 
   useEffect(() => {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos: fire all batches in parallel, update state instantly per batch
+  // Fetch photos
   useEffect(() => {
     if (listings.length === 0) return;
     const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
@@ -173,7 +203,6 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     let cancelled = false;
     const foundIds = new Set();
 
-    // Each batch updates photos the instant it resolves
     for (let i = 0; i < needPhotos.length; i += 50) {
       const batch = needPhotos.slice(i, i + 50);
       fetch('/api/photos-batch', {
@@ -191,13 +220,10 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
         .catch(() => {});
     }
 
-    // Pass 2: after a short delay, fetch missing individually
     const fallbackTimer = setTimeout(() => {
       if (cancelled) return;
       const missing = needPhotos.filter((id) => !foundIds.has(id));
       if (missing.length === 0) return;
-
-      // Fire all individual fetches at once
       for (const id of missing) {
         fetch('/api/photos?id=' + encodeURIComponent(id))
           .then((res) => (res.ok ? res.json() : null))
@@ -215,16 +241,13 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     };
   }, [listings]);
 
-  // Client-side fallback: if SSR returned no listings, fetch on client
-  // Shows page 1 instantly, then loads remaining pages in background
+  // Client-side fallback fetch
   useEffect(() => {
     if (initialListings.length > 0) return;
     let cancelled = false;
     async function fetchClient() {
       try {
         const { processListings } = await import('@/lib/listings/process-listings');
-
-        // Fetch page 1 and show immediately
         const res = await fetch(apiEndpoint + '?limit=200&page=1');
         if (!res.ok) return;
         const data = await res.json();
@@ -236,7 +259,6 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
           setIsLoading(false);
         }
 
-        // Fetch remaining pages in parallel batches, appending as they arrive
         if (totalPages > 1 && !cancelled) {
           const maxPages = Math.min(totalPages, 25);
           const batchSize = 5;
@@ -255,7 +277,6 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
             const results = await Promise.all(batch);
             for (const r of results) allExtra.push(...r);
 
-            // Update listings after each batch so user sees more appearing
             if (!cancelled && allExtra.length > 0) {
               setListings(processListings([...page1, ...allExtra]));
             }
@@ -286,18 +307,20 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     [listings, compareIds]
   );
 
+  const showSplitMap = view === 'split';
+
   return (
     <div className="space-y-6">
       {/* Deal Screener */}
       <DealScreener listings={filtered} />
 
-      {/* Top Picks — highest-scored CF+ deals */}
+      {/* Top Picks */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
 
       {/* Investor Filters */}
       <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} />
 
-      {/* Signup prompt — show when not registered */}
+      {/* Signup prompt */}
       {!isRegistered && filtered.length > 0 && (
         <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-gradient-to-r from-accent/5 to-emerald-50 px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
@@ -318,90 +341,219 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
         </div>
       )}
 
-      {/* View toggle */}
-      <div className="flex justify-end">
+      {/* ── Desktop View Toggle ── */}
+      <div className="hidden sm:flex justify-end">
         <div className="flex rounded-lg border border-slate-200 bg-white">
-          <button
-            onClick={() => setView('grid')}
-            className={`px-3 py-2 text-sm ${
-              view === 'grid'
-                ? 'bg-navy text-white rounded-l-lg'
-                : 'text-slate-500 hover:text-navy'
-            }`}
-            aria-label="Grid view"
-          >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-              <rect x="1" y="1" width="6" height="6" rx="1" />
-              <rect x="9" y="1" width="6" height="6" rx="1" />
-              <rect x="1" y="9" width="6" height="6" rx="1" />
-              <rect x="9" y="9" width="6" height="6" rx="1" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setView('table')}
-            className={`px-3 py-2 text-sm ${
-              view === 'table'
-                ? 'bg-navy text-white'
-                : 'text-slate-500 hover:text-navy'
-            }`}
-            aria-label="Table view"
-          >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
-              <rect x="1" y="1" width="14" height="3" rx="0.5" />
-              <rect x="1" y="6" width="14" height="3" rx="0.5" />
-              <rect x="1" y="11" width="14" height="3" rx="0.5" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setView('map')}
-            className={`px-3 py-2 text-sm ${
-              view === 'map'
-                ? 'bg-navy text-white rounded-r-lg'
-                : 'text-slate-500 hover:text-navy'
-            }`}
-            aria-label="Map view"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+          {['split', 'grid', 'table', 'map'].map((v, i, arr) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-3 py-2 text-sm capitalize ${
+                i === 0 ? 'rounded-l-lg' : ''
+              } ${
+                i === arr.length - 1 ? 'rounded-r-lg' : ''
+              } ${
+                view === v
+                  ? 'bg-navy text-white'
+                  : 'text-slate-500 hover:text-navy'
+              }`}
+              aria-label={`${v} view`}
+              title={v === 'split' ? 'List + Map' : v.charAt(0).toUpperCase() + v.slice(1)}
+            >
+              <ViewIcon type={v} active={view === v} />
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Listings view */}
-      {view === 'grid' && (
-        <ListingGrid
-          listings={filtered}
-          isRegistered={isRegistered}
-          compareIds={compareIds}
-          onToggleCompare={toggleCompare}
-          photoMap={photoMap}
-          isLoading={isLoading}
-        />
+      {/* ── Mobile View Toggle (floating) ── */}
+      <div className="sm:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex rounded-full border border-slate-200 bg-white shadow-lg">
+        <button
+          onClick={() => setMobileView('list')}
+          className={`flex items-center gap-2 rounded-l-full px-5 py-3 text-sm font-semibold transition-colors ${
+            mobileView === 'list' ? 'bg-navy text-white' : 'text-slate-500'
+          }`}
+        >
+          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 16 16">
+            <rect x="1" y="1" width="6" height="6" rx="1" />
+            <rect x="9" y="1" width="6" height="6" rx="1" />
+            <rect x="1" y="9" width="6" height="6" rx="1" />
+            <rect x="9" y="9" width="6" height="6" rx="1" />
+          </svg>
+          List
+        </button>
+        <button
+          onClick={() => setMobileView('map')}
+          className={`flex items-center gap-2 rounded-r-full px-5 py-3 text-sm font-semibold transition-colors ${
+            mobileView === 'map' ? 'bg-navy text-white' : 'text-slate-500'
+          }`}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Map
+        </button>
+      </div>
+
+      {/* ── Desktop: Split View (List + Map) ── */}
+      {showSplitMap && (
+        <div className="hidden sm:grid grid-cols-[55%_45%] gap-4" style={{ height: 'calc(100vh - 120px)' }}>
+          {/* Left: scrollable listing cards */}
+          <div className="overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <svg className="mb-3 h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <p className="text-sm font-semibold text-navy">No properties match your filters</p>
+                <p className="text-xs text-slate-400 mt-1">Try adjusting or clearing filters</p>
+              </div>
+            ) : (
+              filtered.map((listing) => {
+                const photo = listing.photos?.[0] || photoMap[listing.id] || '';
+                const scoreHex = scoreColorHex(listing.hamzaScore);
+                const isHovered = hoveredListingId === listing.id;
+
+                return (
+                  <div
+                    key={listing.id}
+                    className={`flex gap-3 rounded-xl border bg-white p-3 transition-all duration-150 cursor-pointer ${
+                      isHovered
+                        ? 'border-accent shadow-md ring-2 ring-accent/20'
+                        : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                    }`}
+                    onMouseEnter={() => setHoveredListingId(listing.id)}
+                    onMouseLeave={() => setHoveredListingId(null)}
+                    onClick={() => router.push(`/listings/${listing.id}`)}
+                  >
+                    {/* Photo */}
+                    <div className="relative h-28 w-36 flex-shrink-0 overflow-hidden rounded-lg">
+                      {photo ? (
+                        <img src={photo} alt={listing.address} className="h-full w-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-slate-100">
+                          <svg className="h-8 w-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" />
+                          </svg>
+                        </div>
+                      )}
+                      <div
+                        className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white shadow"
+                        style={{ backgroundColor: scoreHex }}
+                      >
+                        {listing.hamzaScore}
+                      </div>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-navy truncate">{listing.address}</p>
+                      <p className="text-xs text-slate-400">{listing.beds} bed · {listing.baths} bath · {listing.type}</p>
+                      <p className="text-base font-bold text-navy mt-1">{fmtK(listing.price)}</p>
+
+                      <div className="mt-2 flex gap-3 text-center">
+                        <div>
+                          <p className="text-[9px] font-medium uppercase text-slate-400">CF/mo</p>
+                          <p className={`text-xs font-bold ${listing.cashFlow >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {listing.cashFlow >= 0 ? '+' : ''}{fmtNum(listing.cashFlow)}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-medium uppercase text-slate-400">CAP</p>
+                          <p className="text-xs font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-medium uppercase text-slate-400">DOM</p>
+                          <p className="text-xs font-bold text-navy">{listing.dom}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Right: sticky map */}
+          <div className="sticky top-0 h-full">
+            <ListingMap
+              listings={filtered}
+              photoMap={photoMap}
+              highlightId={hoveredListingId}
+              onHoverListing={setHoveredListingId}
+              height="100%"
+              compact
+            />
+          </div>
+        </div>
       )}
-      {view === 'table' && (
-        <ListingTable
-          listings={filtered}
-          isRegistered={isRegistered}
-          compareIds={compareIds}
-          onToggleCompare={toggleCompare}
-          photoMap={photoMap}
-        />
+
+      {/* ── Desktop: Full-width Grid/Table/Map ── */}
+      {!showSplitMap && (
+        <div className="hidden sm:block">
+          {view === 'grid' && (
+            <ListingGrid
+              listings={filtered}
+              isRegistered={isRegistered}
+              compareIds={compareIds}
+              onToggleCompare={toggleCompare}
+              photoMap={photoMap}
+              isLoading={isLoading}
+            />
+          )}
+          {view === 'table' && (
+            <ListingTable
+              listings={filtered}
+              isRegistered={isRegistered}
+              compareIds={compareIds}
+              onToggleCompare={toggleCompare}
+              photoMap={photoMap}
+            />
+          )}
+          {view === 'map' && (
+            <ListingMap
+              listings={filtered}
+              photoMap={photoMap}
+              highlightId={hoveredListingId}
+              onHoverListing={setHoveredListingId}
+              height="calc(100vh - 200px)"
+            />
+          )}
+        </div>
       )}
-      {view === 'map' && (
-        <ListingMap listings={filtered} photoMap={photoMap} />
-      )}
+
+      {/* ── Mobile: List or Map (toggle via floating button) ── */}
+      <div className="sm:hidden">
+        {mobileView === 'list' ? (
+          <ListingGrid
+            listings={filtered}
+            isRegistered={isRegistered}
+            compareIds={compareIds}
+            onToggleCompare={toggleCompare}
+            photoMap={photoMap}
+            isLoading={isLoading}
+          />
+        ) : (
+          <div style={{ height: 'calc(100vh - 200px)' }}>
+            <ListingMap
+              listings={filtered}
+              photoMap={photoMap}
+              height="100%"
+            />
+          </div>
+        )}
+      </div>
 
       {/* Compare Bar */}
       {compareIds.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white px-6 py-4 shadow-lg">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-200 bg-white px-6 py-4 shadow-lg sm:bottom-0">
           <div className="mx-auto flex max-w-7xl items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-sm font-semibold text-navy">
                 {compareIds.length} selected
               </span>
-              <div className="flex gap-2">
+              <div className="hidden sm:flex gap-2">
                 {compareListings.map((l) => (
                   <span
                     key={l.id}
