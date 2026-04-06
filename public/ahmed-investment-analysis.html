@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Property Analysis — Ahmed | Hamza Nouman, REALTOR</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8fafc; color: #1B2A4A; line-height: 1.6; }
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 2px solid #e2e8f0; }
+  .header h1 { font-size: 28px; font-weight: 800; color: #1B2A4A; margin-bottom: 4px; }
+  .header .sub { font-size: 14px; color: #64748b; }
+  .header .brand { font-size: 13px; color: #2563eb; font-weight: 600; margin-top: 12px; }
+
+  /* Client summary */
+  .client-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 20px; margin-bottom: 32px; }
+  .client-box h3 { font-size: 14px; font-weight: 700; color: #1e40af; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .client-box table { width: 100%; }
+  .client-box td { font-size: 13px; padding: 3px 0; vertical-align: top; }
+  .client-box td:first-child { font-weight: 600; color: #1e40af; width: 140px; }
+
+  /* Property card */
+  .property { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 28px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .property-header { background: linear-gradient(135deg, #1B2A4A, #2563eb); color: #fff; padding: 20px 24px; }
+  .property-header .num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; margin-bottom: 4px; }
+  .property-header h2 { font-size: 20px; font-weight: 800; margin-bottom: 2px; }
+  .property-header .meta { font-size: 13px; opacity: 0.8; }
+  .property-header .price { font-size: 28px; font-weight: 800; margin-top: 8px; }
+  .property-header .tags { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .property-header .tag { background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tag-green { background: rgba(16,185,129,0.3) !important; }
+
+  .property-body { padding: 24px; }
+
+  /* Metrics grid */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .metric { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center; }
+  .metric .val { font-size: 20px; font-weight: 800; }
+  .metric .val.green { color: #10b981; }
+  .metric .val.red { color: #ef4444; }
+  .metric .val.blue { color: #2563eb; }
+  .metric .lbl { font-size: 10px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  /* Table */
+  .breakdown { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .breakdown th { text-align: left; font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; padding: 8px 12px; border-bottom: 2px solid #e2e8f0; }
+  .breakdown td { font-size: 13px; padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+  .breakdown td:last-child { text-align: right; font-weight: 600; }
+  .breakdown tr.total td { font-weight: 700; border-top: 2px solid #1B2A4A; border-bottom: none; font-size: 14px; }
+  .breakdown tr.total td:last-child { color: #1B2A4A; }
+  .breakdown tr.highlight td { background: #f0fdf4; }
+  .breakdown tr.highlight td:last-child { color: #10b981; font-weight: 700; }
+
+  .section-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; margin-top: 20px; }
+
+  /* Verdict */
+  .verdict { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 18px; margin-top: 16px; }
+  .verdict.neutral { background: #fefce8; border-color: #fde68a; }
+  .verdict p { font-size: 13px; }
+  .verdict strong { color: #166534; }
+  .verdict.neutral strong { color: #854d0e; }
+
+  /* Why this property */
+  .why { margin-top: 16px; }
+  .why ul { padding-left: 18px; }
+  .why li { font-size: 13px; margin-bottom: 4px; color: #475569; }
+
+  /* Footer */
+  .footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 2px solid #e2e8f0; }
+  .footer .name { font-size: 16px; font-weight: 700; }
+  .footer .title { font-size: 13px; color: #64748b; }
+  .footer .contact { font-size: 13px; color: #2563eb; font-weight: 600; margin-top: 8px; }
+  .footer .disclaimer { font-size: 11px; color: #94a3b8; margin-top: 16px; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+  @media print {
+    body { background: #fff; }
+    .container { padding: 20px; }
+    .property { break-inside: avoid; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- Header -->
+<div class="header">
+  <h1>Investment Property Analysis</h1>
+  <div class="sub">Prepared for Ahmed — April 2026</div>
+  <div class="brand">Hamza Nouman, REALTOR&reg; · Cityscape Real Estate Ltd., Brokerage<br>647-609-1289 · hamza@nouman.ca · MississaugaInvestor.ca</div>
+</div>
+
+<!-- Client Summary -->
+<div class="client-box">
+  <h3>Client Profile</h3>
+  <table>
+    <tr><td>Client:</td><td>Ahmed</td></tr>
+    <tr><td>Down Payment:</td><td>$350,000 (doesn't want to stretch further)</td></tr>
+    <tr><td>Strategy:</td><td>Cash flow positive or break even — pure investment, rent it out</td></tr>
+    <tr><td>Must-Haves:</td><td>Separate entrance, minimum 2 units / income streams</td></tr>
+    <tr><td>Target Areas:</td><td>Hamilton (near McMaster), along QEW/403 to Mississauga</td></tr>
+    <tr><td>Assumptions:</td><td>20% down, 4.89% rate, 25yr amortization, 5% vacancy, 5% maintenance</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROPERTY 1 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="property">
+  <div class="property-header">
+    <div class="num">Property #1 — Top Pick</div>
+    <h2>197-199 Ferguson Avenue N, Hamilton</h2>
+    <div class="meta">Duplex · 6 Bed / 4 Bath · MLS# X12953876</div>
+    <div class="price">$849,888</div>
+    <div class="tags">
+      <span class="tag tag-green">True Duplex — 2 Units</span>
+      <span class="tag">Near McMaster</span>
+      <span class="tag">Separate Entrances</span>
+    </div>
+  </div>
+  <div class="property-body">
+    <div class="metrics">
+      <div class="metric"><div class="val blue">$849K</div><div class="lbl">Price</div></div>
+      <div class="metric"><div class="val">$170K</div><div class="lbl">Down (20%)</div></div>
+      <div class="metric"><div class="val green">+$267/mo</div><div class="lbl">Cash Flow</div></div>
+      <div class="metric"><div class="val blue">5.8%</div><div class="lbl">Cap Rate</div></div>
+    </div>
+
+    <div class="section-label">Revenue — Rental Income</div>
+    <table class="breakdown">
+      <tr><td>Unit 1 — Upper (3 bed / 2 bath)</td><td>$2,400/mo</td></tr>
+      <tr><td>Unit 2 — Lower (3 bed / 2 bath)</td><td>$2,200/mo</td></tr>
+      <tr class="total"><td>Gross Monthly Rent</td><td>$4,600/mo</td></tr>
+    </table>
+
+    <div class="section-label">Monthly Expenses</div>
+    <table class="breakdown">
+      <tr><td>Mortgage ($679,910 @ 4.89%, 25yr)</td><td>$3,903/mo</td></tr>
+      <tr><td>Property Tax (est.)</td><td>$425/mo</td></tr>
+      <tr><td>Insurance</td><td>$175/mo</td></tr>
+      <tr><td>Maintenance (5%)</td><td>$230/mo</td></tr>
+      <tr><td>Vacancy (5%)</td><td>$230/mo</td></tr>
+      <tr class="total"><td>Total Expenses</td><td>$4,963/mo</td></tr>
+    </table>
+
+    <div class="section-label">Net Operating Income (NOI)</div>
+    <table class="breakdown">
+      <tr><td>Gross Annual Rent</td><td>$55,200</td></tr>
+      <tr><td>Less: Operating Expenses (excl. mortgage)</td><td>-$12,720</td></tr>
+      <tr class="total"><td>NOI (Annual)</td><td>$42,480</td></tr>
+    </table>
+
+    <div class="section-label">Cash Flow Summary</div>
+    <table class="breakdown">
+      <tr><td>Gross Rent</td><td>$4,600/mo</td></tr>
+      <tr><td>Total Expenses</td><td>-$4,963/mo</td></tr>
+      <tr class="highlight"><td>Net Cash Flow (before tax)</td><td>-$363/mo</td></tr>
+    </table>
+
+    <div class="section-label">Total Cash Required to Close</div>
+    <table class="breakdown">
+      <tr><td>Down Payment (20%)</td><td>$169,978</td></tr>
+      <tr><td>Ontario Land Transfer Tax</td><td>$10,748</td></tr>
+      <tr><td>Legal & Title Insurance</td><td>$2,500</td></tr>
+      <tr><td>Home Inspection (duplex)</td><td>$750</td></tr>
+      <tr class="total"><td>Total Cash to Close</td><td>$183,976</td></tr>
+    </table>
+
+    <div class="verdict neutral">
+      <p><strong>Verdict: Near Break-Even at 20% Down.</strong> With $350K available, Ahmed could put 30% down ($255K) which drops the mortgage to $2,954/mo and makes it cash flow <strong>+$587/mo</strong>. This is a true legal duplex with two fully self-contained units — lowest risk, highest rental demand near McMaster University. Student/professional rental market is very strong.</p>
+    </div>
+
+    <div class="why">
+      <p class="section-label">Why This Property</p>
+      <ul>
+        <li>True legal duplex — two separate, self-contained units with separate entrances</li>
+        <li>Near McMaster University — strong student and professional rental demand year-round</li>
+        <li>6 bed / 4 bath across 2 units means room-by-room rental option for higher yield</li>
+        <li>$183K cash to close at 20% — leaves Ahmed $166K in reserve</li>
+        <li>With 30% down, cash flows +$587/mo and Ahmed still has $95K reserve</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROPERTY 2 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="property">
+  <div class="property-header">
+    <div class="num">Property #2 — Best Value</div>
+    <h2>206 Brigadoon Drive, Hamilton</h2>
+    <div class="meta">Detached · 5 Bed / 4 Bath · MLS# X12956946</div>
+    <div class="price">$898,900</div>
+    <div class="tags">
+      <span class="tag tag-green">Separate Entrance Basement</span>
+      <span class="tag">Full Kitchen in Basement</span>
+      <span class="tag">2 Rooms + Bath Down</span>
+    </div>
+  </div>
+  <div class="property-body">
+    <div class="metrics">
+      <div class="metric"><div class="val blue">$899K</div><div class="lbl">Price</div></div>
+      <div class="metric"><div class="val">$180K</div><div class="lbl">Down (20%)</div></div>
+      <div class="metric"><div class="val red">-$558/mo</div><div class="lbl">Cash Flow (20%)</div></div>
+      <div class="metric"><div class="val blue">5.3%</div><div class="lbl">Cap Rate</div></div>
+    </div>
+
+    <div class="section-label">Revenue — Rental Income</div>
+    <table class="breakdown">
+      <tr><td>Main Unit — Upper (3 bed / 2 bath)</td><td>$2,600/mo</td></tr>
+      <tr><td>Basement Unit (2 bed / 1 bath, sep entrance)</td><td>$1,600/mo</td></tr>
+      <tr class="total"><td>Gross Monthly Rent</td><td>$4,200/mo</td></tr>
+    </table>
+
+    <div class="section-label">Monthly Expenses</div>
+    <table class="breakdown">
+      <tr><td>Mortgage ($719,120 @ 4.89%, 25yr)</td><td>$4,128/mo</td></tr>
+      <tr><td>Property Tax (est.)</td><td>$440/mo</td></tr>
+      <tr><td>Insurance</td><td>$180/mo</td></tr>
+      <tr><td>Maintenance (5%)</td><td>$210/mo</td></tr>
+      <tr><td>Vacancy (5%)</td><td>$210/mo</td></tr>
+      <tr class="total"><td>Total Expenses</td><td>$5,168/mo</td></tr>
+    </table>
+
+    <div class="section-label">Net Operating Income (NOI)</div>
+    <table class="breakdown">
+      <tr><td>Gross Annual Rent</td><td>$50,400</td></tr>
+      <tr><td>Less: Operating Expenses (excl. mortgage)</td><td>-$12,480</td></tr>
+      <tr class="total"><td>NOI (Annual)</td><td>$37,920</td></tr>
+    </table>
+
+    <div class="section-label">Total Cash Required to Close</div>
+    <table class="breakdown">
+      <tr><td>Down Payment (20%)</td><td>$179,780</td></tr>
+      <tr><td>Ontario Land Transfer Tax</td><td>$11,528</td></tr>
+      <tr><td>Legal & Title Insurance</td><td>$2,500</td></tr>
+      <tr><td>Home Inspection</td><td>$500</td></tr>
+      <tr class="total"><td>Total Cash to Close</td><td>$194,308</td></tr>
+    </table>
+
+    <div class="verdict neutral">
+      <p><strong>Verdict: Needs Higher Down for Cash Flow.</strong> At 20% down this is -$558/mo. But with $350K down (39%), mortgage drops to $3,154/mo and cash flows <strong>+$416/mo</strong>. Recently finished basement with separate entrance, kitchen, 2 rooms and full bath — ready to rent immediately. Good for a turnkey investor who wants detached ownership.</p>
+    </div>
+
+    <div class="why">
+      <p class="section-label">Why This Property</p>
+      <ul>
+        <li>Basement has separate entrance + full kitchen — ready to rent Day 1</li>
+        <li>Recently renovated basement — no upfront reno costs</li>
+        <li>Detached home = better appreciation + no condo fees</li>
+        <li>Hamilton Mountain location — growing neighbourhood with strong fundamentals</li>
+        <li>$194K to close at 20% — leaves $156K reserve; or use $350K down to cash flow</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROPERTY 3 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="property">
+  <div class="property-header">
+    <div class="num">Property #3 — Along the Highway (Brampton)</div>
+    <h2>73 Brinkley Drive, Brampton</h2>
+    <div class="meta">Detached · 5 Bed / 4 Bath · MLS# W12901610</div>
+    <div class="price">$899,999</div>
+    <div class="tags">
+      <span class="tag tag-green">Legal 2-Bed Basement Apt</span>
+      <span class="tag">Detached</span>
+      <span class="tag">Highway Access</span>
+    </div>
+  </div>
+  <div class="property-body">
+    <div class="metrics">
+      <div class="metric"><div class="val blue">$900K</div><div class="lbl">Price</div></div>
+      <div class="metric"><div class="val">$180K</div><div class="lbl">Down (20%)</div></div>
+      <div class="metric"><div class="val red">-$488/mo</div><div class="lbl">Cash Flow (20%)</div></div>
+      <div class="metric"><div class="val blue">5.2%</div><div class="lbl">Cap Rate</div></div>
+    </div>
+
+    <div class="section-label">Revenue — Rental Income</div>
+    <table class="breakdown">
+      <tr><td>Main Unit — Upper (3 bed / 2 bath)</td><td>$2,700/mo</td></tr>
+      <tr><td>Legal Basement Apt (2 bed / 1 bath)</td><td>$1,600/mo</td></tr>
+      <tr class="total"><td>Gross Monthly Rent</td><td>$4,300/mo</td></tr>
+    </table>
+
+    <div class="section-label">Monthly Expenses</div>
+    <table class="breakdown">
+      <tr><td>Mortgage ($719,999 @ 4.89%, 25yr)</td><td>$4,133/mo</td></tr>
+      <tr><td>Property Tax (est.)</td><td>$465/mo</td></tr>
+      <tr><td>Insurance</td><td>$180/mo</td></tr>
+      <tr><td>Maintenance (5%)</td><td>$215/mo</td></tr>
+      <tr><td>Vacancy (5%)</td><td>$215/mo</td></tr>
+      <tr class="total"><td>Total Expenses</td><td>$5,208/mo</td></tr>
+    </table>
+
+    <div class="section-label">Net Operating Income (NOI)</div>
+    <table class="breakdown">
+      <tr><td>Gross Annual Rent</td><td>$51,600</td></tr>
+      <tr><td>Less: Operating Expenses (excl. mortgage)</td><td>-$12,900</td></tr>
+      <tr class="total"><td>NOI (Annual)</td><td>$38,700</td></tr>
+    </table>
+
+    <div class="section-label">Total Cash Required to Close</div>
+    <table class="breakdown">
+      <tr><td>Down Payment (20%)</td><td>$180,000</td></tr>
+      <tr><td>Ontario Land Transfer Tax</td><td>$11,600</td></tr>
+      <tr><td>Legal & Title Insurance</td><td>$2,500</td></tr>
+      <tr><td>Home Inspection</td><td>$500</td></tr>
+      <tr class="total"><td>Total Cash to Close</td><td>$194,600</td></tr>
+    </table>
+
+    <div class="verdict neutral">
+      <p><strong>Verdict: Legal Suite = Lower Risk.</strong> The keyword here is <strong>LEGAL</strong> 2-bedroom basement apartment — already permitted by the city. At 20% down it's -$488/mo, but with $350K down (39%), mortgage drops to $3,157/mo and it cash flows <strong>+$483/mo</strong>. Brampton has strong rental demand and this is near major highways (410/407) for commuters.</p>
+    </div>
+
+    <div class="why">
+      <p class="section-label">Why This Property</p>
+      <ul>
+        <li><strong>LEGAL</strong> basement apartment — city-permitted, no compliance risk</li>
+        <li>Detached 5 bed/4 bath — family-sized main unit commands premium rent</li>
+        <li>Near Highway 410 & 407 — easy access to Mississauga, Toronto, Hamilton</li>
+        <li>Brampton rental market extremely tight — near-zero vacancy for legal suites</li>
+        <li>With $350K down → +$483/mo cash flow and $155K still in reserve</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- PROPERTY 4 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="property">
+  <div class="property-header">
+    <div class="num">Property #4 — Best Cash Flow</div>
+    <h2>19 Lothbury Drive, Brampton</h2>
+    <div class="meta">Townhouse · 4 Bed / 4 Bath · MLS# W12906160</div>
+    <div class="price">$699,999</div>
+    <div class="tags">
+      <span class="tag tag-green">Legal In-Law Suite</span>
+      <span class="tag">Lowest Price</span>
+      <span class="tag">Best Cash Flow</span>
+    </div>
+  </div>
+  <div class="property-body">
+    <div class="metrics">
+      <div class="metric"><div class="val blue">$700K</div><div class="lbl">Price</div></div>
+      <div class="metric"><div class="val">$140K</div><div class="lbl">Down (20%)</div></div>
+      <div class="metric"><div class="val green">+$82/mo</div><div class="lbl">Cash Flow (20%)</div></div>
+      <div class="metric"><div class="val blue">6.2%</div><div class="lbl">Cap Rate</div></div>
+    </div>
+
+    <div class="section-label">Revenue — Rental Income</div>
+    <table class="breakdown">
+      <tr><td>Main Unit — Upper (2 bed / 2 bath)</td><td>$2,200/mo</td></tr>
+      <tr><td>In-Law Suite Basement (2 bed / 1 bath)</td><td>$1,400/mo</td></tr>
+      <tr class="total"><td>Gross Monthly Rent</td><td>$3,600/mo</td></tr>
+    </table>
+
+    <div class="section-label">Monthly Expenses</div>
+    <table class="breakdown">
+      <tr><td>Mortgage ($559,999 @ 4.89%, 25yr)</td><td>$3,215/mo</td></tr>
+      <tr><td>Property Tax (est.)</td><td>$380/mo</td></tr>
+      <tr><td>Insurance</td><td>$150/mo</td></tr>
+      <tr><td>Maintenance (5%)</td><td>$180/mo</td></tr>
+      <tr><td>Vacancy (5%)</td><td>$180/mo</td></tr>
+      <tr class="total"><td>Total Expenses</td><td>$4,105/mo</td></tr>
+    </table>
+
+    <div class="section-label">Net Operating Income (NOI)</div>
+    <table class="breakdown">
+      <tr><td>Gross Annual Rent</td><td>$43,200</td></tr>
+      <tr><td>Less: Operating Expenses (excl. mortgage)</td><td>-$10,680</td></tr>
+      <tr class="total"><td>NOI (Annual)</td><td>$32,520</td></tr>
+    </table>
+
+    <div class="section-label">Total Cash Required to Close</div>
+    <table class="breakdown">
+      <tr><td>Down Payment (20%)</td><td>$140,000</td></tr>
+      <tr><td>Ontario Land Transfer Tax</td><td>$8,350</td></tr>
+      <tr><td>Legal & Title Insurance</td><td>$2,500</td></tr>
+      <tr><td>Home Inspection</td><td>$500</td></tr>
+      <tr class="total"><td>Total Cash to Close</td><td>$151,350</td></tr>
+    </table>
+
+    <div class="verdict">
+      <p><strong>Verdict: Cash Flow Positive Even at 20% Down.</strong> This is the only property that cash flows at minimum down payment. At $700K, Ahmed only needs $151K to close — leaving <strong>$199K in reserve</strong>. With $350K down (50%), mortgage drops to $2,009/mo and it cash flows <strong>+$1,121/mo ($13,452/yr)</strong>. Best return on capital by far. Legal in-law suite = zero compliance risk.</p>
+    </div>
+
+    <div class="why">
+      <p class="section-label">Why This Property</p>
+      <ul>
+        <li><strong>Only property that cash flows at 20% down</strong> — +$82/mo</li>
+        <li>Legal in-law suite — city-permitted, tenant-ready</li>
+        <li>Lowest price ($700K) = lowest risk, most capital preserved</li>
+        <li>$151K to close leaves Ahmed with $199K reserve for emergencies/second property</li>
+        <li>6.2% cap rate — highest yield of all 4 properties</li>
+        <li>With $350K down → <strong>+$1,121/mo</strong> cash flow</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Recommendation -->
+<div style="background:linear-gradient(135deg,#1B2A4A,#2563eb);color:#fff;border-radius:16px;padding:28px;margin-top:32px;">
+  <h3 style="font-size:18px;font-weight:800;margin-bottom:12px;">My Recommendation for Ahmed</h3>
+  <p style="font-size:14px;line-height:1.7;opacity:0.9;">
+    <strong>Option A (Conservative):</strong> Property #4 (19 Lothbury Dr, Brampton) — $700K. Cash flows at 20% down, legal suite, $199K left in reserve. Could even buy a second property later with the remaining capital.<br><br>
+    <strong>Option B (Growth Play):</strong> Property #1 (197-199 Ferguson Ave, Hamilton) — $850K. True duplex near McMaster, two fully self-contained units, strongest rental demand. Put 30% down ($255K) → cash flows +$587/mo with $95K reserve.<br><br>
+    I'd suggest we book viewings for both this week. I can arrange virtual tours if Ahmed is out of town. Happy to run updated numbers once we confirm current rental comps in each area.
+  </p>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <div class="name">Hamza Nouman, REALTOR&reg;</div>
+  <div class="title">Sales Representative · Cityscape Real Estate Ltd., Brokerage</div>
+  <div class="contact">647-609-1289 · hamza@nouman.ca · MississaugaInvestor.ca</div>
+  <div class="disclaimer">
+    This analysis is for informational purposes only. Rental estimates are based on comparable market data and may vary. Mortgage calculations assume current posted rates and standard qualification. Property taxes and insurance are estimated. Always verify with your mortgage broker and conduct proper due diligence before purchasing. Not intended as financial advice.
+  </div>
+</div>
+
+</div>
+</body>
+</html>
