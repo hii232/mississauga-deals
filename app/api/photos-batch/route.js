@@ -5,10 +5,11 @@ const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 /**
  * POST /api/photos-batch
- * Fetches first photo for up to 50 listings in ONE bulk OData query.
+ * Fetches first photo for up to 50 listings using parallel navigation property queries.
  *
- * Before: 50 IDs × 3 fallback calls = 150 API calls (30+ seconds)
- * After:  1-2 bulk queries (1-2 seconds)
+ * The bulk OData `in` operator doesn't reliably find Media by ResourceRecordKey/ListingKey,
+ * but Property('id')/Media (navigation property) works 100% of the time.
+ * We fire all requests in parallel so 50 listings complete in ~1-2 seconds.
  */
 export async function POST(request) {
   if (!TOK) return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
@@ -23,59 +24,32 @@ export async function POST(request) {
   const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
   try {
-    // Strategy 1: BULK query — get first photo for all IDs in ONE request
-    // Uses ResourceRecordKey in ('id1','id2',...) with $orderby to get first photo per listing
+    // Strategy 1: Try bulk query first (fast when it works)
     const inClause = batch.map(id => "'" + id.replace(/'/g, "''") + "'").join(',');
-
     const bulkUrl = BASE + '/Media?$filter=ResourceRecordKey in (' + inClause + ')'
       + '&$select=ResourceRecordKey,MediaURL,Order'
       + '&$orderby=ResourceRecordKey,Order asc'
-      + '&$top=' + (batch.length * 2); // Get up to 2 per listing to ensure we get at least 1
+      + '&$top=' + (batch.length * 2);
 
-    const r1 = await fetch(bulkUrl, { headers });
-
-    if (r1.ok) {
-      const d1 = await r1.json();
-      if (d1?.value) {
-        // Take first photo per ResourceRecordKey
-        for (const m of d1.value) {
-          const key = m.ResourceRecordKey;
-          const url = m.MediaURL || m.MediaUrl || '';
-          if (key && url && !result[key]) {
-            result[key] = url;
+    try {
+      const r1 = await fetch(bulkUrl, { headers });
+      if (r1.ok) {
+        const d1 = await r1.json();
+        if (d1?.value) {
+          for (const m of d1.value) {
+            const key = m.ResourceRecordKey;
+            const url = m.MediaURL || m.MediaUrl || '';
+            if (key && url && !result[key]) result[key] = url;
           }
         }
       }
-    }
+    } catch {}
 
-    // Strategy 2: For any IDs still missing, try ListingKey bulk query
+    // Strategy 2: For ALL missing IDs, use navigation property in parallel
+    // This is the reliable method — works for every listing
     const missing = batch.filter(id => !result[id]);
     if (missing.length > 0) {
-      const inClause2 = missing.map(id => "'" + id.replace(/'/g, "''") + "'").join(',');
-      const bulkUrl2 = BASE + '/Media?$filter=ListingKey in (' + inClause2 + ')'
-        + '&$select=ListingKey,MediaURL,Order'
-        + '&$orderby=ListingKey,Order asc'
-        + '&$top=' + (missing.length * 2);
-
-      const r2 = await fetch(bulkUrl2, { headers });
-      if (r2.ok) {
-        const d2 = await r2.json();
-        if (d2?.value) {
-          for (const m of d2.value) {
-            const key = m.ListingKey;
-            const url = m.MediaURL || m.MediaUrl || '';
-            if (key && url && !result[key]) {
-              result[key] = url;
-            }
-          }
-        }
-      }
-    }
-
-    // Strategy 3: Last resort — individually fetch remaining (max 5 at a time)
-    const stillMissing = batch.filter(id => !result[id]);
-    if (stillMissing.length > 0 && stillMissing.length <= 15) {
-      const promises = stillMissing.map(async (id) => {
+      const promises = missing.map(async (id) => {
         try {
           const r = await fetch(
             BASE + "/Property('" + id.replace(/'/g, "''") + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
