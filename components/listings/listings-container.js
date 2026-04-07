@@ -292,6 +292,13 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
 
   const filtered = useMemo(() => applyFilters(listings, filters), [listings, filters]);
 
+  // Store filtered listing IDs in localStorage for prev/next navigation on detail page
+  useEffect(() => {
+    if (filtered.length > 0) {
+      localStorage.setItem('browse_listing_ids', JSON.stringify(filtered.map(l => l.id)));
+    }
+  }, [filtered]);
+
   const compareListings = useMemo(
     () => listings.filter((l) => compareIds.includes(l.id)),
     [listings, compareIds]

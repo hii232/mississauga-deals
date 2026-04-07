@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
@@ -1008,6 +1008,74 @@ const TABS = [
   { key: 'expert', label: 'Expert Analysis', gated: true },
 ];
 
+// ──────────────────────────────────────────
+//  Prev/Next Navigation Bar
+// ──────────────────────────────────────────
+function ListingNav({ currentId }) {
+  const router = useRouter();
+  const [prevId, setPrevId] = useState(null);
+  const [nextId, setNextId] = useState(null);
+  const [position, setPosition] = useState('');
+
+  useEffect(() => {
+    try {
+      const ids = JSON.parse(localStorage.getItem('browse_listing_ids') || '[]');
+      if (ids.length === 0) return;
+      const idx = ids.indexOf(currentId);
+      if (idx === -1) return;
+      setPrevId(idx > 0 ? ids[idx - 1] : null);
+      setNextId(idx < ids.length - 1 ? ids[idx + 1] : null);
+      setPosition(`${idx + 1} of ${ids.length}`);
+    } catch {}
+  }, [currentId]);
+
+  if (!prevId && !nextId) {
+    return (
+      <Link href="/listings" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+        Back to listings
+      </Link>
+    );
+  }
+
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <Link href="/listings" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+        Back
+      </Link>
+
+      <div className="flex items-center gap-2">
+        {position && <span className="text-xs text-slate-400 hidden sm:inline">{position}</span>}
+        <button
+          onClick={() => prevId && router.push('/listings/' + prevId)}
+          disabled={!prevId}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-navy transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+          <span className="hidden sm:inline">Prev</span>
+        </button>
+        <button
+          onClick={() => nextId && router.push('/listings/' + nextId)}
+          disabled={!nextId}
+          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-navy transition hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none"
+        >
+          <span className="hidden sm:inline">Next</span>
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function PropertyDetailPage() {
   const params = useParams();
   const [listing, setListing] = useState(null);
@@ -1150,13 +1218,8 @@ export default function PropertyDetailPage() {
     <main className="min-h-screen bg-cloud overflow-x-hidden">
       <PropertyJsonLd listing={listing} />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 w-full">
-        {/* Back Link */}
-        <Link href="/listings" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-          </svg>
-          Back to listings
-        </Link>
+        {/* Navigation: Back + Prev/Next */}
+        <ListingNav currentId={params.id} />
 
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Left Column: Photos */}
