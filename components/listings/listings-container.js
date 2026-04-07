@@ -164,18 +164,32 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos: fire all batches in parallel, update state instantly per batch
+  // Fetch photos ONLY for listings that don't already have them from $expand=Media
+  // Prioritize visible page first, then load next few pages in background
+  const photoBatchRef = useRef(new Set()); // track which IDs we've already requested
+
   useEffect(() => {
     if (listings.length === 0) return;
-    const needPhotos = listings.filter((l) => !l.photos?.length).map((l) => l.id);
+
+    // Only fetch for listings missing photos AND not already requested
+    const needPhotos = listings
+      .filter((l) => !l.photos?.length && !photoBatchRef.current.has(l.id))
+      .map((l) => l.id);
     if (needPhotos.length === 0) return;
 
     let cancelled = false;
-    const foundIds = new Set();
 
-    // Each batch updates photos the instant it resolves
-    for (let i = 0; i < needPhotos.length; i += 50) {
-      const batch = needPhotos.slice(i, i + 50);
+    // Prioritize: first 90 IDs (3 pages worth) get fetched immediately
+    // Rest get fetched in slower background batches
+    const priority = needPhotos.slice(0, 90);
+    const background = needPhotos.slice(90);
+
+    // Mark all as requested so we don't double-fetch
+    for (const id of needPhotos) photoBatchRef.current.add(id);
+
+    // PRIORITY: fetch first 90 in parallel batches of 50
+    for (let i = 0; i < priority.length; i += 50) {
+      const batch = priority.slice(i, i + 50);
       fetch('/api/photos-batch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -184,35 +198,38 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (cancelled || !data?.photos) return;
-          const photos = data.photos;
-          Object.keys(photos).forEach((id) => foundIds.add(id));
-          setPhotoMap((prev) => ({ ...prev, ...photos }));
+          setPhotoMap((prev) => ({ ...prev, ...data.photos }));
         })
         .catch(() => {});
     }
 
-    // Pass 2: after a short delay, fetch missing individually
-    const fallbackTimer = setTimeout(() => {
-      if (cancelled) return;
-      const missing = needPhotos.filter((id) => !foundIds.has(id));
-      if (missing.length === 0) return;
-
-      // Fire all individual fetches at once
-      for (const id of missing) {
-        fetch('/api/photos?id=' + encodeURIComponent(id))
+    // BACKGROUND: fetch remaining in slower sequential batches (50 at a time, 500ms gap)
+    if (background.length > 0) {
+      let bgIndex = 0;
+      const bgInterval = setInterval(() => {
+        if (cancelled || bgIndex >= background.length) {
+          clearInterval(bgInterval);
+          return;
+        }
+        const batch = background.slice(bgIndex, bgIndex + 50);
+        bgIndex += 50;
+        fetch('/api/photos-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: batch }),
+        })
           .then((res) => (res.ok ? res.json() : null))
           .then((data) => {
-            if (cancelled || !data?.photos?.[0]) return;
-            setPhotoMap((prev) => ({ ...prev, [id]: data.photos[0] }));
+            if (cancelled || !data?.photos) return;
+            setPhotoMap((prev) => ({ ...prev, ...data.photos }));
           })
           .catch(() => {});
-      }
-    }, 3000);
+      }, 500);
 
-    return () => {
-      cancelled = true;
-      clearTimeout(fallbackTimer);
-    };
+      return () => { cancelled = true; clearInterval(bgInterval); };
+    }
+
+    return () => { cancelled = true; };
   }, [listings]);
 
   // Client-side fallback: if SSR returned no listings, fetch on client
