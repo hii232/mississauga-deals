@@ -23,12 +23,13 @@ function mapType(sub, prop) {
 }
 
 function estimateRent(price, beds, city, type) {
-  const baseRents = { 0: 1850, 1: 2100, 2: 2700, 3: 3200, 4: 3800, 5: 4400 };
-  const base = baseRents[Math.min(beds || 0, 5)] || 2500;
-  let adj = type === 'Detached' ? 250 : type === 'Condo' ? -150 : 0;
-  if (['Duplex', 'Triplex', 'Fourplex', 'Multiplex'].includes(type)) adj += 800;
+  // Conservative 2026 GTA rental rates
+  const baseRents = { 0: 1650, 1: 1900, 2: 2400, 3: 2900, 4: 3400, 5: 3800 };
+  const base = baseRents[Math.min(beds || 0, 5)] || 2400;
+  let adj = type === 'Detached' ? 200 : type === 'Condo' ? -150 : 0;
+  if (['Duplex', 'Triplex', 'Fourplex', 'Multiplex'].includes(type)) adj += 500;
   if ((city || '').toLowerCase().includes('port credit')) adj += 200;
-  return Math.round(((price || 0) * 0.0042 * 0.4 + (base + adj) * 0.6) / 50) * 50;
+  return Math.round(((price || 0) * 0.0035 * 0.3 + (base + adj) * 0.7) / 50) * 50;
 }
 
 /**
