@@ -197,13 +197,13 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     // Mark as requested immediately
     for (const id of newIds) photoBatchRef.current.add(id);
 
-    // Fire priority batch (first 90) immediately in parallel
-    const priority = newIds.slice(0, 90);
-    const rest = newIds.slice(90);
+    // Fire priority batch (first 60 = 2 pages) immediately in parallel
+    const priority = newIds.slice(0, 60);
+    const rest = newIds.slice(60);
 
-    // Send priority in parallel chunks of 50
-    for (let i = 0; i < priority.length; i += 50) {
-      fetchPhotoBatch(priority.slice(i, i + 50));
+    // Send priority in parallel chunks of 30 (one page each)
+    for (let i = 0; i < priority.length; i += 30) {
+      fetchPhotoBatch(priority.slice(i, i + 30));
     }
 
     // Queue the rest for background fetching
@@ -213,14 +213,14 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       // Start background drainer if not already running
       if (!photoTimerRef.current) {
         photoTimerRef.current = setInterval(() => {
-          const batch = photoQueueRef.current.splice(0, 50);
+          const batch = photoQueueRef.current.splice(0, 30);
           if (batch.length === 0) {
             clearInterval(photoTimerRef.current);
             photoTimerRef.current = null;
             return;
           }
           fetchPhotoBatch(batch);
-        }, 300);
+        }, 200);
       }
     }
   }, [listings, fetchPhotoBatch]);
