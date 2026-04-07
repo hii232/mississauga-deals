@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MI Logo — Download High-Res PNG</title>
+<style>
+  body { background: #f0f0f0; display: flex; flex-direction: column; align-items: center; padding: 40px; font-family: 'Segoe UI', Arial, sans-serif; }
+  h1 { font-size: 20px; color: #1B2A4A; margin-bottom: 8px; }
+  p { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .previews { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px; }
+  .preview-card {
+    background: #fff; border-radius: 12px; padding: 20px; text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  .preview-card canvas { border-radius: 12px; }
+  .preview-card .label { font-size: 12px; color: #999; margin-top: 8px; font-weight: 600; }
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .btn {
+    padding: 12px 28px; border: none; border-radius: 8px; cursor: pointer;
+    font-weight: 700; font-size: 14px; font-family: inherit; transition: 0.15s;
+  }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-blue:hover { background: #1d4ed8; }
+  .btn-navy { background: #1B2A4A; color: #fff; }
+  .btn-navy:hover { background: #0f1d33; }
+  .btn-outline { background: #fff; color: #1B2A4A; border: 2px solid #1B2A4A; }
+  .btn-outline:hover { background: #1B2A4A; color: #fff; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<h1>MI Logo — High Quality Export</h1>
+<p>Click any button below to download the logo at different sizes</p>
+
+<div class="previews">
+  <div class="preview-card">
+    <canvas id="c512" width="512" height="512"></canvas>
+    <div class="label">512 x 512</div>
+  </div>
+  <div class="preview-card">
+    <canvas id="c256" width="256" height="256" style="width:256px;height:256px;"></canvas>
+    <div class="label">256 x 256</div>
+  </div>
+  <div class="preview-card" style="background:#1B2A4A;">
+    <canvas id="c128" width="128" height="128" style="width:128px;height:128px;"></canvas>
+    <div class="label" style="color:rgba(255,255,255,0.5);">128 x 128</div>
+  </div>
+</div>
+
+<div class="btn-row">
+  <button class="btn btn-blue" onclick="download(2048)">Download 2048px PNG</button>
+  <button class="btn btn-navy" onclick="download(1024)">Download 1024px PNG</button>
+  <button class="btn btn-outline" onclick="download(512)">Download 512px PNG</button>
+  <button class="btn btn-outline" onclick="download(256)">Download 256px PNG</button>
+</div>
+
+<script>
+function drawLogo(canvas, size) {
+  const ctx = canvas.getContext('2d');
+  const s = size;
+  const r = s * 0.1875; // corner radius
+
+  // Rounded rect background with gradient
+  const grad = ctx.createLinearGradient(0, 0, s, s);
+  grad.addColorStop(0, '#1A73E8');
+  grad.addColorStop(1, '#0F2A4A');
+
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(s - r, 0);
+  ctx.quadraticCurveTo(s, 0, s, r);
+  ctx.lineTo(s, s - r);
+  ctx.quadraticCurveTo(s, s, s - r, s);
+  ctx.lineTo(r, s);
+  ctx.quadraticCurveTo(0, s, 0, s - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+
+  // Shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.25)';
+  ctx.shadowBlur = s * 0.03;
+  ctx.shadowOffsetY = s * 0.008;
+  ctx.fillStyle = grad;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+
+  // Text "MI"
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 ' + (s * 0.47) + 'px "DM Sans", "Helvetica Neue", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.letterSpacing = (-s * 0.015) + 'px';
+  ctx.fillText('MI', s / 2, s / 2 + s * 0.02);
+}
+
+// Wait for font to load
+document.fonts.ready.then(() => {
+  // Draw previews
+  drawLogo(document.getElementById('c512'), 512);
+  drawLogo(document.getElementById('c256'), 256);
+  drawLogo(document.getElementById('c128'), 128);
+});
+
+function download(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  drawLogo(canvas, size);
+
+  const link = document.createElement('a');
+  link.download = 'MI-Logo-' + size + 'px.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
+</body>
+</html>
