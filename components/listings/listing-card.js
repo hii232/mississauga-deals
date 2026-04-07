@@ -198,7 +198,12 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <span>Rent est: {fmtK(listing.estimatedRent * 12).replace('/mo', '')}/yr</span>
               <span>Mortgage: {fmtK(listing.monthlyExpenses * 12).replace('/mo', '')}/yr</span>
             </div>
-            {listing.basementIncome > 0 && (
+            {listing.unitCount >= 2 && (
+              <p className="text-[10px] text-accent font-medium">
+                {listing.unitCount}-unit {listing.unitType} · {listing.unitBreakdown?.map((u, i) => `Unit ${i+1}: ${u.beds}bed $${u.rent.toLocaleString()}`).join(' · ')}
+              </p>
+            )}
+            {listing.basementIncome > 0 && !listing.unitCount && (
               <p className="text-[10px] text-success font-medium">
                 Incl. +${listing.basementIncome.toLocaleString()}/mo basement income
               </p>

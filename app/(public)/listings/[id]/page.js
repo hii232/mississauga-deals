@@ -94,7 +94,23 @@ function OverviewTab({ listing }) {
       {/* Rent Estimate Breakdown */}
       <div className="rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
         <h4 className="text-xs font-semibold uppercase tracking-wide text-accent mb-2">Rent Estimate</h4>
-        {listing.basementIncome > 0 ? (
+        {listing.unitCount >= 2 && listing.unitBreakdown ? (
+          <div className="space-y-1">
+            {listing.unitBreakdown.map((unit, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span className="text-navy/70">Unit {idx + 1} ({unit.beds} bed)</span>
+                <span className="font-semibold text-navy">${unit.rent.toLocaleString()}/mo</span>
+              </div>
+            ))}
+            <div className="flex justify-between text-sm border-t border-accent/20 pt-1 mt-1">
+              <span className="font-semibold text-navy">Total Est. Rent ({listing.unitCount} units)</span>
+              <span className="font-bold text-accent">${(listing.estimatedRent || 0).toLocaleString()}/mo</span>
+            </div>
+            <p className="text-[10px] text-muted mt-1">
+              Estimated per-unit rents for {listing.unitType} based on GTA rental market data
+            </p>
+          </div>
+        ) : listing.basementIncome > 0 ? (
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-navy/70">Main unit ({listing.mainBeds || listing.beds} bed)</span>
