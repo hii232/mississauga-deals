@@ -3,52 +3,13 @@ import { NextResponse } from 'next/server';
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
-// Fetch first photo for a single listing using 3-level fallback (same as /api/photos)
-async function fetchFirstPhoto(id) {
-  const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
-
-  // Try ResourceRecordKey
-  try {
-    const r1 = await fetch(
-      BASE + "/Media?$filter=ResourceRecordKey eq '" + id + "'&$orderby=Order asc&$top=1&$select=MediaURL",
-      { headers }
-    );
-    if (r1.ok) {
-      const d1 = await r1.json();
-      const u = d1?.value?.[0]?.MediaURL || d1?.value?.[0]?.MediaUrl || '';
-      if (u) return u;
-    }
-  } catch {}
-
-  // Try ListingKey
-  try {
-    const r2 = await fetch(
-      BASE + "/Media?$filter=ListingKey eq '" + id + "'&$orderby=Order asc&$top=1&$select=MediaURL",
-      { headers }
-    );
-    if (r2.ok) {
-      const d2 = await r2.json();
-      const u = d2?.value?.[0]?.MediaURL || d2?.value?.[0]?.MediaUrl || '';
-      if (u) return u;
-    }
-  } catch {}
-
-  // Try Navigation property
-  try {
-    const r3 = await fetch(
-      BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
-      { headers }
-    );
-    if (r3.ok) {
-      const d3 = await r3.json();
-      const u = d3?.value?.[0]?.MediaURL || d3?.value?.[0]?.MediaUrl || '';
-      if (u) return u;
-    }
-  } catch {}
-
-  return null;
-}
-
+/**
+ * POST /api/photos-batch
+ * Fetches first photo for up to 50 listings in ONE bulk OData query.
+ *
+ * Before: 50 IDs × 3 fallback calls = 150 API calls (30+ seconds)
+ * After:  1-2 bulk queries (1-2 seconds)
+ */
 export async function POST(request) {
   if (!TOK) return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
 
@@ -57,17 +18,75 @@ export async function POST(request) {
     return NextResponse.json({ error: 'ids array required' }, { status: 400 });
   }
 
-  // Accept up to 50 IDs, process in chunks of 8 to avoid timeout
   const batch = ids.slice(0, 50);
   const result = {};
+  const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
   try {
-    // Process in chunks of 8 concurrently — each ID gets full 3-level fallback
-    for (let i = 0; i < batch.length; i += 8) {
-      const chunk = batch.slice(i, i + 8);
-      const promises = chunk.map(async (id) => {
-        const url = await fetchFirstPhoto(id);
-        if (url) result[id] = url;
+    // Strategy 1: BULK query — get first photo for all IDs in ONE request
+    // Uses ResourceRecordKey in ('id1','id2',...) with $orderby to get first photo per listing
+    const inClause = batch.map(id => "'" + id.replace(/'/g, "''") + "'").join(',');
+
+    const bulkUrl = BASE + '/Media?$filter=ResourceRecordKey in (' + inClause + ')'
+      + '&$select=ResourceRecordKey,MediaURL,Order'
+      + '&$orderby=ResourceRecordKey,Order asc'
+      + '&$top=' + (batch.length * 2); // Get up to 2 per listing to ensure we get at least 1
+
+    const r1 = await fetch(bulkUrl, { headers });
+
+    if (r1.ok) {
+      const d1 = await r1.json();
+      if (d1?.value) {
+        // Take first photo per ResourceRecordKey
+        for (const m of d1.value) {
+          const key = m.ResourceRecordKey;
+          const url = m.MediaURL || m.MediaUrl || '';
+          if (key && url && !result[key]) {
+            result[key] = url;
+          }
+        }
+      }
+    }
+
+    // Strategy 2: For any IDs still missing, try ListingKey bulk query
+    const missing = batch.filter(id => !result[id]);
+    if (missing.length > 0) {
+      const inClause2 = missing.map(id => "'" + id.replace(/'/g, "''") + "'").join(',');
+      const bulkUrl2 = BASE + '/Media?$filter=ListingKey in (' + inClause2 + ')'
+        + '&$select=ListingKey,MediaURL,Order'
+        + '&$orderby=ListingKey,Order asc'
+        + '&$top=' + (missing.length * 2);
+
+      const r2 = await fetch(bulkUrl2, { headers });
+      if (r2.ok) {
+        const d2 = await r2.json();
+        if (d2?.value) {
+          for (const m of d2.value) {
+            const key = m.ListingKey;
+            const url = m.MediaURL || m.MediaUrl || '';
+            if (key && url && !result[key]) {
+              result[key] = url;
+            }
+          }
+        }
+      }
+    }
+
+    // Strategy 3: Last resort — individually fetch remaining (max 5 at a time)
+    const stillMissing = batch.filter(id => !result[id]);
+    if (stillMissing.length > 0 && stillMissing.length <= 15) {
+      const promises = stillMissing.map(async (id) => {
+        try {
+          const r = await fetch(
+            BASE + "/Property('" + id.replace(/'/g, "''") + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
+            { headers }
+          );
+          if (r.ok) {
+            const d = await r.json();
+            const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
+            if (url) result[id] = url;
+          }
+        } catch {}
       });
       await Promise.all(promises);
     }
