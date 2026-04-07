@@ -164,73 +164,73 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos ONLY for listings that don't already have them from $expand=Media
-  // Prioritize visible page first, then load next few pages in background
-  const photoBatchRef = useRef(new Set()); // track which IDs we've already requested
+  // Fetch photos for listings missing them — fire-and-forget, never cancelled.
+  // Uses a ref queue so listing state updates don't kill in-flight requests.
+  const photoBatchRef = useRef(new Set()); // IDs already requested
+  const photoQueueRef = useRef([]);        // IDs waiting to be fetched
+  const photoTimerRef = useRef(null);      // background batch timer
 
+  // Helper: fetch a batch and merge into photoMap
+  const fetchPhotoBatch = useCallback((ids) => {
+    if (ids.length === 0) return;
+    fetch('/api/photos-batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.photos) setPhotoMap((prev) => ({ ...prev, ...data.photos }));
+      })
+      .catch(() => {});
+  }, []);
+
+  // When listings change, queue new IDs that need photos
   useEffect(() => {
     if (listings.length === 0) return;
 
-    // Only fetch for listings missing photos AND not already requested
-    const needPhotos = listings
+    const newIds = listings
       .filter((l) => !l.photos?.length && !photoBatchRef.current.has(l.id))
       .map((l) => l.id);
-    if (needPhotos.length === 0) return;
+    if (newIds.length === 0) return;
 
-    let cancelled = false;
+    // Mark as requested immediately
+    for (const id of newIds) photoBatchRef.current.add(id);
 
-    // Prioritize: first 90 IDs (3 pages worth) get fetched immediately
-    // Rest get fetched in slower background batches
-    const priority = needPhotos.slice(0, 90);
-    const background = needPhotos.slice(90);
+    // Fire priority batch (first 90) immediately in parallel
+    const priority = newIds.slice(0, 90);
+    const rest = newIds.slice(90);
 
-    // Mark all as requested so we don't double-fetch
-    for (const id of needPhotos) photoBatchRef.current.add(id);
-
-    // PRIORITY: fetch first 90 in parallel batches of 50
+    // Send priority in parallel chunks of 50
     for (let i = 0; i < priority.length; i += 50) {
-      const batch = priority.slice(i, i + 50);
-      fetch('/api/photos-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: batch }),
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (cancelled || !data?.photos) return;
-          setPhotoMap((prev) => ({ ...prev, ...data.photos }));
-        })
-        .catch(() => {});
+      fetchPhotoBatch(priority.slice(i, i + 50));
     }
 
-    // BACKGROUND: fetch remaining in slower sequential batches (50 at a time, 500ms gap)
-    if (background.length > 0) {
-      let bgIndex = 0;
-      const bgInterval = setInterval(() => {
-        if (cancelled || bgIndex >= background.length) {
-          clearInterval(bgInterval);
-          return;
-        }
-        const batch = background.slice(bgIndex, bgIndex + 50);
-        bgIndex += 50;
-        fetch('/api/photos-batch', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ids: batch }),
-        })
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data) => {
-            if (cancelled || !data?.photos) return;
-            setPhotoMap((prev) => ({ ...prev, ...data.photos }));
-          })
-          .catch(() => {});
-      }, 500);
+    // Queue the rest for background fetching
+    if (rest.length > 0) {
+      photoQueueRef.current.push(...rest);
 
-      return () => { cancelled = true; clearInterval(bgInterval); };
+      // Start background drainer if not already running
+      if (!photoTimerRef.current) {
+        photoTimerRef.current = setInterval(() => {
+          const batch = photoQueueRef.current.splice(0, 50);
+          if (batch.length === 0) {
+            clearInterval(photoTimerRef.current);
+            photoTimerRef.current = null;
+            return;
+          }
+          fetchPhotoBatch(batch);
+        }, 300);
+      }
     }
+  }, [listings, fetchPhotoBatch]);
 
-    return () => { cancelled = true; };
-  }, [listings]);
+  // Cleanup background timer on unmount
+  useEffect(() => {
+    return () => {
+      if (photoTimerRef.current) clearInterval(photoTimerRef.current);
+    };
+  }, []);
 
   // Client-side fallback: if SSR returned no listings, fetch on client
   // Shows page 1 instantly, then loads remaining pages in background
