@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hamza Nouman — Print-Ready Marketing Package</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e8e8;
+    font-family: 'Inter', sans-serif;
+    padding: 30px 20px;
+  }
+
+  .page-header { text-align: center; margin-bottom: 30px; }
+  .page-header h1 { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 800; color: #1a1a2e; }
+  .page-header p { color: #666; font-size: 13px; margin-top: 4px; }
+
+  .upload-bar {
+    max-width: 500px; margin: 0 auto 30px; background: #fff; border-radius: 12px;
+    padding: 20px; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .upload-bar label {
+    display: inline-block; padding: 12px 32px; background: #2563eb; color: #fff;
+    border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: background 0.2s;
+  }
+  .upload-bar label:hover { background: #1d4ed8; }
+  .upload-bar input { display: none; }
+  .upload-bar .hint { font-size: 11px; color: #999; margin-top: 6px; }
+  .upload-bar .status { font-size: 12px; color: #16a34a; font-weight: 600; margin-top: 6px; display: none; }
+
+  .section-title {
+    text-align: center; margin: 50px 0 20px; font-family: 'Montserrat', sans-serif;
+    font-size: 18px; font-weight: 800; color: #1a1a2e; text-transform: uppercase; letter-spacing: 3px;
+  }
+  .section-sub { text-align: center; font-size: 13px; color: #888; margin-bottom: 24px; }
+
+  .design-row { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-bottom: 40px; }
+
+  .rider-controls { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .rider-btn {
+    padding: 6px 14px; border: 2px solid #ddd; border-radius: 6px; background: #fff;
+    font-weight: 600; font-size: 11px; cursor: pointer; transition: all 0.15s;
+    text-transform: uppercase; letter-spacing: 1px; font-family: 'Montserrat', sans-serif;
+  }
+  .rider-btn:hover { border-color: #2563eb; }
+  .rider-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* ── MI Logo (inline SVG style) ── */
+  .mi-logo {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 14px; font-family: 'DM Sans', system-ui, sans-serif;
+    font-weight: 800; color: #fff; letter-spacing: -1px; flex-shrink: 0;
+    background: linear-gradient(135deg, #1A73E8 0%, #0F2A4A 100%);
+  }
+  .mi-logo-sm { width: 42px; height: 42px; font-size: 20px; border-radius: 10px; }
+  .mi-logo-md { width: 60px; height: 60px; font-size: 28px; border-radius: 12px; }
+  .mi-logo-lg { width: 80px; height: 80px; font-size: 38px; border-radius: 16px; }
+  .mi-logo-xl { width: 100px; height: 100px; font-size: 48px; border-radius: 18px; }
+
+  /* ═══════════════════════════════════════
+     1. FOR SALE SIGN — 24x32
+     ═══════════════════════════════════════ */
+  .for-sale-sign {
+    width: 480px; height: 640px; background: #2563eb; border-radius: 4px;
+    overflow: hidden; position: relative; box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+  }
+
+  .sign-rider {
+    display: none; position: absolute; top: 0; left: 0; right: 0;
+    background: #dc2626; color: #fff; text-align: center; padding: 8px;
+    font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 900;
+    letter-spacing: 4px; text-transform: uppercase; z-index: 20;
+  }
+  .sign-rider.show { display: block; }
+
+  .fs-top { padding: 28px 24px 0; }
+  .fs-for-sale {
+    font-family: 'Montserrat', sans-serif; font-size: 80px; font-weight: 900;
+    color: #ffffff; line-height: 0.9; letter-spacing: 6px; text-transform: uppercase;
+  }
+
+  .fs-middle { flex: 1; display: flex; padding: 16px 24px; gap: 16px; align-items: flex-start; }
+  .fs-name-block { flex: 1; }
+
+  .fs-logo-name-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+
+  .fs-agent-name {
+    font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 800;
+    color: #ffffff; line-height: 1.05; text-transform: uppercase; letter-spacing: 2px;
+  }
+  .fs-agent-title {
+    font-family: 'Montserrat', sans-serif; font-size: 8.5px; font-weight: 600;
+    color: rgba(255,255,255,0.75); letter-spacing: 3px; text-transform: uppercase; margin-top: 6px;
+  }
+
+  .fs-qr-block {
+    display: flex; align-items: center; gap: 12px; margin-top: 14px;
+    background: rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px;
+  }
+  .fs-qr-block img { width: 64px; height: 64px; border-radius: 4px; }
+  .fs-qr-text {
+    font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800;
+    color: #ffffff; text-transform: uppercase; line-height: 1.3;
+  }
+
+  .fs-badges { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .fs-top1 {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px; padding: 4px 10px; text-align: center;
+  }
+  .fs-top1 .pct { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #fff; line-height: 1; }
+  .fs-top1 .neg { font-family: 'Montserrat', sans-serif; font-size: 7px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 2px; }
+  .fs-stars .star-row { color: #fbbf24; font-size: 18px; letter-spacing: 2px; }
+  .fs-stars .star-label { font-family: 'Inter', sans-serif; font-size: 10px; color: rgba(255,255,255,0.7); font-style: italic; }
+
+  .fs-photo {
+    width: 170px; min-height: 210px; overflow: hidden; flex-shrink: 0;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .fs-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+  .fs-photo .photo-placeholder {
+    width: 100%; height: 100%; min-height: 210px; background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Sans', sans-serif; font-size: 56px; color: rgba(255,255,255,0.15); font-weight: 800;
+  }
+
+  .fs-bottom { background: #ffffff; padding: 16px 24px; }
+  .fs-contact-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .fs-services { flex: 1; }
+  .fs-services-title { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+  .fs-services ul { list-style: none; font-size: 9px; color: #333; line-height: 1.6; font-weight: 500; }
+  .fs-services ul li::before { content: '✓ '; color: #2563eb; font-weight: 800; }
+  .fs-contact-info { text-align: right; }
+  .fs-phone { font-family: 'Montserrat', sans-serif; font-size: 28px; font-weight: 900; color: #1a1a2e; letter-spacing: 1px; }
+  .fs-email { font-family: 'Inter', sans-serif; font-size: 12px; color: #555; font-weight: 500; }
+  .fs-website { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; color: #2563eb; }
+
+  .fs-brokerage { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #e5e7eb; padding-top: 8px; margin-top: 4px; }
+  .fs-broker-logo { display: flex; flex-direction: column; }
+  .fs-broker-name { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a2e; text-transform: uppercase; letter-spacing: 1px; }
+  .fs-broker-sub { font-family: 'Montserrat', sans-serif; font-size: 6.5px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+  .fs-mls-realtor { display: flex; gap: 6px; align-items: center; }
+  .fs-mls-realtor .badge { font-family: 'Inter', sans-serif; font-size: 8px; font-weight: 700; color: #555; border: 1px solid #ccc; padding: 3px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 1px; }
+
+
+  /* ═══════════════════════════════════════
+     2. BUSINESS CARD — 3.5x2
+     ═══════════════════════════════════════ */
+  .biz-card { width: 525px; height: 300px; border-radius: 6px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+
+  .biz-front { background: #2563eb; display: flex; width: 525px; height: 300px; }
+  .biz-front-left { flex: 1; padding: 24px 20px; display: flex; flex-direction: column; justify-content: space-between; }
+  .biz-tagline { font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 3px; text-transform: uppercase; }
+  .biz-logo-name { display: flex; align-items: center; gap: 12px; }
+  .biz-agent-name { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 2px; line-height: 1.05; }
+  .biz-agent-title { font-family: 'Montserrat', sans-serif; font-size: 6.5px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 2.5px; text-transform: uppercase; margin-top: 4px; }
+
+  .biz-qr-row { display: flex; align-items: center; gap: 8px; }
+  .biz-qr-row img { width: 44px; height: 44px; border-radius: 4px; }
+  .biz-qr-label { font-family: 'Montserrat', sans-serif; font-size: 7.5px; font-weight: 700; color: rgba(255,255,255,0.8); text-transform: uppercase; line-height: 1.4; }
+  .biz-broker-bottom { font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+
+  .biz-front-photo { width: 190px; height: 300px; overflow: hidden; flex-shrink: 0; }
+  .biz-front-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+  .biz-front-photo .photo-placeholder { width: 100%; height: 100%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 40px; color: rgba(255,255,255,0.15); font-weight: 800; }
+
+  .biz-back { background: #ffffff; width: 525px; height: 300px; display: flex; flex-direction: column; }
+  .biz-back-header { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; color: #1a1a2e; text-transform: uppercase; letter-spacing: 2px; text-align: center; padding: 16px 20px 10px; border-bottom: 2px solid #2563eb; margin: 0 20px; }
+  .biz-back-body { flex: 1; display: flex; padding: 14px 20px; gap: 20px; }
+  .biz-back-left { flex: 1; }
+  .biz-back-awards { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .biz-back-top1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 14px; color: #1a1a2e; line-height: 1; }
+  .biz-back-top1 span { display: block; font-size: 7px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+  .biz-back-stars { color: #f59e0b; font-size: 12px; letter-spacing: 1px; }
+  .biz-back-stars span { display: block; font-size: 8px; color: #888; font-family: 'Inter', sans-serif; }
+  .biz-back-services-title { font-family: 'Montserrat', sans-serif; font-size: 7.5px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 4px; }
+  .biz-back-services { list-style: none; font-size: 9px; color: #333; line-height: 1.7; font-weight: 500; }
+  .biz-back-services li::before { content: '✓ '; color: #2563eb; font-weight: 800; }
+
+  .biz-back-right { width: 180px; display: flex; flex-direction: column; justify-content: space-between; }
+  .biz-back-phone { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a2e; }
+  .biz-back-email { font-family: 'Inter', sans-serif; font-size: 11px; color: #555; margin-top: 2px; }
+  .biz-back-web { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: #2563eb; margin-top: 2px; }
+  .biz-back-office { font-size: 8px; color: #999; line-height: 1.5; margin-top: 10px; }
+  .biz-back-broker-name { font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800; color: #1a1a2e; text-transform: uppercase; letter-spacing: 0.5px; }
+  .biz-back-broker-sub { font-size: 5.5px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Montserrat', sans-serif; }
+  .biz-back-footer { background: #2563eb; padding: 8px 20px; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 700; color: #fff; letter-spacing: 3px; text-transform: uppercase; }
+
+  /* Website text with accent split */
+  .web-text { font-family: 'DM Sans', sans-serif; font-weight: 800; }
+  .web-text .mi { color: #1B2A4A; }
+  .web-text .ca { color: #2563eb; }
+  .web-text-white .mi { color: #fff; }
+  .web-text-white .ca { color: rgba(255,255,255,0.7); }
+
+
+  /* ═══════════════════════════════════════
+     3. FARM MAILER — 8.5x5.5
+     ═══════════════════════════════════════ */
+  .farm-card { width: 680px; height: 440px; border-radius: 4px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+
+  .farm-front { width: 680px; height: 440px; background: #2563eb; display: flex; position: relative; overflow: hidden; }
+  .farm-front-content { flex: 1; padding: 28px 24px 28px 70px; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 2; }
+  .farm-tagline { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 4px; text-transform: uppercase; }
+
+  .farm-logo-name { display: flex; align-items: center; gap: 14px; }
+  .farm-agent-name { font-family: 'Montserrat', sans-serif; font-size: 40px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 2px; line-height: 1.05; }
+  .farm-agent-title { font-family: 'Montserrat', sans-serif; font-size: 7.5px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+
+  .farm-badges-row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .farm-top1-box { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 4px 10px; text-align: center; }
+  .farm-top1-box .pct { font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 900; color: #fff; line-height: 1; }
+  .farm-top1-box .neg { font-family: 'Montserrat', sans-serif; font-size: 6px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 2px; }
+  .farm-stars-col .star-row { color: #fbbf24; font-size: 16px; letter-spacing: 2px; }
+  .farm-stars-col .star-label { font-size: 8px; color: rgba(255,255,255,0.6); font-style: italic; }
+
+  .farm-forsale-vertical {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 52px;
+    background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; z-index: 3;
+  }
+  .farm-forsale-vertical span {
+    font-family: 'Montserrat', sans-serif; font-size: 30px; font-weight: 900; color: #fff;
+    writing-mode: vertical-rl; text-orientation: mixed; letter-spacing: 6px; text-transform: uppercase;
+  }
+
+  .farm-qr-row { display: flex; align-items: center; gap: 10px; }
+  .farm-qr-row img { width: 50px; height: 50px; border-radius: 3px; }
+  .farm-qr-text { font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 800; color: #fff; text-transform: uppercase; line-height: 1.4; }
+
+  .farm-front-photo { width: 240px; height: 440px; flex-shrink: 0; overflow: hidden; }
+  .farm-front-photo img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+  .farm-front-photo .photo-placeholder { width: 100%; height: 100%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; font-size: 50px; color: rgba(255,255,255,0.12); font-weight: 800; }
+
+  .farm-front-bottom {
+    position: absolute; bottom: 0; left: 0; right: 0; background: #ffffff;
+    padding: 12px 24px 12px 70px; display: flex; align-items: center; justify-content: space-between; z-index: 4;
+  }
+  .farm-bottom-contact { display: flex; align-items: center; gap: 20px; }
+  .farm-bottom-phone { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a2e; }
+  .farm-bottom-email { font-size: 10px; color: #555; }
+  .farm-bottom-web { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: #2563eb; }
+  .farm-bottom-broker { text-align: right; }
+  .farm-bottom-broker-name { font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 800; color: #1a1a2e; text-transform: uppercase; }
+  .farm-bottom-broker-sub { font-size: 5px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Montserrat', sans-serif; }
+
+  .farm-back { width: 680px; height: 440px; background: #fff; display: flex; flex-direction: column; }
+  .farm-back-header { text-align: center; padding: 20px; font-family: 'Montserrat', sans-serif; font-size: 13px; font-weight: 800; color: #1a1a2e; text-transform: uppercase; letter-spacing: 2px; border-bottom: 3px solid #2563eb; margin: 0 24px; }
+  .farm-back-body { flex: 1; display: flex; padding: 16px 24px; gap: 30px; }
+  .farm-back-left { flex: 1; }
+  .farm-back-awards { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .farm-back-awards .top1-text { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 18px; color: #1a1a2e; line-height: 1; }
+  .farm-back-awards .top1-text span { display: block; font-size: 7px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+  .farm-back-awards .google-stars { color: #f59e0b; font-size: 14px; }
+  .farm-back-awards .google-stars span { display: block; font-size: 8px; color: #888; }
+  .farm-back-services-title { font-family: 'Montserrat', sans-serif; font-size: 8px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+  .farm-back-services { list-style: none; font-size: 11px; color: #333; line-height: 1.8; font-weight: 500; }
+  .farm-back-services li::before { content: '✓ '; color: #2563eb; font-weight: 800; }
+
+  .farm-back-right { width: 240px; display: flex; flex-direction: column; justify-content: space-between; }
+  .farm-back-phone { font-family: 'Montserrat', sans-serif; font-size: 30px; font-weight: 900; color: #1a1a2e; }
+  .farm-back-email { font-size: 13px; color: #555; margin-top: 2px; }
+  .farm-back-web { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; color: #2563eb; margin-top: 2px; }
+  .farm-back-office { font-size: 9px; color: #999; line-height: 1.6; margin-top: 12px; }
+  .farm-back-broker-name { font-family: 'Montserrat', sans-serif; font-size: 14px; font-weight: 800; color: #1a1a2e; text-transform: uppercase; }
+  .farm-back-broker-sub { font-size: 6px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 2px; font-family: 'Montserrat', sans-serif; }
+  .farm-back-footer { background: #2563eb; padding: 10px 24px; text-align: center; font-family: 'Montserrat', sans-serif; font-size: 9px; font-weight: 700; color: #fff; letter-spacing: 4px; text-transform: uppercase; }
+
+  /* MI logo on back cards */
+  .back-logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .back-logo-row .mi-logo { box-shadow: 0 2px 8px rgba(26,115,232,0.3); }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .page-header, .upload-bar, .section-title, .section-sub, .rider-controls { display: none; }
+    .design-row { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Hamza Nouman — Print-Ready Marketing Package</h1>
+  <p>Upload your headshot, choose a rider, then right-click any design to save or print</p>
+</div>
+
+<div class="upload-bar">
+  <label for="photo-upload">&#128247; Upload Your Portrait Photo</label>
+  <input type="file" id="photo-upload" accept="image/*">
+  <div class="hint">Same photo will appear across all designs</div>
+  <div class="status" id="upload-status">&#10003; Photo loaded!</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SECTION 1: FOR SALE SIGN 24x32
+     ═══════════════════════════════════ -->
+<div class="section-title">For Sale Sign — 24" x 32"</div>
+<div class="section-sub">Yard sign for listings — print at 24 x 32 inches</div>
+
+<div class="rider-controls">
+  <button class="rider-btn active" onclick="setRider('')">No Rider</button>
+  <button class="rider-btn" onclick="setRider('SOLD')">Sold</button>
+  <button class="rider-btn" onclick="setRider('OPEN HOUSE')">Open House</button>
+  <button class="rider-btn" onclick="setRider('COMING SOON')">Coming Soon</button>
+  <button class="rider-btn" onclick="setRider('JUST LISTED')">Just Listed</button>
+  <button class="rider-btn" onclick="setRider('PRICE REDUCED')">Price Reduced</button>
+</div>
+
+<div class="design-row">
+  <div class="for-sale-sign" id="forsale-sign">
+    <div class="sign-rider" id="sign-rider"></div>
+    <div class="fs-top">
+      <div class="fs-for-sale">FOR<br>SALE</div>
+    </div>
+    <div class="fs-middle">
+      <div class="fs-name-block">
+        <div class="fs-logo-name-row">
+          <div class="mi-logo mi-logo-lg">MI</div>
+          <div>
+            <div class="fs-agent-name">HAMZA<br>NOUMAN</div>
+          </div>
+        </div>
+        <div class="fs-agent-title">Sales Representative &nbsp;|&nbsp; Real Estate Strategist</div>
+        <div class="fs-badges">
+          <div class="fs-top1">
+            <div class="pct">TOP 1%</div>
+            <div class="neg">Negotiator</div>
+          </div>
+          <div class="fs-stars">
+            <div class="star-row">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="star-label">5-Star Rated on Google</div>
+          </div>
+        </div>
+        <div class="fs-qr-block">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mississaugainvestor.ca&color=0a1628&bgcolor=ffffff" alt="QR Code">
+          <div class="fs-qr-text">Scan for a<br>Free Home<br>Evaluation</div>
+        </div>
+      </div>
+      <div class="fs-photo" id="fs-photo">
+        <div class="photo-placeholder">HN</div>
+      </div>
+    </div>
+    <div class="fs-bottom">
+      <div class="fs-contact-row">
+        <div class="fs-services">
+          <div class="fs-services-title">Service Highlights</div>
+          <ul>
+            <li>Free Home Evaluations</li>
+            <li>Power-of-Sale & Off-Market Listings</li>
+            <li>$500 Referral Reward Program</li>
+            <li>Strategic Buyer Representation</li>
+            <li>Investment Property Guidance</li>
+          </ul>
+        </div>
+        <div class="fs-contact-info">
+          <div class="fs-phone">647 609 1289</div>
+          <div class="fs-email">hamza@nouman.ca</div>
+          <div class="fs-website web-text"><span class="mi">MississaugaInvestor</span><span class="ca">.ca</span></div>
+        </div>
+      </div>
+      <div class="fs-brokerage">
+        <div class="fs-broker-logo">
+          <div class="fs-broker-name">Real Broker Ontario</div>
+          <div class="fs-broker-sub">Independently Owned & Operated Brokerage</div>
+        </div>
+        <div class="fs-mls-realtor">
+          <span class="badge">MLS</span>
+          <span class="badge">REALTOR&reg;</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     SECTION 2: BUSINESS CARD 3.5x2
+     ═══════════════════════════════════ -->
+<div class="section-title">Business Card — 3.5" x 2"</div>
+<div class="section-sub">Front & Back — print double-sided</div>
+
+<div class="design-row">
+  <!-- FRONT -->
+  <div class="biz-card">
+    <div class="biz-front">
+      <div class="biz-front-left">
+        <div class="biz-tagline">Helping You Buy Smart & Sell For More</div>
+        <div>
+          <div class="biz-logo-name">
+            <div class="mi-logo mi-logo-md">MI</div>
+            <div>
+              <div class="biz-agent-name">HAMZA<br>NOUMAN</div>
+            </div>
+          </div>
+          <div class="biz-agent-title">Sales Representative &nbsp;|&nbsp; Real Estate Strategist</div>
+        </div>
+        <div class="biz-qr-row">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mississaugainvestor.ca&color=ffffff&bgcolor=2563eb" alt="QR">
+          <div class="biz-qr-label">Scan for Free<br>Home Value Report</div>
+        </div>
+        <div class="biz-broker-bottom">Real Broker Ontario</div>
+      </div>
+      <div class="biz-front-photo" id="biz-photo">
+        <div class="photo-placeholder">HN</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACK -->
+  <div class="biz-card">
+    <div class="biz-back">
+      <div class="biz-back-header">Work with the Realtor&reg; GTA Investors and Sellers Trust</div>
+      <div class="biz-back-body">
+        <div class="biz-back-left">
+          <div class="back-logo-row">
+            <div class="mi-logo mi-logo-sm">MI</div>
+            <div class="biz-back-awards" style="margin-bottom:0">
+              <div class="biz-back-top1">TOP 1%<span>Negotiator</span></div>
+              <div class="biz-back-stars">&#9733;&#9733;&#9733;&#9733;&#9733;<span>5-Star Rated</span></div>
+            </div>
+          </div>
+          <div class="biz-back-services-title">Service Highlights</div>
+          <ul class="biz-back-services">
+            <li>Free Home Evaluations</li>
+            <li>Power-of-Sale & Off-Market Listings</li>
+            <li>$500 Referral Reward Program</li>
+            <li>Strategic Buyer Representation</li>
+            <li>Investment Property Guidance</li>
+          </ul>
+        </div>
+        <div class="biz-back-right">
+          <div>
+            <div class="biz-back-phone">647 609 1289</div>
+            <div class="biz-back-email">hamza@nouman.ca</div>
+            <div class="biz-back-web web-text"><span class="mi">MississaugaInvestor</span><span class="ca">.ca</span></div>
+          </div>
+          <div>
+            <div style="margin-top: 6px;">
+              <div class="biz-back-broker-name">Real Broker Ontario</div>
+              <div class="biz-back-broker-sub">Independently Owned & Operated Brokerage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="biz-back-footer">I Work With 5 Serious Buyers & Sellers Each Month</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════
+     SECTION 3: FARM MAILER 8.5x5.5
+     ═══════════════════════════════════ -->
+<div class="section-title">Farm / Door Knocker — 8.5" x 5.5"</div>
+<div class="section-sub">Front & Back — print double-sided postcard</div>
+
+<div class="design-row">
+  <!-- FRONT -->
+  <div class="farm-card">
+    <div class="farm-front">
+      <div class="farm-forsale-vertical"><span>FOR SALE</span></div>
+      <div class="farm-front-content">
+        <div class="farm-tagline">Helping You Buy Smart & Sell For More</div>
+        <div>
+          <div class="farm-logo-name">
+            <div class="mi-logo mi-logo-lg">MI</div>
+            <div>
+              <div class="farm-agent-name">HAMZA<br>NOUMAN</div>
+            </div>
+          </div>
+          <div class="farm-agent-title">Sales Representative &nbsp;|&nbsp; Real Estate Strategist</div>
+          <div class="farm-badges-row">
+            <div class="farm-top1-box">
+              <div class="pct">TOP 1%</div>
+              <div class="neg">Negotiator</div>
+            </div>
+            <div class="farm-stars-col">
+              <div class="star-row">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <div class="star-label">5-Star Rated on Google</div>
+            </div>
+          </div>
+        </div>
+        <div class="farm-qr-row">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mississaugainvestor.ca&color=ffffff&bgcolor=2563eb" alt="QR">
+          <div class="farm-qr-text">Scan for a Free<br>Home Evaluation</div>
+        </div>
+      </div>
+      <div class="farm-front-photo" id="farm-photo">
+        <div class="photo-placeholder">HN</div>
+      </div>
+      <div class="farm-front-bottom">
+        <div class="farm-bottom-contact">
+          <div>
+            <div class="farm-bottom-phone">647 609 1289</div>
+            <div class="farm-bottom-email">hamza@nouman.ca</div>
+          </div>
+          <div class="farm-bottom-web web-text"><span class="mi">MississaugaInvestor</span><span class="ca">.ca</span></div>
+        </div>
+        <div class="farm-bottom-broker">
+          <div class="farm-bottom-broker-name">Real Broker Ontario</div>
+          <div class="farm-bottom-broker-sub">Independently Owned & Operated Brokerage</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACK -->
+  <div class="farm-card">
+    <div class="farm-back">
+      <div class="farm-back-header">Work with the Realtor&reg; GTA Investors and Sellers Trust</div>
+      <div class="farm-back-body">
+        <div class="farm-back-left">
+          <div class="back-logo-row">
+            <div class="mi-logo mi-logo-sm">MI</div>
+            <div class="farm-back-awards" style="margin-bottom:0">
+              <div class="top1-text">TOP 1%<span>Negotiator</span></div>
+              <div class="google-stars">&#9733;&#9733;&#9733;&#9733;&#9733;<span>Google Reviews 5-Star</span></div>
+            </div>
+          </div>
+          <div class="farm-back-services-title">Service Highlights</div>
+          <ul class="farm-back-services">
+            <li>Free Home Evaluations</li>
+            <li>Power-of-Sale & Off-Market Listings</li>
+            <li>$500 Referral Reward Program</li>
+            <li>Strategic Buyer Representation</li>
+            <li>Investment Property Guidance</li>
+          </ul>
+        </div>
+        <div class="farm-back-right">
+          <div>
+            <div class="farm-back-phone">647 609 1289</div>
+            <div class="farm-back-email">hamza@nouman.ca</div>
+            <div class="farm-back-web web-text"><span class="mi">MississaugaInvestor</span><span class="ca">.ca</span></div>
+          </div>
+          <div>
+            <div style="margin-top: 8px;">
+              <div class="farm-back-broker-name">Real Broker Ontario</div>
+              <div class="farm-back-broker-sub">Independently Owned & Operated Brokerage</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="farm-back-footer">I Work With 5 Serious Buyers & Sellers Each Month</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('photo-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const url = ev.target.result;
+      ['fs-photo', 'biz-photo', 'farm-photo'].forEach(id => {
+        const el = document.getElementById(id);
+        const ph = el.querySelector('.photo-placeholder');
+        if (ph) ph.remove();
+        let img = el.querySelector('img');
+        if (!img) { img = document.createElement('img'); el.appendChild(img); }
+        img.src = url;
+      });
+      document.getElementById('upload-status').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function setRider(text) {
+    document.querySelectorAll('.rider-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const rider = document.getElementById('sign-rider');
+    if (text) { rider.textContent = text; rider.classList.add('show'); }
+    else { rider.classList.remove('show'); }
+  }
+</script>
+
+</body>
+</html>
