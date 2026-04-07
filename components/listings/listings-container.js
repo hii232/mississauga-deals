@@ -164,23 +164,19 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos for listings missing them — fire-and-forget, never cancelled.
-  // Uses a ref queue so listing state updates don't kill in-flight requests.
+  // Fetch photos individually per listing — fire-and-forget, never cancelled.
+  // Each /api/photos call runs in its own Vercel function, avoiding rate limits.
   const photoBatchRef = useRef(new Set()); // IDs already requested
   const photoQueueRef = useRef([]);        // IDs waiting to be fetched
-  const photoTimerRef = useRef(null);      // background batch timer
+  const photoTimerRef = useRef(null);      // background drainer timer
 
-  // Helper: fetch a batch and merge into photoMap
-  const fetchPhotoBatch = useCallback((ids) => {
-    if (ids.length === 0) return;
-    fetch('/api/photos-batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids }),
-    })
+  // Helper: fetch single photo and merge into photoMap
+  const fetchSinglePhoto = useCallback((id) => {
+    fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data?.photos) setPhotoMap((prev) => ({ ...prev, ...data.photos }));
+        const url = data?.photos?.[0];
+        if (url) setPhotoMap((prev) => ({ ...prev, [id]: url }));
       })
       .catch(() => {});
   }, []);
@@ -197,33 +193,31 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     // Mark as requested immediately
     for (const id of newIds) photoBatchRef.current.add(id);
 
-    // Fire priority batch (first 60 = 2 pages) immediately in parallel
-    const priority = newIds.slice(0, 60);
-    const rest = newIds.slice(60);
+    // Fire priority: first 30 (visible page) immediately in parallel
+    const priority = newIds.slice(0, 30);
+    const rest = newIds.slice(30);
 
-    // Send priority in parallel chunks of 30 (one page each)
-    for (let i = 0; i < priority.length; i += 30) {
-      fetchPhotoBatch(priority.slice(i, i + 30));
+    for (const id of priority) {
+      fetchSinglePhoto(id);
     }
 
-    // Queue the rest for background fetching
+    // Queue the rest for background fetching (6 at a time, every 100ms)
     if (rest.length > 0) {
       photoQueueRef.current.push(...rest);
 
-      // Start background drainer if not already running
       if (!photoTimerRef.current) {
         photoTimerRef.current = setInterval(() => {
-          const batch = photoQueueRef.current.splice(0, 30);
-          if (batch.length === 0) {
+          const chunk = photoQueueRef.current.splice(0, 6);
+          if (chunk.length === 0) {
             clearInterval(photoTimerRef.current);
             photoTimerRef.current = null;
             return;
           }
-          fetchPhotoBatch(batch);
-        }, 200);
+          for (const id of chunk) fetchSinglePhoto(id);
+        }, 100);
       }
     }
-  }, [listings, fetchPhotoBatch]);
+  }, [listings, fetchSinglePhoto]);
 
   // Cleanup background timer on unmount
   useEffect(() => {

@@ -9,29 +9,32 @@ export async function GET(request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
+  const photoLimit = Math.min(parseInt(searchParams.get('limit')) || 50, 50);
 
   try {
-    // Try ResourceRecordKey first
+    const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+
+    // Fast path: navigation property (most reliable, works every time)
     let response = await fetch(
-      BASE + "/Media?$filter=ResourceRecordKey eq '" + id + "'&$orderby=Order asc&$top=50&$select=MediaURL,Order",
-      { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
+      BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+      { headers: hdrs }
     );
     let data = response.ok ? await response.json() : null;
 
-    // Fallback: ListingKey
+    // Fallback: ResourceRecordKey
     if (!data?.value?.length) {
       response = await fetch(
-        BASE + "/Media?$filter=ListingKey eq '" + id + "'&$orderby=Order asc&$top=50&$select=MediaURL,Order",
-        { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
+        BASE + "/Media?$filter=ResourceRecordKey eq '" + id + "'&$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+        { headers: hdrs }
       );
       data = response.ok ? await response.json() : null;
     }
 
-    // Fallback: Navigation property
+    // Fallback: ListingKey
     if (!data?.value?.length) {
       response = await fetch(
-        BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=50&$select=MediaURL,Order",
-        { headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' } }
+        BASE + "/Media?$filter=ListingKey eq '" + id + "'&$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+        { headers: hdrs }
       );
       data = response.ok ? await response.json() : null;
     }
