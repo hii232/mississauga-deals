@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const BASE = 'https://query.ampre.ca/odata';
-const TOK = process.env.AMPRE_TOKEN;
+const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 export async function GET(request) {
   if (!TOK) return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });

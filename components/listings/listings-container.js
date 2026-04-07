@@ -238,7 +238,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
 
         // Fetch remaining pages in parallel batches, appending as they arrive
         if (totalPages > 1 && !cancelled) {
-          const maxPages = Math.min(totalPages, 25);
+          const maxPages = Math.min(totalPages, 50);
           const batchSize = 5;
           const allExtra = [];
 

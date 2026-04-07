@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const BASE = 'https://query.ampre.ca/odata';
-const TOK = process.env.AMPRE_TOKEN;
+const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 /**
  * Deduplicate AMPRE photo URLs server-side.
