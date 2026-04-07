@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Sale Sign — Hamza Nouman — 24x32</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #bbb;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    min-height: 100vh;
+  }
+
+  /* Controls */
+  .controls {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .upload-row { display: flex; gap: 12px; align-items: center; }
+  .upload-row label {
+    padding: 10px 24px; background: #2563eb; color: #fff; border-radius: 8px;
+    cursor: pointer; font-weight: 700; font-size: 13px;
+  }
+  .upload-row label:hover { background: #1d4ed8; }
+  .upload-row input { display: none; }
+  .upload-status { font-size: 12px; color: #16a34a; font-weight: 600; display: none; }
+  .rider-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .rider-btn {
+    padding: 6px 14px; border: 2px solid #999; border-radius: 6px; background: #fff;
+    font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase;
+    letter-spacing: 1px; font-family: 'Montserrat', sans-serif; transition: all 0.15s;
+  }
+  .rider-btn:hover { border-color: #2563eb; }
+  .rider-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+  /* ═══════════════════════════════════
+     THE SIGN — 24x32 (scaled 540x720)
+     Modeled after your original PDF
+     ═══════════════════════════════════ */
+  .sign {
+    width: 540px;
+    height: 720px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+
+  /* RIDER */
+  .rider {
+    display: none; position: absolute; top: 0; left: 0; right: 0;
+    background: #dc2626; color: #fff; text-align: center; padding: 10px;
+    font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 900;
+    letter-spacing: 6px; text-transform: uppercase; z-index: 30;
+  }
+  .rider.show { display: block; }
+
+  /* ────────────────────────────────
+     BLUE SECTION — top ~62%
+     Layout: FOR SALE vertical left,
+     name center, photo full right
+     ──────────────────────────────── */
+  .sign-blue {
+    background: #2563eb;
+    height: 448px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* "FOR SALE" vertical bar on left — like your original */
+  .forsale-vertical {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 62px;
+    background: rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+  }
+  .forsale-vertical span {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: #fff;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  /* Center content area */
+  .center-content {
+    position: absolute;
+    left: 62px;
+    top: 0;
+    right: 220px;
+    bottom: 0;
+    padding: 28px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 5;
+  }
+
+  /* MI Logo + Name */
+  .logo-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .mi-logo {
+    width: 56px; height: 56px; border-radius: 13px;
+    background: linear-gradient(135deg, #1A73E8 0%, #0F2A4A 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Sans', system-ui, sans-serif; font-weight: 800;
+    font-size: 27px; color: #fff; letter-spacing: -1px; flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+  .agent-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 36px; font-weight: 900; color: #fff;
+    text-transform: uppercase; letter-spacing: 2px; line-height: 1;
+  }
+  .agent-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 8px; font-weight: 600; color: rgba(255,255,255,0.65);
+    letter-spacing: 3px; text-transform: uppercase; margin-top: 8px;
+  }
+
+  /* Badges */
+  .badges {
+    display: flex; align-items: center; gap: 12px; margin-top: 16px;
+  }
+  .top1 {
+    background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.35);
+    border-radius: 8px; padding: 5px 10px; text-align: center;
+  }
+  .top1 .pct {
+    font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #fff; line-height: 1;
+  }
+  .top1 .lbl {
+    font-family: 'Montserrat', sans-serif; font-size: 6.5px; font-weight: 700;
+    color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 2px;
+  }
+  .stars-col .stars {
+    color: #fbbf24; font-size: 20px; letter-spacing: 2px; line-height: 1;
+  }
+  .stars-col .slbl {
+    font-family: 'Inter', sans-serif; font-size: 9px; color: rgba(255,255,255,0.65); font-style: italic;
+  }
+
+  /* QR */
+  .qr-row {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px;
+    width: fit-content;
+  }
+  .qr-row img { width: 56px; height: 56px; border-radius: 5px; }
+  .qr-row .qr-text {
+    font-family: 'Montserrat', sans-serif; font-size: 12px; font-weight: 800;
+    color: #fff; text-transform: uppercase; line-height: 1.3;
+  }
+
+  /* Photo — full right column like your original PDFs */
+  .photo-col {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 220px;
+    overflow: hidden;
+    z-index: 2;
+  }
+  .photo-col img {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: top center;
+  }
+  .photo-col .placeholder {
+    width: 100%; height: 100%;
+    background: rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Sans', sans-serif; font-size: 60px; color: rgba(255,255,255,0.08); font-weight: 800;
+  }
+  /* Gradient blend left edge of photo into blue */
+  .photo-col::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 50px;
+    background: linear-gradient(90deg, #2563eb 0%, transparent 100%); z-index: 3;
+  }
+
+  /* ────────────────────────────────
+     WHITE SECTION — bottom ~38%
+     ──────────────────────────────── */
+  .sign-white {
+    background: #ffffff;
+    height: 272px;
+    padding: 22px 28px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* PHONE NUMBER — readable from the street */
+  .phone-huge {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 56px; font-weight: 900; color: #1B2A4A;
+    letter-spacing: 2px; line-height: 1; text-align: center;
+  }
+
+  .contact-center { text-align: center; margin-top: 4px; }
+  .contact-email {
+    font-family: 'Inter', sans-serif; font-size: 16px; color: #555; font-weight: 500;
+  }
+  .contact-web {
+    font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 800; margin-top: 2px;
+  }
+  .contact-web .mi { color: #1B2A4A; }
+  .contact-web .ca { color: #2563eb; }
+
+  /* Tagline */
+  .tagline-bar {
+    text-align: center;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 10px; font-weight: 700; color: #2563eb;
+    text-transform: uppercase; letter-spacing: 4px;
+    padding: 8px 0;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  /* Brokerage */
+  .brokerage-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .brokerage-left {}
+  .brokerage-name-main {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 24px; font-weight: 700; color: #1a1a1a;
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+  .brokerage-sub {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 9px; color: #666; letter-spacing: 2.5px; text-transform: uppercase;
+  }
+  .mls-badges { display: flex; gap: 8px; align-items: center; }
+  .mls-badges .b {
+    font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 800;
+    color: #444; border: 1.5px solid #bbb; padding: 4px 8px; border-radius: 3px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .footnote { text-align: center; font-size: 10px; color: #999; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <div class="upload-row">
+    <label for="photo-upload">Upload Your Portrait Photo</label>
+    <input type="file" id="photo-upload" accept="image/*">
+    <span class="upload-status" id="upload-status">&#10003; Loaded</span>
+  </div>
+  <div class="rider-row">
+    <button class="rider-btn active" onclick="setRider('')">No Rider</button>
+    <button class="rider-btn" onclick="setRider('SOLD')">Sold</button>
+    <button class="rider-btn" onclick="setRider('OPEN HOUSE')">Open House</button>
+    <button class="rider-btn" onclick="setRider('COMING SOON')">Coming Soon</button>
+    <button class="rider-btn" onclick="setRider('JUST LISTED')">Just Listed</button>
+    <button class="rider-btn" onclick="setRider('PRICE REDUCED')">Price Reduced</button>
+  </div>
+</div>
+
+<!-- ═══ THE SIGN ═══ -->
+<div class="sign">
+  <div class="rider" id="rider"></div>
+
+  <div class="sign-blue">
+    <!-- FOR SALE vertical left bar -->
+    <div class="forsale-vertical"><span>FOR SALE</span></div>
+
+    <!-- Center: name, badges, QR -->
+    <div class="center-content">
+      <div>
+        <div class="logo-name">
+          <div class="mi-logo">MI</div>
+          <div class="agent-name">HAMZA<br>NOUMAN</div>
+        </div>
+        <div class="agent-title">Sales Representative &nbsp;|&nbsp; Real Estate Strategist</div>
+      </div>
+
+      <div>
+        <div class="badges">
+          <div class="top1">
+            <div class="pct">TOP 1%</div>
+            <div class="lbl">Negotiator</div>
+          </div>
+          <div class="stars-col">
+            <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div class="slbl">5-Star Rated on Google</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="qr-row">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://mississaugainvestor.ca&color=0a1628&bgcolor=ffffff" alt="QR">
+        <div class="qr-text">Scan for a<br>Free Home<br>Evaluation</div>
+      </div>
+    </div>
+
+    <!-- Photo — full right side -->
+    <div class="photo-col" id="photo-col">
+      <div class="placeholder">HN</div>
+    </div>
+  </div>
+
+  <div class="sign-white">
+    <div>
+      <div class="phone-huge">647-609-1289</div>
+      <div class="contact-center">
+        <div class="contact-email">hamza@nouman.ca</div>
+        <div class="contact-web"><span class="mi">MississaugaInvestor</span><span class="ca">.ca</span></div>
+      </div>
+    </div>
+
+    <div class="tagline-bar">Helping You Buy Smart & Sell For More</div>
+
+    <div class="brokerage-row">
+      <div class="brokerage-left">
+        <div class="brokerage-name-main">Cityscape</div>
+        <div class="brokerage-sub">Real Estate Ltd., Brokerage</div>
+      </div>
+      <div class="mls-badges">
+        <span class="b">MLS</span>
+        <span class="b">REALTOR&reg;</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footnote">24" x 32" — Right-click the sign to save as image or Ctrl+P to print</div>
+
+<script>
+  document.getElementById('photo-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const col = document.getElementById('photo-col');
+      const ph = col.querySelector('.placeholder');
+      if (ph) ph.remove();
+      let img = col.querySelector('img');
+      if (!img) { img = document.createElement('img'); col.appendChild(img); }
+      img.src = ev.target.result;
+      document.getElementById('upload-status').style.display = 'inline';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function setRider(text) {
+    document.querySelectorAll('.rider-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    const r = document.getElementById('rider');
+    if (text) { r.textContent = text; r.classList.add('show'); }
+    else { r.classList.remove('show'); }
+  }
+</script>
+</body>
+</html>
