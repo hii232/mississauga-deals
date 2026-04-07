@@ -31,6 +31,18 @@ function estimateRent(price, beds, city, type) {
   return Math.round(((price || 0) * 0.0042 * 0.4 + (base + adj) * 0.6) / 50) * 50;
 }
 
+/**
+ * Normalize AssociationFee to monthly amount
+ */
+function normalizeCondoFee(fee, frequency) {
+  if (!fee || fee <= 0) return 0;
+  const freq = (frequency || 'Monthly').toLowerCase();
+  if (freq.includes('annual') || freq.includes('yearly')) return Math.round(fee / 12);
+  if (freq.includes('quarter')) return Math.round(fee / 3);
+  if (freq.includes('semi')) return Math.round(fee / 6);
+  return Math.round(fee); // default: monthly
+}
+
 function addr(l) {
   return [l.UnitNumber ? l.UnitNumber + '-' : '', l.StreetNumber || '', l.StreetName || '', l.StreetSuffix || '']
     .filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
@@ -70,6 +82,7 @@ export async function GET(request) {
       'Latitude', 'Longitude', 'ModificationTimestamp',
       'OnMarketDate', 'ListingContractDate', 'OriginalEntryTimestamp',
       'LivingArea', 'BuildingAreaTotal',
+      'AssociationFee', 'AssociationFeeFrequency',
     ].join(',');
 
     const expand = 'Media($select=MediaURL,MediaKey;$orderby=Order)';
@@ -194,6 +207,7 @@ export async function GET(request) {
         estimatedRent: rent,
         rent,
         hasSuite: /separate entrance|in-law|basement apt|2nd kitchen|second kitchen|legal basement|finished basement|accessory|rental income|two unit|2 unit/i.test(rem),
+        condoFee: normalizeCondoFee(l.AssociationFee, l.AssociationFeeFrequency),
       };
     });
 

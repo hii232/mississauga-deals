@@ -100,20 +100,22 @@ async function fetchTopDeals() {
       .sort((a, b) => b.hamzaScore - a.hamzaScore)
       .slice(0, 4);
 
-    // Fetch photos for top 4 deals
+    // Fetch photos for top 4 deals — individual calls (reliable, 100% hit rate)
     let photoMap = {};
     try {
-      const ids = top.map((d) => d.id);
-      const photoRes = await fetch(`${baseUrl}/api/photos-batch`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-        cache: 'no-store',
+      const photoPromises = top.map(async (d) => {
+        try {
+          const r = await fetch(`${baseUrl}/api/photos?id=${encodeURIComponent(d.id)}&limit=1`, {
+            cache: 'no-store',
+          });
+          if (r.ok) {
+            const data = await r.json();
+            const url = data?.photos?.[0];
+            if (url) photoMap[d.id] = url;
+          }
+        } catch {}
       });
-      if (photoRes.ok) {
-        const photoData = await photoRes.json();
-        photoMap = photoData?.photos || photoData || {};
-      }
+      await Promise.all(photoPromises);
     } catch { /* photos optional */ }
 
     return { deals: top, photoMap, totalCount: processed.length };

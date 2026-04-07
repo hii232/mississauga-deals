@@ -208,6 +208,11 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
                 Incl. +${listing.basementIncome.toLocaleString()}/mo basement income
               </p>
             )}
+            {listing.condoFee > 0 && (
+              <p className="text-[10px] text-amber-600 font-medium">
+                Condo fee: ${listing.condoFee.toLocaleString()}/mo
+              </p>
+            )}
           </div>
         )}
 
