@@ -41,6 +41,7 @@ export default function Footer() {
               <li><Link href="/market-pulse" className="text-white/50 hover:text-white no-underline transition-colors">Market Pulse</Link></li>
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
+              <li><Link href="/pre-construction/projects" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction Projects</Link></li>
               <li><Link href="/pre-construction" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
               <li><Link href="/pre-construction/hst-rebate" className="text-white/50 hover:text-white no-underline transition-colors">HST Rebate Guide</Link></li>
               <li><Link href="/mortgage-calculator" className="text-white/50 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>

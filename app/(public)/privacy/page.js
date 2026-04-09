@@ -14,8 +14,8 @@ export default function PrivacyPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">1. Who We Are</h2>
           <p>
-            MississaugaInvestor.ca is operated by Hamza Nouman, Sales Representative at Cityscape Real Estate Ltd.
-            Signature Realty, Brokerage. We are committed to protecting your privacy and complying with
+            MississaugaInvestor.ca is operated by Hamza Nouman, Sales Representative at Cityscape Real Estate Ltd.,
+            Brokerage. We are committed to protecting your privacy and complying with
             all applicable Canadian privacy legislation, including PIPEDA (Personal Information Protection
             and Electronic Documents Act).
           </p>

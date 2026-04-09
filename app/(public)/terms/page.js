@@ -22,8 +22,8 @@ export default function TermsPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">2. About the Website</h2>
           <p>
-            MississaugaInvestor.ca is operated by Hamza Nouman, a licensed Sales Representative at Cityscape Real Estate Ltd.
-            Signature Realty, Brokerage, licensed by the Real Estate Council of Ontario (RECO). The Website
+            MississaugaInvestor.ca is operated by Hamza Nouman, a licensed Sales Representative at Cityscape Real Estate Ltd.,
+            Brokerage, licensed by the Real Estate Council of Ontario (RECO). The Website
             provides real estate investment analysis tools, property listings, and market data for informational
             purposes.
           </p>
@@ -105,8 +105,8 @@ export default function TermsPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">9. Limitation of Liability</h2>
           <p>
-            To the fullest extent permitted by law, MississaugaInvestor.ca, Hamza Nouman, and Cityscape Real Estate Ltd.
-            Signature Realty shall not be liable for any indirect, incidental, special, consequential, or
+            To the fullest extent permitted by law, MississaugaInvestor.ca, Hamza Nouman, and Cityscape Real Estate Ltd.,
+            Brokerage shall not be liable for any indirect, incidental, special, consequential, or
             punitive damages arising from your use of the Website, including but not limited to losses from
             investment decisions made using information from this platform.
           </p>
