@@ -12,6 +12,7 @@ export function useAdmin() {
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
   { href: '/admin/leads', label: 'Leads', icon: '👥' },
+  { href: '/admin/precon', label: 'Pre-Con', icon: '🏗️' },
   { href: '/admin/blog', label: 'Blog', icon: '📝' },
   { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
 ];

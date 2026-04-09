@@ -6,7 +6,7 @@ const supabase =
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
-const BUCKET = 'blog-images';
+const ALLOWED_BUCKETS = ['blog-images', 'precon-images'];
 
 function checkAuth(request) {
   const key = request.headers.get('x-admin-key');
@@ -22,6 +22,12 @@ export async function POST(request) {
   }
 
   try {
+    // Allow bucket selection via query param, default to blog-images
+    const { searchParams } = new URL(request.url);
+    const BUCKET = ALLOWED_BUCKETS.includes(searchParams.get('bucket'))
+      ? searchParams.get('bucket')
+      : 'blog-images';
+
     const formData = await request.formData();
     const file = formData.get('file');
     if (!file) {

@@ -1,127 +1,24 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 
 /* ------------------------------------------------------------------ */
-/*  GTA Pre-Construction Project Data – organized by city / area      */
+/*  Hardcoded fallback — used only if Supabase fetch fails             */
 /* ------------------------------------------------------------------ */
 
-const PROJECTS = [
-  // ── MISSISSAUGA ──────────────────────────────────────────────────
-  // City Centre / Square One
-  { name: 'M6 Condos (M City)', developer: 'Rogers Real Estate & Urban Capital', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 57, units: 900, priceFrom: 440900, status: 'Selling', completion: '2028' },
-  { name: 'Stak36', developer: 'Daniels Corporation & Oxford Properties', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 45, units: null, priceFrom: 625900, status: 'Selling', completion: 'TBD' },
-  { name: 'Exchange District Phase 3', developer: 'Camrost Felcorp', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 66, units: 660, priceFrom: null, status: 'Selling', completion: '2026' },
-  { name: 'Above Condos', developer: 'Marlin Spring & RioCan Living', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 24, units: 579, priceFrom: 598990, status: 'Selling', completion: 'TBD' },
-  { name: 'Tempo Condos', developer: 'Greenpark Group', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 40, units: 2086, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Aspire Condominiums', developer: 'The Conservatory Group', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  // Hurontario Corridor
-  { name: 'Canopy Towers 2', developer: 'Liberty Development Corp', city: 'Mississauga', area: 'Hurontario Corridor', type: 'Condo', storeys: 38, units: 522, priceFrom: 476900, status: 'Selling', completion: '2027' },
-  { name: 'Gemma Condos', developer: 'Pinnacle International', city: 'Mississauga', area: 'Hurontario Corridor', type: 'Condo', storeys: 35, units: 406, priceFrom: 750900, status: 'Selling', completion: '2026' },
-  { name: 'ORO at Edge Towers', developer: 'Solmar Development Corp', city: 'Mississauga', area: 'Hurontario Corridor', type: 'Condo', storeys: 50, units: 630, priceFrom: 705900, status: 'Selling', completion: '2027' },
-  // Lakeview / Port Credit
-  { name: 'Bridge House at Brightwater', developer: 'Kilmer, DiamondCorp, Dream & FRAM+Slokker', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Condo', storeys: 19, units: null, priceFrom: 649900, status: 'Selling', completion: '2028' },
-  { name: 'Exhale Condos', developer: 'Brixen Developments', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Condo', storeys: 11, units: null, priceFrom: 659900, status: 'Selling', completion: '2026' },
-  { name: 'Aquanova Condos', developer: 'Greenpark Group', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Condo', storeys: 43, units: null, priceFrom: null, status: 'Coming Soon', completion: '2029' },
-  { name: 'Birch Condos & Towns', developer: 'Branthaven Homes', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Mixed', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Pier House Towns', developer: 'Branthaven Homes', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Townhome', storeys: null, units: null, priceFrom: 799990, status: 'Selling', completion: 'TBD' },
-  { name: 'Aura Townhomes', developer: 'Caivan Communities', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Townhome', storeys: null, units: null, priceFrom: 500000, status: 'Selling', completion: 'TBD' },
-  // Cooksville
-  { name: 'Kith Condos', developer: 'Daniels Corporation', city: 'Mississauga', area: 'Cooksville', type: 'Condo', storeys: null, units: null, priceFrom: 525900, status: 'Selling', completion: 'TBD' },
-  // Streetsville
-  { name: 'Vic Condominiums', developer: 'Forest Green Homes', city: 'Mississauga', area: 'Streetsville', type: 'Condo', storeys: 15, units: 238, priceFrom: 631900, status: 'Selling', completion: '2026' },
-  { name: 'Reine Condos', developer: 'Lamb Development Corp', city: 'Mississauga', area: 'Streetsville', type: 'Condo', storeys: 9, units: 390, priceFrom: 465900, status: 'Selling', completion: '2027' },
-  // Erin Mills / West
-  { name: 'High Line Condos', developer: 'Branthaven Homes', city: 'Mississauga', area: 'Erin Mills', type: 'Condo', storeys: null, units: null, priceFrom: 599900, status: 'Selling', completion: 'TBD' },
-  { name: 'The Nine', developer: 'Mattamy Homes', city: 'Mississauga', area: 'Erin Mills', type: 'Townhome', storeys: null, units: null, priceFrom: 916990, status: 'Selling', completion: 'TBD' },
-  { name: 'Whitehorn Woods', developer: 'National Homes', city: 'Mississauga', area: 'Erin Mills', type: 'Townhome', storeys: null, units: null, priceFrom: 1177990, status: 'Selling', completion: 'TBD' },
-
-  // ── TORONTO ──────────────────────────────────────────────────────
-  { name: 'Birchley Park', developer: 'Diamond Kilmer Developments', city: 'Toronto', area: 'Scarborough', type: 'Condo', storeys: null, units: null, priceFrom: 531900, status: 'Selling', completion: 'TBD' },
-  { name: 'Motto Condos', developer: 'Sierra Communities', city: 'Toronto', area: 'West End', type: 'Condo', storeys: null, units: null, priceFrom: 489900, status: 'Selling', completion: 'TBD' },
-  { name: 'Celeste Condominiums', developer: 'Alterra & DiamondCorp', city: 'Toronto', area: 'Downtown', type: 'Condo', storeys: null, units: null, priceFrom: 773990, status: 'Selling', completion: 'TBD' },
-  { name: 'Untitled Toronto', developer: 'Westdale & Reserve Properties', city: 'Toronto', area: 'Midtown', type: 'Condo', storeys: null, units: null, priceFrom: 606900, status: 'Selling', completion: 'TBD' },
-  { name: '123 Portland', developer: 'Minto Communities', city: 'Toronto', area: 'King West', type: 'Condo', storeys: null, units: null, priceFrom: 651900, status: 'Selling', completion: 'TBD' },
-  { name: 'BLVD.Q', developer: 'Mattamy Homes Canada', city: 'Toronto', area: 'Etobicoke', type: 'Condo', storeys: null, units: null, priceFrom: 456855, status: 'Selling', completion: 'TBD' },
-  { name: 'The Wilde Condos', developer: 'Chestnut Hill Developments', city: 'Toronto', area: 'North York', type: 'Condo', storeys: null, units: null, priceFrom: 559900, status: 'Selling', completion: 'TBD' },
-  { name: 'The Main Tower II', developer: 'Marlin Spring & Trolleybus', city: 'Toronto', area: 'East York', type: 'Condo', storeys: null, units: null, priceFrom: 580990, status: 'Selling', completion: 'TBD' },
-  { name: 'Keeley Condos', developer: 'TAS', city: 'Toronto', area: 'Junction', type: 'Condo', storeys: null, units: null, priceFrom: 399000, status: 'Selling', completion: 'TBD' },
-  { name: '8 Temple Condos', developer: 'Curated Properties', city: 'Toronto', area: 'East End', type: 'Condo', storeys: null, units: null, priceFrom: 714900, status: 'Selling', completion: 'TBD' },
-
-  // ── BRAMPTON ─────────────────────────────────────────────────────
-  { name: 'Daniels MPV 2', developer: 'Daniels Corporation', city: 'Brampton', area: 'Mount Pleasant', type: 'Condo', storeys: null, units: null, priceFrom: 479900, status: 'Selling', completion: 'TBD' },
-  { name: 'Duo Condos Phase 2', developer: 'National Homes & Brixen', city: 'Brampton', area: 'Downtown Brampton', type: 'Condo', storeys: null, units: null, priceFrom: 400000, status: 'Selling', completion: 'TBD' },
-  { name: 'UPtowns at Heart Lake', developer: 'Vandyk Properties', city: 'Brampton', area: 'Heart Lake', type: 'Mixed', storeys: null, units: null, priceFrom: null, status: 'Selling', completion: 'TBD' },
-  { name: 'Stella 2 Condos', developer: 'i2 Developments', city: 'Brampton', area: 'Downtown Brampton', type: 'Condo', storeys: null, units: null, priceFrom: 655000, status: 'Coming Soon', completion: '2026' },
-  { name: 'Bristol Place', developer: 'Solmar Development Corp', city: 'Brampton', area: 'Downtown Brampton', type: 'Condo', storeys: null, units: null, priceFrom: 500000, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Bramalea Square Condos', developer: 'Essence Homes', city: 'Brampton', area: 'Bramalea', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-
-  // ── VAUGHAN ──────────────────────────────────────────────────────
-  { name: 'SXSW Condos', developer: 'Primont Homes', city: 'Vaughan', area: 'Vaughan Metropolitan Centre', type: 'Condo', storeys: null, units: null, priceFrom: 646900, status: 'Selling', completion: 'TBD' },
-  { name: 'Bravo Condos', developer: 'Menkes & QuadReal', city: 'Vaughan', area: 'Vaughan Metropolitan Centre', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Selling', completion: 'TBD' },
-  { name: 'Artwalk Condos', developer: 'SmartCentres', city: 'Vaughan', area: 'Vaughan Metropolitan Centre', type: 'Condo', storeys: null, units: null, priceFrom: 600000, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'CG Tower Condos', developer: 'Cortel Group', city: 'Vaughan', area: 'Concord', type: 'Condo', storeys: null, units: null, priceFrom: 847500, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Grand Festival Condos', developer: 'Menkes Development', city: 'Vaughan', area: 'Vaughan Metropolitan Centre', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'V City Condos', developer: 'Liberty Development Corp', city: 'Vaughan', area: 'Concord', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-
-  // ── OAKVILLE ─────────────────────────────────────────────────────
-  { name: 'Soleil Condos', developer: 'Mattamy Homes', city: 'Oakville', area: 'Dundas Corridor', type: 'Condo', storeys: null, units: null, priceFrom: 545000, status: 'Selling', completion: 'TBD' },
-  { name: 'North Oak (Oakvillage)', developer: 'Minto Communities', city: 'Oakville', area: 'Trafalgar', type: 'Condo', storeys: null, units: null, priceFrom: 661900, status: 'Selling', completion: 'TBD' },
-  { name: 'Distrikt Trailside 2.0', developer: 'Distrikt Developments', city: 'Oakville', area: 'Dundas Corridor', type: 'Condo', storeys: null, units: null, priceFrom: 659900, status: 'Selling', completion: 'TBD' },
-  { name: 'The Branch Condos', developer: 'Zancor Homes', city: 'Oakville', area: 'Bronte', type: 'Condo', storeys: null, units: null, priceFrom: 878900, status: 'Selling', completion: 'TBD' },
-  { name: 'Oak and Co Condos', developer: 'Cortel Group', city: 'Oakville', area: 'Dundas Corridor', type: 'Condo', storeys: null, units: null, priceFrom: 918800, status: 'Selling', completion: 'TBD' },
-  { name: 'Gemini South Tower', developer: 'Castleridge Homes', city: 'Oakville', area: 'Bronte', type: 'Condo', storeys: null, units: null, priceFrom: 756000, status: 'Selling', completion: 'TBD' },
-  { name: 'NAVA Townhomes', developer: 'Digreen Homes', city: 'Oakville', area: 'West Oakville', type: 'Townhome', storeys: null, units: null, priceFrom: 900000, status: 'Selling', completion: 'TBD' },
-
-  // ── MARKHAM ──────────────────────────────────────────────────────
-  { name: 'Pangea Condos', developer: 'Times Group Corporation', city: 'Markham', area: 'Highway 7 Corridor', type: 'Condo', storeys: null, units: null, priceFrom: 629000, status: 'Selling', completion: 'TBD' },
-  { name: 'Uptown Markham', developer: 'Times Group Corporation', city: 'Markham', area: 'Highway 7 Corridor', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Selling', completion: 'TBD' },
-  { name: 'Royal Bayview Condos', developer: 'Tridel', city: 'Markham', area: 'Bayview & Royal Orchard', type: 'Condo', storeys: null, units: null, priceFrom: 1600000, status: 'Selling', completion: 'TBD' },
-  { name: 'Gallery Towers', developer: 'The Remington Group', city: 'Markham', area: 'Downtown Markham', type: 'Condo', storeys: null, units: null, priceFrom: 600000, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'UnionCity Condos', developer: 'Metropia', city: 'Markham', area: 'Downtown Markham', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-
-  // ── RICHMOND HILL ────────────────────────────────────────────────
-  { name: 'The Towns on Bayview', developer: 'Primont Homes', city: 'Richmond Hill', area: 'Bayview Corridor', type: 'Townhome', storeys: null, units: null, priceFrom: 1700000, status: 'Selling', completion: 'TBD' },
-  { name: 'Observatory Hill', developer: 'The Conservatory Group', city: 'Richmond Hill', area: 'North Richmond Hill', type: 'Townhome', storeys: null, units: null, priceFrom: 2700000, status: 'Selling', completion: 'TBD' },
-  { name: 'Uplands of Swan Lake', developer: 'Caliber Homes', city: 'Richmond Hill', area: 'Swan Lake', type: 'Townhome', storeys: null, units: null, priceFrom: 1400000, status: 'Selling', completion: 'TBD' },
-  { name: 'Jefferson Heights', developer: 'Grand Grace Development', city: 'Richmond Hill', area: 'Jefferson', type: 'Townhome', storeys: null, units: null, priceFrom: 990000, status: 'Coming Soon', completion: 'TBD' },
-
-  // ── HAMILTON ──────────────────────────────────────────────────────
-  { name: 'Westgate on Main', developer: 'Matrix Development Group', city: 'Hamilton', area: 'Downtown Hamilton', type: 'Condo', storeys: null, units: null, priceFrom: 485900, status: 'Selling', completion: 'TBD' },
-  { name: 'APEX Condos', developer: 'Coletara Development', city: 'Hamilton', area: 'Downtown Hamilton', type: 'Condo', storeys: null, units: null, priceFrom: 430000, status: 'Selling', completion: 'TBD' },
-  { name: 'The Design District', developer: 'Emblem Developments', city: 'Hamilton', area: 'Downtown Hamilton', type: 'Condo', storeys: null, units: null, priceFrom: 400000, status: 'Selling', completion: 'TBD' },
-  { name: 'Television City Condos', developer: 'Lamb Development Corp', city: 'Hamilton', area: 'Downtown Hamilton', type: 'Condo', storeys: null, units: null, priceFrom: 909600, status: 'Selling', completion: 'TBD' },
-  { name: '75 James Condominiums', developer: 'Fengate, Liuna & Hi-Rise Group', city: 'Hamilton', area: 'James Street South', type: 'Condo', storeys: null, units: 616, priceFrom: 500000, status: 'Coming Soon', completion: '2026' },
-  { name: 'Beasley Park Lofts', developer: 'Stinson Properties', city: 'Hamilton', area: 'Beasley', type: 'Condo', storeys: null, units: null, priceFrom: 299900, status: 'Selling', completion: 'TBD' },
-
-  // ── BURLINGTON ───────────────────────────────────────────────────
-  { name: 'North Shore Condos', developer: 'National Homes', city: 'Burlington', area: 'Plains Road Corridor', type: 'Condo', storeys: null, units: null, priceFrom: 755000, status: 'Selling', completion: 'TBD' },
-  { name: 'Nautique Penthouse Collection', developer: 'Adi Development Group', city: 'Burlington', area: 'Downtown Burlington', type: 'Condo', storeys: null, units: null, priceFrom: 600000, status: 'Selling', completion: 'TBD' },
-  { name: 'Illumina Condos', developer: 'Molinaro Group', city: 'Burlington', area: 'Downtown Burlington', type: 'Condo', storeys: null, units: null, priceFrom: 760000, status: 'Selling', completion: 'TBD' },
-  { name: '1989 Condos', developer: 'Latch Developments', city: 'Burlington', area: 'Appleby', type: 'Condo', storeys: null, units: null, priceFrom: null, status: 'Selling', completion: '2028' },
-  { name: 'BeauSoleil Condos', developer: 'Carriage Gate Homes', city: 'Burlington', area: 'Lakeshore', type: 'Condo', storeys: null, units: null, priceFrom: 400000, status: 'Coming Soon', completion: 'TBD' },
-
-  // ── MILTON ───────────────────────────────────────────────────────
-  { name: 'Stationside Condos', developer: 'Neatt Communities', city: 'Milton', area: 'Downtown Milton', type: 'Condo', storeys: 23, units: 613, priceFrom: 487990, status: 'Selling', completion: '2027' },
-  { name: 'The Millhouse Condos', developer: 'Fernbrook Homes', city: 'Milton', area: 'Downtown Milton', type: 'Condo', storeys: 19, units: 677, priceFrom: null, status: 'Selling', completion: 'TBD' },
-  { name: 'Elements Condos & Towns', developer: 'Trinity Point (Greenpark)', city: 'Milton', area: 'Bronte & Britannia', type: 'Mixed', storeys: null, units: 373, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Thompson Towers', developer: 'Greenpark Group', city: 'Milton', area: 'South Milton', type: 'Mixed', storeys: null, units: null, priceFrom: 603900, status: 'Selling', completion: 'TBD' },
-  { name: 'Creekside Condos', developer: 'Sutherland & York Trafalgar', city: 'Milton', area: 'Milton East', type: 'Condo', storeys: 6, units: 276, priceFrom: 580800, status: 'Selling', completion: '2025' },
-  { name: 'Orianna Glen', developer: 'Argo Development Corp', city: 'Milton', area: 'West Milton', type: 'Townhome', storeys: null, units: 1202, priceFrom: null, status: 'Coming Soon', completion: 'TBD' },
-  { name: 'Panorama Milton', developer: 'Royalpark Homes', city: 'Milton', area: 'Northwest Milton', type: 'Townhome', storeys: null, units: 105, priceFrom: 999990, status: 'Selling', completion: '2025' },
-
-  // ── HALTON HILLS ─────────────────────────────────────────────────
-  { name: 'Juniper Gate', developer: 'Remington Homes', city: 'Halton Hills', area: 'Georgetown', type: 'Townhome', storeys: null, units: null, priceFrom: 899990, status: 'Selling', completion: '2026' },
-  { name: 'Hello Georgetown', developer: 'Various', city: 'Halton Hills', area: 'Georgetown', type: 'Townhome', storeys: null, units: null, priceFrom: null, status: 'Selling', completion: 'TBD' },
+const FALLBACK_PROJECTS = [
+  { name: 'M6 Condos (M City)', developer: 'Rogers Real Estate & Urban Capital', city: 'Mississauga', area: 'City Centre', type: 'Condo', storeys: 57, units: 900, price_from: 440900, status: 'Selling', completion: '2028' },
+  { name: 'Canopy Towers 2', developer: 'Liberty Development Corp', city: 'Mississauga', area: 'Hurontario Corridor', type: 'Condo', storeys: 38, units: 522, price_from: 476900, status: 'Selling', completion: '2027' },
+  { name: 'Bridge House at Brightwater', developer: 'Kilmer, DiamondCorp, Dream & FRAM+Slokker', city: 'Mississauga', area: 'Lakeview / Port Credit', type: 'Condo', storeys: 19, units: null, price_from: 649900, status: 'Selling', completion: '2028' },
 ];
 
 /* ------------------------------------------------------------------ */
-/*  City metadata — icons, colors, PSF range                          */
+/*  City metadata — icons, colors                                      */
 /* ------------------------------------------------------------------ */
 
 const CITY_META = {
-  'All Cities':      { emoji: '🏙️', color: 'bg-slate-100 text-slate-700', count: PROJECTS.length },
+  'All Cities':      { emoji: '🏙️', color: 'bg-slate-100 text-slate-700' },
   'Mississauga':     { emoji: '🌆', color: 'bg-blue-100 text-blue-700' },
   'Toronto':         { emoji: '🏗️', color: 'bg-purple-100 text-purple-700' },
   'Brampton':        { emoji: '📈', color: 'bg-green-100 text-green-700' },
@@ -137,6 +34,8 @@ const CITY_META = {
 
 const TYPE_FILTERS = ['All', 'Condo', 'Townhome', 'Mixed'];
 
+const CITY_ORDER = ['Mississauga', 'Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Richmond Hill', 'Hamilton', 'Burlington', 'Milton', 'Halton Hills'];
+
 function formatPrice(p) {
   if (!p) return null;
   if (p >= 1000000) return `$${(p / 1000000).toFixed(1)}M`;
@@ -148,16 +47,51 @@ function formatPrice(p) {
 /* ------------------------------------------------------------------ */
 
 export default function PreConstructionProjectsPage() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCity, setSelectedCity] = useState('All Cities');
   const [selectedType, setSelectedType] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch projects from Supabase via API
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const res = await fetch('/api/precon');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.projects && data.projects.length > 0) {
+            setProjects(data.projects);
+          } else {
+            setProjects(FALLBACK_PROJECTS);
+          }
+        } else {
+          setProjects(FALLBACK_PROJECTS);
+        }
+      } catch {
+        setProjects(FALLBACK_PROJECTS);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
+
   // Get unique cities
-  const cities = ['All Cities', ...new Set(PROJECTS.map(p => p.city))];
+  const cities = useMemo(() => {
+    const unique = [...new Set(projects.map(p => p.city))];
+    // Sort by CITY_ORDER
+    unique.sort((a, b) => {
+      const ai = CITY_ORDER.indexOf(a);
+      const bi = CITY_ORDER.indexOf(b);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+    return ['All Cities', ...unique];
+  }, [projects]);
 
   // Filter projects
   const filtered = useMemo(() => {
-    return PROJECTS.filter(p => {
+    return projects.filter(p => {
       if (selectedCity !== 'All Cities' && p.city !== selectedCity) return false;
       if (selectedType !== 'All' && p.type !== selectedType) return false;
       if (searchQuery) {
@@ -171,13 +105,12 @@ export default function PreConstructionProjectsPage() {
       }
       return true;
     });
-  }, [selectedCity, selectedType, searchQuery]);
+  }, [projects, selectedCity, selectedType, searchQuery]);
 
   // Group by city then area
   const grouped = useMemo(() => {
     const map = {};
     filtered.forEach(p => {
-      const key = `${p.city} — ${p.area}`;
       if (!map[p.city]) map[p.city] = {};
       if (!map[p.city][p.area]) map[p.city][p.area] = [];
       map[p.city][p.area].push(p);
@@ -185,7 +118,13 @@ export default function PreConstructionProjectsPage() {
     return map;
   }, [filtered]);
 
-  const cityOrder = ['Mississauga', 'Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Richmond Hill', 'Hamilton', 'Burlington', 'Milton', 'Halton Hills'];
+  // Determine render order: CITY_ORDER first, then any new cities from DB
+  const renderOrder = useMemo(() => {
+    const allCities = Object.keys(grouped);
+    const ordered = CITY_ORDER.filter(c => grouped[c]);
+    const extra = allCities.filter(c => !CITY_ORDER.includes(c));
+    return [...ordered, ...extra];
+  }, [grouped]);
 
   return (
     <div className="min-h-screen bg-cloud">
@@ -199,7 +138,7 @@ export default function PreConstructionProjectsPage() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur text-xs font-medium mb-5">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              {PROJECTS.length}+ Active Projects Across the GTA
+              {projects.length}+ Active Projects Across the GTA
             </div>
             <h1 className="font-heading font-bold text-3xl sm:text-4xl md:text-5xl leading-tight mb-4">
               GTA Pre-Construction<br />
@@ -261,7 +200,7 @@ export default function PreConstructionProjectsPage() {
         <div className="flex flex-wrap gap-2 mb-4">
           {cities.map(city => {
             const meta = CITY_META[city] || {};
-            const count = city === 'All Cities' ? PROJECTS.length : PROJECTS.filter(p => p.city === city).length;
+            const count = city === 'All Cities' ? projects.length : projects.filter(p => p.city === city).length;
             const isActive = selectedCity === city;
             return (
               <button
@@ -303,7 +242,22 @@ export default function PreConstructionProjectsPage() {
 
       {/* ── Project Listings ─────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {Object.keys(grouped).length === 0 && (
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="bg-white rounded-xl border border-slate-200 overflow-hidden animate-pulse">
+                <div className="h-40 bg-slate-100" />
+                <div className="p-5 space-y-3">
+                  <div className="h-4 bg-slate-100 rounded w-3/4" />
+                  <div className="h-3 bg-slate-100 rounded w-1/2" />
+                  <div className="h-8 bg-slate-100 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && Object.keys(grouped).length === 0 && (
           <div className="text-center py-16">
             <p className="text-lg text-muted">No projects match your filters.</p>
             <button onClick={() => { setSelectedCity('All Cities'); setSelectedType('All'); setSearchQuery(''); }} className="mt-3 text-accent text-sm font-medium hover:underline">
@@ -312,7 +266,7 @@ export default function PreConstructionProjectsPage() {
           </div>
         )}
 
-        {cityOrder.filter(c => grouped[c]).map(city => {
+        {!loading && renderOrder.map(city => {
           const meta = CITY_META[city] || {};
           const areas = grouped[city];
 
@@ -320,7 +274,7 @@ export default function PreConstructionProjectsPage() {
             <div key={city} className="mb-10">
               {/* City Header */}
               <div className="flex items-center gap-3 mb-5 pb-3 border-b border-slate-200">
-                <span className="text-2xl">{meta.emoji}</span>
+                <span className="text-2xl">{meta.emoji || '📍'}</span>
                 <h2 className="font-heading font-bold text-xl text-navy">{city}</h2>
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${meta.color || 'bg-slate-100 text-slate-600'}`}>
                   {Object.values(areas).flat().length} projects
@@ -328,70 +282,97 @@ export default function PreConstructionProjectsPage() {
               </div>
 
               {/* Areas within city */}
-              {Object.entries(areas).map(([area, projects]) => (
+              {Object.entries(areas).map(([area, areaProjects]) => (
                 <div key={area} className="mb-6">
                   <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3 ml-1">{area}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {projects.map((p, i) => (
-                      <div key={i} className="card p-5 hover:shadow-lg transition-shadow group">
-                        {/* Status badge */}
-                        <div className="flex items-start justify-between mb-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            p.status === 'Selling' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {p.status}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                            p.type === 'Condo' ? 'bg-blue-50 text-blue-600' : p.type === 'Townhome' ? 'bg-purple-50 text-purple-600' : 'bg-slate-50 text-slate-600'
-                          }`}>
-                            {p.type}
-                          </span>
-                        </div>
+                    {areaProjects.map((p, i) => (
+                      <div key={p.id || i} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow group">
+                        {/* Project Image */}
+                        {p.image_url ? (
+                          <div className="relative h-44 bg-slate-100 overflow-hidden">
+                            <img
+                              src={p.image_url}
+                              alt={p.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute top-3 left-3 flex gap-1.5">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                                p.status === 'Selling' ? 'bg-green-500/90 text-white' : 'bg-amber-500/90 text-white'
+                              }`}>
+                                {p.status}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm bg-white/90 ${
+                                p.type === 'Condo' ? 'text-blue-600' : p.type === 'Townhome' ? 'text-purple-600' : 'text-slate-600'
+                              }`}>
+                                {p.type}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative h-32 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden">
+                            <span className="text-5xl opacity-20">🏗️</span>
+                            <div className="absolute top-3 left-3 flex gap-1.5">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                p.status === 'Selling' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {p.status}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                                p.type === 'Condo' ? 'bg-blue-50 text-blue-600' : p.type === 'Townhome' ? 'bg-purple-50 text-purple-600' : 'bg-slate-50 text-slate-600'
+                              }`}>
+                                {p.type}
+                              </span>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Project info */}
-                        <h4 className="font-heading font-bold text-navy text-base mb-1 group-hover:text-accent transition-colors">{p.name}</h4>
-                        <p className="text-xs text-muted mb-3">by {p.developer}</p>
+                        <div className="p-5">
+                          <h4 className="font-heading font-bold text-navy text-base mb-1 group-hover:text-accent transition-colors">{p.name}</h4>
+                          <p className="text-xs text-muted mb-3">by {p.developer}</p>
 
-                        {/* Details grid */}
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
-                          {p.priceFrom && (
-                            <div>
-                              <span className="text-muted">From</span>
-                              <p className="font-semibold text-navy">{formatPrice(p.priceFrom)}</p>
-                            </div>
-                          )}
-                          {p.storeys && (
-                            <div>
-                              <span className="text-muted">Storeys</span>
-                              <p className="font-semibold text-navy">{p.storeys}</p>
-                            </div>
-                          )}
-                          {p.units && (
-                            <div>
-                              <span className="text-muted">Units</span>
-                              <p className="font-semibold text-navy">{p.units.toLocaleString()}</p>
-                            </div>
-                          )}
-                          {p.completion && p.completion !== 'TBD' && (
-                            <div>
-                              <span className="text-muted">Completion</span>
-                              <p className="font-semibold text-navy">{p.completion}</p>
-                            </div>
-                          )}
-                          {!p.priceFrom && !p.storeys && !p.units && (
-                            <div className="col-span-2">
-                              <span className="text-muted italic">Pricing & details coming soon</span>
-                            </div>
-                          )}
+                          {/* Details grid */}
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs mb-4">
+                            {p.price_from && (
+                              <div>
+                                <span className="text-muted">From</span>
+                                <p className="font-semibold text-navy">{formatPrice(p.price_from)}</p>
+                              </div>
+                            )}
+                            {p.storeys && (
+                              <div>
+                                <span className="text-muted">Storeys</span>
+                                <p className="font-semibold text-navy">{p.storeys}</p>
+                              </div>
+                            )}
+                            {p.units && (
+                              <div>
+                                <span className="text-muted">Units</span>
+                                <p className="font-semibold text-navy">{p.units.toLocaleString()}</p>
+                              </div>
+                            )}
+                            {p.completion && p.completion !== 'TBD' && (
+                              <div>
+                                <span className="text-muted">Completion</span>
+                                <p className="font-semibold text-navy">{p.completion}</p>
+                              </div>
+                            )}
+                            {!p.price_from && !p.storeys && !p.units && (
+                              <div className="col-span-2">
+                                <span className="text-muted italic">Pricing & details coming soon</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* CTA */}
+                          <Link
+                            href={`/pre-construction?project=${encodeURIComponent(p.name)}`}
+                            className="block w-full text-center py-2.5 rounded-lg bg-navy/5 text-navy text-xs font-semibold hover:bg-accent hover:text-white transition no-underline"
+                          >
+                            Get VIP Pricing & Floor Plans
+                          </Link>
                         </div>
-
-                        {/* CTA */}
-                        <Link
-                          href={`/pre-construction?project=${encodeURIComponent(p.name)}`}
-                          className="block w-full text-center py-2 rounded-lg bg-navy/5 text-navy text-xs font-semibold hover:bg-accent hover:text-white transition no-underline"
-                        >
-                          Get VIP Pricing & Floor Plans
-                        </Link>
                       </div>
                     ))}
                   </div>
