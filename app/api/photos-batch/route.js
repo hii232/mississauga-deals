@@ -7,9 +7,10 @@ const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
  * POST /api/photos-batch
  * Fetches first photo for up to 50 listings.
  *
- * Uses concurrency-limited parallel navigation property queries (10 at a time)
- * to avoid AMPRE API rate limiting. Each query is reliable — Property('id')/Media
- * works 100% of the time unlike the bulk `in` operator.
+ * Uses 3 fallback methods (same as /api/photos) to reliably find photos:
+ * 1. Navigation property: Property('id')/Media
+ * 2. ResourceRecordKey filter: Media?$filter=ResourceRecordKey eq 'id'
+ * 3. ListingKey filter: Media?$filter=ListingKey eq 'id'
  */
 export const maxDuration = 25;
 
@@ -23,32 +24,50 @@ export async function POST(request) {
 
   const batch = ids.slice(0, 50);
   const result = {};
-  const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+  const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
-  const debug = [];
-
-  // Fetch one photo using the reliable navigation property
+  // Fetch one photo with 3 fallback methods (mirrors /api/photos logic)
   async function fetchOne(id) {
-    const url = BASE + "/Property('" + id.replace(/'/g, "''") + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order";
+    const safeId = id.replace(/'/g, "''");
+
+    // Method 1: Navigation property
     try {
-      const r = await fetch(url, { headers });
-      const status = r.status;
+      const r = await fetch(
+        BASE + "/Property('" + safeId + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
+        { headers: hdrs }
+      );
       if (r.ok) {
         const d = await r.json();
-        const photoUrl = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
-        if (photoUrl) {
-          result[id] = photoUrl;
-          debug.push({ id, status, found: true });
-        } else {
-          debug.push({ id, status, found: false, count: d?.value?.length || 0 });
-        }
-      } else {
-        const errText = await r.text().catch(() => '');
-        debug.push({ id, status, error: errText.substring(0, 200) });
+        const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
+        if (url) { result[id] = url; return; }
       }
-    } catch (e) {
-      debug.push({ id, error: e.message || 'fetch failed' });
-    }
+    } catch {}
+
+    // Method 2: ResourceRecordKey filter
+    try {
+      const r = await fetch(
+        BASE + "/Media?$filter=ResourceRecordKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL,Order",
+        { headers: hdrs }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
+        if (url) { result[id] = url; return; }
+      }
+    } catch {}
+
+    // Method 3: ListingKey filter
+    try {
+      const r = await fetch(
+        BASE + "/Media?$filter=ListingKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL,Order",
+        { headers: hdrs }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
+        if (url) { result[id] = url; return; }
+      }
+    } catch {}
   }
 
   try {
@@ -59,10 +78,10 @@ export async function POST(request) {
       await Promise.all(chunk.map(fetchOne));
     }
 
-    return NextResponse.json({ photos: result, _debug: debug, _token: TOK ? 'set(' + TOK.substring(0, 8) + '...)' : 'MISSING' }, {
-      headers: { 'Cache-Control': 'no-cache, no-store' },
+    return NextResponse.json({ photos: result }, {
+      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
     });
-  } catch (e) {
-    return NextResponse.json({ photos: result, _debug: debug, _error: e.message });
+  } catch {
+    return NextResponse.json({ photos: result });
   }
 }

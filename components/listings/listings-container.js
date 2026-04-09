@@ -164,21 +164,49 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos individually per listing — fire-and-forget, never cancelled.
-  // Each /api/photos call runs in its own Vercel function, avoiding rate limits.
+  // Fetch photos via /api/photos-batch (50 at a time) for listings missing photos.
+  // Falls back to individual /api/photos if batch fails.
   const photoBatchRef = useRef(new Set()); // IDs already requested
   const photoQueueRef = useRef([]);        // IDs waiting to be fetched
   const photoTimerRef = useRef(null);      // background drainer timer
 
-  // Helper: fetch single photo and merge into photoMap
-  const fetchSinglePhoto = useCallback((id) => {
-    fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        const url = data?.photos?.[0];
-        if (url) setPhotoMap((prev) => ({ ...prev, [id]: url }));
-      })
-      .catch(() => {});
+  // Helper: fetch a batch of photos (up to 50) via batch endpoint
+  const fetchPhotoBatch = useCallback(async (ids) => {
+    try {
+      const res = await fetch('/api/photos-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) throw new Error('batch failed');
+      const data = await res.json();
+      const photos = data?.photos || {};
+      if (Object.keys(photos).length > 0) {
+        setPhotoMap((prev) => ({ ...prev, ...photos }));
+      }
+      // For IDs not returned by batch, try individual fallback
+      const missing = ids.filter((id) => !photos[id]);
+      for (const id of missing) {
+        fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            const url = d?.photos?.[0];
+            if (url) setPhotoMap((prev) => ({ ...prev, [id]: url }));
+          })
+          .catch(() => {});
+      }
+    } catch {
+      // Batch endpoint failed entirely — fall back to individual calls
+      for (const id of ids) {
+        fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            const url = d?.photos?.[0];
+            if (url) setPhotoMap((prev) => ({ ...prev, [id]: url }));
+          })
+          .catch(() => {});
+      }
+    }
   }, []);
 
   // When listings change, queue new IDs that need photos
@@ -193,31 +221,29 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     // Mark as requested immediately
     for (const id of newIds) photoBatchRef.current.add(id);
 
-    // Fire priority: first 30 (visible page) immediately in parallel
-    const priority = newIds.slice(0, 30);
-    const rest = newIds.slice(30);
+    // Fire first 50 immediately as one batch call
+    const priority = newIds.slice(0, 50);
+    const rest = newIds.slice(50);
 
-    for (const id of priority) {
-      fetchSinglePhoto(id);
-    }
+    fetchPhotoBatch(priority);
 
-    // Queue the rest for background fetching (6 at a time, every 100ms)
+    // Queue the rest — 50 at a time, every 800ms (gives batch endpoint time)
     if (rest.length > 0) {
       photoQueueRef.current.push(...rest);
 
       if (!photoTimerRef.current) {
         photoTimerRef.current = setInterval(() => {
-          const chunk = photoQueueRef.current.splice(0, 6);
+          const chunk = photoQueueRef.current.splice(0, 50);
           if (chunk.length === 0) {
             clearInterval(photoTimerRef.current);
             photoTimerRef.current = null;
             return;
           }
-          for (const id of chunk) fetchSinglePhoto(id);
-        }, 100);
+          fetchPhotoBatch(chunk);
+        }, 800);
       }
     }
-  }, [listings, fetchSinglePhoto]);
+  }, [listings, fetchPhotoBatch]);
 
   // Cleanup background timer on unmount
   useEffect(() => {
