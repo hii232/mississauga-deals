@@ -164,13 +164,13 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
   }, []);
 
-  // Fetch photos via /api/photos-batch (50 at a time) for listings missing photos.
-  // Falls back to individual /api/photos if batch fails.
+  // Fetch photos via /api/photos-batch (25 at a time) for listings missing photos.
+  // Fires 4 parallel batch calls immediately (100 photos), then queues the rest.
   const photoBatchRef = useRef(new Set()); // IDs already requested
   const photoQueueRef = useRef([]);        // IDs waiting to be fetched
   const photoTimerRef = useRef(null);      // background drainer timer
 
-  // Helper: fetch a batch of photos (up to 50) via batch endpoint
+  // Helper: fetch a batch of photos (up to 25) via batch endpoint
   const fetchPhotoBatch = useCallback(async (ids) => {
     try {
       const res = await fetch('/api/photos-batch', {
@@ -184,19 +184,8 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       if (Object.keys(photos).length > 0) {
         setPhotoMap((prev) => ({ ...prev, ...photos }));
       }
-      // For IDs not returned by batch, try individual fallback
-      const missing = ids.filter((id) => !photos[id]);
-      for (const id of missing) {
-        fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
-          .then((r) => (r.ok ? r.json() : null))
-          .then((d) => {
-            const url = d?.photos?.[0];
-            if (url) setPhotoMap((prev) => ({ ...prev, [id]: url }));
-          })
-          .catch(() => {});
-      }
     } catch {
-      // Batch endpoint failed entirely — fall back to individual calls
+      // Batch failed — fall back to individual calls for this chunk
       for (const id of ids) {
         fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
           .then((r) => (r.ok ? r.json() : null))
@@ -221,26 +210,36 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     // Mark as requested immediately
     for (const id of newIds) photoBatchRef.current.add(id);
 
-    // Fire first 50 immediately as one batch call
-    const priority = newIds.slice(0, 50);
-    const rest = newIds.slice(50);
+    // Fire 4 parallel batch calls immediately (covers first 100 visible listings)
+    const BATCH_SIZE = 25;
+    const immediateBatches = [];
+    for (let i = 0; i < Math.min(newIds.length, 100); i += BATCH_SIZE) {
+      immediateBatches.push(newIds.slice(i, i + BATCH_SIZE));
+    }
+    const rest = newIds.slice(100);
 
-    fetchPhotoBatch(priority);
+    // Fire all 4 batches in parallel for fastest initial load
+    for (const batch of immediateBatches) {
+      fetchPhotoBatch(batch);
+    }
 
-    // Queue the rest — 50 at a time, every 800ms (gives batch endpoint time)
+    // Queue the rest — 25 at a time, fire 2 parallel batches every 500ms
     if (rest.length > 0) {
       photoQueueRef.current.push(...rest);
 
       if (!photoTimerRef.current) {
         photoTimerRef.current = setInterval(() => {
-          const chunk = photoQueueRef.current.splice(0, 50);
-          if (chunk.length === 0) {
+          if (photoQueueRef.current.length === 0) {
             clearInterval(photoTimerRef.current);
             photoTimerRef.current = null;
             return;
           }
-          fetchPhotoBatch(chunk);
-        }, 800);
+          // Fire 2 parallel batches each tick
+          const chunk1 = photoQueueRef.current.splice(0, BATCH_SIZE);
+          if (chunk1.length > 0) fetchPhotoBatch(chunk1);
+          const chunk2 = photoQueueRef.current.splice(0, BATCH_SIZE);
+          if (chunk2.length > 0) fetchPhotoBatch(chunk2);
+        }, 500);
       }
     }
   }, [listings, fetchPhotoBatch]);

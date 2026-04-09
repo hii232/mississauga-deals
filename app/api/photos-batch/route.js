@@ -5,14 +5,13 @@ const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 /**
  * POST /api/photos-batch
- * Fetches first photo for up to 50 listings.
+ * Fetches first photo for up to 25 listings.
  *
- * Uses 3 fallback methods (same as /api/photos) to reliably find photos:
- * 1. Navigation property: Property('id')/Media
- * 2. ResourceRecordKey filter: Media?$filter=ResourceRecordKey eq 'id'
- * 3. ListingKey filter: Media?$filter=ListingKey eq 'id'
+ * Optimized order — ResourceRecordKey filter works most reliably with AMPRE.
+ * Navigation property (Property/Media) returns 404, so we skip it and go
+ * straight to the filters that actually work.
  */
-export const maxDuration = 25;
+export const maxDuration = 10;
 
 export async function POST(request) {
   if (!TOK) return NextResponse.json({ error: 'AMPRE_TOKEN not set' }, { status: 500 });
@@ -22,18 +21,19 @@ export async function POST(request) {
     return NextResponse.json({ error: 'ids array required' }, { status: 400 });
   }
 
-  const batch = ids.slice(0, 50);
+  // Cap at 25 to stay within 10s Vercel hobby timeout
+  const batch = ids.slice(0, 25);
   const result = {};
   const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
-  // Fetch one photo with 3 fallback methods (mirrors /api/photos logic)
+  // Fetch one photo — try ResourceRecordKey first (fastest), then ListingKey
   async function fetchOne(id) {
     const safeId = id.replace(/'/g, "''");
 
-    // Method 1: Navigation property
+    // Method 1: ResourceRecordKey filter (most reliable for AMPRE)
     try {
       const r = await fetch(
-        BASE + "/Property('" + safeId + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL,Order",
+        BASE + "/Media?$filter=ResourceRecordKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL",
         { headers: hdrs }
       );
       if (r.ok) {
@@ -43,23 +43,10 @@ export async function POST(request) {
       }
     } catch {}
 
-    // Method 2: ResourceRecordKey filter
+    // Method 2: ListingKey filter (fallback)
     try {
       const r = await fetch(
-        BASE + "/Media?$filter=ResourceRecordKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL,Order",
-        { headers: hdrs }
-      );
-      if (r.ok) {
-        const d = await r.json();
-        const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
-        if (url) { result[id] = url; return; }
-      }
-    } catch {}
-
-    // Method 3: ListingKey filter
-    try {
-      const r = await fetch(
-        BASE + "/Media?$filter=ListingKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL,Order",
+        BASE + "/Media?$filter=ListingKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL",
         { headers: hdrs }
       );
       if (r.ok) {
@@ -71,12 +58,8 @@ export async function POST(request) {
   }
 
   try {
-    // Process in concurrent batches of 10 to avoid rate limiting
-    const CONCURRENCY = 10;
-    for (let i = 0; i < batch.length; i += CONCURRENCY) {
-      const chunk = batch.slice(i, i + CONCURRENCY);
-      await Promise.all(chunk.map(fetchOne));
-    }
+    // Process all at once — 25 concurrent is fine for filter queries
+    await Promise.all(batch.map(fetchOne));
 
     return NextResponse.json({ photos: result }, {
       headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
