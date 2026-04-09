@@ -25,33 +25,24 @@ export async function POST(request) {
   const result = {};
   const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
-  // Fetch one photo using the reliable navigation property (with retry)
+  // Fetch one photo using the reliable navigation property
   async function fetchOne(id) {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      try {
-        const r = await fetch(
-          BASE + "/Property('" + id.replace(/'/g, "''") + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
-          { headers }
-        );
-        if (r.ok) {
-          const d = await r.json();
-          const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
-          if (url) { result[id] = url; return; }
-        }
-        if (r.status === 429 && attempt === 0) {
-          await new Promise((r) => setTimeout(r, 300));
-          continue;
-        }
-        return;
-      } catch {
-        if (attempt === 0) await new Promise((r) => setTimeout(r, 200));
+    try {
+      const r = await fetch(
+        BASE + "/Property('" + id.replace(/'/g, "''") + "')/Media?$orderby=Order asc&$top=1&$select=MediaURL",
+        { headers }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        const url = d?.value?.[0]?.MediaURL || d?.value?.[0]?.MediaUrl || '';
+        if (url) result[id] = url;
       }
-    }
+    } catch {}
   }
 
   try {
-    // Process in concurrent batches of 15 to speed up loading
-    const CONCURRENCY = 15;
+    // Process in concurrent batches of 10 to avoid rate limiting
+    const CONCURRENCY = 10;
     for (let i = 0; i < batch.length; i += CONCURRENCY) {
       const chunk = batch.slice(i, i + CONCURRENCY);
       await Promise.all(chunk.map(fetchOne));
