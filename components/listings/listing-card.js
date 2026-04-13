@@ -120,7 +120,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               </span>
             )}
           </div>
-          {listing.estimatedValue > 0 && (
+          {listing.estimatedValue > 0 && !isGated && (
             <p className="text-[10px] text-slate-500">
               Est. value: <span className="font-semibold">{fmtK(listing.estimatedValue)}</span>
               {listing.evDiffPct !== 0 && (
@@ -150,17 +150,17 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             </div>
             {isGated ? (
               <>
-                <div className="select-none blur-[6px]">
+                <div>
                   <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
-                  <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+                  <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
-                <div className="select-none blur-[6px]">
+                <div>
                   <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
-                  <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+                  <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
-                <div className="select-none blur-[6px]">
+                <div>
                   <p className="text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
-                  <p className="text-sm font-bold text-emerald-500">{fmtNum(listing.cashFlow)}</p>
+                  <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
               </>
             ) : (
@@ -190,7 +190,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignupClick?.(); }}
                 className="text-[11px] font-medium text-accent hover:text-accent/80 cursor-pointer bg-transparent border-none"
               >
-                Unlock deal analysis — free, 10 seconds →
+                See cash flow, cap rate &amp; mortgage — free, 10 sec →
               </button>
             </div>
           )}

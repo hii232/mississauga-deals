@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
@@ -21,16 +21,15 @@ function AuthGate({ children, isAuthenticated }) {
     <div className="relative">
       <div className="pointer-events-none select-none blur-sm">{children}</div>
       <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
-        <svg className="mb-3 h-10 w-10 text-navy/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-        </svg>
-        <p className="mb-3 text-sm font-medium text-navy">Sign up to unlock this analysis</p>
+        <p className="mb-1 text-base font-semibold text-navy">Full Investment Analysis</p>
+        <p className="mb-3 text-xs text-muted text-center max-w-xs">Mortgage payment, cash-on-cash return, cap rate, BRRR projections &amp; sold comps</p>
         <Link
           href="/signup"
           className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark"
         >
-          Sign up free
+          Sign Up Free — 10 Seconds
         </Link>
+        <p className="mt-2 text-[10px] text-muted">Free forever. No credit card.</p>
       </div>
     </div>
   );
@@ -396,104 +395,6 @@ function BRRRTab({ listing, initialARV }) {
   );
 }
 
-function ExpertAnalysisTab({ listing }) {
-  const [analysis, setAnalysis] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isCached, setIsCached] = useState(false);
-
-  const fetchAnalysis = useCallback(async (forceRefresh = false) => {
-    setLoading(true);
-    setError('');
-    setIsCached(false);
-    try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          listingId: listing.id,
-          listing: {
-            address: listing.address,
-            price: listing.price,
-            type: listing.type,
-            subType: listing.subType,
-            beds: listing.beds,
-            baths: listing.baths,
-            estimatedRent: listing.estimatedRent,
-            capRate: listing.capRate,
-            cashFlow: listing.cashFlow,
-            cashOnCash: listing.cashOnCash,
-            dom: listing.dom,
-            neighbourhood: listing.neighbourhood,
-            hamzaScore: listing.hamzaScore,
-            basementTier: listing.basementTier,
-            priceDrop: listing.priceDrop,
-            remarks: listing.remarks,
-          },
-          price: listing.price,
-          dom: listing.dom,
-          force: forceRefresh,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.content?.[0]?.text) {
-        setAnalysis(data.content[0].text);
-        setIsCached(!!data.cached);
-      } else if (data.error) {
-        setError(data.error);
-      } else {
-        setError('Unable to generate analysis. Please try again.');
-      }
-    } catch {
-      setError('Failed to connect. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [listing]);
-
-  if (analysis) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">Expert Analysis</h3>
-            {isCached && (
-              <span className="text-[10px] font-medium text-slate-400 bg-slate-200 rounded-full px-2 py-0.5">cached</span>
-            )}
-          </div>
-          <div className="prose prose-sm max-w-none text-navy/80 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:text-navy [&_h2]:mt-4 [&_h2]:mb-1 [&_ul]:mt-1 [&_li]:text-sm">
-            <div dangerouslySetInnerHTML={{ __html: analysis.replace(/## /g, '<h2>').replace(/\n- /g, '<br/>• ').replace(/\n/g, '<br/>') }} />
-          </div>
-        </div>
-        <button
-          onClick={() => fetchAnalysis(true)}
-          className="text-sm font-medium text-accent hover:text-accent-dark"
-        >
-          Regenerate analysis
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center py-8">
-      <svg className="mb-4 h-12 w-12 text-accent/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-      </svg>
-      <p className="mb-2 text-sm font-medium text-navy">Get expert analysis on this deal</p>
-      <p className="mb-4 text-xs text-muted">AI-powered investment analysis with Mississauga market context</p>
-      {error && <p className="mb-3 text-sm text-danger">{error}</p>}
-      <button
-        onClick={() => fetchAnalysis(false)}
-        disabled={loading}
-        className="rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dark disabled:opacity-60"
-      >
-        {loading ? 'Analyzing...' : 'Generate Expert Analysis'}
-      </button>
-    </div>
-  );
-}
 
 // ──────────────────────────────────────────
 //  Sold Comps Tab
@@ -1126,7 +1027,6 @@ const TABS = [
   { key: 'mortgage', label: 'Mortgage', gated: true },
   { key: 'caprate', label: 'Cap Rate', gated: true },
   { key: 'brrr', label: 'BRRR', gated: true },
-  { key: 'expert', label: 'Expert Analysis', gated: true },
 ];
 
 // ──────────────────────────────────────────
@@ -1508,14 +1408,14 @@ export default function PropertyDetailPage() {
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
-                  <p className="mb-2 text-xs font-medium text-navy">This is a premium deal</p>
+                  <p className="mb-2 text-xs font-medium text-navy">Cash flow, cap rate &amp; mortgage breakdown</p>
                   <Link
                     href="/signup"
                     className="rounded-lg bg-accent px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-accent/90 no-underline"
                   >
-                    Sign up free to unlock analysis
+                    Sign Up Free — 10 Seconds
                   </Link>
-                  <p className="mt-1 text-[10px] text-slate-500">See cash flow, cap rate & deal score</p>
+                  <p className="mt-1 text-[10px] text-slate-500">Free forever. No credit card.</p>
                 </div>
               )}
 
@@ -1579,11 +1479,6 @@ export default function PropertyDetailPage() {
             {activeTab === 'brrr' && (
               <AuthGate isAuthenticated={!isGated}>
                 <BRRRTab listing={listing} initialARV={arvFromComps} />
-              </AuthGate>
-            )}
-            {activeTab === 'expert' && (
-              <AuthGate isAuthenticated={!isGated}>
-                <ExpertAnalysisTab listing={listing} />
               </AuthGate>
             )}
           </div>

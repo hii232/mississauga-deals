@@ -177,7 +177,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
                         href="/signup"
                         className="mt-1 inline-block text-[10px] font-semibold text-accent hover:underline"
                       >
-                        Sign up to unlock
+                        Unlock metrics — free, 10 sec
                       </Link>
                     )}
                   </td>
