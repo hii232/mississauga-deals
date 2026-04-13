@@ -108,7 +108,28 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           >
             {listing.address}
           </Link>
-          <p className="text-lg font-bold text-navy">{fmtK(listing.price)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-bold text-navy">{fmtK(listing.price)}</p>
+            {listing.estimatedValue > 0 && (
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                listing.evDiffPct < -3 ? 'bg-emerald-100 text-emerald-700'
+                  : listing.evDiffPct > 3 ? 'bg-red-100 text-red-700'
+                    : 'bg-slate-100 text-slate-600'
+              }`}>
+                {listing.evDiffPct < -3 ? 'Below Market' : listing.evDiffPct > 3 ? 'Above Market' : 'At Market'}
+              </span>
+            )}
+          </div>
+          {listing.estimatedValue > 0 && (
+            <p className="text-[10px] text-slate-500">
+              Est. value: <span className="font-semibold">{fmtK(listing.estimatedValue)}</span>
+              {listing.evDiffPct !== 0 && (
+                <span className={listing.evDiffPct < 0 ? 'text-emerald-600' : 'text-red-500'}>
+                  {' '}({listing.evDiffPct > 0 ? '+' : ''}{listing.evDiffPct}%)
+                </span>
+              )}
+            </p>
+          )}
         </div>
 
         {/* Bed/bath/type */}

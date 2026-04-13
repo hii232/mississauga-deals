@@ -1426,39 +1426,54 @@ export default function PropertyDetailPage() {
               </p>
 
               {/* Estimated Value */}
-              {evLoading ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-                  <span className="text-xs text-muted">Calculating estimated value...</span>
-                </div>
-              ) : estimatedValue && estimatedValue.estimatedValue ? (
-                <div className="mt-2 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-accent">Estimated Value</p>
-                      <p className="text-lg font-bold text-navy">${estimatedValue.estimatedValue.toLocaleString()}</p>
-                    </div>
-                    {estimatedValue.priceVsEstimated && (
-                      <div className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                        estimatedValue.priceVsEstimated.color === 'green'
-                          ? 'bg-emerald-100 text-emerald-700'
-                          : estimatedValue.priceVsEstimated.color === 'red'
-                            ? 'bg-red-100 text-red-700'
-                            : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {estimatedValue.priceVsEstimated.percentDiff > 0 ? '+' : ''}
-                        {estimatedValue.priceVsEstimated.percentDiff}% {estimatedValue.priceVsEstimated.label}
+              {(() => {
+                const ev = estimatedValue?.estimatedValue;
+                const quickEv = listing.estimatedValue;
+                const showValue = ev || quickEv;
+                if (!showValue && !evLoading) return null;
+                const diffPct = ev
+                  ? estimatedValue.priceVsEstimated?.percentDiff
+                  : listing.evDiffPct;
+                const diffLabel = ev
+                  ? estimatedValue.priceVsEstimated?.label
+                  : (diffPct < -3 ? 'Below Market' : diffPct > 3 ? 'Above Market' : 'At Market');
+                const diffColor = diffPct < -3 ? 'green' : diffPct > 3 ? 'red' : 'neutral';
+                return (
+                  <div className="mt-2 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-accent">
+                          Estimated Value {evLoading && '⏳'}
+                        </p>
+                        <p className="text-lg font-bold text-navy">
+                          {showValue ? '$' + showValue.toLocaleString() : '...'}
+                        </p>
                       </div>
-                    )}
+                      {diffPct != null && diffPct !== 0 && (
+                        <div className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                          diffColor === 'green'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : diffColor === 'red'
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {diffPct > 0 ? '+' : ''}{diffPct}% {diffLabel}
+                        </div>
+                      )}
+                    </div>
+                    {ev && estimatedValue.range ? (
+                      <p className="mt-1 text-[10px] text-muted">
+                        Range: ${estimatedValue.range[0]?.toLocaleString()} – ${estimatedValue.range[1]?.toLocaleString()}
+                        {' · '}{estimatedValue.confidence} confidence · {estimatedValue.compCount} comps
+                      </p>
+                    ) : quickEv && !ev ? (
+                      <p className="mt-1 text-[10px] text-muted">
+                        Based on neighbourhood averages{evLoading ? ' · Loading CMA...' : ''}
+                      </p>
+                    ) : null}
                   </div>
-                  {estimatedValue.range && (
-                    <p className="mt-1 text-[10px] text-muted">
-                      Range: ${estimatedValue.range[0]?.toLocaleString()} – ${estimatedValue.range[1]?.toLocaleString()}
-                      {' · '}{estimatedValue.confidence} confidence · {estimatedValue.compCount} comps
-                    </p>
-                  )}
-                </div>
-              ) : null}
+                );
+              })()}
 
               {/* Quick Stats */}
               <div className="mt-4 flex flex-wrap gap-3">
