@@ -3,14 +3,14 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { DealScreener } from './deal-screener';
 import { ListingGrid } from './listing-grid';
 import { ListingTable } from './listing-table';
 import { InvestorFilters } from './investor-filters';
-import { DEFAULT_FILTERS, applyFilters } from './filter-utils';
+import { DEFAULT_FILTERS, applyFilters, serializeFilters, deserializeFilters } from './filter-utils';
 
 const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap), {
   ssr: false,
@@ -151,14 +151,57 @@ function TopPicks({ listings, photoMap, isRegistered }) {
 
 export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Initialize filters from URL params (survives back navigation)
+  const initialFilters = useMemo(() => deserializeFilters(searchParams), []);
+  const initialPage = initialFilters._page || 1;
+
   const [listings, setListings] = useState(initialListings);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState(initialFilters);
   const [view, setView] = useState('grid');
   const [compareIds, setCompareIds] = useState([]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(initialListings.length === 0);
 
   const [photoMap, setPhotoMap] = useState({});
+
+  // Sync filters to URL (so back button restores exact filter state)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    const qs = serializeFilters(filters);
+    const newUrl = pathname + (qs ? '?' + qs : '');
+    router.replace(newUrl, { scroll: false });
+  }, [filters, pathname, router]);
+
+  // Save scroll position before navigating away (restored on back)
+  useEffect(() => {
+    const saveScroll = () => sessionStorage.setItem('listings_scroll', String(window.scrollY));
+    window.addEventListener('beforeunload', saveScroll);
+    // Also save on any link click within the listings
+    const handleClick = (e) => {
+      const link = e.target.closest('a[href*="/listings/"]');
+      if (link) sessionStorage.setItem('listings_scroll', String(window.scrollY));
+    };
+    document.addEventListener('click', handleClick);
+    return () => {
+      window.removeEventListener('beforeunload', saveScroll);
+      document.removeEventListener('click', handleClick);
+    };
+  }, []);
+
+  // Restore scroll position when coming back
+  useEffect(() => {
+    const saved = sessionStorage.getItem('listings_scroll');
+    if (saved && listings.length > 0) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, Number(saved));
+        sessionStorage.removeItem('listings_scroll');
+      });
+    }
+  }, [listings.length > 0]);
 
   useEffect(() => {
     setIsRegistered(localStorage.getItem('user_registered') === 'true');
@@ -421,6 +464,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
           onToggleCompare={toggleCompare}
           photoMap={photoMap}
           isLoading={isLoading}
+          initialPage={initialPage}
         />
       )}
       {view === 'table' && (

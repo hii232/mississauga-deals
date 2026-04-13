@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
 
 export const metadata = {
@@ -21,10 +22,12 @@ export default function ListingsPage() {
             All active listings scored and analyzed
           </p>
         </div>
-        <ListingsContainer
-          initialListings={[]}
-          apiEndpoint="/api/listings"
-        />
+        <Suspense>
+          <ListingsContainer
+            initialListings={[]}
+            apiEndpoint="/api/listings"
+          />
+        </Suspense>
       </div>
     </main>
   );

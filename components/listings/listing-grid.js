@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ListingCard } from './listing-card';
 import SignupGateModal from '@/components/ui/signup-gate-modal';
 
@@ -35,8 +35,8 @@ function SkeletonCard() {
   );
 }
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading }) {
-  const [currentPage, setCurrentPage] = useState(1);
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, initialPage }) {
+  const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [accessVerified, setAccessVerified] = useState(isRegistered);
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [cardClicks, setCardClicks] = useState(0);
@@ -73,8 +73,10 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
     }
   }, [cardClicks, accessVerified]);
 
-  // Reset to page 1 when listings change
+  // Reset to page 1 when listings change (except first render with initialPage)
+  const isFirstRender = useRef(true);
   useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
     setCurrentPage(1);
   }, [listings]);
 

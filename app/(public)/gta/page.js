@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
 
 export const metadata = {
@@ -33,11 +34,13 @@ export default function GtaListingsPage() {
             <span className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">+ More</span>
           </div>
         </div>
-        <ListingsContainer
-          initialListings={[]}
-          apiEndpoint="/api/listings-gta"
-          popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
-        />
+        <Suspense>
+          <ListingsContainer
+            initialListings={[]}
+            apiEndpoint="/api/listings-gta"
+            popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
+          />
+        </Suspense>
       </div>
     </main>
   );

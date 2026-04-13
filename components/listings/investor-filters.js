@@ -8,6 +8,7 @@ import {
   PROPERTY_TYPES,
   STRATEGY_CHIPS,
   SORT_OPTIONS,
+  PRICE_PRESETS,
   countActiveFilters,
   NEIGHBOURHOODS,
 } from './filter-utils';
@@ -184,7 +185,25 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
         ))}
       </div>
 
-      {/* Quick filters row: Price + Beds + Baths */}
+      {/* Price presets + Price inputs + Beds + Baths */}
+      <div className="flex flex-wrap items-center gap-2">
+        {PRICE_PRESETS.map((preset) => {
+          const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
+          return (
+            <button
+              key={preset.label}
+              onClick={() => updateFilter('priceRange', isActive ? [0, 3000000] : preset.range)}
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                isActive
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
       <div className="flex flex-wrap gap-2">
         <PriceInput
           value={filters.priceRange[0]}
@@ -373,7 +392,25 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Price & Rooms */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price & Rooms</h3>
+                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price Range</h3>
+                <div className="flex flex-wrap gap-2">
+                  {PRICE_PRESETS.map((preset) => {
+                    const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
+                    return (
+                      <button
+                        key={preset.label}
+                        onClick={() => updateFilter('priceRange', isActive ? [0, 3000000] : preset.range)}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                          isActive
+                            ? 'bg-emerald-500 text-white'
+                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="flex flex-wrap gap-2">
                   <PriceInput
                     value={filters.priceRange[0]}

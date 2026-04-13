@@ -82,6 +82,83 @@ export const NEIGHBOURHOODS = [
   'Heartland', 'Malton',
 ];
 
+// ── URL Serialization ──
+// Serialize filters to URL search params (only non-default values)
+export function serializeFilters(filters) {
+  const params = new URLSearchParams();
+  if (filters.search) params.set('q', filters.search);
+  if (filters.propertyType !== 'All') params.set('type', filters.propertyType);
+  if (filters.activeStrategies.length > 0) params.set('s', filters.activeStrategies.join(','));
+  if (filters.sortKey !== 'score') params.set('sort', filters.sortKey);
+  if (filters.priceRange[0] > 0) params.set('pmin', String(filters.priceRange[0]));
+  if (filters.priceRange[1] < 3000000) params.set('pmax', String(filters.priceRange[1]));
+  if (filters.beds !== null) params.set('beds', String(filters.beds));
+  if (filters.baths !== null) params.set('baths', String(filters.baths));
+  if (filters.minCapRate !== null) params.set('cap', String(filters.minCapRate));
+  if (filters.minCashFlow !== null) params.set('cf', String(filters.minCashFlow));
+  if (filters.minCashOnCash !== null) params.set('coc', String(filters.minCashOnCash));
+  if (filters.minDealScore !== null) params.set('score', String(filters.minDealScore));
+  if (filters.domRange[0] > 0) params.set('dmin', String(filters.domRange[0]));
+  if (filters.domRange[1] < 365) params.set('dmax', String(filters.domRange[1]));
+  if (filters.neighbourhoods.length > 0) params.set('hoods', filters.neighbourhoods.join(','));
+  if (filters.lrtOnly) params.set('lrt', '1');
+  if (filters.hasBasementSuite) params.set('suite', '1');
+  if (filters.isPowerOfSale) params.set('pos', '1');
+  return params.toString();
+}
+
+// Deserialize URL search params to filters object
+export function deserializeFilters(searchParams) {
+  const f = { ...DEFAULT_FILTERS };
+  const q = searchParams.get('q');
+  if (q) f.search = q;
+  const type = searchParams.get('type');
+  if (type && PROPERTY_TYPES.includes(type)) f.propertyType = type;
+  const s = searchParams.get('s');
+  if (s) f.activeStrategies = s.split(',').filter((k) => STRATEGY_CHIPS.some((c) => c.key === k));
+  const sort = searchParams.get('sort');
+  if (sort && SORT_OPTIONS.some((o) => o.key === sort)) f.sortKey = sort;
+  const pmin = searchParams.get('pmin');
+  if (pmin) f.priceRange = [Number(pmin) || 0, f.priceRange[1]];
+  const pmax = searchParams.get('pmax');
+  if (pmax) f.priceRange = [f.priceRange[0], Number(pmax) || 3000000];
+  const beds = searchParams.get('beds');
+  if (beds) f.beds = Number(beds) || null;
+  const baths = searchParams.get('baths');
+  if (baths) f.baths = Number(baths) || null;
+  const cap = searchParams.get('cap');
+  if (cap) f.minCapRate = Number(cap) || null;
+  const cf = searchParams.get('cf');
+  if (cf) f.minCashFlow = Number(cf) || null;
+  const coc = searchParams.get('coc');
+  if (coc) f.minCashOnCash = Number(coc) || null;
+  const scoreMin = searchParams.get('score');
+  if (scoreMin) f.minDealScore = Number(scoreMin) || null;
+  const dmin = searchParams.get('dmin');
+  if (dmin) f.domRange = [Number(dmin) || 0, f.domRange[1]];
+  const dmax = searchParams.get('dmax');
+  if (dmax) f.domRange = [f.domRange[0], Number(dmax) || 365];
+  const hoods = searchParams.get('hoods');
+  if (hoods) f.neighbourhoods = hoods.split(',');
+  if (searchParams.get('lrt') === '1') f.lrtOnly = true;
+  if (searchParams.get('suite') === '1') f.hasBasementSuite = true;
+  if (searchParams.get('pos') === '1') f.isPowerOfSale = true;
+  // Page number
+  const page = searchParams.get('page');
+  f._page = page ? Number(page) || 1 : 1;
+  return f;
+}
+
+// ── Price Presets ──
+export const PRICE_PRESETS = [
+  { label: '<$400K', range: [0, 400000] },
+  { label: '$400-600K', range: [400000, 600000] },
+  { label: '$600-800K', range: [600000, 800000] },
+  { label: '$800K-1M', range: [800000, 1000000] },
+  { label: '$1-1.5M', range: [1000000, 1500000] },
+  { label: '$1.5M+', range: [1500000, 3000000] },
+];
+
 // ── Count Active Filters ──
 export function countActiveFilters(filters) {
   let count = 0;

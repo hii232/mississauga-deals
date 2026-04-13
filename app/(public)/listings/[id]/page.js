@@ -996,10 +996,131 @@ function PhotoGallery({ photos, listingId }) {
 }
 
 // ──────────────────────────────────────────
+//  Estimated Value Tab
+// ──────────────────────────────────────────
+function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
+  if (evLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-3 border-accent border-t-transparent" />
+        <span className="ml-3 text-sm text-muted">Analyzing comparable sales...</span>
+      </div>
+    );
+  }
+
+  if (!estimatedValue || !estimatedValue.estimatedValue) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-sm text-muted">Not enough comparable sales data to estimate value.</p>
+      </div>
+    );
+  }
+
+  const ev = estimatedValue;
+  const diff = ev.priceVsEstimated;
+
+  return (
+    <div className="space-y-6">
+      {/* Main Estimate */}
+      <div className="rounded-xl border-2 border-accent/30 bg-gradient-to-br from-accent/5 to-white p-6 text-center">
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent">Estimated Market Value</p>
+        <p className="mt-2 text-4xl font-bold text-navy">${ev.estimatedValue.toLocaleString()}</p>
+        {ev.range && (
+          <p className="mt-1 text-sm text-muted">
+            Range: ${ev.range[0]?.toLocaleString()} – ${ev.range[1]?.toLocaleString()}
+          </p>
+        )}
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+            ev.confidence === 'high' ? 'bg-emerald-100 text-emerald-700'
+              : ev.confidence === 'medium' ? 'bg-amber-100 text-amber-700'
+                : 'bg-slate-100 text-slate-600'
+          }`}>
+            {ev.confidence.charAt(0).toUpperCase() + ev.confidence.slice(1)} Confidence
+          </span>
+          <span className="text-xs text-muted">{ev.compCount} comparable sales</span>
+        </div>
+      </div>
+
+      {/* Price vs Estimated */}
+      {diff && (
+        <div className={`rounded-lg p-4 ${
+          diff.color === 'green' ? 'bg-emerald-50 border border-emerald-200'
+            : diff.color === 'red' ? 'bg-red-50 border border-red-200'
+              : 'bg-slate-50 border border-slate-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-navy">List Price vs Estimated Value</p>
+              <p className="text-xs text-muted mt-0.5">
+                Listed at ${listing.price.toLocaleString()} · Estimated at ${ev.estimatedValue.toLocaleString()}
+              </p>
+            </div>
+            <div className={`text-2xl font-bold ${
+              diff.color === 'green' ? 'text-emerald-600'
+                : diff.color === 'red' ? 'text-red-600'
+                  : 'text-slate-600'
+            }`}>
+              {diff.percentDiff > 0 ? '+' : ''}{diff.percentDiff}%
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-muted">
+            {diff.color === 'green'
+              ? 'This property is listed below estimated market value — potential opportunity for investors.'
+              : diff.color === 'red'
+                ? 'This property is listed above estimated market value. Consider negotiating.'
+                : 'This property is priced near its estimated market value.'}
+          </p>
+        </div>
+      )}
+
+      {/* Comparable Sales Used */}
+      {ev.comps && ev.comps.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+            Comparable Sales Used ({ev.comps.length})
+          </h3>
+          <div className="space-y-2">
+            {ev.comps.map((comp, i) => (
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-navy truncate">{comp.address}</p>
+                  <p className="text-xs text-muted">
+                    {comp.beds} bed / {comp.baths} bath
+                    {comp.sqft > 0 ? ` · ${comp.sqft.toLocaleString()} sqft` : ''}
+                    {comp.closeDate ? ` · Sold ${comp.closeDate}` : ''}
+                    {comp.dom > 0 ? ` · ${comp.dom} DOM` : ''}
+                  </p>
+                </div>
+                <div className="text-right ml-3 flex-shrink-0">
+                  <p className="text-sm font-bold text-navy">${comp.closePrice.toLocaleString()}</p>
+                  {comp.listPrice > 0 && comp.listPrice !== comp.closePrice && (
+                    <p className="text-[10px] text-muted">
+                      Listed ${comp.listPrice.toLocaleString()}
+                      {' '}({((comp.closePrice - comp.listPrice) / comp.listPrice * 100).toFixed(0)}%)
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="text-[10px] text-muted text-center">
+        Estimated value is calculated using a weighted average of comparable sold properties in the area,
+        weighted by recency, bedroom/bathroom similarity, and postal proximity. Not an appraisal.
+      </p>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────
 //  Main Detail Page
 // ──────────────────────────────────────────
 const TABS = [
   { key: 'overview', label: 'Overview', gated: false },
+  { key: 'estimate', label: 'Est. Value', gated: false },
   { key: 'comps', label: 'Sold Comps', gated: true },
   { key: 'history', label: 'Price History', gated: false },
   { key: 'mortgage', label: 'Mortgage', gated: true },
@@ -1029,25 +1150,33 @@ function ListingNav({ currentId }) {
     } catch {}
   }, [currentId]);
 
+  const goBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '/listings';
+    }
+  };
+
   if (!prevId && !nextId) {
     return (
-      <Link href="/listings" className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
+      <button onClick={goBack} className="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
         Back to listings
-      </Link>
+      </button>
     );
   }
 
   return (
     <div className="mb-4 flex items-center justify-between">
-      <Link href="/listings" className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
+      <button onClick={goBack} className="inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:text-accent-dark">
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
         </svg>
         Back
-      </Link>
+      </button>
 
       <div className="flex items-center gap-2">
         {position && <span className="text-xs text-slate-400 hidden sm:inline">{position}</span>}
@@ -1086,6 +1215,8 @@ export default function PropertyDetailPage() {
   const [saved, setSaved] = useState(false);
   const [shareMsg, setShareMsg] = useState('');
   const [arvFromComps, setArvFromComps] = useState(null);
+  const [estimatedValue, setEstimatedValue] = useState(null);
+  const [evLoading, setEvLoading] = useState(false);
 
   useEffect(() => {
     const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
@@ -1194,6 +1325,26 @@ export default function PropertyDetailPage() {
     }
   }, [listing]);
 
+  // Fetch estimated value once listing is loaded
+  useEffect(() => {
+    if (!listing) return;
+    setEvLoading(true);
+    const qs = new URLSearchParams({
+      city: listing.city || 'Mississauga',
+      type: listing.subType || listing.type || '',
+      beds: String(listing.beds || 0),
+      baths: String(listing.baths || 0),
+      postal: listing.postalCode || '',
+      price: String(listing.price || 0),
+      sqft: String(listing.sqft || 0),
+    });
+    fetch('/api/estimated-value?' + qs)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setEstimatedValue(data); })
+      .catch(() => {})
+      .finally(() => setEvLoading(false));
+  }, [listing]);
+
   if (loading) {
     return <DetailSkeleton />;
   }
@@ -1203,9 +1354,9 @@ export default function PropertyDetailPage() {
       <main className="min-h-screen bg-cloud">
         <div className="mx-auto max-w-4xl px-4 py-12 text-center">
           <p className="text-lg text-navy">{error || 'Property not found.'}</p>
-          <Link href="/listings" className="mt-4 inline-block text-sm font-medium text-accent hover:text-accent-dark">
+          <button onClick={() => window.history.length > 1 ? window.history.back() : window.location.href = '/listings'} className="mt-4 inline-block text-sm font-medium text-accent hover:text-accent-dark">
             Back to listings
-          </Link>
+          </button>
         </div>
       </main>
     );
@@ -1273,6 +1424,41 @@ export default function PropertyDetailPage() {
               <p className="mt-3 font-heading text-2xl font-bold text-navy">
                 ${listing.price.toLocaleString()}
               </p>
+
+              {/* Estimated Value */}
+              {evLoading ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                  <span className="text-xs text-muted">Calculating estimated value...</span>
+                </div>
+              ) : estimatedValue && estimatedValue.estimatedValue ? (
+                <div className="mt-2 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-accent">Estimated Value</p>
+                      <p className="text-lg font-bold text-navy">${estimatedValue.estimatedValue.toLocaleString()}</p>
+                    </div>
+                    {estimatedValue.priceVsEstimated && (
+                      <div className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                        estimatedValue.priceVsEstimated.color === 'green'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : estimatedValue.priceVsEstimated.color === 'red'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {estimatedValue.priceVsEstimated.percentDiff > 0 ? '+' : ''}
+                        {estimatedValue.priceVsEstimated.percentDiff}% {estimatedValue.priceVsEstimated.label}
+                      </div>
+                    )}
+                  </div>
+                  {estimatedValue.range && (
+                    <p className="mt-1 text-[10px] text-muted">
+                      Range: ${estimatedValue.range[0]?.toLocaleString()} – ${estimatedValue.range[1]?.toLocaleString()}
+                      {' · '}{estimatedValue.confidence} confidence · {estimatedValue.compCount} comps
+                    </p>
+                  )}
+                </div>
+              ) : null}
 
               {/* Quick Stats */}
               <div className="mt-4 flex flex-wrap gap-3">
@@ -1350,6 +1536,9 @@ export default function PropertyDetailPage() {
           {/* Tab Content */}
           <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
+            {activeTab === 'estimate' && (
+              <EstimatedValueTab listing={listing} estimatedValue={estimatedValue} evLoading={evLoading} />
+            )}
             {activeTab === 'comps' && (
               <AuthGate isAuthenticated={!isGated}>
                 <SoldCompsTab
