@@ -3,6 +3,7 @@ import Footer from '@/components/layout/footer';
 import CookieBanner from '@/components/layout/cookie-banner';
 import { FloatingContactButton } from '@/components/ui/contact-cta';
 import ExitIntentPopup from '@/components/ui/exit-intent-popup';
+import StickyMobileCTA from '@/components/ui/sticky-mobile-cta';
 
 export default function PublicLayout({ children }) {
   return (
@@ -13,6 +14,7 @@ export default function PublicLayout({ children }) {
       <CookieBanner />
       <FloatingContactButton />
       <ExitIntentPopup />
+      <StickyMobileCTA />
     </>
   );
 }

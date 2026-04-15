@@ -2,9 +2,9 @@ import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
 
 export const metadata = {
-  title: 'Mississauga Investment Properties — 1,800+ Listings Scored for Cash Flow | MississaugaInvestor.ca',
+  title: 'Mississauga Investment Properties — Every Listing Scored for Cash Flow | MississaugaInvestor.ca',
   description:
-    'Browse 1,800+ scored investment properties in Mississauga. Cash flow analysis, cap rates, deal scores, legal suite detection, and price drop alerts on every listing. Free for investors.',
+    'Browse every active investment property in Mississauga. Cash flow analysis, cap rates, deal scores, legal suite detection, and price drop alerts on every listing. Free for investors.',
   alternates: { canonical: '/listings' },
 };
 

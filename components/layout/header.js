@@ -110,6 +110,16 @@ export default function Header({ savedCount = 0 }) {
 
             {/* Auth Buttons */}
             <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
+              <a
+                href="tel:+16476091289"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy hover:text-accent no-underline"
+                aria-label="Call Hamza"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                <span className="hidden xl:inline">647-609-1289</span>
+              </a>
               {userEmail ? (
                 <>
                   <span className="text-sm text-muted truncate max-w-[200px]" title={userEmail}>
@@ -161,6 +171,25 @@ export default function Header({ savedCount = 0 }) {
         {menuOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white animate-slideDown">
             <nav className="px-4 py-3 space-y-1">
+              <div className="flex gap-2 pb-3 mb-2 border-b border-gray-100">
+                <a
+                  href="tel:+16476091289"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-navy text-white text-sm font-semibold py-2.5 no-underline"
+                >
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
+                  Call Hamza
+                </a>
+                <Link
+                  href="/book-call"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex-1 inline-flex items-center justify-center rounded-lg bg-accent text-white text-sm font-semibold py-2.5 no-underline"
+                >
+                  Book a Call
+                </Link>
+              </div>
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.href}

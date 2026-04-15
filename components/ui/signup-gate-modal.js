@@ -168,7 +168,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
               {/* Social proof */}
               <div className="mt-4 flex items-center justify-center gap-4 border-t border-slate-100 pt-4">
                 <div className="text-center">
-                  <p className="text-sm font-bold text-navy">4,000+</p>
+                  <p className="text-sm font-bold text-navy">1,800+</p>
                   <p className="text-[10px] text-slate-400">Listings Scored</p>
                 </div>
                 <div className="h-6 w-px bg-slate-200"></div>
