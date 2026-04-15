@@ -475,6 +475,63 @@ export default async function HomePage() {
 
       <StatsBar liveStats={liveStats} />
 
+      {/* Ask Hamza — primary lead gen feature */}
+      <section className="max-w-7xl mx-auto px-4 py-14 md:py-20">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-navy via-navy to-accent/30 p-8 md:p-14">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl opacity-40" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+          <div className="relative z-10 max-w-3xl">
+            <div className="inline-flex items-center gap-2 bg-accent/20 border border-accent/40 rounded-full px-3 py-1 mb-5">
+              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+              <span className="text-accent text-xs font-bold uppercase tracking-wider">Free &middot; 24-hour reply</span>
+            </div>
+            <h2 className="font-heading text-3xl md:text-5xl font-bold text-white leading-tight mb-5">
+              Found a deal? <br className="md:hidden" /><span className="text-accent">Get my honest take.</span>
+            </h2>
+            <p className="text-white/80 text-base md:text-lg leading-relaxed mb-3 max-w-2xl">
+              Paste any MLS link &mdash; Realtor.ca, HouseSigma, wherever. I&rsquo;ll personally review it and send you a 1-page investor breakdown within 24 hours.
+            </p>
+            <p className="text-white/50 text-sm mb-7">
+              Realistic cash flow. Real expenses. Rate stress test. Red flags. Buy-or-skip verdict. No pitch.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/ask-hamza"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent-dark text-white font-bold px-7 py-3.5 text-base no-underline shadow-xl shadow-accent/30 transition-all"
+              >
+                Analyze a Deal &rarr;
+              </Link>
+              <Link
+                href="/book-call"
+                className="inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold px-7 py-3.5 text-base no-underline transition"
+              >
+                Book a Strategy Call
+              </Link>
+            </div>
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-white/50">
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                Licensed REALTOR&reg;
+              </div>
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                1,800+ properties analyzed
+              </div>
+              <div className="flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                5.0 &#9733; on Google (28 reviews)
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Top Investment Deals */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="text-center mb-8">

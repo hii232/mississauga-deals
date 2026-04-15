@@ -1483,6 +1483,41 @@ export default function PropertyDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Ask Hamza CTA — contextual lead magnet */}
+        <div className="mt-10 rounded-2xl bg-gradient-to-br from-navy via-navy to-accent/30 p-6 md:p-8 text-white">
+          <div className="max-w-3xl mx-auto text-center">
+            <span className="inline-block text-[10px] font-bold uppercase tracking-wider bg-accent/20 border border-accent/30 text-accent px-2.5 py-1 rounded-full mb-4">
+              Free &middot; 24-hour turnaround
+            </span>
+            <h3 className="font-heading text-2xl md:text-3xl font-bold mb-3">
+              Want my honest take on this property?
+            </h3>
+            <p className="text-white/70 text-sm md:text-base mb-6 max-w-xl mx-auto leading-relaxed">
+              I&rsquo;ll personally review this listing and send you a 1-page investor analysis within 24 hours &mdash; realistic cash flow, red flags, stress test, and a clear buy-or-skip verdict.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href={`/ask-hamza?addr=${encodeURIComponent(listing.address || '')}&id=${encodeURIComponent(listing.id || '')}`}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent-dark text-white font-bold px-6 py-3 no-underline shadow-lg shadow-accent/30 transition"
+              >
+                Get Hamza&rsquo;s Take &rarr;
+              </Link>
+              <a
+                href="tel:+16476091289"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-6 py-3 no-underline transition"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                Call 647-609-1289
+              </a>
+            </div>
+            <p className="text-xs text-white/40 mt-5">
+              Hamza Nouman &middot; REALTOR&reg; &middot; Cityscape Real Estate Ltd. &middot; Licensed by RECO
+            </p>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -8,12 +8,12 @@ const NAV_ITEMS = [
   { href: '/listings', label: 'Mississauga Deals', primary: true },
   { href: '/gta', label: 'GTA Deals', primary: true },
   { href: '/pre-construction/projects', label: 'Pre-Construction', primary: true },
+  { href: '/ask-hamza', label: 'Ask Hamza', primary: true, cta: true },
   { href: '/recent-sales', label: 'Recent Sales' },
   { href: '/market-pulse', label: 'Market Pulse' },
   { href: '/neighbourhoods', label: 'Neighbourhoods' },
   { href: '/blog', label: 'Blog' },
   { href: '/about', label: 'About Hamza' },
-  { href: '/quiz', label: 'Find My Deal' },
 ];
 
 export default function Header({ savedCount = 0 }) {
@@ -81,7 +81,9 @@ export default function Header({ savedCount = 0 }) {
                   key={item.href}
                   href={item.href}
                   className={`px-3 xl:px-4 py-2 rounded-lg text-sm transition-colors no-underline whitespace-nowrap ${
-                    item.primary
+                    item.cta
+                      ? 'bg-accent text-white font-bold hover:bg-accent-dark shadow-sm'
+                      : item.primary
                       ? pathname === item.href || pathname?.startsWith(item.href + '/')
                         ? 'text-accent bg-accent/10 font-bold'
                         : 'text-navy font-bold hover:text-accent hover:bg-accent/5'

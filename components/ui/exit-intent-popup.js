@@ -68,7 +68,7 @@ export default function ExitIntentPopup() {
           email: email.trim().toLowerCase(),
           name: '',
           source: 'exit-intent',
-          notes: 'Subscribed via exit-intent popup for daily deal alerts',
+          notes: 'Subscribed via exit-intent popup — interested in deal analysis',
         }),
       });
 
@@ -122,8 +122,8 @@ export default function ExitIntentPopup() {
           </h2>
           <p className="text-slate-300 mt-2 text-sm leading-relaxed">
             {success
-              ? 'Check your inbox for investment opportunities.'
-              : 'New Mississauga investment properties scored and delivered to your inbox every morning.'}
+              ? 'Check your inbox for my reply within 24 hours.'
+              : 'Paste any MLS link on Ask Hamza — I\'ll send you a 1-page honest investor analysis within 24 hrs. Free. No mailing list.'}
           </p>
         </div>
 
@@ -136,8 +136,8 @@ export default function ExitIntentPopup() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-navy font-semibold">Welcome to the inside track.</p>
-              <p className="text-sm text-muted mt-1">You'll get your first alert tomorrow morning.</p>
+              <p className="text-navy font-semibold">I\'ll personally review and reply.</p>
+              <p className="text-sm text-muted mt-1">Want to discuss a specific property? Paste the link next.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,7 +167,7 @@ export default function ExitIntentPopup() {
                     Subscribing...
                   </span>
                 ) : (
-                  'Get Free Daily Alerts'
+                  'Send Me Deals to Analyze'
                 )}
               </button>
 
@@ -187,7 +187,7 @@ export default function ExitIntentPopup() {
         {!success && (
           <div className="bg-cloud border-t border-slate-100 px-8 py-4 text-center">
             <p className="text-xs text-muted">
-              <span className="font-semibold text-navy">1,800+</span> active listings tracked daily across Mississauga
+              Hamza Nouman · REALTOR® · Cityscape Real Estate Ltd. · Licensed by RECO
             </p>
           </div>
         )}
