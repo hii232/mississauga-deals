@@ -127,26 +127,50 @@ async function fetchTopDeals() {
 // ─────────────────────────────────────────────
 //   STATS BAR
 // ─────────────────────────────────────────────
+function StatIcon({ name }) {
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  switch (name) {
+    case 'bars':
+      return <svg {...common}><path d="M3 21h18M6 17V9M12 17V5M18 17v-6" /></svg>;
+    case 'star':
+      return <svg {...common} fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>;
+    case 'calendar':
+      return <svg {...common}><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
+    case 'dollar':
+      return <svg {...common}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>;
+    case 'check':
+      return <svg {...common}><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>;
+    case 'box':
+      return <svg {...common}><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" /><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" /></svg>;
+    default:
+      return null;
+  }
+}
+
 function StatsBar({ liveStats }) {
   const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%', avgSoldPrice: '$964K', monthsOfInventory: 5.2 };
   const stats = [
-    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: '📊' },
-    { label: 'Sale-to-List', value: s.salesToList, icon: '⭐' },
-    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: '📅' },
-    { label: 'Avg. Price', value: s.priceLabel, icon: '💰' },
-    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: '✅' },
-    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: '📦' }] : []),
+    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: 'bars' },
+    { label: 'Sale-to-List', value: s.salesToList, icon: 'star' },
+    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: 'calendar' },
+    { label: 'Avg. Price', value: s.priceLabel, icon: 'dollar' },
+    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: 'check' },
+    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: 'box' }] : []),
   ];
 
   return (
     <div className="bg-cloud border-y border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-5">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {stats.map((st) => (
-            <div key={st.label} className="text-center">
-              <div className="text-2xl mb-1">{st.icon}</div>
-              <div className="font-heading font-bold text-xl text-navy">{st.value}</div>
-              <div className="text-xs text-muted">{st.label}</div>
+            <div key={st.label} className="flex items-center gap-3 justify-center lg:justify-start">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
+                <StatIcon name={st.icon} />
+              </div>
+              <div className="text-left">
+                <div className="font-heading font-bold text-xl text-navy leading-none">{st.value}</div>
+                <div className="text-[11px] text-muted mt-1 uppercase tracking-wide font-medium">{st.label}</div>
+              </div>
             </div>
           ))}
         </div>
