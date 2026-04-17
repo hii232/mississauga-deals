@@ -234,7 +234,7 @@ export default function Header({ savedCount = 0 }) {
                   <Link href="/login" className="text-sm font-medium text-muted hover:text-navy no-underline transition-colors">
                     Log In
                   </Link>
-                  <Link href="/signup" className="btn-primary text-sm \!px-5 \!py-2 no-underline">
+                  <Link href="/signup" className="btn-primary text-sm !px-5 !py-2 no-underline">
                     Sign Up Free
                   </Link>
                 </>
@@ -249,7 +249,7 @@ export default function Header({ savedCount = 0 }) {
                 </svg>
               </a>
               <button
-                onClick={() => setMenuOpen(\!menuOpen)}
+                onClick={() => setMenuOpen(!menuOpen)}
                 className="p-2 rounded-lg text-muted hover:bg-cloud transition-colors"
                 aria-label="Toggle menu"
               >
