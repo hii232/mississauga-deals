@@ -11,7 +11,7 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 export const metadata = {
   title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
   description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
-  alternates: {
+  alternates: {h
     canonical: '/',
   },
 };
@@ -382,7 +382,7 @@ function NeighbourhoodPreview() {
           return (
             <div key={name} className="card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-heading font-semibold text-navy">{name}</h3>>
+                <h3 className="font-heading font-semibold text-navy">{name}</h3>
                 <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`}>
                   {data.trend}
                 </span>
