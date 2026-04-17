@@ -101,7 +101,7 @@ export default async function BlogPostPage({ params }) {
         </div>
       </div>
 
-      {/* Hero â single H1 */}
+      {/* Hero — single H1 */}
       <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-12 md:py-16">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -126,18 +126,18 @@ export default async function BlogPostPage({ params }) {
       <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
           <article>
-            {/* Author Box â TOP of article */}
+            {/* Author Box — TOP of article */}
             <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
               <div className="w-14 h-14 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                 HN
               </div>
               <div>
                 <p className="font-heading font-bold text-navy text-sm">Hamza Nouman</p>
-                <p className="text-[11px] text-muted">REALTORÂ® Â· Investment Property Specialist Â· Cityscape Real Estate Ltd.</p>
+                <p className="text-[11px] text-muted">REALTOR® · Investment Property Specialist · Cityscape Real Estate Ltd.</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] text-muted">Licensed by RECO</span>
-                  <span className="text-[10px] text-gold">âââââ 5.0</span>
-                  <span className="text-[10px] text-muted">Â· 28 Google Reviews</span>
+                  <span className="text-[10px] text-gold">★★★★★ 5.0</span>
+                  <span className="text-[10px] text-muted">· 28 Google Reviews</span>
                 </div>
               </div>
             </div>
@@ -161,23 +161,23 @@ export default async function BlogPostPage({ params }) {
                 Need help with this topic?
               </h3>
               <p className="text-white/60 text-sm mb-5 max-w-md mx-auto">
-                Book a free 15-minute investor call with Hamza. No obligation â we&apos;ll walk through your numbers together.
+                Book a free 15-minute investor call with Hamza. No obligation — we&apos;ll walk through your numbers together.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href="/book-call"
                   className="btn-primary !px-6 no-underline text-center"
                 >
-                  ð Book Free Call
+                  📅 Book Free Call
                 </Link>
                 <a
                   href="tel:+16476091289"
                   className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center"
                 >
-                  ð 647-609-1289
+                  📞 647-609-1289
                 </a>
               </div>
-              <p className="text-white/30 text-[10px] mt-3">âââââ 5.0 on Google Â· 28 Reviews</p>
+              <p className="text-white/30 text-[10px] mt-3">★★★★★ 5.0 on Google · 28 Reviews</p>
             </div>
 
             {/* Related Posts */}
@@ -217,7 +217,7 @@ export default async function BlogPostPage({ params }) {
                 <p className="font-heading font-bold text-white text-sm mb-1">Find deals matched to you</p>
                 <p className="text-white/50 text-xs mb-3">Answer 5 questions, get curated listings with cash flow pre-calculated.</p>
                 <Link href="/quiz" className="block text-center btn-primary !text-sm no-underline">
-                  Find My Deal â
+                  Find My Deal →
                 </Link>
               </div>
 
@@ -225,10 +225,10 @@ export default async function BlogPostPage({ params }) {
               <div className="rounded-xl border border-gray-200 p-5 bg-white">
                 <p className="font-heading font-bold text-navy text-sm mb-3">Talk to Hamza</p>
                 <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
-                  ð 647-609-1289
+                  📞 647-609-1289
                 </a>
                 <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-600 transition">
-                  ð Book Free Call
+                  📅 Book Free Call
                 </Link>
               </div>
 
@@ -236,10 +236,10 @@ export default async function BlogPostPage({ params }) {
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
                 <span className="text-[10px] font-bold text-emerald-500">EXCLUSIVE OFFER</span>
                 <p className="text-sm font-semibold text-navy mt-1 leading-snug">
-                  Close with Hamza â First Month&apos;s Mortgage On Us
+                  Close with Hamza — First Month&apos;s Mortgage On Us
                 </p>
                 <Link href="/book-call" className="text-xs text-accent font-semibold no-underline mt-2 inline-block">
-                  Learn more â
+                  Learn more →
                 </Link>
               </div>
             </div>
