@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import InlineCTA from '@/components/ui/inline-cta';
 import { ArticleJsonLd } from '@/components/seo/json-ld';
+import Link from 'next/link';
 
 export const revalidate = 60;
 
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }) {
   if (!post) return { title: 'Post Not Found' };
 
   return {
-    title: `${post.title} | MississaugaInvestor.ca`,
+    title: post.title,
     description: post.excerpt || `Read ${post.title} on MississaugaInvestor.ca`,
     openGraph: {
       title: post.title,
@@ -54,6 +55,18 @@ const categoryColorMap = {
   'General': 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
+async function fetchRelatedPosts(currentSlug, category) {
+  if (!supabase) return [];
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('title, slug, category, created_at, cover_image_url')
+    .eq('published', true)
+    .neq('slug', currentSlug)
+    .order('created_at', { ascending: false })
+    .limit(3);
+  return data || [];
+}
+
 export default async function BlogPostPage({ params }) {
   if (!supabase) return notFound();
 
@@ -71,11 +84,24 @@ export default async function BlogPostPage({ params }) {
     year: 'numeric', month: 'long', day: 'numeric',
   });
 
+  const related = await fetchRelatedPosts(post.slug, post.category);
+
   return (
     <>
       <ArticleJsonLd post={post} />
 
-      {/* Hero */}
+      {/* Breadcrumb */}
+      <div className="bg-cloud border-b border-gray-100 py-2.5 px-4">
+        <div className="max-w-6xl mx-auto text-xs text-muted flex items-center gap-1.5">
+          <Link href="/" className="hover:text-navy no-underline">Home</Link>
+          <span className="text-gray-300">/</span>
+          <Link href="/blog" className="hover:text-navy no-underline">Blog</Link>
+          <span className="text-gray-300">/</span>
+          <span className="text-navy">{post.category || 'Article'}</span>
+        </div>
+      </div>
+
+      {/* Hero â single H1 */}
       <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-12 md:py-16">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -96,34 +122,130 @@ export default async function BlogPostPage({ params }) {
         </div>
       </section>
 
-      {/* Content */}
-      <article className="max-w-3xl mx-auto px-4 py-10 md:py-14">
-        {post.cover_image_url && (
-          <img
-            src={post.cover_image_url}
-            alt={post.title}
-            className="w-full rounded-xl mb-8 shadow-md"
-          />
-        )}
-
-        <MarkdownRenderer content={post.content} />
-
-        {/* Author */}
-        <div className="mt-12 pt-8 border-t border-gray-100">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-accent to-accent-dark rounded-full flex items-center justify-center text-white font-bold text-sm">
-              HN
+      {/* Content with sidebar */}
+      <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
+          <article>
+            {/* Author Box â TOP of article */}
+            <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
+              <div className="w-14 h-14 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                HN
+              </div>
+              <div>
+                <p className="font-heading font-bold text-navy text-sm">Hamza Nouman</p>
+                <p className="text-[11px] text-muted">REALTORÂ® Â· Investment Property Specialist Â· Cityscape Real Estate Ltd.</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[10px] text-muted">Licensed by RECO</span>
+                  <span className="text-[10px] text-gold">âââââ 5.0</span>
+                  <span className="text-[10px] text-muted">Â· 28 Google Reviews</span>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="font-heading font-bold text-navy">Hamza Nouman</p>
-              <p className="text-xs text-muted">Sales Representative, Cityscape Real Estate Ltd.</p>
+
+            {post.cover_image_url && (
+              <img
+                src={post.cover_image_url}
+                alt={post.title}
+                className="w-full rounded-xl mb-8 shadow-md"
+              />
+            )}
+
+            <MarkdownRenderer content={post.content} />
+
+            {/* End-of-post booking CTA */}
+            <div className="mt-12 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 border-2 border-white/20">
+                HN
+              </div>
+              <h3 className="font-heading text-xl font-bold text-white mb-2">
+                Need help with this topic?
+              </h3>
+              <p className="text-white/60 text-sm mb-5 max-w-md mx-auto">
+                Book a free 15-minute investor call with Hamza. No obligation â we&apos;ll walk through your numbers together.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  href="/book-call"
+                  className="btn-primary !px-6 no-underline text-center"
+                >
+                  ð Book Free Call
+                </Link>
+                <a
+                  href="tel:+16476091289"
+                  className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center"
+                >
+                  ð 647-609-1289
+                </a>
+              </div>
+              <p className="text-white/30 text-[10px] mt-3">âââââ 5.0 on Google Â· 28 Reviews</p>
             </div>
-          </div>
+
+            {/* Related Posts */}
+            {related.length > 0 && (
+              <div className="mt-12">
+                <h3 className="font-heading text-lg font-bold text-navy mb-4">Related Guides</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {related.map((r) => (
+                    <Link
+                      key={r.slug}
+                      href={`/blog/${r.slug}`}
+                      className="rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition no-underline group"
+                    >
+                      {r.cover_image_url && (
+                        <img src={r.cover_image_url} alt="" className="w-full h-28 object-cover" />
+                      )}
+                      <div className="p-3">
+                        <span className="text-[10px] font-bold text-accent uppercase">{r.category}</span>
+                        <p className="text-sm font-semibold text-navy leading-snug mt-1 group-hover:text-accent transition-colors">
+                          {r.title}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <InlineCTA variant="newsletter" className="mt-10" />
+          </article>
+
+          {/* Sidebar */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-4">
+              {/* Quiz CTA */}
+              <div className="bg-navy rounded-xl p-5">
+                <p className="font-heading font-bold text-white text-sm mb-1">Find deals matched to you</p>
+                <p className="text-white/50 text-xs mb-3">Answer 5 questions, get curated listings with cash flow pre-calculated.</p>
+                <Link href="/quiz" className="block text-center btn-primary !text-sm no-underline">
+                  Find My Deal â
+                </Link>
+              </div>
+
+              {/* Phone + Book */}
+              <div className="rounded-xl border border-gray-200 p-5 bg-white">
+                <p className="font-heading font-bold text-navy text-sm mb-3">Talk to Hamza</p>
+                <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
+                  ð 647-609-1289
+                </a>
+                <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-600 transition">
+                  ð Book Free Call
+                </Link>
+              </div>
+
+              {/* First Month Offer */}
+              <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
+                <span className="text-[10px] font-bold text-emerald-500">EXCLUSIVE OFFER</span>
+                <p className="text-sm font-semibold text-navy mt-1 leading-snug">
+                  Close with Hamza â First Month&apos;s Mortgage On Us
+                </p>
+                <Link href="/book-call" className="text-xs text-accent font-semibold no-underline mt-2 inline-block">
+                  Learn more â
+                </Link>
+              </div>
+            </div>
+          </aside>
         </div>
-
-        <InlineCTA variant="newsletter" className="mt-12" />
-        <InlineCTA variant="deals" className="mt-6" />
-      </article>
+      </div>
     </>
   );
 }
