@@ -344,4 +344,16 @@ export default function Header({ savedCount = 0 }) {
                     <Link href="/login" className="btn-secondary text-sm flex-1 text-center no-underline">
                       Log In
                     </Link>
-                    <Link href=
+                    <Link href="/signup" className="btn-primary text-sm flex-1 text-center no-underline">
+                      Sign Up Free
+                    </Link>
+                  </>
+                )}
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
+    </>
+  );
+}
