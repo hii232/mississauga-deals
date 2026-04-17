@@ -8,8 +8,13 @@ const NAV_ITEMS = [
   {
     label: 'Deals',
     children: [
-      { href: '/listings', label: 'Mississauga Deals' },
-      { href: '/gta', label: 'GTA Deals' },
+      { href: '/listings', label: 'Mississauga' },
+      { href: '/gta?city=Oakville', label: 'Oakville' },
+      { href: '/gta?city=Milton', label: 'Milton' },
+      { href: '/gta?city=Burlington', label: 'Burlington' },
+      { href: '/gta?city=Toronto', label: 'Toronto' },
+      { href: '/gta?city=Brampton', label: 'Brampton' },
+      { href: '/gta', label: 'All GTA Deals' },
       { href: '/pre-construction/projects', label: 'Pre-Construction' },
       { href: '/recent-sales', label: 'Recent Sales' },
     ],
@@ -102,9 +107,9 @@ export default function Header({ savedCount = 0 }) {
       {/* HST Rebate Announcement Banner */}
       <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 text-white text-xs sm:text-sm py-2 px-4 text-center font-semibold">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-          <span className="hidden sm:inline">ð¥</span>
-          <span>NEW: Save Up to $130,000 on New Homes â Ontario HST Rebate Now Active</span>
-          <span className="hidden md:inline text-white/80 text-xs font-normal">(Apr 1, 2026 â Mar 31, 2027)</span>
+          <span className="hidden sm:inline">🔥</span>
+          <span>NEW: Save Up to $130,000 on New Homes — Ontario HST Rebate Now Active</span>
+          <span className="hidden md:inline text-white/80 text-xs font-normal">(Apr 1, 2026 – Mar 31, 2027)</span>
           <div className="flex items-center gap-2">
             <Link href="/pre-construction/hst-rebate" className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-0.5 text-xs font-bold text-white no-underline transition-colors">
               Learn More
@@ -121,10 +126,10 @@ export default function Header({ savedCount = 0 }) {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3 sm:gap-5 flex-wrap">
             <span className="text-white/60 font-mono hidden md:inline">
-              Hamza Nouman, REALTORÂ® Â· Cityscape Real Estate Ltd., Brokerage Â· Licensed by RECO
+              Hamza Nouman, REALTOR® · Cityscape Real Estate Ltd., Brokerage · Licensed by RECO
             </span>
             <span className="text-white/60 font-mono md:hidden">
-              Hamza Nouman, REALTORÂ®
+              Hamza Nouman, REALTOR®
             </span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
@@ -138,7 +143,7 @@ export default function Header({ savedCount = 0 }) {
               647-609-1289
             </a>
             <Link href="/quiz" className="hidden sm:inline-flex items-center rounded-full bg-accent hover:bg-accent-dark text-white px-3 py-0.5 text-xs font-bold no-underline transition-colors">
-              Book Free Call â
+              Book Free Call →
             </Link>
           </div>
         </div>
@@ -156,7 +161,7 @@ export default function Header({ savedCount = 0 }) {
               <span className="font-heading font-bold text-xl text-accent">.ca</span>
             </Link>
 
-            {/* Desktop Nav â consolidated to ~6 items */}
+            {/* Desktop Nav — consolidated to ~6 items */}
             <nav className="hidden lg:flex items-center justify-center gap-1 xl:gap-2 flex-1 mx-6">
               {NAV_ITEMS.map((item) =>
                 item.children ? (
@@ -196,7 +201,7 @@ export default function Header({ savedCount = 0 }) {
                 )}
               </Link>
 
-              {/* Find My Deal â primary CTA */}
+              {/* Find My Deal — primary CTA */}
               <Link
                 href="/quiz"
                 className="bg-accent hover:bg-accent-dark text-white text-sm font-bold px-5 py-2.5 rounded-lg no-underline transition-colors shadow-sm shadow-accent/25"
@@ -269,12 +274,12 @@ export default function Header({ savedCount = 0 }) {
         {menuOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white animate-slideDown max-h-[80vh] overflow-y-auto">
             <nav className="px-4 py-3 space-y-1">
-              {/* Find My Deal â top of mobile menu */}
+              {/* Find My Deal — top of mobile menu */}
               <Link
                 href="/quiz"
                 className="block w-full text-center bg-accent hover:bg-accent-dark text-white font-bold text-sm rounded-lg py-3 no-underline transition-colors mb-3"
               >
-                Find My Deal â
+                Find My Deal →
               </Link>
 
               {NAV_ITEMS.map((item) =>
@@ -339,16 +344,4 @@ export default function Header({ savedCount = 0 }) {
                     <Link href="/login" className="btn-secondary text-sm flex-1 text-center no-underline">
                       Log In
                     </Link>
-                    <Link href="/signup" className="btn-primary text-sm flex-1 text-center no-underline">
-                      Sign Up Free
-                    </Link>
-                  </>
-                )}
-              </div>
-            </nav>
-          </div>
-        )}
-      </header>
-    </>
-  );
-}
+                    <Link href=
