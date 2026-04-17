@@ -167,14 +167,21 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
 
   const [photoMap, setPhotoMap] = useState({});
 
-  // Sync filters to URL (so back button restores exact filter state)
+  // Read city from URL (set by GTA mega-menu). Backend filters to that city when present.
+  const cityParam = searchParams.get('city') || '';
+
+  // Sync filters to URL (so back button restores exact filter state).
+  // Preserve ?city=X so filter edits on a city-scoped page don't wipe the scope.
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const qs = serializeFilters(filters);
-    const newUrl = pathname + (qs ? '?' + qs : '');
+    const params = new URLSearchParams(qs);
+    if (cityParam) params.set('city', cityParam);
+    const final = params.toString();
+    const newUrl = pathname + (final ? '?' + final : '');
     router.replace(newUrl, { scroll: false });
-  }, [filters, pathname, router]);
+  }, [filters, pathname, router, cityParam]);
 
   // Save scroll position before navigating away (restored on back)
   useEffect(() => {
@@ -303,8 +310,10 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       try {
         const { processListings } = await import('@/lib/listings/process-listings');
 
+        const cityQs = cityParam ? '&city=' + encodeURIComponent(cityParam) : '';
+
         // Fetch page 1 and show immediately
-        const res = await fetch(apiEndpoint + '?limit=200&page=1');
+        const res = await fetch(apiEndpoint + '?limit=200&page=1' + cityQs);
         if (!res.ok) return;
         const data = await res.json();
         const page1 = data.listings || data || [];
@@ -325,7 +334,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
             const batch = [];
             for (let p = batchStart; p < batchStart + batchSize && p <= maxPages; p++) {
               batch.push(
-                fetch(apiEndpoint + '?limit=200&page=' + p)
+                fetch(apiEndpoint + '?limit=200&page=' + p + cityQs)
                   .then(r => r.ok ? r.json() : null)
                   .then(pg => pg?.listings || [])
                   .catch(() => [])
@@ -346,7 +355,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     }
     fetchClient();
     return () => { cancelled = true; };
-  }, [initialListings]);
+  }, [initialListings, cityParam, apiEndpoint]);
 
   const toggleCompare = useCallback((id) => {
     setCompareIds((prev) =>
