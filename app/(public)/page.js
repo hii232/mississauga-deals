@@ -9,16 +9,16 @@ import { EmailCapture } from '@/components/home/email-capture';
 import { HomeDealCards } from '@/components/home/home-deal-cards';
 
 export const metadata = {
-  title: 'MississaugaInvestor.ca â Mississauga Real Estate Investment Deals by Hamza Nouman',
+  title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
   description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
   alternates: {
     canonical: '/',
   },
 };
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   LIVE STATS FETCH (from unified market-stats API)
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 async function fetchLiveStats() {
   try {
     const h = await headers();
@@ -60,9 +60,9 @@ async function fetchLiveStats() {
   }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   TOP DEALS FETCH
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 async function fetchTopDeals() {
   try {
     const h = await headers();
@@ -100,7 +100,7 @@ async function fetchTopDeals() {
       .sort((a, b) => b.hamzaScore - a.hamzaScore)
       .slice(0, 4);
 
-    // Fetch photos for top 4 deals â individual calls (reliable, 100% hit rate)
+    // Fetch photos for top 4 deals — individual calls (reliable, 100% hit rate)
     let photoMap = {};
     try {
       const photoPromises = top.map(async (d) => {
@@ -124,18 +124,18 @@ async function fetchTopDeals() {
   }
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   STATS BAR
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 function StatsBar({ liveStats }) {
   const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%', avgSoldPrice: '$964K', monthsOfInventory: 5.2 };
   const stats = [
-    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: 'ð' },
-    { label: 'Sale-to-List', value: s.salesToList, icon: 'â­' },
-    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: 'ð' },
-    { label: 'Avg. Price', value: s.priceLabel, icon: 'ð°' },
-    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: 'â' },
-    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: 'ð¦' }] : []),
+    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: '📊' },
+    { label: 'Sale-to-List', value: s.salesToList, icon: '⭐' },
+    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: '📅' },
+    { label: 'Avg. Price', value: s.priceLabel, icon: '💰' },
+    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: '✅' },
+    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: '📦' }] : []),
   ];
 
   return (
@@ -155,9 +155,9 @@ function StatsBar({ liveStats }) {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   HOW IT WORKS
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
     {
@@ -198,9 +198,9 @@ function HowItWorks() {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   AGENT PROFILE
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 function AgentProfile() {
   return (
     <section className="bg-cloud py-16">
@@ -211,7 +211,7 @@ function AgentProfile() {
             <div className="relative">
               <img
                 src="/images/hamza-headshot.jpg"
-                alt="Hamza Nouman â Mississauga Investment Specialist"
+                alt="Hamza Nouman — Mississauga Investment Specialist"
                 className="w-56 h-56 md:w-72 md:h-72 rounded-2xl object-cover object-top shadow-lg"
               />
               <div className="absolute -bottom-3 -right-3 bg-accent text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -226,12 +226,12 @@ function AgentProfile() {
               Hamza Nouman
             </h2>
             <p className="text-accent font-semibold text-sm mb-1">
-              Sales Representative â Cityscape Real Estate Ltd., Brokerage
+              Sales Representative — Cityscape Real Estate Ltd., Brokerage
             </p>
             <p className="text-xs text-muted mb-5">Licensed by RECO</p>
 
             <p className="text-sm text-navy/80 leading-relaxed mb-4">
-              I specialize in helping investors find cash-flowing properties in Mississauga. Every listing on this platform is scored and analyzed so you can make data-driven decisions â not emotional ones.
+              I specialize in helping investors find cash-flowing properties in Mississauga. Every listing on this platform is scored and analyzed so you can make data-driven decisions — not emotional ones.
             </p>
             <p className="text-sm text-navy/80 leading-relaxed mb-6">
               Whether you are looking for your first rental property or building a portfolio, I provide the market expertise and analytical tools to help you invest with confidence.
@@ -247,7 +247,7 @@ function AgentProfile() {
                 <p className="text-[11px] text-muted">Neighbourhoods</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-500">5.0 â</p>
+                <p className="text-2xl font-bold text-emerald-500">5.0 ★</p>
                 <p className="text-[11px] text-muted">Google Rating</p>
               </div>
             </div>
@@ -285,9 +285,9 @@ function AgentProfile() {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   GOOGLE REVIEWS
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 function GoogleReviews() {
   return (
     <section className="bg-cloud py-16">
@@ -296,7 +296,7 @@ function GoogleReviews() {
           <h2 className="section-title mb-3">What Investors Say</h2>
           <div className="flex items-center justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((s) => (
-              <span key={s} className="text-gold text-xl">â</span>
+              <span key={s} className="text-gold text-xl">★</span>
             ))}
             <span className="text-sm text-muted ml-2">5.0 on Google (28 reviews)</span>
           </div>
@@ -306,7 +306,7 @@ function GoogleReviews() {
             <div key={r.name} className="card p-6">
               <div className="flex gap-0.5 mb-3">
                 {Array.from({ length: r.rating }).map((_, i) => (
-                  <span key={i} className="text-gold text-sm">â</span>
+                  <span key={i} className="text-gold text-sm">★</span>
                 ))}
               </div>
               <p className="text-sm text-navy/80 leading-relaxed mb-4 italic">&ldquo;{r.text}&rdquo;</p>
@@ -322,9 +322,9 @@ function GoogleReviews() {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   CTA SECTION
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 function CTASection() {
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
@@ -337,7 +337,7 @@ function CTASection() {
           Mississauga investment property.
         </p>
         <p className="text-emerald-400 text-sm font-semibold mb-8">
-          Close with Hamza â First month&apos;s mortgage on us.
+          Close with Hamza — First month&apos;s mortgage on us.
         </p>
         <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
           <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">
@@ -355,9 +355,9 @@ function CTASection() {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
-//   NEIGHBOURHOOD PREVIEW (Change 4)
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
+//   NEIGBOURHOOD PREVIEW (Change 4)
+// ─────────────────────────────────────────────
 function NeighbourhoodPreview() {
   // Pick top 4 neighbourhoods by rent yield
   const topHoods = Object.entries(HOOD_DATA)
@@ -382,7 +382,7 @@ function NeighbourhoodPreview() {
           return (
             <div key={name} className="card p-5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-heading font-semibold text-navy">{name}</h3>
+                <h3 className="font-heading font-semibold text-navy">{name}</h3>>
                 <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`}>
                   {data.trend}
                 </span>
@@ -420,9 +420,9 @@ function NeighbourhoodPreview() {
   );
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 //   HOMEPAGE
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// ─────────────────────────────────────────────
 export default async function HomePage() {
   const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
 
@@ -442,7 +442,7 @@ export default async function HomePage() {
               <span className="text-accent">Deal Finder</span>
             </h1>
             <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-              2,000+ GTA Investment Properties â Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
+              2,000+ GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
             </p>
             <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
               <span className="text-accent text-sm font-bold">The Only Platform That Does It.</span>
@@ -500,23 +500,23 @@ export default async function HomePage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent/10 rounded-full blur-3xl" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-shrink-0 w-20 h-20 bg-accent/15 rounded-2xl flex items-center justify-center">
-              <span className="text-4xl">ð¦</span>
+              <span className="text-4xl">🏦</span>
             </div>
             <div className="flex-1 text-center md:text-left">
               <div className="inline-flex items-center gap-2 bg-success/15 border border-success/30 rounded-full px-3 py-1 mb-3">
                 <span className="text-success text-xs font-bold">EXCLUSIVE OFFER</span>
               </div>
               <h2 className="font-heading font-bold text-2xl md:text-3xl text-navy mb-2">
-                Close With Hamza â First Month&apos;s Mortgage On Us
+                Close With Hamza — First Month&apos;s Mortgage On Us
               </h2>
               <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-4 max-w-2xl">
-                Buy an investment property through MississaugaInvestor.ca and we cover your first mortgage payment â
+                Buy an investment property through MississaugaInvestor.ca and we cover your first mortgage payment —
                 so you cash flow from day one. No vacancy stress while you find your tenant.
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1"><span className="text-success">â</span> Applied as credit on closing</span>
-                <span className="flex items-center gap-1"><span className="text-success">â</span> All investment properties qualify</span>
-                <span className="flex items-center gap-1"><span className="text-success">â</span> RECO compliant commission rebate</span>
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> Applied as credit on closing</span>
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> All investment properties qualify</span>
+                <span className="flex items-center gap-1"><span className="text-success">✓</span> RECO compliant commission rebate</span>
               </div>
             </div>
             <div className="flex-shrink-0">
