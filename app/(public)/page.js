@@ -10,8 +10,8 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 
 export const metadata = {
   title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
-  alternates: {
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
+  alternates: {h
     canonical: '/',
   },
 };
@@ -239,7 +239,7 @@ function AgentProfile() {
 
             <div className="flex flex-wrap gap-4 justify-center md:justify-start mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-navy">1,800+</p>
+                <p className="text-2xl font-bold text-navy">2,000+</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
               </div>
               <div className="text-center">
