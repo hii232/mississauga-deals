@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
+import { fetchAllFeeds } from '@/lib/news/fetch-feeds';
+import { HOOD_DATA } from '@/lib/constants';
 
 export const maxDuration = 120; // Allow up to 2 minutes for AI generation
 export const dynamic = 'force-dynamic';
@@ -140,71 +142,144 @@ function pickTopic(existingTitles) {
   return available[Math.floor(Math.random() * available.length)];
 }
 
-// ── Generate blog post with Claude ──
-async function generateBlogPost(topic, existingTitles) {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ── Trending headlines from the site's own RSS aggregator ──
+// Self-hosted feed pipeline (lib/news/fetch-feeds.js) — no external AI service.
+async function fetchTrendingHeadlines() {
+  try {
+    const articles = await fetchAllFeeds();
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+
+    // Prefer stories that actually move the local housing market
+    const priority = { 'Mississauga': 0, 'Interest Rates': 1, 'Policy & Govt': 2, 'Market Stats': 3, 'Investment': 4 };
+
+    const fresh = articles
+      .filter((a) => a.date && new Date(a.date).getTime() >= sevenDaysAgo)
+      .sort((a, b) => {
+        const pa = priority[a.topic] ?? 9;
+        const pb = priority[b.topic] ?? 9;
+        if (pa !== pb) return pa - pb;
+        return new Date(b.date) - new Date(a.date);
+      });
+
+    // Dedupe near-identical titles, cap at 18 headlines
+    const seen = new Set();
+    const picked = [];
+    for (const a of fresh) {
+      const key = a.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().substring(0, 60);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      picked.push(a);
+      if (picked.length >= 18) break;
+    }
+    return picked;
+  } catch {
+    return [];
+  }
+}
+
+// ── Real platform data the model can cite (from lib/constants.js) ──
+function buildDataBlock() {
+  const rows = Object.entries(HOOD_DATA)
+    .slice(0, 12)
+    .map(([name, d]) =>
+      `- ${name}: avg price $${Math.round(d.avgPrice / 1000)}K, ${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}% YoY, ${d.avgDOM} days on market, ${d.rentYield}% rent yield`
+    );
+  return rows.join('\n');
+}
+
+// ── Structured output schema — guarantees valid JSON, no regex parsing ──
+const BLOG_POST_SCHEMA = {
+  type: 'object',
+  properties: {
+    title: { type: 'string', description: '50-70 characters, includes "Mississauga", written for search and curiosity' },
+    excerpt: { type: 'string', description: 'Max 180 characters. A hook, not a summary.' },
+    content: { type: 'string', description: 'The full blog post in Markdown, 900-1300 words' },
+    category: {
+      type: 'string',
+      enum: ['Market News', 'Market Analysis', 'Neighbourhood Guide', 'Strategy', 'Guide', 'Beginner Guide'],
+      description: 'Best-fit category for this post',
+    },
+    image_keywords: { type: 'string', description: '2-3 comma-separated stock photo search keywords' },
+  },
+  required: ['title', 'excerpt', 'content', 'category', 'image_keywords'],
+  additionalProperties: false,
+};
+
+// ── Generate blog post with Claude Fable 5 ──
+async function generateBlogPost({ headlines, topic, existingTitles }) {
+  // timeout under the 120s function cap so failures surface cleanly; 1 retry max
+  const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    timeout: 100_000,
+    maxRetries: 1,
+  });
 
   const now = new Date();
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const currentMonth = months[now.getMonth()];
   const currentYear = now.getFullYear();
 
-  const prompt = `You are Hamza Nouman, a licensed Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. You run MississaugaInvestor.ca — a data-driven investment property platform.
+  const topicBlock = headlines.length > 0
+    ? `## What's trending right now
+These are real headlines from Canadian real estate and business news feeds over the past week:
 
-CRITICAL: Today's date is ${currentMonth} ${now.getDate()}, ${currentYear}. We are in the year ${currentYear}. ALL content, data, and references MUST be about ${currentYear}. Do NOT reference any year before ${currentYear - 1}. When discussing current market conditions, trends, or data — it is ${currentMonth} ${currentYear} right now.
+${headlines.map((h) => `- [${h.source}${h.date ? ', ' + new Date(h.date).toISOString().split('T')[0] : ''}] ${h.title}${h.snippet ? ' — ' + h.snippet : ''}`).join('\n')}
 
-Write a blog post about: ${topic.angle}
-Category: ${topic.category}
+Pick the ONE story (or tightly connected cluster) that matters most for Mississauga and GTA housing — rate decisions, housing policy, local development, and market data beat generic national business stories. Write the post about what that story actually means for someone buying an investment property in Mississauga right now. Name the story plainly; don't assume the reader saw the news.`
+    : `## Topic
+Write about: ${topic.angle}`;
 
-EXISTING POSTS (DO NOT repeat these topics):
-${existingTitles.map((t) => `- ${t}`).join('\n')}
+  const prompt = `You are ghostwriting a blog post for Hamza Nouman — a licensed real estate Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario, who runs MississaugaInvestor.ca, a data-driven investment property platform. The post is published under his name, in his voice, in first person.
 
-REQUIREMENTS:
-1. Title: 50-70 characters, must include "Mississauga", SEO-optimized. Include "${currentYear}" in the title when relevant.
-2. Excerpt: 1-2 sentences, max 180 characters, compelling hook
-3. Content: 800-1200 words in Markdown format
-4. Naturally mention "Hamza Nouman" once (e.g., "As I often tell my clients at MississaugaInvestor.ca...")
-5. Reference MississaugaInvestor.ca once naturally
-6. Include at least 2 specific Mississauga neighbourhoods with specific data points
-7. Use H2 (##) and H3 (###) headings with keywords
-8. Include specific numbers: prices, percentages, rates, timelines
-9. End with a "Bottom Line" or "What This Means for Investors" section
-10. End with a soft CTA about using MississaugaInvestor.ca deal scores
-11. Write in first person, confident but approachable tone
-12. DO NOT use generic filler — every paragraph must teach something specific
-13. DO NOT start with "As a real estate agent" or similar cliche openings
-14. ALL data and market references must be ${currentYear}. Never reference 2024 or earlier years as "current"
+Today is ${currentMonth} ${now.getDate()}, ${currentYear}. Everything must read as current as of this date.
 
-Also provide 2-3 keywords for finding a relevant cover photo (e.g., "mississauga skyline", "real estate investment", "condo buildings").
+${topicBlock}
 
-Respond in this exact JSON format (no markdown code blocks, just raw JSON):
-{
-  "title": "Your SEO Title Here",
-  "excerpt": "Your compelling excerpt here",
-  "content": "Your full markdown content here",
-  "image_keywords": "mississauga real estate, keyword2"
-}`;
+## Don't repeat these
+Recent posts already on the blog — pick a different angle than all of them:
+${existingTitles.slice(0, 30).map((t) => `- ${t}`).join('\n')}
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 4000,
-    temperature: 0.7,
+## Real platform data you may cite
+Current neighbourhood figures from MississaugaInvestor.ca's own dataset:
+${buildDataBlock()}
+Other anchors: Mississauga average sale price is roughly $970K; 5-year fixed mortgages are around 4.5–5%; 1-bed rents run about $2,000–2,500 depending on the area.
+
+## Voice
+Write like Hamza actually talks to a client over coffee: direct, plain words, short paragraphs, contractions, a little opinionated. Take a position and defend it with numbers. One concrete, personal observation (something I tell clients, something I noticed at showings this month) is worth more than three statistics. It should read like a person who walks these streets every week — not a content mill.
+
+Avoid AI-writing tells: no "in today's fast-paced market", "navigating the landscape", "it's important to note", "game-changer", "delve". Don't open with a throat-clearing summary of what the post will cover — start inside the story. Vary sentence length. Prose first; use a list only when a list is genuinely the clearest form.
+
+## Requirements
+- Title: 50–70 characters, includes "Mississauga", include ${currentYear} if it fits naturally.
+- Content: 900–1300 words of Markdown with ## and ### headings. Ground the story in Mississauga specifics — at least two neighbourhoods with concrete numbers from the data above. Where you don't have a real figure, use clearly framed approximations ("roughly", "around") rather than inventing precise statistics. Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section and a soft pointer to the deal scores on MississaugaInvestor.ca.
+- This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.`;
+
+  const response = await anthropic.beta.messages.create({
+    model: 'claude-fable-5',
+    max_tokens: 16000,
+    // Server-side fallback: a rare safety-classifier false positive gets
+    // transparently re-served by Opus 4.8 instead of failing the daily cron
+    betas: ['server-side-fallback-2026-06-01'],
+    fallbacks: [{ model: 'claude-opus-4-8' }],
+    output_config: {
+      effort: 'high',
+      format: { type: 'json_schema', schema: BLOG_POST_SCHEMA },
+    },
     messages: [{ role: 'user', content: prompt }],
   });
+
+  if (response.stop_reason === 'refusal') {
+    throw new Error('Model declined to generate this post (refusal on primary and fallback)');
+  }
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Blog generation hit the token limit before finishing');
+  }
 
   const text = response.content.find((c) => c.type === 'text')?.text;
   if (!text) throw new Error('No text in Claude response');
 
-  // Parse JSON from response
-  try {
-    // Try direct parse first
-    return JSON.parse(text);
-  } catch {
-    // Try extracting JSON from markdown code block
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-    throw new Error('Could not parse blog post JSON from Claude response');
-  }
+  // json_schema output guarantees valid JSON in the text block
+  return JSON.parse(text);
 }
 
 // ── Fetch a relevant cover image from Unsplash (free, no key needed) ──
@@ -329,11 +404,14 @@ export async function GET(request) {
 
     const existingTitles = (existingPosts || []).map((p) => p.title);
 
-    // Pick a fresh topic
-    const topic = pickTopic(existingTitles);
+    // Trending-first: pull real headlines from the site's own RSS aggregator
+    const headlines = await fetchTrendingHeadlines();
+
+    // Fall back to the evergreen topic rotation only if the feeds are down
+    const topic = headlines.length > 0 ? null : pickTopic(existingTitles);
 
     // Generate the blog post
-    const post = await generateBlogPost(topic, existingTitles);
+    const post = await generateBlogPost({ headlines, topic, existingTitles });
 
     // Validate
     if (!post.title || !post.content) {
@@ -358,7 +436,7 @@ export async function GET(request) {
         slug,
         excerpt: post.excerpt || '',
         content: post.content,
-        category: topic.category,
+        category: post.category || topic?.category || 'Market News',
         cover_image_url: coverImage,
         published: true,
       })
