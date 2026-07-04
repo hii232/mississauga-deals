@@ -52,9 +52,6 @@ export const metadata = {
   creator: 'Hamza Nouman',
   publisher: 'Cityscape Real Estate Ltd.',
   metadataBase: new URL('https://www.mississaugainvestor.ca'),
-  alternates: {
-    canonical: '/',
-  },
   openGraph: {
     type: 'website',
     locale: 'en_CA',

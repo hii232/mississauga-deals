@@ -38,13 +38,13 @@ export default function ScoreMethodologyPage() {
 
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">Scoring Components</h2>
-          <p>The deal score is a weighted combination of four key investment factors:</p>
+          <p>The deal score is a weighted combination of five key investment factors:</p>
 
           <div className="grid gap-4 mt-4">
             <div className="bg-cloud rounded-lg p-4">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-semibold text-navy text-sm">Cash Flow Analysis</h3>
-                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">30% weight</span>
+                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">35% weight</span>
               </div>
               <p className="text-xs text-muted">
                 Estimates monthly rental income minus mortgage payments, property taxes, insurance,
@@ -65,25 +65,35 @@ export default function ScoreMethodologyPage() {
 
             <div className="bg-cloud rounded-lg p-4">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="font-semibold text-navy text-sm">Value Assessment</h3>
-                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">25% weight</span>
+                <h3 className="font-semibold text-navy text-sm">Cash-on-Cash Return</h3>
+                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">15% weight</span>
               </div>
               <p className="text-xs text-muted">
-                Price-to-rent ratio and comparison to area averages. Properties priced below area
-                norms relative to their rental potential score higher.
+                Annual cash flow divided by total cash invested (down payment plus land transfer tax
+                and closing costs). Measures the return on the actual money you put into the deal.
+              </p>
+            </div>
+
+            <div className="bg-cloud rounded-lg p-4">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold text-navy text-sm">Value Assessment</h3>
+                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">10% weight</span>
+              </div>
+              <p className="text-xs text-muted">
+                Gross rent multiplier (price-to-rent ratio), plus bonus points for longer days on
+                market and price reductions — both of which may represent negotiation opportunities.
               </p>
             </div>
 
             <div className="bg-cloud rounded-lg p-4">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-semibold text-navy text-sm">Market Signals</h3>
-                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">20% weight</span>
+                <span className="text-xs font-medium text-accent bg-accent/10 px-2 py-0.5 rounded-full">15% weight</span>
               </div>
               <p className="text-xs text-muted">
-                Combines days on market, price reductions, basement suite potential, transit access,
-                and school quality. Properties with longer DOM or price drops may represent negotiation
-                opportunities. Transit and school scores add bonus points reflecting location quality
-                for rental demand and long-term value.
+                Combines basement suite potential, transit access, and school quality. Legal or
+                convertible basement suites add income potential, while transit and school scores
+                reflect location quality for rental demand and long-term value.
               </p>
             </div>
           </div>
@@ -98,7 +108,7 @@ export default function ScoreMethodologyPage() {
             stronger rental demand and faster appreciation.
           </p>
           <div className="mt-3 bg-cloud rounded-lg p-4">
-            <p className="text-xs text-muted mb-2"><strong>How Transit Score affects Deal Score (within Market Signals, 20% weight):</strong></p>
+            <p className="text-xs text-muted mb-2"><strong>How Transit Score affects Deal Score (within Market Signals, 15% weight):</strong></p>
             <ul className="list-disc pl-5 text-xs text-muted space-y-1">
               <li>Transit Score 8-10: +2.0 bonus points</li>
               <li>Transit Score 6-7: +1.0 bonus point</li>
@@ -117,7 +127,7 @@ export default function ScoreMethodologyPage() {
             support long-term property values.
           </p>
           <div className="mt-3 bg-cloud rounded-lg p-4">
-            <p className="text-xs text-muted mb-2"><strong>How School Score affects Deal Score (within Market Signals, 20% weight):</strong></p>
+            <p className="text-xs text-muted mb-2"><strong>How School Score affects Deal Score (within Market Signals, 15% weight):</strong></p>
             <ul className="list-disc pl-5 text-xs text-muted space-y-1">
               <li>School Score 8-10: +1.5 bonus points</li>
               <li>School Score 6-7: +1.0 bonus point</li>

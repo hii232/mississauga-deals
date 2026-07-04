@@ -1,4 +1,3 @@
-import { HOOD_DATA } from '@/lib/constants';
 import { createClient } from '@supabase/supabase-js';
 
 // Regenerate sitemap every 6 hours
@@ -38,14 +37,6 @@ export default async function sitemap() {
     { url: `${BASE}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE}/terms`, changeFrequency: 'yearly', priority: 0.2 },
   ].map((p) => ({ ...p, lastModified: now }));
-
-  // ── Neighbourhood filter pages (SEO long-tail) ──
-  const hoodPages = Object.keys(HOOD_DATA).map((hood) => ({
-    url: `${BASE}/listings?hood=${encodeURIComponent(hood)}`,
-    lastModified: now,
-    changeFrequency: 'daily',
-    priority: 0.7,
-  }));
 
   // ── Dynamic listing pages ──
   let listingPages = [];
@@ -115,5 +106,5 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch blog posts', err);
   }
 
-  return [...staticPages, ...hoodPages, ...listingPages, ...blogPages];
+  return [...staticPages, ...listingPages, ...blogPages];
 }

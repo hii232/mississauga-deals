@@ -62,11 +62,26 @@ export default function MortgageCalculatorPage() {
 
   const calc = useMemo(() => {
     const downPayment = price * (downPct / 100);
-    const loanAmount = price - downPayment;
+    const baseLoan = price - downPayment;
+
+    // CMHC insurance premium (required under 20% down, owner-occupied only)
+    // 5-9.99% down: 4.00% · 10-14.99%: 3.10% · 15-19.99%: 2.80% of loan
+    const cmhcRate = downPct >= 20 ? 0 : downPct >= 15 ? 0.028 : downPct >= 10 ? 0.031 : 0.04;
+    const cmhcPremium = Math.round(baseLoan * cmhcRate);
+    const cmhcPST = Math.round(cmhcPremium * 0.08); // Ontario PST on premium, due in cash at closing
+    const loanAmount = baseLoan + cmhcPremium;
+
+    // Federal minimum down payment: 5% of first $500K + 10% of remainder up to $1.5M; 20% at $1.5M+
+    const minDownAmt = price <= 500000 ? price * 0.05 : price < 1500000 ? 25000 + (price - 500000) * 0.10 : price * 0.20;
+    const minDownPct = (minDownAmt / price) * 100;
 
     // Canadian semi-annual compounding
     const monthlyMortgage = calcMortgage(loanAmount, rate, amort);
     const numPayments = amort * 12;
+
+    // Stress test: qualify at the greater of contract rate + 2% or 5.25%
+    const stressRate = Math.max(rate + 2, 5.25);
+    const stressPayment = calcMortgage(loanAmount, stressRate, amort);
 
     const monthlyTax = propertyTax / 12;
     const monthlyMaint = rent * (maintenance / 100);
@@ -86,7 +101,7 @@ export default function MortgageCalculatorPage() {
 
     // Cash-on-Cash with Ontario LTT
     const ltt = calcOntarioLTT(price);
-    const closingCosts = ltt + 3000;
+    const closingCosts = ltt + 3000 + cmhcPST;
     const totalCashInvested = downPayment + closingCosts;
     const cashOnCash = ((monthlyCashFlow * 12) / totalCashInvested) * 100;
     const totalInterest = monthlyMortgage * numPayments - loanAmount;
@@ -95,6 +110,11 @@ export default function MortgageCalculatorPage() {
     return {
       downPayment,
       loanAmount,
+      cmhcPremium,
+      cmhcPST,
+      minDownPct,
+      stressRate,
+      stressPayment,
       monthlyMortgage,
       monthlyTax,
       monthlyMaint,
@@ -125,7 +145,7 @@ export default function MortgageCalculatorPage() {
             Mortgage & Cash Flow Calculator
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            Canadian semi-annual compounding, itemized expenses, and Ontario land transfer tax — calculated correctly for investment properties.
+            Canadian semi-annual compounding, CMHC insurance, the federal stress test, itemized expenses, and Ontario land transfer tax — calculated correctly for investment properties.
           </p>
         </div>
       </section>
@@ -141,13 +161,24 @@ export default function MortgageCalculatorPage() {
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <InputSlider label="Purchase Price" value={price} onChange={setPrice} min={100000} max={5000000} step={25000} prefix="$" format={fmt} />
-                <InputSlider label="Down Payment" value={downPct} onChange={setDownPct} min={20} max={50} step={1} suffix="%" />
+                <InputSlider label="Down Payment" value={downPct} onChange={setDownPct} min={5} max={50} step={1} suffix="%" />
                 <InputSlider label="Interest Rate" value={rate} onChange={setRate} min={1} max={10} step={0.05} suffix="%" decimal />
                 <InputSlider label="Amortization" value={amort} onChange={setAmort} min={15} max={30} step={5} suffix=" yrs" />
               </div>
+              {downPct < calc.minDownPct - 0.01 && (
+                <p className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  Below the federal minimum down payment for this price ({calc.minDownPct.toFixed(1)}% — 5% of the first $500K plus 10% of the rest; 20% at $1.5M+).
+                </p>
+              )}
               {downPct < 20 && (
                 <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  Canadian lenders require minimum 20% down for investment properties.
+                  Under 20% down requires CMHC insurance and is only available if you live in the property (e.g., house hacking).
+                  Pure rental properties require 20%+ down. CMHC premium of ${fmt(calc.cmhcPremium)} is added to your mortgage.
+                </p>
+              )}
+              {downPct < 20 && amort > 25 && (
+                <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Insured mortgages are generally capped at 25-year amortization (30 for first-time buyers and new builds).
                 </p>
               )}
             </div>
@@ -188,6 +219,7 @@ export default function MortgageCalculatorPage() {
                 <MetricRow label="GRM" value={calc.grm.toFixed(1)} />
                 <MetricRow label="Annual NOI" value={`$${fmt(Math.round(calc.annualNOI))}`} />
                 <MetricRow label="Total Interest Paid" value={`$${fmt(Math.round(calc.totalInterest))}`} />
+                <MetricRow label={`Stress-Test Payment (${calc.stressRate.toFixed(2)}%)`} value={`$${fmt(Math.round(calc.stressPayment))}/mo`} />
               </div>
             </div>
 
@@ -218,6 +250,12 @@ export default function MortgageCalculatorPage() {
                 <MetricRow label="Down Payment" value={`$${fmt(calc.downPayment)}`} />
                 <MetricRow label="Ontario Land Transfer Tax" value={`$${fmt(calc.ltt)}`} />
                 <MetricRow label="Legal, Title & Misc" value="$3,000" />
+                {calc.cmhcPremium > 0 && (
+                  <>
+                    <MetricRow label="CMHC Premium (added to mortgage)" value={`$${fmt(calc.cmhcPremium)}`} />
+                    <MetricRow label="PST on CMHC Premium (cash)" value={`$${fmt(calc.cmhcPST)}`} />
+                  </>
+                )}
                 <div className="border-t border-gray-100 my-1" />
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-navy">Total Cash to Close</span>
@@ -238,7 +276,8 @@ export default function MortgageCalculatorPage() {
         </div>
 
         <p className="text-[10px] text-muted/50 mt-8 leading-relaxed max-w-3xl">
-          Canadian fixed-rate mortgage with semi-annual compounding. This calculator provides estimates for informational purposes only. Actual mortgage payments depend on your
+          Canadian fixed-rate mortgage with semi-annual compounding. CMHC premiums, stress-test qualifying rates, and minimum down payment rules
+          reflect current federal guidelines but may change. This calculator provides estimates for informational purposes only. Actual mortgage payments depend on your
           lender, credit score, and specific terms. Rental income estimates, cap rates, and cash flow projections are not
           guaranteed. Consult a licensed mortgage broker and financial advisor before making investment decisions.
         </p>

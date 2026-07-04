@@ -64,7 +64,7 @@ export default function Image() {
             }}
           >
             {[
-              { label: 'Active Listings', value: '1,800+' },
+              { label: 'Active Listings', value: '2,000+' },
               { label: 'Sale-to-List', value: '96%' },
               { label: 'Avg DOM', value: '36 days' },
               { label: 'Inventory', value: '5.2 mo' },
