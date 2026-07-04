@@ -362,7 +362,7 @@ export default function Header({ savedCount = 0 }) {
               647-609-1289
             </a>
             <Link
-              href="/quiz"
+              href="/book-call"
               className="hidden sm:inline-flex items-center rounded-full bg-accent hover:bg-accent-dark text-white px-3 py-0.5 text-xs font-bold no-underline transition-colors"
             >
               Book Free Call →

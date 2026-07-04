@@ -121,13 +121,21 @@ export default function NeighbourhoodsPage() {
                 </p>
               </div>
 
-              {/* Link */}
-              <Link
-                href={`/listings?hood=${encodeURIComponent(name)}`}
-                className="block text-center rounded-lg bg-cloud py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
-              >
-                View Listings in {name}
-              </Link>
+              {/* Links */}
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href={`/neighbourhoods/${name.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="block text-center rounded-lg bg-accent py-2 text-xs font-medium text-white hover:bg-accent/90 transition-colors no-underline"
+                >
+                  Investment Guide
+                </Link>
+                <Link
+                  href={`/listings?hood=${encodeURIComponent(name)}`}
+                  className="block text-center rounded-lg bg-cloud py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
+                >
+                  View Listings
+                </Link>
+              </div>
             </div>
           );
         })}

@@ -39,9 +39,11 @@ export async function POST(request) {
 
   try {
     // 3. IndexNow — submit new listing URLs for instant indexing
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
+    // Public domain, NOT VERCEL_URL (deployment protection 401s server fetches)
+    const baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : 'https://www.mississaugainvestor.ca';
 
     const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
       next: { revalidate: 0 },
@@ -51,15 +53,12 @@ export async function POST(request) {
       const data = await res.json();
       const listings = data.listings || data || [];
 
-      // Only submit listings from last 3 days (new listings)
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-
+      // Only submit fresh listings — the processed API exposes days on
+      // market, not raw MLS timestamps
       const newUrls = listings
         .filter((l) => {
-          if (!l.OriginalEntryTimestamp && !l.ModificationTimestamp) return false;
-          const date = new Date(l.OriginalEntryTimestamp || l.ModificationTimestamp);
-          return date >= threeDaysAgo;
+          const dom = l.dom ?? l.daysOnMarket;
+          return typeof dom === 'number' && dom <= 3;
         })
         .map((l) => `https://www.mississaugainvestor.ca/listings/${l.ListingKey || l.id}`)
         .slice(0, 100); // IndexNow limit: 10,000, but keep reasonable

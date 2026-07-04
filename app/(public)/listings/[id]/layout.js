@@ -1,61 +1,66 @@
-import { processListings } from '@/lib/listings/process-listings';
+import { formatAddress } from '@/lib/utils/format';
 
-// Fetch minimal listing data for SEO metadata
+// Public site URL — never use VERCEL_URL here: the *.vercel.app deployment URL
+// is behind Vercel deployment protection, so server-side fetches to it 401 and
+// every listing page falls back to generic metadata.
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
+// Fetch minimal listing data for SEO metadata — one call via listing-single
 async function fetchListingData(id) {
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
-
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 300 },
-    });
+    const res = await fetch(
+      `${SITE_URL}/api/listing-single?id=${encodeURIComponent(id)}`,
+      { next: { revalidate: 3600 } }
+    );
     if (!res.ok) return null;
     const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
+    return data.listing || null;
+  } catch {
+    return null;
+  }
+}
 
-    let processed = processListings(raw);
-    let found = processed.find((l) => String(l.id) === String(id));
-
-    if (!found && totalPages > 1) {
-      for (let p = 2; p <= totalPages; p++) {
-        const r = await fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-          next: { revalidate: 300 },
-        });
-        if (!r.ok) continue;
-        const pg = await r.json();
-        if (pg?.listings?.length) {
-          const batch = processListings(pg.listings);
-          found = batch.find((l) => String(l.id) === String(id));
-          if (found) break;
-        }
-      }
-    }
-
-    return found || null;
+// First photo for the social share image
+async function fetchListingPhoto(id) {
+  try {
+    const res = await fetch(
+      `${SITE_URL}/api/photos?id=${encodeURIComponent(id)}&limit=1`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.photos?.[0] || null;
   } catch {
     return null;
   }
 }
 
 export async function generateMetadata({ params }) {
-  const listing = await fetchListingData(params.id);
+  const [listing, photo] = await Promise.all([
+    fetchListingData(params.id),
+    fetchListingPhoto(params.id),
+  ]);
 
   if (!listing) {
     return {
       title: 'Property Details',
       description: 'View investment property details, cash flow analysis, and deal score on MississaugaInvestor.ca.',
+      alternates: { canonical: `/listings/${params.id}` },
     };
   }
 
-  const title = `${listing.address} — ${listing.type || 'Property'} in ${listing.city || 'Mississauga'}`;
-  const price = listing.price
-    ? `$${(listing.price / 1000).toFixed(0)}K`
-    : '';
+  const address = formatAddress(listing.address);
+  const city = listing.city || 'Mississauga';
+  const type = listing.type || 'Property';
+  const price = listing.price ? `$${listing.price.toLocaleString()}` : '';
   const beds = listing.beds || 0;
   const baths = listing.baths || 0;
-  const description = `${listing.type || 'Property'} for sale at ${listing.address}, ${listing.city || 'Mississauga'}. ${beds} bed, ${baths} bath${price ? ` · Listed at ${price}` : ''}. Cash flow analysis, cap rate, deal score, and investment insights.`;
+
+  const title = `${address}, ${city} — ${type} for Sale${price ? ` ${price}` : ''}`;
+  const description = `${type} for sale at ${address}, ${city}. ${beds} bed, ${baths} bath${price ? ` · Listed at ${price}` : ''}. Cash flow analysis, cap rate, deal score, and investment insights by Hamza Nouman.`;
 
   return {
     title,
@@ -66,13 +71,13 @@ export async function generateMetadata({ params }) {
       description,
       url: `https://www.mississaugainvestor.ca/listings/${listing.id}`,
       type: 'article',
-      ...(listing.photos?.[0] && {
+      ...(photo && {
         images: [
           {
-            url: listing.photos[0],
+            url: photo,
             width: 1200,
             height: 630,
-            alt: listing.address,
+            alt: address,
           },
         ],
       }),

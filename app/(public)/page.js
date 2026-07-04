@@ -9,8 +9,8 @@ import { EmailCapture } from '@/components/home/email-capture';
 import { HomeDealCards } from '@/components/home/home-deal-cards';
 
 export const metadata = {
-  title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman',
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd.. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
+  title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
   alternates: {
     canonical: '/',
   },
@@ -317,7 +317,7 @@ function GoogleReviews() {
     <section className="bg-cloud py-16">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
-          <h2 className="section-title mb-3">What Investors Say</h2>
+          <h2 className="section-title mb-3">What Clients Say</h2>
           <div className="flex items-center justify-center gap-1 mb-2">
             {[1, 2, 3, 4, 5].map((s) => (
               <span key={s} className="text-gold text-xl">★</span>
@@ -450,6 +450,11 @@ function NeighbourhoodPreview() {
 export default async function HomePage() {
   const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
 
+  // Live listing count for the hero, rounded down to the hundred so it never overstates
+  const heroCount = topDeals.totalCount >= 500
+    ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
+    : '2,000+';
+
   return (
     <>
       {/* Hero */}
@@ -466,7 +471,7 @@ export default async function HomePage() {
               <span className="text-accent">Deal Finder</span>
             </h1>
             <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-              2,000+ GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
+              {heroCount} GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
             </p>
             <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
               <span className="text-accent text-sm font-bold">The Only Platform That Does It.</span>
@@ -544,8 +549,8 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="flex-shrink-0">
-              <Link href="/about" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
-                Learn More
+              <Link href="/book-call" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+                Book a Free Call
               </Link>
             </div>
           </div>

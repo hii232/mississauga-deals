@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { HOOD_DATA } from '@/lib/constants';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
@@ -38,12 +39,24 @@ export default async function sitemap() {
     { url: `${BASE}/terms`, changeFrequency: 'yearly', priority: 0.2 },
   ].map((p) => ({ ...p, lastModified: now }));
 
+  // ── Neighbourhood investment guides ──
+  const hoodGuidePages = Object.keys(HOOD_DATA).map((name) => ({
+    url: `${BASE}/neighbourhoods/${name.toLowerCase().replace(/\s+/g, '-')}`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.75,
+  }));
+
   // ── Dynamic listing pages ──
   let listingPages = [];
   try {
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:3000';
+    // Public domain, NOT VERCEL_URL — the *.vercel.app URL is behind Vercel
+    // deployment protection, so fetching it 401s and the sitemap loses all
+    // listing URLs.
+    const baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : 'https://www.mississaugainvestor.ca';
 
     const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
       next: { revalidate: 3600 },
@@ -58,7 +71,7 @@ export default async function sitemap() {
       const allListings = [...listings];
       if (totalPages > 1) {
         const promises = [];
-        for (let p = 2; p <= Math.min(totalPages, 5); p++) {
+        for (let p = 2; p <= Math.min(totalPages, 15); p++) {
           promises.push(
             fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
               next: { revalidate: 3600 },
@@ -106,5 +119,5 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch blog posts', err);
   }
 
-  return [...staticPages, ...listingPages, ...blogPages];
+  return [...staticPages, ...hoodGuidePages, ...listingPages, ...blogPages];
 }

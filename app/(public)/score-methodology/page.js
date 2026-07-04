@@ -100,6 +100,76 @@ export default function ScoreMethodologyPage() {
         </section>
 
         <section>
+          <h2 className="font-heading font-semibold text-xl text-navy mb-3">Model Assumptions — Every Input, Disclosed</h2>
+          <p>
+            Every cash flow, cap rate, and score on this site is computed from the same set of
+            assumptions, applied identically to every listing. Nothing is hidden. If your financing
+            or operating numbers differ, run your own scenario in the{' '}
+            <Link href="/mortgage-calculator" className="text-accent no-underline">mortgage calculator</Link>.
+          </p>
+
+          <div className="mt-4 overflow-hidden rounded-lg border border-gray-100">
+            <table className="w-full text-xs">
+              <tbody>
+                {[
+                  ['Down payment', '20% (investment-property minimum)'],
+                  ['Mortgage rate', '4.89% — 5-year fixed, Canadian semi-annual compounding'],
+                  ['Amortization', '25 years'],
+                  ['Property tax', 'Actual listed tax when available; otherwise the municipal residential rate (e.g., Mississauga ~0.84% of price)'],
+                  ['Insurance', '$225/month'],
+                  ['Maintenance reserve', 'Greater of 8% of rent or 1% of property value per year'],
+                  ['Vacancy allowance', '5% of gross rent'],
+                  ['Property management', '0% (assumes self-managed)'],
+                  ['Closing costs (in cash-on-cash)', 'Ontario land transfer tax + $3,000 legal/title/misc'],
+                ].map(([k, v]) => (
+                  <tr key={k} className="border-b border-gray-50 last:border-0">
+                    <td className="bg-cloud px-4 py-2.5 font-semibold text-navy w-52 align-top">{k}</td>
+                    <td className="px-4 py-2.5 text-muted">{v}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 className="font-heading font-semibold text-base text-navy mt-6 mb-2">Where rent estimates come from</h3>
+          <p>
+            Rent is estimated from a per-neighbourhood, per-bedroom rent table calibrated against
+            TRREB rental market reports and public rental platforms (2025–2026), with adjustments
+            by property type (detached +$250/mo, condo −$150/mo, purpose-built multi-unit +$800/mo).
+            Where a neighbourhood is unknown, a conservative GTA price-to-rent ratio is used as a
+            fallback. Rent estimates are estimates — always verify against current lease comps
+            before offering.
+          </p>
+
+          <h3 className="font-heading font-semibold text-base text-navy mt-6 mb-2">How basement suite income is treated</h3>
+          <p>
+            Suite income is <strong>only</strong> added when the listing remarks explicitly indicate
+            a suite, and it is tiered by confidence:
+          </p>
+          <ul className="list-disc pl-6 space-y-1.5 mt-2">
+            <li>
+              <strong>Legal suite</strong> (listing states &ldquo;legal basement,&rdquo; &ldquo;registered
+              suite,&rdquo; etc.): full basement market rent is added — roughly $1,400–$2,000/mo depending
+              on basement bedrooms.
+            </li>
+            <li>
+              <strong>Suite potential</strong> (separate entrance, in-law suite, basement apartment
+              mentioned, but not stated as legal): 85% of basement market rent is added, discounted
+              for permitting uncertainty.
+            </li>
+            <li>
+              <strong>Finished basement only</strong> (no separate entrance mentioned): $0 suite
+              income. It is treated as a feature, not a rentable unit.
+            </li>
+          </ul>
+          <p className="mt-2">
+            When a listing shows positive cash flow driven by suite income, the suite detection is
+            shown on the listing (&ldquo;Basement Income&rdquo; in Key Facts). Always verify suite legality
+            with the City of Mississauga before relying on that income.
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">Transit Score</h2>
           <p>
             Each Mississauga neighbourhood is assigned a Transit Score from 1 to 10 based on proximity

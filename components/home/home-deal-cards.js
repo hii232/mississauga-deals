@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { scoreColorHex } from '@/lib/deal-score';
-import { fmtK } from '@/lib/utils/format';
+import { fmtK, formatAddress } from '@/lib/utils/format';
 
 export function HomeDealCards({ deals, photoMap }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -75,7 +75,7 @@ function HomeDealCard({ deal, photo, isGated }) {
         </div>
       </div>
       <div className="p-2.5 sm:p-4">
-        <p className="text-xs sm:text-sm font-semibold text-navy truncate">{deal.address}</p>
+        <p className="text-xs sm:text-sm font-semibold text-navy truncate">{formatAddress(deal.address)}</p>
         <p className="text-[10px] sm:text-xs text-muted truncate">{deal.neighbourhood || deal.city}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <p className="text-base sm:text-lg font-bold text-navy">{fmtK(deal.price)}</p>

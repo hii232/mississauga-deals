@@ -85,7 +85,7 @@ export function EmailCapture() {
           <p className="text-xs text-red-500 mt-3">{message}</p>
         )}
         <p className="text-[11px] text-navy/40 mt-4">
-          Join GTA investors. Unsubscribe anytime.
+          Free weekly email. No spam, unsubscribe anytime.
         </p>
       </div>
     </section>
