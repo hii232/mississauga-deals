@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { processListings } from '@/lib/listings/process-listings';
+import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -48,10 +50,10 @@ function fmtChange(val) {
   return `<span style="color:${color};font-weight:700;">${arrow} ${Math.abs(num).toFixed(1)}%</span>`;
 }
 
-// ── Build the email HTML ──
-function buildEmailHTML(stats, date) {
+// ── Build the email HTML (per-subscriber: greeting, matched deals, blog) ──
+function buildEmailHTML(stats, date, extras = {}) {
   const s = stats || {};
-  const activeCount = s.activeCount || '1,800+';
+  const activeCount = s.activeCount || '2,500+';
   const avgPrice = fmtPrice(s.avgPrice);
   const avgDOM = s.mississaugaAvgLDOM || s.avgDOM || 28;
   const salesToList = s.mississaugaAvgSPLP
@@ -143,6 +145,9 @@ function buildEmailHTML(stats, date) {
 <!-- BODY -->
 <tr><td style="background:#ffffff;padding:32px;">
 
+  ${extras.greetingName ? `<div style="font-size:14px;color:#334155;margin-bottom:20px;">Hi ${esc(extras.greetingName)} &mdash; here's your week in Mississauga real estate.</div>` : ''}
+  ${extras.dealsHtml || ''}
+
   <!-- Price by Type -->
   <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128200; Price by Property Type</div>
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
@@ -212,6 +217,8 @@ function buildEmailHTML(stats, date) {
     </tr>`).join('')}
   </table>` : ''}
 
+  ${extras.blogHtml || ''}
+
   <!-- CTA -->
   <div style="text-align:center;margin:32px 0 16px;">
     <a href="https://www.mississaugainvestor.ca/listings?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:#3b82f6;color:#fff;font-size:15px;font-weight:700;padding:14px 36px;border-radius:8px;text-decoration:none;">Browse Top Investment Deals &#8594;</a>
@@ -246,7 +253,7 @@ function buildEmailHTML(stats, date) {
       &copy; ${new Date().getFullYear()} MississaugaInvestor.ca &middot; 885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5
     </div>
     <div style="margin-top:8px;">
-      <a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?email={{EMAIL}}" style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:underline;">Unsubscribe from weekly reports</a>
+      <a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?email=${encodeURIComponent(extras.email || '')}" style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:underline;">Unsubscribe from weekly reports</a>
     </div>
   </div>
 </td></tr>
@@ -258,29 +265,125 @@ function buildEmailHTML(stats, date) {
 </html>`;
 }
 
-// ── Get subscriber emails ──
-async function getSubscribers(supabase) {
-  const emails = new Set();
+// ── Escape user/listing text for safe HTML embedding ──
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
-  // Get from saved_searches (active alert subscribers)
+// ── Get subscriber profiles: email → name + saved-search filters ──
+async function getSubscriberProfiles(supabase) {
+  const profiles = new Map();
+
+  // Alert subscribers carry name + filters — the personalization source
   const { data: searches } = await supabase
     .from('saved_searches')
-    .select('email')
+    .select('email, name, filters')
     .eq('active', true);
-  (searches || []).forEach((s) => { if (s.email) emails.add(s.email); });
+  for (const s of searches || []) {
+    if (!s.email) continue;
+    const p = profiles.get(s.email) || { name: null, filtersList: [] };
+    if (!p.name && s.name) p.name = s.name;
+    if (s.filters && typeof s.filters === 'object' && Object.keys(s.filters).length > 0) {
+      p.filtersList.push(s.filters);
+    }
+    profiles.set(s.email, p);
+  }
 
-  // Get from leads (registered users)
+  // Leads (registered users) — name only, no saved filters
   try {
     const { data: leads } = await supabase
       .from('leads')
-      .select('email')
+      .select('email, name')
       .not('email', 'is', null);
-    (leads || []).forEach((l) => { if (l.email) emails.add(l.email); });
+    for (const l of leads || []) {
+      if (!l.email) continue;
+      const p = profiles.get(l.email) || { name: null, filtersList: [] };
+      if (!p.name && l.name) p.name = l.name;
+      profiles.set(l.email, p);
+    }
   } catch {
     // leads table may not exist
   }
 
-  return [...emails];
+  return profiles;
+}
+
+// ── Fetch scored listings once for the whole send ──
+async function fetchScoredListings(request) {
+  try {
+    const url = new URL('/api/listings?limit=200&page=1', request.url);
+    const res = await fetch(url.toString(), { cache: 'no-store' });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const raw = json.listings || (Array.isArray(json) ? json : []);
+    return processListings(raw).sort((a, b) => b.hamzaScore - a.hamzaScore);
+  } catch {
+    return [];
+  }
+}
+
+// ── Pick this subscriber's top deals: their saved filters, else overall top ──
+function pickDealsFor(profile, allListings) {
+  if (allListings.length === 0) return { deals: [], personalized: false };
+
+  if (profile.filtersList.length > 0) {
+    const matched = new Map();
+    for (const f of profile.filtersList) {
+      try {
+        for (const l of applyFilters(allListings, { ...DEFAULT_FILTERS, ...f })) {
+          if (!matched.has(l.id)) matched.set(l.id, l);
+        }
+      } catch {
+        // A malformed saved filter shouldn't kill the send
+      }
+    }
+    const deals = [...matched.values()].sort((a, b) => b.hamzaScore - a.hamzaScore).slice(0, 5);
+    if (deals.length > 0) return { deals, personalized: true };
+  }
+
+  return { deals: allListings.slice(0, 5), personalized: false };
+}
+
+// ── Deal score badge colour (mirrors lib/deal-score.js scoreColorHex) ──
+function scoreBadgeColor(score) {
+  if (score >= 8) return '#10B981';
+  if (score >= 6.5) return '#2563EB';
+  if (score >= 5) return '#F59E0B';
+  return '#EF4444';
+}
+
+// ── "Picked for you" deals table ──
+function buildDealsHTML(deals, personalized) {
+  if (!deals.length) return '';
+  const rows = deals.map((d, i) => `
+    <tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
+      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;">
+        <a href="https://www.mississaugainvestor.ca/listings/${encodeURIComponent(d.id)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-size:13px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(d.address)}</a>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; ${d.beds || 0} bed</div>
+      </td>
+      <td align="right" style="padding:12px 16px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
+        <div style="font-size:14px;font-weight:800;color:#0F2A4A;">${fmtPrice(d.price)}</div>
+        <div style="font-size:11px;margin-top:2px;"><span style="display:inline-block;background:${scoreBadgeColor(d.hamzaScore)};color:#fff;font-weight:700;border-radius:10px;padding:1px 8px;">${d.hamzaScore}/10</span></div>
+      </td>
+    </tr>`).join('');
+
+  return `
+  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:6px;">${personalized ? '&#127919; Picked for You This Week' : '&#11088; Top-Scored Deals This Week'}</div>
+  <div style="font-size:12px;color:#64748b;margin-bottom:14px;">${personalized ? 'Matched to your saved search, ranked by deal score.' : 'The highest-scored investment listings on the market right now.'}</div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">${rows}</table>`;
+}
+
+// ── Latest blog post block ──
+function buildBlogHTML(post) {
+  if (!post) return '';
+  const url = `https://www.mississaugainvestor.ca/blog/${encodeURIComponent(post.slug)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly`;
+  return `
+  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:12px;">&#128240; This Week on the Blog</div>
+  <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:28px;">
+    <a href="${url}" style="font-size:15px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(post.title)}</a>
+    ${post.excerpt ? `<div style="font-size:13px;color:#64748b;margin-top:6px;line-height:1.5;">${esc(post.excerpt)}</div>` : ''}
+    <div style="margin-top:10px;"><a href="${url}" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600;">Read the full post &#8594;</a></div>
+  </div>`;
 }
 
 // ── Send email via Resend ──
@@ -317,32 +420,65 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Resend API key not configured' }, { status: 500 });
     }
 
-    // Fetch live market data
-    const stats = await fetchMarketStats();
+    // Fetch shared data once: market stats, scored listings, latest blog post
+    const [stats, allListings] = await Promise.all([
+      fetchMarketStats(),
+      fetchScoredListings(request),
+    ]);
 
-    // Build the email
+    let latestPost = null;
+    try {
+      const { data: posts } = await supabase
+        .from('blog_posts')
+        .select('title, slug, excerpt')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      latestPost = posts?.[0] || null;
+    } catch {
+      // blog block is optional
+    }
+    const blogHtml = buildBlogHTML(latestPost);
+
     const now = new Date();
-    const html = buildEmailHTML(stats, now);
-
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const subject = `Mississauga Market Weekly — ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+    const dateLabel = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
 
-    // Get all subscriber emails
-    const subscribers = await getSubscribers(supabase);
+    // Subscriber profiles: name + saved-search filters per email
+    const profiles = await getSubscriberProfiles(supabase);
 
-    if (subscribers.length === 0) {
+    if (profiles.size === 0) {
       return NextResponse.json({ success: true, message: 'No subscribers found', sent: 0 });
     }
 
-    // Send to each subscriber (Resend handles batching)
+    // Build and send each subscriber's own email
     let sent = 0;
     let failed = 0;
+    let personalizedCount = 0;
+    const entries = [...profiles.entries()];
 
     // Send in batches of 10 to avoid rate limits
-    for (let i = 0; i < subscribers.length; i += 10) {
-      const batch = subscribers.slice(i, i + 10);
+    for (let i = 0; i < entries.length; i += 10) {
+      const batch = entries.slice(i, i + 10);
       const results = await Promise.allSettled(
-        batch.map((email) => sendEmail(email, subject, html.replace('{{EMAIL}}', encodeURIComponent(email))))
+        batch.map(([email, profile]) => {
+          const { deals, personalized } = pickDealsFor(profile, allListings);
+          if (personalized) personalizedCount++;
+
+          const firstName = (profile.name || '').trim().split(/\s+/)[0] || '';
+          const html = buildEmailHTML(stats, now, {
+            greetingName: firstName,
+            dealsHtml: buildDealsHTML(deals, personalized),
+            blogHtml,
+            email,
+          });
+
+          const subject = personalized
+            ? `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`
+            : `Mississauga Market Weekly — ${dateLabel}`;
+
+          return sendEmail(email, subject, html);
+        })
       );
       results.forEach((r) => {
         if (r.status === 'fulfilled' && r.value) sent++;
@@ -352,10 +488,11 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      subject,
-      subscribers: subscribers.length,
+      subscribers: profiles.size,
       sent,
       failed,
+      personalized: personalizedCount,
+      genericTopDeals: profiles.size - personalizedCount,
     });
   } catch (err) {
     console.error('Newsletter error:', err);

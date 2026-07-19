@@ -38,7 +38,8 @@ export async function POST(request) {
     const listingsRes = await fetch(listingsUrl.toString());
     if (!listingsRes.ok) throw new Error('Failed to fetch listings');
     const rawListings = await listingsRes.json();
-    const allListings = processListings(rawListings);
+    // /api/listings returns { listings, page, ... } — processListings needs the array
+    const allListings = processListings(rawListings.listings || rawListings);
 
     // 3. Group searches by email (one email per user)
     const byEmail = {};

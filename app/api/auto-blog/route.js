@@ -236,8 +236,10 @@ Today is ${currentMonth} ${now.getDate()}, ${currentYear}. Everything must read 
 ${topicBlock}
 
 ## Don't repeat these
-Recent posts already on the blog — pick a different angle than all of them:
+Recent posts already on the blog:
 ${existingTitles.slice(0, 30).map((t) => `- ${t}`).join('\n')}
+
+Hard rule: if a news story was already covered by ANY recent post above — even from a different angle, even if your take would be better — do not write about that story again. A story counts as covered when the post is about the same underlying event (same rate decision, same policy announcement, same report). Pick the next-most-consequential uncovered story instead. If nothing in the headlines is both consequential and uncovered, ignore the headlines and write a fresh evergreen piece grounded in the neighbourhood data below.
 
 ## Real platform data you may cite
 Current neighbourhood figures from MississaugaInvestor.ca's own dataset:
