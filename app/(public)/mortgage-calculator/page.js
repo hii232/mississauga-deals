@@ -159,7 +159,7 @@ export default function MortgageCalculatorPage() {
                 <span className="h-1 w-5 bg-accent rounded-full" />
                 Property Details
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputSlider label="Purchase Price" value={price} onChange={setPrice} min={100000} max={5000000} step={25000} prefix="$" format={fmt} />
                 <InputSlider label="Down Payment" value={downPct} onChange={setDownPct} min={5} max={50} step={1} suffix="%" />
                 <InputSlider label="Interest Rate" value={rate} onChange={setRate} min={1} max={10} step={0.05} suffix="%" decimal />
@@ -188,7 +188,7 @@ export default function MortgageCalculatorPage() {
                 <span className="h-1 w-5 bg-green-500 rounded-full" />
                 Income & Expenses
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputSlider label="Monthly Rent" value={rent} onChange={setRent} min={500} max={8000} step={100} prefix="$" format={fmt} />
                 <InputSlider label="Annual Property Tax" value={propertyTax} onChange={setPropertyTax} min={1000} max={15000} step={250} prefix="$" format={fmt} />
                 <InputSlider label="Monthly Insurance" value={insurance} onChange={setInsurance} min={50} max={500} step={25} prefix="$" />

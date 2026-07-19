@@ -310,13 +310,13 @@ export default function Header({ savedCount = 0 }) {
           <div className="flex items-center gap-2">
             <Link
               href="/pre-construction/hst-rebate"
-              className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-0.5 text-xs font-bold text-white no-underline transition-colors"
+              className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-bold text-white no-underline transition-colors"
             >
               Learn More
             </Link>
             <Link
               href="/book-call"
-              className="hidden sm:inline-flex items-center rounded-full bg-white text-orange-600 px-3 py-0.5 text-xs font-bold no-underline hover:bg-white/90 transition-colors"
+              className="hidden sm:inline-flex items-center rounded-full bg-white text-orange-600 px-3 py-1.5 text-xs font-bold no-underline hover:bg-white/90 transition-colors"
             >
               Book a Call
             </Link>

@@ -94,7 +94,7 @@ function HomeDealCard({ deal, photo, isGated }) {
                 <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
               </div>
               <div>
-                <p className="text-[7px] sm:text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
+                <p className="text-[9px] sm:text-[10px] font-medium text-slate-400">Cash Flow/mo</p>
                 <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
               </div>
               <div>
@@ -109,7 +109,7 @@ function HomeDealCard({ deal, photo, isGated }) {
                 <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.capRate.toFixed(1)}%</p>
               </div>
               <div>
-                <p className="text-[7px] sm:text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
+                <p className="text-[9px] sm:text-[10px] font-medium text-slate-400">Cash Flow/mo</p>
                 <p className={`text-[11px] sm:text-xs font-bold ${deal.cashFlow >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
                   {deal.cashFlow >= 0 ? '+' : '-'}${Math.abs(Math.round(deal.cashFlow))}
                 </p>
@@ -122,7 +122,7 @@ function HomeDealCard({ deal, photo, isGated }) {
           )}
         </div>
         {isGated && (
-          <p className="mt-1.5 text-center text-[9px] sm:text-[10px] font-medium text-accent">
+          <p className="mt-1.5 text-center text-[10px] sm:text-[11px] font-medium text-accent">
             Sign up free to unlock deal metrics
           </p>
         )}

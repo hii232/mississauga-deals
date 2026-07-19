@@ -1,7 +1,7 @@
 import { BookingCalendar } from '@/components/booking/booking-calendar';
 
 export const metadata = {
-  title: 'Book a Call with Hamza Nouman — Free 30-Min Consultation | MississaugaInvestor.ca',
+  title: 'Book a Call with Hamza Nouman — Free 30-Min Consultation',
   description: 'Schedule a free 30-minute consultation with Hamza Nouman, REALTOR® at Cityscape Real Estate. Discuss Mississauga investment properties, pre-construction, HST rebate, and more.',
   alternates: { canonical: '/book-call' },
   openGraph: {

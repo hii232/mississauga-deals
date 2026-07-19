@@ -38,7 +38,7 @@ export function generateMetadata({ searchParams }) {
   const copy = CITY_COPY[city];
   if (copy) {
     return {
-      title: copy.h1 + ' | MississaugaInvestor.ca',
+      title: copy.h1,
       description: copy.sub,
       alternates: { canonical: '/gta?city=' + encodeURIComponent(city) },
     };

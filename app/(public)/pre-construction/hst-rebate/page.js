@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000 | MississaugaInvestor.ca',
+  title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
   description:
     'Ontario HST rebate on new homes explained for Mississauga buyers and investors. Save up to $130,000 on new builds and pre-construction. Learn who qualifies, savings tiers, and eligible property types. April 2026 – March 2027.',
   alternates: { canonical: '/pre-construction/hst-rebate' },

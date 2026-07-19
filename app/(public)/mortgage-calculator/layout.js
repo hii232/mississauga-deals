@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Mortgage Calculator — Mississauga Investment Properties | MississaugaInvestor.ca',
+  title: 'Mortgage Calculator — Mississauga Investment Properties',
   description: 'Free mortgage calculator for Mississauga investment properties. Calculate payments, cash flow, and returns with current Canadian mortgage rates. Built by Hamza Nouman for real estate investors.',
   alternates: { canonical: '/mortgage-calculator' },
   openGraph: {
