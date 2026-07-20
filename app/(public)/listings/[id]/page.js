@@ -763,7 +763,7 @@ function BreakdownRow({ label, value, bold, annual, negative }) {
 // ──────────────────────────────────────────
 //  Photo Gallery
 // ──────────────────────────────────────────
-function PhotoGallery({ photos, listingId }) {
+function PhotoGallery({ photos, listingId, address }) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [fetchedPhotos, setFetchedPhotos] = useState(null);
@@ -805,8 +805,10 @@ function PhotoGallery({ photos, listingId }) {
       >
         <img
           src={images[activeIdx]}
-          alt="Property photo"
+          alt={address ? `${address} — property photo` : 'Property photo'}
           className="h-full w-full object-cover object-center"
+          fetchPriority="high"
+          decoding="async"
           onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
         />
         {/* Left/Right arrows on main image */}
@@ -855,8 +857,10 @@ function PhotoGallery({ photos, listingId }) {
               >
                 <img
                   src={src}
-                  alt={`Thumbnail ${i + 1}`}
+                  alt={address ? `${address} — photo ${i + 1}` : `Photo ${i + 1}`}
                   className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                   onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
                 />
               </button>
@@ -1282,7 +1286,7 @@ export default function PropertyDetailPage() {
         <div className="grid gap-6 lg:grid-cols-5">
           {/* Left Column: Photos */}
           <div className="lg:col-span-3 min-w-0">
-            <PhotoGallery photos={listing.photos} listingId={listing.id} />
+            <PhotoGallery photos={listing.photos} listingId={listing.id} address={listing.address} />
           </div>
 
           {/* Right Column: Header Info */}
