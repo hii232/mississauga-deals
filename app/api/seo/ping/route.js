@@ -3,10 +3,14 @@ import { NextResponse } from 'next/server';
 const SITEMAP_URL = 'https://www.mississaugainvestor.ca/sitemap.xml';
 
 /**
- * POST /api/seo/ping
- * Called by Vercel Cron daily — pings Google & Bing with updated sitemap,
- * then submits new listing URLs to IndexNow for instant Bing/Yandex indexing.
+ * GET|POST /api/seo/ping
+ * Called by Vercel Cron daily (cron invokes with GET) — pings Google & Bing
+ * with updated sitemap, then submits new listing URLs to IndexNow.
  */
+export async function GET(request) {
+  return POST(request);
+}
+
 export async function POST(request) {
   // Verify cron secret
   const authHeader = request.headers.get('authorization');
