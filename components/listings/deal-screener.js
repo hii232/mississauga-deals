@@ -95,7 +95,7 @@ function ContextStat({ label, value, format, icon, delay }) {
 }
 
 // ── Main Component ──
-export function DealScreener({ listings }) {
+export function DealScreener({ listings, loading = false }) {
   const [soldStats, setSoldStats] = useState(null);
   const [showPortfolio, setShowPortfolio] = useState(false);
 
@@ -164,20 +164,38 @@ export function DealScreener({ listings }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
-              <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
-              {metrics.suites.toLocaleString()} suites
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
-              <span className="h-1 w-1 rounded-full bg-accent" />
-              {metrics.total.toLocaleString()} analyzed
-            </span>
-          </div>
+          {listings.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
+                <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
+                {metrics.suites.toLocaleString()} suites
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
+                <span className="h-1 w-1 rounded-full bg-accent" />
+                {metrics.total.toLocaleString()} analyzed
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Body ── */}
+      {/* ── Body — never show an all-zero dashboard: skeleton while loading,
+          plain message when filters match nothing ── */}
+      {listings.length === 0 ? (
+        <div className="px-4 py-4">
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 animate-pulse">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-16 rounded-lg bg-slate-100" />
+              ))}
+            </div>
+          ) : (
+            <p className="py-2 text-center text-sm text-muted">
+              No deals match your current filters — try widening the price range or clearing a filter.
+            </p>
+          )}
+        </div>
+      ) : (
       <div className="px-4 py-3 space-y-2.5">
         {/* ROW 1: OPPORTUNITY DASHBOARD — No red numbers, all positive/neutral */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
@@ -293,6 +311,7 @@ export function DealScreener({ listings }) {
           </Link>
         </p>
       </div>
+      )}
     </div>
   );
 }

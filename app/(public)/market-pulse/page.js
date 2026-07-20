@@ -102,12 +102,14 @@ export default function MarketPulsePage() {
       <div className="mb-10">
         <h1 className="section-title mb-2">Market Pulse</h1>
         <p className="section-subtitle">
-          Mississauga real estate market snapshot — updated regularly
+          Mississauga market snapshot — live MLS data blended with TRREB Market Watch
+          {stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}
         </p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      {/* Key Metrics — active-listings tile hidden when the API has no real
+          count: showing "0 on market" reads as broken data */}
+      <div className={`grid grid-cols-2 ${marketMetrics.activeCount > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-10`}>
         <div className="card p-5 text-center">
           <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Avg DOM</p>
           <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.avgDOM}</p>
@@ -123,11 +125,13 @@ export default function MarketPulsePage() {
           <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.monthsOfInventory}</p>
           <p className="text-xs text-muted">months supply</p>
         </div>
-        <div className="card p-5 text-center">
-          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Active Listings</p>
-          <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.activeCount.toLocaleString()}</p>
-          <p className="text-xs text-muted">on market</p>
-        </div>
+        {marketMetrics.activeCount > 0 && (
+          <div className="card p-5 text-center">
+            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Active Listings</p>
+            <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.activeCount.toLocaleString()}</p>
+            <p className="text-xs text-muted">on market</p>
+          </div>
+        )}
       </div>
 
       {/* Avg Prices by Type - Bar Chart */}

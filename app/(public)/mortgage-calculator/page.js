@@ -1,5 +1,36 @@
 'use client';
 
+import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
+// Answers mirror exactly what the calculator implements — keep in sync with calc logic
+const CALC_FAQ = [
+  {
+    question: 'Why do Canadian mortgage payments differ from US calculator results?',
+    answer:
+      'Canadian fixed-rate mortgages compound semi-annually, not monthly like US mortgages. This calculator uses semi-annual compounding, so payments match what Canadian lenders actually charge.',
+  },
+  {
+    question: 'When is CMHC mortgage insurance required and how much does it cost?',
+    answer:
+      'CMHC insurance is required on owner-occupied purchases with less than 20% down. The premium is 4.00% of the loan with 5-9.99% down, 3.10% with 10-14.99% down, and 2.80% with 15-19.99% down. The premium is added to the mortgage, but Ontario charges 8% PST on it, due in cash at closing.',
+  },
+  {
+    question: 'What is the federal mortgage stress test?',
+    answer:
+      'To qualify, you must prove you could afford payments at the greater of your contract rate plus 2% or 5.25%. This calculator shows your stress-test payment alongside the real payment.',
+  },
+  {
+    question: 'What is the minimum down payment in Canada?',
+    answer:
+      'The federal minimum is 5% of the first $500,000 plus 10% of the remainder up to $1.5 million. Homes of $1.5 million or more require 20% down.',
+  },
+  {
+    question: 'How much is land transfer tax in Ontario?',
+    answer:
+      'Ontario land transfer tax is marginal: 0.5% up to $55,000, 1% to $250,000, 1.5% to $400,000, 2% to $2 million, and 2.5% above that. This calculator includes it in your cash-to-close and cash-on-cash return. Toronto properties pay an additional municipal LTT, which does not apply in Mississauga.',
+  },
+];
+
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 
@@ -138,6 +169,13 @@ export default function MortgageCalculatorPage() {
 
   return (
     <>
+      <FAQJsonLd items={CALC_FAQ} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Mortgage Calculator', url: 'https://www.mississaugainvestor.ca/mortgage-calculator' },
+        ]}
+      />
       {/* Hero */}
       <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-14 md:py-18">
         <div className="max-w-3xl mx-auto px-4 text-center">
@@ -281,6 +319,24 @@ export default function MortgageCalculatorPage() {
           lender, credit score, and specific terms. Rental income estimates, cap rates, and cash flow projections are not
           guaranteed. Consult a licensed mortgage broker and financial advisor before making investment decisions.
         </p>
+      </section>
+
+      {/* FAQ — visible content backing the FAQPage JSON-LD above */}
+      <section className="max-w-3xl mx-auto px-4 pb-14">
+        <h2 className="font-heading font-bold text-xl text-navy mb-5">
+          How This Calculator Works
+        </h2>
+        <div className="space-y-3">
+          {CALC_FAQ.map((f) => (
+            <details key={f.question} className="group bg-white rounded-xl border border-gray-100 px-5 py-4">
+              <summary className="cursor-pointer list-none flex items-center justify-between gap-3 text-sm font-semibold text-navy">
+                {f.question}
+                <span className="text-accent transition-transform group-open:rotate-45 text-lg leading-none" aria-hidden="true">+</span>
+              </summary>
+              <p className="mt-3 text-sm text-muted leading-relaxed">{f.answer}</p>
+            </details>
+          ))}
+        </div>
       </section>
     </>
   );

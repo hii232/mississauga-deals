@@ -384,7 +384,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
   return (
     <div className="space-y-6">
       {/* Deal Screener */}
-      <DealScreener listings={filtered} />
+      <DealScreener listings={filtered} loading={isLoading} />
 
       {/* Top Picks — highest-scored CF+ deals */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />

@@ -70,6 +70,7 @@ const NAV_ITEMS = [
 function GtaMegaMenu({ pathname }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef(null);
+  const triggerRef = useRef(null);
 
   const isActive =
     pathname === '/gta' || pathname?.startsWith('/gta/');
@@ -87,12 +88,23 @@ function GtaMegaMenu({ pathname }) {
       className="relative"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
+      onKeyDown={(e) => {
+        // Escape closes from anywhere inside the menu, not just the trigger
+        if (e.key === 'Escape' && open) {
+          setOpen(false);
+          triggerRef.current?.focus();
+        }
+      }}
+      onBlur={(e) => {
+        // Close when keyboard focus leaves the menu entirely
+        if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
+      }}
     >
       <button
         type="button"
+        ref={triggerRef}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => {
-          if (e.key === 'Escape') setOpen(false);
           if (e.key === 'ArrowDown') {
             e.preventDefault();
             setOpen(true);
