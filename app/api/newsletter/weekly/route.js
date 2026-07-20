@@ -157,7 +157,7 @@ function buildEmailHTML(stats, date, extras = {}) {
   ${extras.dealsHtml || ''}
 
   ${priceTiles.length > 0 ? `<!-- Price by Type -->
-  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128200; Price by Property Type</div>
+  ${sectionHeader('Mississauga averages', 'Price by Property Type', '')}
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
     ${Array.from({ length: Math.ceil(priceTiles.length / 2) }, (_, r) => priceTiles.slice(r * 2, r * 2 + 2)).map((row) => `<tr>
       ${row.map((t) => `<td width="50%" style="padding:8px;">
@@ -170,7 +170,7 @@ function buildEmailHTML(stats, date, extras = {}) {
   </table>` : ''}
 
   ${indicatorRows.length > 0 ? `<!-- Key Indicators -->
-  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128202; Key Market Indicators</div>
+  ${sectionHeader('The numbers that matter', 'Key Market Indicators', '')}
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
     ${indicatorRows.map((r, i) => `<tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
       <td style="padding:12px 16px;font-size:13px;color:#64748b;${i < indicatorRows.length - 1 ? 'border-bottom:1px solid #e2e8f0;' : ''}">${r.label}</td>
@@ -180,7 +180,7 @@ function buildEmailHTML(stats, date, extras = {}) {
 
   ${hoods.length > 0 ? `
   <!-- Hot Neighbourhoods -->
-  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128293; Hot Neighbourhoods This Week</div>
+  ${sectionHeader('Where prices are moving', 'Hot Neighbourhoods', '')}
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
     <tr style="background:#0F2A4A;">
       <td style="padding:10px 16px;font-size:11px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:0.5px;">Neighbourhood</td>
@@ -354,28 +354,90 @@ function scoreBadgeColor(score) {
 }
 
 // ── "Picked for you" deals table ──
+function sectionHeader(eyebrow, title, sub) {
+  return `
+  <div style="font-size:10px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">${eyebrow}</div>
+  <div style="font-size:20px;font-weight:800;color:#0F2A4A;letter-spacing:-0.3px;margin-bottom:${sub ? '4px' : '16px'};">${title}</div>
+  ${sub ? `<div style="font-size:12px;color:#64748b;margin-bottom:16px;">${sub}</div>` : ''}`;
+}
+
+function dealChips(d, size = 10) {
+  const chips = [];
+  if (d.capRate > 0) chips.push(`<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:3px 9px;font-size:${size}px;color:#475569;font-weight:700;">CAP ${d.capRate}%</span>`);
+  if (typeof d.cashFlow === 'number') chips.push(`<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:3px 9px;font-size:${size}px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/mo</span>`);
+  if (d.beds) chips.push(`<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:3px 9px;font-size:${size}px;color:#475569;font-weight:700;">${d.beds} BED</span>`);
+  return chips.join('&nbsp;');
+}
+
+function dealPhoto(d) {
+  const p = Array.isArray(d.photos) ? d.photos[0] : null;
+  return typeof p === 'string' && p.startsWith('http') ? p : null;
+}
+
+function dealUrl(d) {
+  return `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(d.id)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly`;
+}
+
 function buildDealsHTML(deals, personalized) {
   if (!deals.length) return '';
-  const rows = deals.map((d, i) => `
-    <tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
-      <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;">
-        <a href="https://www.mississaugainvestor.ca/listings/${encodeURIComponent(d.id)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-size:13px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(d.address)}</a>
-        <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; ${d.beds || 0} bed</div>
-        <div style="margin-top:6px;">
-          ${d.capRate > 0 ? `<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:10px;color:#475569;font-weight:600;">CAP ${d.capRate}%</span>&nbsp;` : ''}
-          ${typeof d.cashFlow === 'number' ? `<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/mo</span>` : ''}
-        </div>
+  const [hero, ...rest] = deals;
+  const heroPhoto = dealPhoto(hero);
+
+  // Featured deal — full-width photo card, magazine style
+  const heroHtml = `
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+    ${heroPhoto
+      ? `<tr><td><a href="${dealUrl(hero)}"><img src="${heroPhoto}" alt="${esc(hero.address)}" width="536" style="width:100%;max-width:536px;height:auto;display:block;" /></a></td></tr>`
+      : `<tr><td bgcolor="#0F2A4A" style="background:linear-gradient(135deg,#0F2A4A,#1a3a5c);padding:44px 24px;text-align:center;">
+           <div style="font-size:22px;font-weight:800;color:#ffffff;">${esc(hero.address)}</div>
+           <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">${esc(hero.neighbourhood || 'Mississauga')}</div>
+         </td></tr>`}
+    <tr><td style="background:#ffffff;padding:18px 20px;">
+      <table width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td>
+          <span style="display:inline-block;background:${scoreBadgeColor(hero.hamzaScore)};color:#fff;font-weight:800;font-size:11px;border-radius:12px;padding:3px 10px;">DEAL SCORE ${hero.hamzaScore}/10</span>
+          <div style="margin-top:8px;"><a href="${dealUrl(hero)}" style="font-size:17px;font-weight:800;color:#0F2A4A;text-decoration:none;">${esc(hero.address)}</a></div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px;">${esc(hero.neighbourhood || 'Mississauga')} &middot; ${esc(hero.type || 'Property')}</div>
+        </td>
+        <td align="right" valign="top" style="white-space:nowrap;">
+          <div style="font-size:22px;font-weight:800;color:#0F2A4A;">${fmtPrice(hero.price)}</div>
+        </td>
+      </tr></table>
+      <div style="margin-top:12px;">${dealChips(hero, 11)}</div>
+      <div style="margin-top:14px;"><a href="${dealUrl(hero)}" style="display:inline-block;background:#3b82f6;color:#ffffff;font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">View Full Analysis &#8594;</a></div>
+    </td></tr>
+  </table>`;
+
+  // Remaining deals — photo-thumbnail rows
+  const rows = rest.map((d) => {
+    const p = dealPhoto(d);
+    return `
+    <tr>
+      <td width="76" style="padding:10px 0 10px 12px;vertical-align:top;">
+        <a href="${dealUrl(d)}">${p
+          ? `<img src="${p}" alt="${esc(d.address)}" width="64" height="64" style="border-radius:8px;display:block;object-fit:cover;" />`
+          : `<table cellpadding="0" cellspacing="0"><tr><td bgcolor="#0F2A4A" width="64" height="64" align="center" style="border-radius:8px;font-size:20px;font-weight:800;color:#3b82f6;">${esc((d.address || '?').charAt(0))}</td></tr></table>`}</a>
       </td>
-      <td align="right" style="padding:12px 16px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
+      <td style="padding:10px 12px;vertical-align:top;border-bottom:1px solid #f1f5f9;">
+        <a href="${dealUrl(d)}" style="font-size:13px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(d.address)}</a>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')}</div>
+        <div style="margin-top:6px;">${dealChips(d)}</div>
+      </td>
+      <td align="right" style="padding:10px 12px 10px 0;vertical-align:top;white-space:nowrap;border-bottom:1px solid #f1f5f9;">
         <div style="font-size:14px;font-weight:800;color:#0F2A4A;">${fmtPrice(d.price)}</div>
-        <div style="font-size:11px;margin-top:2px;"><span style="display:inline-block;background:${scoreBadgeColor(d.hamzaScore)};color:#fff;font-weight:700;border-radius:10px;padding:1px 8px;">${d.hamzaScore}/10</span></div>
+        <div style="font-size:11px;margin-top:3px;"><span style="display:inline-block;background:${scoreBadgeColor(d.hamzaScore)};color:#fff;font-weight:700;border-radius:10px;padding:1px 8px;">${d.hamzaScore}/10</span></div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   return `
-  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:6px;">${personalized ? '&#127919; Picked for You This Week' : '&#11088; Top-Scored Deals This Week'}</div>
-  <div style="font-size:12px;color:#64748b;margin-bottom:14px;">${personalized ? 'Matched to your saved search, ranked by deal score.' : 'The highest-scored investment listings on the market right now.'}</div>
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">${rows}</table>`;
+  ${sectionHeader(
+    personalized ? 'Matched to your saved search' : 'Ranked by deal score',
+    personalized ? 'Picked for You This Week' : "This Week's Top Deals",
+    ''
+  )}
+  ${heroHtml}
+  ${rest.length ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#ffffff;">${rows}</table>` : '<div style="margin-bottom:16px;"></div>'}`;
 }
 
 // ── Latest blog post block ──
@@ -383,7 +445,7 @@ function buildBlogHTML(post) {
   if (!post) return '';
   const url = `https://www.mississaugainvestor.ca/blog/${encodeURIComponent(post.slug)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly`;
   return `
-  <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:12px;">&#128240; This Week on the Blog</div>
+  ${sectionHeader('From the blog', 'This Week\'s Read', '')}
   <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:28px;">
     <a href="${url}" style="font-size:15px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(post.title)}</a>
     ${post.excerpt ? `<div style="font-size:13px;color:#64748b;margin-top:6px;line-height:1.5;">${esc(post.excerpt)}</div>` : ''}
@@ -545,9 +607,9 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const sampleDeals = [
-        { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, neighbourhood: 'Lakeview' },
-        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, neighbourhood: 'City Centre' },
-        { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson' },
+        { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, neighbourhood: 'Lakeview', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-1.jpg'] },
+        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
+        { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
       ];
       const html = buildEmailHTML(
         { avgPrice: 985000, avgDOM: 31, salesToListRatio: 0.96, mississaugaMonthsOfInventory: 5.2 },
