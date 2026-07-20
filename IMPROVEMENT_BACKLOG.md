@@ -29,7 +29,7 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 ## 3 — Weekly emails & alerts
 
-- [ ] Weekly newsletter template: audit HTML for email-client compatibility (table layout, inline styles, dark-mode safe, <600px wide), test-render the generated HTML
+- [x] Weekly newsletter template audited 2026-07-20: table layout + inline styles + 600px max all correct, UTM params and unsubscribe link present, user fields escaped. Added ?preview=1 test-render mode (dev-open, auth-gated in prod). FIXED: template fabricated stats when data was missing ("2,500+" active listings, avgDOM 28, sale-to-list 97.2%) and rendered "N/A" tiles — stat blocks now show only real data and hide themselves otherwise. Dark-mode-safe pass still open
 - [ ] Newsletter content quality: leads with the best deals + one useful market stat; subject lines specific not clickbait; correct unsubscribe link in every send
 - [ ] Deal alerts: verify matching logic against saved filters (no misses, no floods), cap per-email volume, dedupe listings already sent
 - [ ] Alert/newsletter emails: every listing links back with UTM params so conversions are attributable
@@ -85,4 +85,5 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-20 — [improvement agent] Bookings API hardening: validation now precedes the DB check (bad input gets a 400, not "Database not configured" 500); if the DB is down the booking falls back to the notification email so the hottest lead type is never silently lost (503 only when no capture channel exists); user-supplied fields escaped in notification email HTML. All verified with live requests — b86d5ce
 - 2026-07-20 — [design agent] /alerts (main "Sign Up Free" CTA destination): added trust/expectation block beside the submit button — match-only emails, scored and analyzed, free forever, one-click unsubscribe, email never shared. Trust-signals backlog item now checked off across all capture forms; verified at 375px — (this commit)
 - 2026-07-20 — [release] Shipped 7-commit daily release to production via PR #2 (merged 9b56023); release routine re-pointed to the shipping session using the PR+merge path, so the "blocked on main push" issue is resolved — no action needed from Hamza
-- 2026-07-20 — [seo agent] Internal linking: listing detail pages now link the neighbourhood name to its /neighbourhoods/{slug} investor guide (when a guide exists) — funnels link equity from the highest-traffic pages into guide pages and gives buyers one-tap investor context — (this commit)
+- 2026-07-20 — [seo agent] Internal linking: listing detail pages now link the neighbourhood name to its /neighbourhoods/{slug} investor guide (when a guide exists) — funnels link equity from the highest-traffic pages into guide pages and gives buyers one-tap investor context — 15aa277
+- 2026-07-20 — [improvement agent] Weekly newsletter: added ?preview=1 test-render mode and used it to catch + fix fabricated stats (hardcoded "2,500+" listings, avgDOM 28, 97.2% sale-to-list mailed as if live) and "N/A" tiles — every stat block now renders only real data and hides itself when data is missing — (this commit)

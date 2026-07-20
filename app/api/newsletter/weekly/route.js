@@ -52,29 +52,46 @@ function fmtChange(val) {
 
 // ── Build the email HTML (per-subscriber: greeting, matched deals, blog) ──
 function buildEmailHTML(stats, date, extras = {}) {
+  // Never fabricate or show "N/A" — a stat with no real data is simply omitted
   const s = stats || {};
-  const activeCount = s.activeCount || '2,500+';
-  const avgPrice = fmtPrice(s.avgPrice);
-  const avgDOM = s.mississaugaAvgLDOM || s.avgDOM || 28;
+  const activeCount = s.activeCount || null;
+  const avgPrice = s.avgPrice ? fmtPrice(s.avgPrice) : null;
+  const avgDOM = s.mississaugaAvgLDOM || s.avgDOM || null;
   const salesToList = s.mississaugaAvgSPLP
     ? s.mississaugaAvgSPLP + '%'
     : s.salesToListRatio
       ? (s.salesToListRatio * 100).toFixed(1) + '%'
-      : '97.2%';
-  const inventory = s.mississaugaMonthsOfInventory || 'N/A';
+      : null;
+  const inventory = s.mississaugaMonthsOfInventory || null;
 
   // Price by type
   const prices = s.avgPrices || {};
-  const detached = fmtPrice(prices.detached?.avg || prices.detached?.soldAvg);
-  const semi = fmtPrice(prices.semiDetached?.avg || prices.semiDetached?.soldAvg);
-  const town = fmtPrice(prices.townhouse?.avg || prices.townhouse?.soldAvg);
-  const condo = fmtPrice(prices.condo?.avg || prices.condo?.soldAvg);
+  const priceTiles = [
+    { label: 'Detached', value: prices.detached?.avg || prices.detached?.soldAvg },
+    { label: 'Semi-Detached', value: prices.semiDetached?.avg || prices.semiDetached?.soldAvg },
+    { label: 'Townhouse', value: prices.townhouse?.avg || prices.townhouse?.soldAvg },
+    { label: 'Condo', value: prices.condo?.avg || prices.condo?.soldAvg },
+  ].filter((t) => t.value > 0);
 
   // Mortgage rates
   const mortgage = s.mortgageRates || {};
-  const variable = mortgage.variable || 'N/A';
-  const fixed5 = mortgage.fixed5Year || mortgage.fixed5 || 'N/A';
-  const bocRate = s.economicIndicators?.bocRate || mortgage.bocRate || 'N/A';
+  const variable = mortgage.variable || null;
+  const fixed5 = mortgage.fixed5Year || mortgage.fixed5 || null;
+  const bocRate = s.economicIndicators?.bocRate || mortgage.bocRate || null;
+
+  const headerStats = [
+    activeCount != null ? { label: 'Active Listings', value: typeof activeCount === 'number' ? activeCount.toLocaleString() : activeCount } : null,
+    avgPrice ? { label: 'Avg. Price', value: avgPrice } : null,
+    avgDOM != null ? { label: 'Avg. DOM', value: `${avgDOM}<span style="font-size:12px;color:rgba(255,255,255,0.4);"> days</span>` } : null,
+    salesToList ? { label: 'Sale-to-List', value: salesToList } : null,
+  ].filter(Boolean);
+
+  const indicatorRows = [
+    inventory != null ? { label: 'Months of Inventory', value: `${inventory} mo` } : null,
+    bocRate != null ? { label: 'BoC Policy Rate', value: `${bocRate}%` } : null,
+    variable != null ? { label: 'Variable Rate', value: `${variable}%` } : null,
+    fixed5 != null ? { label: '5-Year Fixed', value: `${fixed5}%` } : null,
+  ].filter(Boolean);
 
   // TRREB data
   const trreb = s.trrebData || {};
@@ -120,26 +137,14 @@ function buildEmailHTML(stats, date, extras = {}) {
 
 <!-- MARKET PULSE STRIP -->
 <tr><td style="background:#0a1f35;padding:16px 32px;">
-  <table width="100%" cellpadding="0" cellspacing="0">
+  ${headerStats.length > 0 ? `<table width="100%" cellpadding="0" cellspacing="0">
     <tr>
-      <td width="25%" align="center" style="padding:4px;">
-        <div style="font-size:20px;font-weight:800;color:#fff;">${typeof activeCount === 'number' ? activeCount.toLocaleString() : activeCount}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">Active Listings</div>
-      </td>
-      <td width="25%" align="center" style="padding:4px;">
-        <div style="font-size:20px;font-weight:800;color:#fff;">${avgPrice}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">Avg. Price</div>
-      </td>
-      <td width="25%" align="center" style="padding:4px;">
-        <div style="font-size:20px;font-weight:800;color:#fff;">${avgDOM}<span style="font-size:12px;color:rgba(255,255,255,0.4);"> days</span></div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">Avg. DOM</div>
-      </td>
-      <td width="25%" align="center" style="padding:4px;">
-        <div style="font-size:20px;font-weight:800;color:#fff;">${salesToList}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">Sale-to-List</div>
-      </td>
+      ${headerStats.map((c) => `<td width="${Math.floor(100 / headerStats.length)}%" align="center" style="padding:4px;">
+        <div style="font-size:20px;font-weight:800;color:#fff;">${c.value}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">${c.label}</div>
+      </td>`).join('')}
     </tr>
-  </table>
+  </table>` : ''}
 </td></tr>
 
 <!-- BODY -->
@@ -148,59 +153,27 @@ function buildEmailHTML(stats, date, extras = {}) {
   ${extras.greetingName ? `<div style="font-size:14px;color:#334155;margin-bottom:20px;">Hi ${esc(extras.greetingName)} &mdash; here's your week in Mississauga real estate.</div>` : ''}
   ${extras.dealsHtml || ''}
 
-  <!-- Price by Type -->
+  ${priceTiles.length > 0 ? `<!-- Price by Type -->
   <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128200; Price by Property Type</div>
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-    <tr>
-      <td width="50%" style="padding:8px;">
+    ${Array.from({ length: Math.ceil(priceTiles.length / 2) }, (_, r) => priceTiles.slice(r * 2, r * 2 + 2)).map((row) => `<tr>
+      ${row.map((t) => `<td width="50%" style="padding:8px;">
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Detached</div>
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${detached}</div>
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">${t.label}</div>
+          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${fmtPrice(t.value)}</div>
         </div>
-      </td>
-      <td width="50%" style="padding:8px;">
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Semi-Detached</div>
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${semi}</div>
-        </div>
-      </td>
-    </tr>
-    <tr>
-      <td width="50%" style="padding:8px;">
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Townhouse</div>
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${town}</div>
-        </div>
-      </td>
-      <td width="50%" style="padding:8px;">
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Condo</div>
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${condo}</div>
-        </div>
-      </td>
-    </tr>
-  </table>
+      </td>`).join('')}
+    </tr>`).join('')}
+  </table>` : ''}
 
-  <!-- Key Indicators -->
+  ${indicatorRows.length > 0 ? `<!-- Key Indicators -->
   <div style="font-size:16px;font-weight:700;color:#0F2A4A;margin-bottom:16px;">&#128202; Key Market Indicators</div>
   <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
-    <tr style="background:#f8fafc;">
-      <td style="padding:12px 16px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Months of Inventory</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;border-bottom:1px solid #e2e8f0;">${inventory} mo</td>
-    </tr>
-    <tr>
-      <td style="padding:12px 16px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">BoC Policy Rate</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;border-bottom:1px solid #e2e8f0;">${bocRate}%</td>
-    </tr>
-    <tr style="background:#f8fafc;">
-      <td style="padding:12px 16px;font-size:13px;color:#64748b;border-bottom:1px solid #e2e8f0;">Variable Rate</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;border-bottom:1px solid #e2e8f0;">${variable}%</td>
-    </tr>
-    <tr>
-      <td style="padding:12px 16px;font-size:13px;color:#64748b;">5-Year Fixed</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;">${fixed5}%</td>
-    </tr>
-  </table>
+    ${indicatorRows.map((r, i) => `<tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
+      <td style="padding:12px 16px;font-size:13px;color:#64748b;${i < indicatorRows.length - 1 ? 'border-bottom:1px solid #e2e8f0;' : ''}">${r.label}</td>
+      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;${i < indicatorRows.length - 1 ? 'border-bottom:1px solid #e2e8f0;' : ''}">${r.value}</td>
+    </tr>`).join('')}
+  </table>` : ''}
 
   ${hoods.length > 0 ? `
   <!-- Hot Neighbourhoods -->
@@ -407,6 +380,32 @@ async function sendEmail(to, subject, html) {
 // ── Main handler ──
 export async function GET(request) {
   try {
+    // ?preview=1 renders the template with sample data and sends NOTHING.
+    // Allowed in dev without auth so the HTML can be test-rendered; in
+    // production it still requires the cron/admin secret.
+    const { searchParams } = new URL(request.url);
+    if (searchParams.get('preview') === '1') {
+      if (process.env.NODE_ENV !== 'development' && !isAuthorized(request)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      const sampleDeals = [
+        { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, neighbourhood: 'Lakeview' },
+        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, neighbourhood: 'City Centre' },
+        { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson' },
+      ];
+      const html = buildEmailHTML(
+        { avgPrice: 985000, avgDOM: 31, salesToListRatio: 0.96, mississaugaMonthsOfInventory: 5.2 },
+        new Date(),
+        {
+          greetingName: 'Sam',
+          dealsHtml: buildDealsHTML(sampleDeals, true),
+          blogHtml: buildBlogHTML({ title: 'Sample: Where Cash Flow Still Pencils in 2026', slug: 'sample-post', excerpt: 'A look at the neighbourhoods where the numbers still work.' }),
+          email: 'preview@example.com',
+        }
+      );
+      return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+    }
+
     if (!isAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
