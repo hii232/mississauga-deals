@@ -11,6 +11,7 @@ import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
+import { HOOD_DATA } from '@/lib/constants';
 
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
@@ -1331,7 +1332,20 @@ export default function PropertyDetailPage() {
 
               {/* Address & Price */}
               <h1 className="font-heading text-xl font-bold text-navy">{listing.address}</h1>
-              <p className="mt-1 text-sm text-muted">{listing.neighbourhood}</p>
+              {HOOD_DATA[listing.neighbourhood] ? (
+                <p className="mt-1 text-sm text-muted">
+                  <Link
+                    href={`/neighbourhoods/${listing.neighbourhood.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="hover:text-accent underline decoration-slate-300 underline-offset-2 transition-colors"
+                    title={`${listing.neighbourhood} investment guide`}
+                  >
+                    {listing.neighbourhood}
+                  </Link>
+                  <span className="text-slate-400"> · Investor guide</span>
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-muted">{listing.neighbourhood}</p>
+              )}
               <p className="mt-3 font-heading text-2xl font-bold text-navy">
                 ${listing.price.toLocaleString()}
               </p>
