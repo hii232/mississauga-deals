@@ -35,18 +35,31 @@ const TOPIC_COLORS = {
   'Policy & Govt': 'bg-purple-600/90 text-white',
 };
 
-/* ── market ticker data ──────────────────────────────────── */
+/* ── market ticker — LIVE from /api/market-stats; never hardcoded ───────── */
 
-const MARKET_STATS = [
-  { label: 'BoC Rate', value: '2.75%', delta: '-0.25', negative: true },
-  { label: '5yr Fixed', value: '4.89%', delta: '+0.05', negative: false },
-  { label: 'TRREB Sales/List', value: '0.41', delta: '-0.04', negative: true },
-  { label: 'Avg Detached Mssa', value: '$1.82M', delta: '+4.2% YoY', negative: false },
-  { label: 'Active GTA Listings', value: '24,817', delta: '+18% MoM', negative: false },
-  { label: 'Avg DOM Mssa', value: '28d', delta: '+6 YoY', negative: false },
-  { label: 'Hurontario LRT', value: '2025', delta: 'Opening Soon', isSpecial: true },
-  { label: 'USD/CAD', value: '1.441', delta: '-0.003', negative: true },
-];
+function fmtTickerPrice(p) {
+  if (!p) return null;
+  return p >= 1000000 ? `$${(p / 1000000).toFixed(2)}M` : `$${Math.round(p / 1000)}K`;
+}
+
+function buildTickerStats(s) {
+  if (!s) return [];
+  const out = [];
+  const boc = s.economic?.bocRate || s.economicIndicators?.bocRate;
+  if (boc) out.push({ label: 'BoC Rate', value: `${boc}%` });
+  const fixed5 = s.rates?.fixed5yr || s.mortgageRates?.fixed5Year;
+  if (fixed5) out.push({ label: '5yr Fixed', value: `${fixed5}%` });
+  const det = s.avgPrices?.detached?.avg || s.avgPrices?.detached?.soldAvg;
+  const detYoy = s.avgPrices?.detached?.yoyChange;
+  if (det) out.push({ label: 'Avg Detached Mssa', value: fmtTickerPrice(det), delta: detYoy ? `${detYoy > 0 ? '+' : ''}${detYoy}% YoY` : undefined, negative: detYoy < 0 });
+  const spl = s.mississaugaAvgSPLP;
+  if (spl) out.push({ label: 'Sale-to-List', value: `${spl}%` });
+  const dom = s.mississaugaAvgLDOM || s.avgDOM;
+  if (dom) out.push({ label: 'Avg DOM Mssa', value: `${dom}d` });
+  const inv = s.mississaugaMonthsOfInventory;
+  if (inv) out.push({ label: 'Months of Inventory', value: `${inv}` });
+  return out;
+}
 
 /* ── breaking news marquee ──────────────────────────────── */
 
@@ -194,6 +207,16 @@ export function NewsClient({ articles, sources, topics }) {
   const [activeSource, setActiveSource] = useState('All Sources');
   const [activeTopic, setActiveTopic] = useState('All News');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [marketStats, setMarketStats] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/market-stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((s) => { if (!cancelled) setMarketStats(buildTickerStats(s)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(() => {
     let result = articles;
@@ -241,21 +264,20 @@ export function NewsClient({ articles, sources, topics }) {
           </button>
         </div>
 
-        {/* ── Market Ticker ──────────────────────────────── */}
+        {/* ── Market Ticker — hidden entirely until real data arrives ── */}
+        {marketStats.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm mb-6 overflow-hidden">
           <div className="flex items-center overflow-x-auto scrollbar-thin">
             <div className="flex-shrink-0 bg-accent px-4 py-3 self-stretch flex items-center">
               <span className="text-[11px] font-bold uppercase tracking-wider text-white">Market</span>
             </div>
             <div className="flex items-center gap-6 px-5 py-3 min-w-0">
-              {MARKET_STATS.map((stat, i) => (
+              {marketStats.map((stat, i) => (
                 <div key={i} className="flex-shrink-0 text-center">
                   <p className="text-[10px] font-medium text-muted uppercase tracking-wide">{stat.label}</p>
                   <div className="flex items-baseline gap-1.5 justify-center">
                     <span className="text-sm font-bold font-mono text-navy">{stat.value}</span>
-                    {stat.isSpecial ? (
-                      <span className="text-[10px] font-semibold text-success">{stat.delta}</span>
-                    ) : (
+                    {stat.delta && (
                       <span className={`text-[10px] font-semibold ${stat.negative ? 'text-red-500' : 'text-success'}`}>
                         {stat.delta}
                       </span>
@@ -266,6 +288,7 @@ export function NewsClient({ articles, sources, topics }) {
             </div>
           </div>
         </div>
+        )}
 
         {/* ── Breaking Marquee ───────────────────────────── */}
         <BreakingMarquee articles={articles} />
