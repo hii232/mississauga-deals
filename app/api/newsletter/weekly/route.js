@@ -52,6 +52,22 @@ function fmtChange(val) {
 }
 
 // ── Build the email HTML (per-subscriber: greeting, matched deals, blog) ──
+// Editorial design system — "straight out of a magazine":
+const PAPER = '#F5F2EC';
+const INK = '#0F2A4A';
+const GOLD = '#A9853B';
+const HAIR = '#DCD5C6';
+const MUTED = '#6F6A5D';
+const SERIF = "Georgia,'Times New Roman',serif";
+
+function kicker(text) {
+  return `<div style="font-family:${SERIF};font-size:11px;font-weight:700;color:${GOLD};text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;">${text}</div>`;
+}
+
+function hairline(m = '28px') {
+  return `<div style="border-top:1px solid ${HAIR};margin:${m} 0;"></div>`;
+}
+
 function buildEmailHTML(stats, date, extras = {}) {
   // Never fabricate or show "N/A" — a stat with no real data is simply omitted
   const s = stats || {};
@@ -65,7 +81,6 @@ function buildEmailHTML(stats, date, extras = {}) {
       : null;
   const inventory = s.mississaugaMonthsOfInventory || null;
 
-  // Price by type
   const prices = s.avgPrices || {};
   const priceTiles = [
     { label: 'Detached', value: prices.detached?.avg || prices.detached?.soldAvg },
@@ -74,179 +89,141 @@ function buildEmailHTML(stats, date, extras = {}) {
     { label: 'Condo', value: prices.condo?.avg || prices.condo?.soldAvg },
   ].filter((t) => t.value > 0);
 
-  // Mortgage rates
   const mortgage = s.mortgageRates || {};
   const variable = mortgage.variable || null;
   const fixed5 = mortgage.fixed5Year || mortgage.fixed5 || null;
   const bocRate = s.economicIndicators?.bocRate || mortgage.bocRate || null;
 
   const headerStats = [
-    activeCount != null ? { label: 'Active Listings', value: typeof activeCount === 'number' ? activeCount.toLocaleString() : activeCount } : null,
-    avgPrice ? { label: 'Avg. Price', value: avgPrice } : null,
-    avgDOM != null ? { label: 'Avg. DOM', value: `${avgDOM}<span style="font-size:12px;color:rgba(255,255,255,0.4);"> days</span>` } : null,
+    avgPrice ? { label: 'Average Price', value: avgPrice } : null,
+    avgDOM != null ? { label: 'Days on Market', value: `${avgDOM}` } : null,
     salesToList ? { label: 'Sale-to-List', value: salesToList } : null,
-  ].filter(Boolean);
+    activeCount != null ? { label: 'Active Listings', value: typeof activeCount === 'number' ? activeCount.toLocaleString() : activeCount } : null,
+  ].filter(Boolean).slice(0, 3);
 
   const indicatorRows = [
     inventory != null ? { label: 'Months of Inventory', value: `${inventory} mo` } : null,
-    bocRate != null ? { label: 'BoC Policy Rate', value: `${bocRate}%` } : null,
+    bocRate != null ? { label: 'Bank of Canada Policy Rate', value: `${bocRate}%` } : null,
     variable != null ? { label: 'Variable Rate', value: `${variable}%` } : null,
     fixed5 != null ? { label: '5-Year Fixed', value: `${fixed5}%` } : null,
   ].filter(Boolean);
 
-  // TRREB data
-  const trreb = s.trrebData || {};
-  const tSales = trreb.totalSales || '';
-  const tAvg = trreb.avgPrice ? fmtPrice(trreb.avgPrice) : '';
-  const tYoy = trreb.avgPriceYoY || '';
-
-  // Hot hoods
   const hoods = s.hotNeighbourhoods || [];
 
-  const formattedDate = date.toLocaleDateString('en-CA', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const issueDate = date.toLocaleDateString('en-CA', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+  }).toUpperCase();
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 0;">
+<body style="margin:0;padding:0;background:${PAPER};">
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="${PAPER}" style="background:${PAPER};padding:32px 0;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-<!-- HEADER -->
-<tr><td bgcolor="#0F2A4A" style="background:linear-gradient(135deg,#0F2A4A 0%,#1a3a5c 100%);padding:32px 32px 24px;border-radius:12px 12px 0 0;">
-  <table width="100%" cellpadding="0" cellspacing="0">
-    <tr>
-      <td>
-        <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">MississaugaInvestor</span><span style="font-size:22px;font-weight:800;color:#3b82f6;">.ca</span>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding-top:8px;">
-        <span style="display:inline-block;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:#93c5fd;text-transform:uppercase;letter-spacing:1.2px;">GTA Investor Weekly</span>
-      </td>
-    </tr>
-  </table>
-  <div style="margin-top:20px;">
-    <div style="font-size:26px;font-weight:800;color:#fff;line-height:1.2;">Mississauga Market Weekly</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:6px;">${formattedDate}</div>
+<!-- MASTHEAD -->
+<tr><td style="padding:0 40px;">
+  <div style="border-top:3px solid ${INK};border-bottom:1px solid ${INK};height:2px;margin-bottom:22px;"></div>
+  <div style="text-align:center;">
+    <div style="font-family:${SERIF};font-size:32px;font-weight:700;color:${INK};letter-spacing:5px;line-height:1.1;">MISSISSAUGA<br/>INVESTOR</div>
+    <div style="font-family:${SERIF};font-size:10px;color:${GOLD};text-transform:uppercase;letter-spacing:3.5px;margin-top:10px;">GTA Real Estate Intelligence</div>
   </div>
+  <div style="border-top:1px solid ${HAIR};margin-top:22px;"></div>
+  <div style="text-align:center;font-family:${SERIF};font-size:10px;color:${MUTED};letter-spacing:2.5px;padding:10px 0;">${issueDate} &nbsp;&middot;&nbsp; THE WEEKLY BRIEFING</div>
+  <div style="border-top:1px solid ${HAIR};"></div>
 </td></tr>
 
-<!-- MARKET PULSE STRIP -->
-<tr><td style="background:#0a1f35;padding:16px 32px;">
-  ${headerStats.length > 0 ? `<table width="100%" cellpadding="0" cellspacing="0">
-    <tr>
-      ${headerStats.map((c) => `<td width="${Math.floor(100 / headerStats.length)}%" align="center" style="padding:4px;">
-        <div style="font-size:20px;font-weight:800;color:#fff;">${c.value}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.5px;">${c.label}</div>
-      </td>`).join('')}
-    </tr>
-  </table>` : ''}
-</td></tr>
+${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
+<tr><td style="padding:22px 40px 0;">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    ${headerStats.map((c) => `<td width="${Math.floor(100 / headerStats.length)}%" align="center" style="padding:4px;">
+      <div style="font-family:${SERIF};font-size:27px;color:${INK};">${c.value}</div>
+      <div style="font-family:${SERIF};font-size:9px;color:${MUTED};text-transform:uppercase;letter-spacing:2px;margin-top:4px;">${c.label}</div>
+    </td>`).join('')}
+  </tr></table>
+  <div style="border-top:1px solid ${HAIR};margin-top:22px;"></div>
+</td></tr>` : ''}
 
 <!-- BODY -->
-<tr><td style="background:#ffffff;padding:32px;">
-
-  ${extras.greetingName ? `<div style="font-size:14px;color:#334155;margin-bottom:20px;">Hi ${esc(extras.greetingName)} &mdash; here's your week in Mississauga real estate.</div>` : ''}
+<tr><td style="padding:30px 40px 8px;">
+  ${extras.greetingName ? `<div style="font-family:${SERIF};font-style:italic;font-size:16px;color:${INK};margin-bottom:26px;">Dear ${esc(extras.greetingName)}, here is your week in Mississauga real estate.</div>` : ''}
   ${extras.dealsHtml || ''}
 
-  ${priceTiles.length > 0 ? `<!-- Price by Type -->
-  ${sectionHeader('Mississauga averages', 'Price by Property Type', '')}
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
-    ${Array.from({ length: Math.ceil(priceTiles.length / 2) }, (_, r) => priceTiles.slice(r * 2, r * 2 + 2)).map((row) => `<tr>
-      ${row.map((t) => `<td width="50%" style="padding:8px;">
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;text-align:center;">
-          <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">${t.label}</div>
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;margin-top:2px;">${fmtPrice(t.value)}</div>
-        </div>
-      </td>`).join('')}
+  ${priceTiles.length > 0 ? `${hairline()}
+  ${kicker('Average Prices &middot; By Property Type')}
+  <table width="100%" cellpadding="0" cellspacing="0">
+    ${priceTiles.map((t, i) => `<tr>
+      <td style="font-family:${SERIF};font-size:13px;color:${MUTED};padding:9px 0;letter-spacing:0.5px;${i < priceTiles.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${t.label}</td>
+      <td align="right" style="font-family:${SERIF};font-size:17px;color:${INK};padding:9px 0;${i < priceTiles.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${fmtPrice(t.value)}</td>
     </tr>`).join('')}
   </table>` : ''}
 
-  ${indicatorRows.length > 0 ? `<!-- Key Indicators -->
-  ${sectionHeader('The numbers that matter', 'Key Market Indicators', '')}
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
-    ${indicatorRows.map((r, i) => `<tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
-      <td style="padding:12px 16px;font-size:13px;color:#64748b;${i < indicatorRows.length - 1 ? 'border-bottom:1px solid #e2e8f0;' : ''}">${r.label}</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;${i < indicatorRows.length - 1 ? 'border-bottom:1px solid #e2e8f0;' : ''}">${r.value}</td>
+  ${indicatorRows.length > 0 ? `${hairline()}
+  ${kicker('By the Numbers')}
+  <table width="100%" cellpadding="0" cellspacing="0">
+    ${indicatorRows.map((r, i) => `<tr>
+      <td style="font-family:${SERIF};font-size:13px;color:${MUTED};padding:9px 0;letter-spacing:0.5px;${i < indicatorRows.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${r.label}</td>
+      <td align="right" style="font-family:${SERIF};font-size:17px;color:${INK};padding:9px 0;${i < indicatorRows.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${r.value}</td>
     </tr>`).join('')}
   </table>` : ''}
 
-  ${hoods.length > 0 ? `
-  <!-- Hot Neighbourhoods -->
-  ${sectionHeader('Where prices are moving', 'Hot Neighbourhoods', '')}
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">
-    <tr style="background:#0F2A4A;">
-      <td style="padding:10px 16px;font-size:11px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:0.5px;">Neighbourhood</td>
-      <td align="right" style="padding:10px 16px;font-size:11px;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:0.5px;">Avg. Price</td>
-    </tr>
-    ${hoods.map((h, i) => `
-    <tr style="background:${i % 2 === 0 ? '#f8fafc' : '#fff'};">
-      <td style="padding:12px 16px;font-size:13px;font-weight:600;color:#0F2A4A;">${h.name || h.neighbourhood}</td>
-      <td align="right" style="padding:12px 16px;font-size:14px;font-weight:700;color:#0F2A4A;">${fmtPrice(h.avgPrice || h.avg_price)}</td>
+  ${hoods.length > 0 ? `${hairline()}
+  ${kicker('Where Prices Are Moving')}
+  <table width="100%" cellpadding="0" cellspacing="0">
+    ${hoods.map((h, i) => `<tr>
+      <td style="font-family:${SERIF};font-size:14px;color:${INK};padding:9px 0;${i < hoods.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${esc(h.name || h.neighbourhood)}</td>
+      <td align="right" style="font-family:${SERIF};font-size:15px;color:${INK};padding:9px 0;${i < hoods.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${fmtPrice(h.avgPrice || h.avg_price)}</td>
     </tr>`).join('')}
   </table>` : ''}
 
   ${extras.blogHtml || ''}
 
-  <!-- Signature — the human behind the data -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0 4px;border-top:1px solid #e2e8f0;padding-top:8px;">
-    <tr>
-      <td width="72" style="padding:20px 16px 0 0;vertical-align:top;">
-        <img src="https://www.mississaugainvestor.ca/images/hamza-headshot.jpg" alt="Hamza Nouman" width="64" height="64" style="border-radius:50%;display:block;object-fit:cover;" />
-      </td>
-      <td style="padding-top:20px;vertical-align:top;">
-        <div style="font-size:15px;font-weight:800;color:#0F2A4A;">Hamza Nouman</div>
-        <div style="font-size:12px;color:#64748b;margin-top:1px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
-        <div style="font-size:12px;color:#334155;margin-top:8px;line-height:1.5;">Spotted a deal you want to run the numbers on? Just hit reply &mdash; I read every response &mdash; or grab a time below.</div>
-        <div style="margin-top:10px;">
-          <a href="https://www.mississaugainvestor.ca/book-call?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-size:12px;font-weight:700;padding:9px 18px;border-radius:8px;text-decoration:none;">Book a Free 15-min Call</a>
-        </div>
-      </td>
-    </tr>
-  </table>
-
-  <!-- CTA -->
-  <div style="text-align:center;margin:32px 0 16px;">
-    <a href="https://www.mississaugainvestor.ca/listings?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:#3b82f6;color:#fff;font-size:15px;font-weight:700;padding:14px 36px;border-radius:8px;text-decoration:none;">Browse Top Investment Deals &#8594;</a>
-  </div>
-  <div style="text-align:center;margin-bottom:8px;">
-    <a href="https://www.mississaugainvestor.ca/market-pulse?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-size:13px;color:#3b82f6;text-decoration:none;">View Full Market Dashboard &#8594;</a>
-  </div>
-
-</td></tr>
-
-<!-- FOOTER -->
-<tr><td style="background:#0F2A4A;padding:28px 32px;border-radius:0 0 12px 12px;">
+  ${hairline()}
+  ${kicker('A Note from Hamza')}
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
-      <td>
-        <div style="font-size:14px;font-weight:700;color:#fff;">Hamza Nouman</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px;">Licensed by RECO</div>
-        <div style="margin-top:10px;">
-          <a href="tel:+16476091289" style="font-size:12px;color:#3b82f6;text-decoration:none;margin-right:16px;">&#9742; 647-609-1289</a>
-          <a href="mailto:hamza@nouman.ca" style="font-size:12px;color:#3b82f6;text-decoration:none;">&#9993; hamza@nouman.ca</a>
-        </div>
+      <td width="76" style="padding:4px 18px 0 0;vertical-align:top;">
+        <img src="https://www.mississaugainvestor.ca/images/hamza-headshot.jpg" alt="Hamza Nouman" width="64" height="64" style="border-radius:50%;display:block;" />
       </td>
-      <td align="right" valign="top">
-        <a href="https://www.mississaugainvestor.ca/about?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:6px;text-decoration:none;">About Hamza</a>
+      <td style="vertical-align:top;">
+        <div style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};line-height:1.65;">&ldquo;Spotted a deal you want to run the numbers on? Just hit reply &mdash; I read every response.&rdquo;</div>
+        <div style="font-family:${SERIF};font-size:14px;font-weight:700;color:${INK};margin-top:10px;">Hamza Nouman</div>
+        <div style="font-family:${SERIF};font-size:11px;color:${MUTED};letter-spacing:0.5px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
+        <div style="margin-top:14px;">
+          <a href="https://www.mississaugainvestor.ca/book-call?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:${INK};color:${PAPER};font-family:${SERIF};font-size:11px;letter-spacing:2.5px;text-transform:uppercase;padding:11px 22px;text-decoration:none;">Book a Private Call</a>
+        </div>
       </td>
     </tr>
   </table>
-  <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
-    <div style="font-size:10px;color:rgba(255,255,255,0.3);line-height:1.5;">
-      Data sourced from TRREB MLS. Estimates are for informational purposes only and do not constitute financial advice.
-      &copy; ${new Date().getFullYear()} MississaugaInvestor.ca &middot; 885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5
-    </div>
+
+  <div style="text-align:center;margin:38px 0 6px;">
+    <a href="https://www.mississaugainvestor.ca/listings?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:${INK};color:${PAPER};font-family:${SERIF};font-size:12px;letter-spacing:3px;text-transform:uppercase;padding:14px 34px;text-decoration:none;">View All Listings</a>
+  </div>
+  <div style="text-align:center;margin-bottom:8px;">
+    <a href="https://www.mississaugainvestor.ca/market-pulse?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-family:${SERIF};font-style:italic;font-size:13px;color:${MUTED};text-decoration:underline;">or study the full market dashboard</a>
+  </div>
+</td></tr>
+
+<!-- COLOPHON -->
+<tr><td style="padding:8px 40px 0;">
+  <div style="border-top:1px solid ${INK};border-bottom:3px solid ${INK};height:2px;margin-bottom:20px;"></div>
+  <div style="text-align:center;">
+    <div style="font-family:${SERIF};font-size:13px;font-weight:700;color:${INK};letter-spacing:1px;">HAMZA NOUMAN</div>
+    <div style="font-family:${SERIF};font-size:10px;color:${MUTED};letter-spacing:1.5px;margin-top:3px;text-transform:uppercase;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage &middot; Licensed by RECO</div>
     <div style="margin-top:8px;">
-      <a href="${extras.email ? unsubscribeUrl(extras.email) : 'https://www.mississaugainvestor.ca/api/alerts/unsubscribe'}" style="font-size:10px;color:rgba(255,255,255,0.55);text-decoration:underline;">Unsubscribe from weekly reports</a>
+      <a href="tel:+16476091289" style="font-family:${SERIF};font-size:11px;color:${INK};text-decoration:none;">647&middot;609&middot;1289</a>
+      <span style="color:${HAIR};">&nbsp;|&nbsp;</span>
+      <a href="mailto:hamza@nouman.ca" style="font-family:${SERIF};font-size:11px;color:${INK};text-decoration:none;">hamza@nouman.ca</a>
+      <span style="color:${HAIR};">&nbsp;|&nbsp;</span>
+      <a href="https://www.mississaugainvestor.ca/about?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-family:${SERIF};font-size:11px;color:${INK};text-decoration:none;">About</a>
+    </div>
+    <div style="font-family:${SERIF};font-size:9px;color:${MUTED};line-height:1.6;margin-top:14px;">
+      Data sourced from TRREB MLS. Estimates are for informational purposes only and do not constitute financial advice.<br/>
+      &copy; ${date.getFullYear()} MississaugaInvestor.ca &middot; 885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5
+    </div>
+    <div style="margin:10px 0 6px;">
+      <a href="${extras.email ? unsubscribeUrl(extras.email) : 'https://www.mississaugainvestor.ca/api/alerts/unsubscribe'}" style="font-family:${SERIF};font-size:9px;color:${MUTED};text-decoration:underline;">Unsubscribe from the weekly briefing</a>
     </div>
   </div>
 </td></tr>
@@ -353,20 +330,13 @@ function scoreBadgeColor(score) {
   return '#EF4444';
 }
 
-// ── "Picked for you" deals table ──
-function sectionHeader(eyebrow, title, sub) {
-  return `
-  <div style="font-size:10px;font-weight:800;color:#3b82f6;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;">${eyebrow}</div>
-  <div style="font-size:20px;font-weight:800;color:#0F2A4A;letter-spacing:-0.3px;margin-bottom:${sub ? '4px' : '16px'};">${title}</div>
-  ${sub ? `<div style="font-size:12px;color:#64748b;margin-bottom:16px;">${sub}</div>` : ''}`;
-}
-
-function dealChips(d, size = 10) {
-  const chips = [];
-  if (d.capRate > 0) chips.push(`<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:3px 9px;font-size:${size}px;color:#475569;font-weight:700;">CAP ${d.capRate}%</span>`);
-  if (typeof d.cashFlow === 'number') chips.push(`<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:3px 9px;font-size:${size}px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/mo</span>`);
-  if (d.beds) chips.push(`<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:3px 9px;font-size:${size}px;color:#475569;font-weight:700;">${d.beds} BED</span>`);
-  return chips.join('&nbsp;');
+// ── "Picked for you" deals — editorial layout ──
+function statLine(d, size = 11) {
+  const parts = [];
+  if (d.capRate > 0) parts.push(`CAP&nbsp;${d.capRate}%`);
+  if (typeof d.cashFlow === 'number') parts.push(`<span style="color:${d.cashFlow >= 0 ? '#3E7C4F' : '#9C5A44'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/MO</span>`);
+  if (d.beds) parts.push(`${d.beds}&nbsp;BED`);
+  return `<div style="font-family:${SERIF};font-size:${size}px;color:${MUTED};letter-spacing:2px;text-transform:uppercase;">${parts.join(' &nbsp;&middot;&nbsp; ')}</div>`;
 }
 
 function dealPhoto(d) {
@@ -383,61 +353,34 @@ function buildDealsHTML(deals, personalized) {
   const [hero, ...rest] = deals;
   const heroPhoto = dealPhoto(hero);
 
-  // Featured deal — full-width photo card, magazine style
   const heroHtml = `
-  <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-    ${heroPhoto
-      ? `<tr><td><a href="${dealUrl(hero)}"><img src="${heroPhoto}" alt="${esc(hero.address)}" width="536" style="width:100%;max-width:536px;height:auto;display:block;" /></a></td></tr>`
-      : `<tr><td bgcolor="#0F2A4A" style="background:linear-gradient(135deg,#0F2A4A,#1a3a5c);padding:44px 24px;text-align:center;">
-           <div style="font-size:22px;font-weight:800;color:#ffffff;">${esc(hero.address)}</div>
-           <div style="font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px;">${esc(hero.neighbourhood || 'Mississauga')}</div>
-         </td></tr>`}
-    <tr><td style="background:#ffffff;padding:18px 20px;">
-      <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td>
-          <span style="display:inline-block;background:${scoreBadgeColor(hero.hamzaScore)};color:#fff;font-weight:800;font-size:11px;border-radius:12px;padding:3px 10px;">DEAL SCORE ${hero.hamzaScore}/10</span>
-          <div style="margin-top:8px;"><a href="${dealUrl(hero)}" style="font-size:17px;font-weight:800;color:#0F2A4A;text-decoration:none;">${esc(hero.address)}</a></div>
-          <div style="font-size:12px;color:#64748b;margin-top:2px;">${esc(hero.neighbourhood || 'Mississauga')} &middot; ${esc(hero.type || 'Property')}</div>
-        </td>
-        <td align="right" valign="top" style="white-space:nowrap;">
-          <div style="font-size:22px;font-weight:800;color:#0F2A4A;">${fmtPrice(hero.price)}</div>
-        </td>
-      </tr></table>
-      <div style="margin-top:12px;">${dealChips(hero, 11)}</div>
-      <div style="margin-top:14px;"><a href="${dealUrl(hero)}" style="display:inline-block;background:#3b82f6;color:#ffffff;font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">View Full Analysis &#8594;</a></div>
-    </td></tr>
-  </table>`;
+  ${kicker(personalized ? 'The Featured Deal &middot; Matched to Your Search' : 'The Featured Deal')}
+  ${heroPhoto ? `<a href="${dealUrl(hero)}"><img src="${heroPhoto}" alt="${esc(hero.address)}" width="520" style="width:100%;max-width:520px;height:auto;display:block;" /></a>` : ''}
+  <div style="font-family:${SERIF};font-size:10px;color:${GOLD};letter-spacing:2.5px;text-transform:uppercase;margin-top:16px;">Rated ${hero.hamzaScore} / 10 &nbsp;&middot;&nbsp; ${esc(hero.neighbourhood || 'Mississauga')}</div>
+  <div style="margin-top:6px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-size:26px;font-weight:700;color:${INK};text-decoration:none;line-height:1.2;">${esc(hero.address)}</a></div>
+  <div style="font-family:${SERIF};font-size:21px;color:${INK};margin-top:8px;">${fmtPrice(hero.price)} <span style="font-size:13px;color:${MUTED};font-style:italic;">&middot; ${esc(hero.type || 'Property')}</span></div>
+  <div style="margin-top:12px;">${statLine(hero)}</div>
+  <div style="margin-top:14px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};text-decoration:underline;">Read the full analysis &#8594;</a></div>`;
 
-  // Remaining deals — photo-thumbnail rows
-  const rows = rest.map((d) => {
+  const rows = rest.map((d, i) => {
     const p = dealPhoto(d);
     return `
-    <tr>
-      <td width="76" style="padding:10px 0 10px 12px;vertical-align:top;">
-        <a href="${dealUrl(d)}">${p
-          ? `<img src="${p}" alt="${esc(d.address)}" width="64" height="64" style="border-radius:8px;display:block;object-fit:cover;" />`
-          : `<table cellpadding="0" cellspacing="0"><tr><td bgcolor="#0F2A4A" width="64" height="64" align="center" style="border-radius:8px;font-size:20px;font-weight:800;color:#3b82f6;">${esc((d.address || '?').charAt(0))}</td></tr></table>`}</a>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;"><tr>
+      ${p ? `<td width="100" style="padding-right:16px;vertical-align:top;"><a href="${dealUrl(d)}"><img src="${p}" alt="${esc(d.address)}" width="84" height="84" style="display:block;" /></a></td>` : ''}
+      <td style="vertical-align:top;">
+        <a href="${dealUrl(d)}" style="font-family:${SERIF};font-size:17px;font-weight:700;color:${INK};text-decoration:none;">${esc(d.address)}</a>
+        <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${d.hamzaScore}/10</div>
+        <div style="margin-top:7px;">${statLine(d, 10)}</div>
       </td>
-      <td style="padding:10px 12px;vertical-align:top;border-bottom:1px solid #f1f5f9;">
-        <a href="${dealUrl(d)}" style="font-size:13px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(d.address)}</a>
-        <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')}</div>
-        <div style="margin-top:6px;">${dealChips(d)}</div>
+      <td align="right" style="vertical-align:top;white-space:nowrap;padding-left:10px;">
+        <div style="font-family:${SERIF};font-size:17px;color:${INK};">${fmtPrice(d.price)}</div>
       </td>
-      <td align="right" style="padding:10px 12px 10px 0;vertical-align:top;white-space:nowrap;border-bottom:1px solid #f1f5f9;">
-        <div style="font-size:14px;font-weight:800;color:#0F2A4A;">${fmtPrice(d.price)}</div>
-        <div style="font-size:11px;margin-top:3px;"><span style="display:inline-block;background:${scoreBadgeColor(d.hamzaScore)};color:#fff;font-weight:700;border-radius:10px;padding:1px 8px;">${d.hamzaScore}/10</span></div>
-      </td>
-    </tr>`;
+    </tr></table>
+    ${i < rest.length - 1 ? `<div style="border-top:1px solid ${HAIR};margin-top:18px;"></div>` : ''}`;
   }).join('');
 
-  return `
-  ${sectionHeader(
-    personalized ? 'Matched to your saved search' : 'Ranked by deal score',
-    personalized ? 'Picked for You This Week' : "This Week's Top Deals",
-    ''
-  )}
-  ${heroHtml}
-  ${rest.length ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#ffffff;">${rows}</table>` : '<div style="margin-bottom:16px;"></div>'}`;
+  return `${heroHtml}
+  ${rest.length ? `${hairline()}${kicker('Also on the Market')}${rows}` : ''}`;
 }
 
 // ── Latest blog post block ──
@@ -445,12 +388,11 @@ function buildBlogHTML(post) {
   if (!post) return '';
   const url = `https://www.mississaugainvestor.ca/blog/${encodeURIComponent(post.slug)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly`;
   return `
-  ${sectionHeader('From the blog', 'This Week\'s Read', '')}
-  <div style="border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:28px;">
-    <a href="${url}" style="font-size:15px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(post.title)}</a>
-    ${post.excerpt ? `<div style="font-size:13px;color:#64748b;margin-top:6px;line-height:1.5;">${esc(post.excerpt)}</div>` : ''}
-    <div style="margin-top:10px;"><a href="${url}" style="font-size:13px;color:#3b82f6;text-decoration:none;font-weight:600;">Read the full post &#8594;</a></div>
-  </div>`;
+  ${hairline()}
+  ${kicker('The Read')}
+  <div><a href="${url}" style="font-family:${SERIF};font-size:21px;font-weight:700;color:${INK};text-decoration:none;line-height:1.25;">${esc(post.title)}</a></div>
+  ${post.excerpt ? `<div style="font-family:${SERIF};font-size:14px;color:${MUTED};margin-top:8px;line-height:1.65;">${esc(post.excerpt)}</div>` : ''}
+  <div style="margin-top:10px;"><a href="${url}" style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};text-decoration:underline;">Continue reading &#8594;</a></div>`;
 }
 
 // ── Send email via Resend ──
