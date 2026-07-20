@@ -363,7 +363,7 @@ function buildDealsHTML(deals, personalized) {
         <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; ${d.beds || 0} bed</div>
         <div style="margin-top:6px;">
           ${d.capRate > 0 ? `<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:10px;color:#475569;font-weight:600;">CAP ${d.capRate}%</span>&nbsp;` : ''}
-          ${typeof d.cashFlow === 'number' ? `<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : ''}$${Math.round(d.cashFlow).toLocaleString()}/mo</span>` : ''}
+          ${typeof d.cashFlow === 'number' ? `<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/mo</span>` : ''}
         </div>
       </td>
       <td align="right" style="padding:12px 16px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
