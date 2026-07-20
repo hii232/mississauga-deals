@@ -37,7 +37,7 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 ## 4 — Design & trust
 
-- [ ] Audit every public page at 375px and 768px for overflow, tap targets, layout breaks (homepage/listings done ~Jul 19; do blog, market-pulse, mortgage-calculator, gta, precon, auth)
+- [ ] Audit every public page at 375px and 768px for overflow, tap targets, layout breaks (homepage/listings done ~Jul 19; mortgage-calculator done Jul 20 — clean, no overflow; still to do: blog, market-pulse, gta, precon, auth)
 - [ ] Trust signals near every capture form: what happens with the email, frequency, easy unsubscribe; realtor/brand identity consistent site-wide
 - [ ] Error/empty/loading states everywhere data is fetched — no blank screens, no raw error text
 - [ ] Accessibility: labels, focus states, contrast on navy/accent, keyboard nav on mega-menu
@@ -70,4 +70,5 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-20 — Bootstrap: CLAUDE.md + backlog created, 24/7 routine scheduled; fixed env-less build in alerts routes — 47b196f
 - 2026-07-20 — Refocused mission on investor leads/conversions; restructured backlog around 5 goal areas — 3854e8b
 - 2026-07-20 — CRITICAL FIX: daily alert emails + SEO ping crons never ran (Vercel Cron uses GET, routes only exported POST); added GET handlers. Documented all real env vars in .env.example (email = Resend, not Supabase) — 04175b7
-- 2026-07-20 — [seo agent] Added app/robots.js: robots.txt with sitemap pointer, disallow /api/ + /admin/, noindex pages left crawlable so the directive stays visible. NOTE: routines now fire into the persistent agent session (fresh-session routine runs were silently failing; rebuilt as persistent_session_id triggers) — (this commit)
+- 2026-07-20 — [seo agent] Added app/robots.js: robots.txt with sitemap pointer, disallow /api/ + /admin/, noindex pages left crawlable so the directive stays visible. NOTE: routines now fire into the persistent agent session (fresh-session routine runs were silently failing; rebuilt as persistent_session_id triggers) — c59cd4e
+- 2026-07-20 — [design agent] 375px audit of mortgage-calculator (clean — no overflow, good hierarchy); compacted site-wide cookie banner from ~185px to 100px tall on mobile (one-line copy, inline buttons, same consent options + PIPEDA note) so it stops covering a quarter of every page — (this commit)
