@@ -61,6 +61,7 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 (Items blocked on credentials, accounts, or product decisions — agents: add here, don't guess.)
 
+- **2026-07-20 release blocked by session permissions, NOT by the changes**: the daily release agent (now running in the persistent agent session) validated the full release — diff review clean, merge of claude/website-agents-24-7-dklbcl into main conflict-free, merged build passes (82 pages) — but the session's permission classifier denies git operations on main. Hamza: either (a) merge the branch into main yourself (it's ready — 7 commits, c59cd4e..3901b14), or (b) allow main-branch git ops for the agent session in Claude Code permission settings so future 13:00 UTC releases ship automatically.
 - Email sending is **Resend** (Supabase only stores subscribers/searches). Hamza: confirm in Vercel that `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set and the mississaugainvestor.ca domain is verified in the Resend dashboard, and that Vercel Cron is configured to hit `/api/alerts/send` (daily) and `/api/newsletter/weekly` with `CRON_SECRET`. Agents: templates/logic can be perfected without these, but real delivery can't be verified.
 
 ## Run Log
