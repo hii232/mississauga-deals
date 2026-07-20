@@ -1,4 +1,34 @@
 import Link from 'next/link';
+import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
+// Q&A mirrors the on-page content below — keep both in sync if the program changes
+const HST_FAQ = [
+  {
+    question: 'How much is the Ontario HST rebate on new homes?',
+    answer:
+      'Up to $130,000, depending on purchase price: homes up to $1,000,000 get the full rebate (effectively ~0% HST), homes between $1M and $1.5M get a flat $130,000, the rebate declines to $24,000 between $1.5M and $1.85M, and above $1.85M only the $24,000 federal portion applies.',
+  },
+  {
+    question: 'Who qualifies for the Ontario HST rebate on new homes?',
+    answer:
+      'Primary-residence buyers qualify for the full rebate, and real estate investors qualify under the NRRP (New Residential Rental Property) rebate program. There is no first-time-buyer requirement, and purpose-built rental developers also qualify.',
+  },
+  {
+    question: 'What are the key dates for the Ontario HST rebate?',
+    answer:
+      'The Agreement of Purchase and Sale must be signed between April 1, 2026 and March 31, 2027. Closing can occur after March 31, 2027, which is common for pre-construction purchases with 2-4 year timelines.',
+  },
+  {
+    question: 'Does the HST rebate apply to resale homes?',
+    answer:
+      'No. The rebate applies only to newly built homes that have not been previously occupied. Resale properties do not qualify.',
+  },
+  {
+    question: 'Which property types qualify for the HST rebate?',
+    answer:
+      'Detached homes, semi-detached homes, townhouses, pre-construction condos, and stacked townhomes all qualify, as long as they are new builds.',
+  },
+];
 
 export const metadata = {
   title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
@@ -46,6 +76,14 @@ function QualifyCard({ icon, title, desc }) {
 export default function HSTRebatePage() {
   return (
     <div className="min-h-screen bg-cloud">
+      <FAQJsonLd items={HST_FAQ} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Pre-Construction', url: 'https://www.mississaugainvestor.ca/pre-construction' },
+          { name: 'Ontario HST Rebate', url: 'https://www.mississaugainvestor.ca/pre-construction/hst-rebate' },
+        ]}
+      />
       {/* Hero */}
       <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-4 text-center">
