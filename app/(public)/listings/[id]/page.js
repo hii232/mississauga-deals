@@ -1271,7 +1271,7 @@ export default function PropertyDetailPage() {
   const isGated = !isAuthenticated;
 
   return (
-    <main className="min-h-screen bg-cloud overflow-x-hidden">
+    <main className="min-h-screen bg-cloud overflow-x-hidden pb-20 lg:pb-0">
       <PropertyJsonLd listing={listing} />
       <BreadcrumbJsonLd
         items={[
@@ -1349,6 +1349,22 @@ export default function PropertyDetailPage() {
               <p className="mt-3 font-heading text-2xl font-bold text-navy">
                 ${listing.price.toLocaleString()}
               </p>
+
+              {/* Primary CTA — desktop (mobile uses the sticky bar) */}
+              <div className="mt-4 hidden gap-2 lg:flex">
+                <Link
+                  href={`/book-call?listing=${encodeURIComponent(params.id)}`}
+                  className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition hover:bg-accent-dark"
+                >
+                  Book a Viewing
+                </Link>
+                <a
+                  href="tel:+16476091289"
+                  className="flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-navy no-underline transition hover:border-accent hover:text-accent"
+                >
+                  Call
+                </a>
+              </div>
 
               {/* Estimated Value */}
               {(() => {
@@ -1507,6 +1523,31 @@ export default function PropertyDetailPage() {
               </AuthGate>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile sticky primary CTA — one clear action, always reachable.
+          z-[150] keeps it under the cookie banner (z-[200]) until consent. */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 backdrop-blur px-4 pt-2.5 lg:hidden"
+        style={{ paddingBottom: 'calc(0.625rem + env(safe-area-inset-bottom))' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <a
+            href="tel:+16476091289"
+            aria-label="Call Hamza Nouman"
+            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-slate-200 text-navy transition hover:border-accent hover:text-accent"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+            </svg>
+          </a>
+          <Link
+            href={`/book-call?listing=${encodeURIComponent(params.id)}`}
+            className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition hover:bg-accent-dark"
+          >
+            Book a Viewing
+          </Link>
         </div>
       </div>
     </main>
