@@ -31,8 +31,8 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 - [x] Weekly newsletter template audited 2026-07-20: table layout + inline styles + 600px max all correct, UTM params and unsubscribe link present, user fields escaped. Added ?preview=1 test-render mode (dev-open, auth-gated in prod). FIXED: template fabricated stats when data was missing ("2,500+" active listings, avgDOM 28, sale-to-list 97.2%) and rendered "N/A" tiles — stat blocks now show only real data and hide themselves otherwise. Dark-mode-safe pass still open
 - [ ] Newsletter content quality: leads with the best deals + one useful market stat; subject lines specific not clickbait; correct unsubscribe link in every send
-- [ ] Deal alerts: verify matching logic against saved filters (no misses, no floods), cap per-email volume, dedupe listings already sent
-- [ ] Alert/newsletter emails: every listing links back with UTM params so conversions are attributable
+- [ ] Deal alerts: verify matching logic against saved filters (no misses, no floods), cap per-email volume, dedupe listings already sent. AUDITED 2026-07-20: per-email dedupe + 15-listing cap + DOM≤3 freshness gate all correct, BUT the DOM≤3 window can resend the same listing up to 4 consecutive days — proper fix needs a sent-listings table (Supabase migration; product call on schema)
+- [x] Alert/newsletter emails UTM attribution — complete 2026-07-20: newsletter already had UTM everywhere; daily alert email now tags listing links + CTA with utm_source=alerts&utm_medium=email&utm_campaign=daily-alert. Also escaped name/address interpolation in alert HTML
 - [ ] Double-opt-in or at least confirmation email with expectation-setting ("what you'll get, how often")
 
 ## 4 — Design & trust
@@ -89,3 +89,4 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-20 — [improvement agent] Weekly newsletter: added ?preview=1 test-render mode and used it to catch + fix fabricated stats (hardcoded "2,500+" listings, avgDOM 28, 97.2% sale-to-list mailed as if live) and "N/A" tiles — every stat block now renders only real data and hides itself when data is missing — 3f8b835
 - 2026-07-20 — [design agent] Listing detail had NO lead CTA: added mobile sticky "Book a Viewing" bar (+ tap-to-call) and desktop CTA pair beside the price → /book-call?listing={id}. Needs a production eyeball once shipped (no listing data available locally) — a5c30a1
 - 2026-07-20 — [seo agent] Recent-sales page now targets "Mississauga sold prices {year}" queries: query-matching title/description with build-time year, added missing OG block, H1 upgraded from generic "Recent Sales". Verified rendered title locally — (this commit)
+- 2026-07-20 — [improvement agent] Daily alert email: added UTM attribution to listing links + CTA (was fully untracked), escaped name/address in HTML. Audited matching: dedupe/cap/freshness correct; flagged DOM≤3 repeat-send gap (needs sent-listings table) — (this commit)
