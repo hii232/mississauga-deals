@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import InlineCTA from '@/components/ui/inline-cta';
-import { ArticleJsonLd } from '@/components/seo/json-ld';
+import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 
 export const revalidate = 60;
@@ -89,6 +89,13 @@ export default async function BlogPostPage({ params }) {
   return (
     <>
       <ArticleJsonLd post={post} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Blog', url: 'https://www.mississaugainvestor.ca/blog' },
+          { name: post.title, url: `https://www.mississaugainvestor.ca/blog/${post.slug}` },
+        ]}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-cloud border-b border-gray-100 py-2.5 px-4">

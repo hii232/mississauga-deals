@@ -7,7 +7,7 @@ import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calcula
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
-import { PropertyJsonLd } from '@/components/seo/json-ld';
+import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
@@ -1268,6 +1268,13 @@ export default function PropertyDetailPage() {
   return (
     <main className="min-h-screen bg-cloud overflow-x-hidden">
       <PropertyJsonLd listing={listing} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Listings', url: 'https://www.mississaugainvestor.ca/listings' },
+          { name: listing.address || 'Listing', url: `https://www.mississaugainvestor.ca/listings/${params.id}` },
+        ]}
+      />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 w-full">
         {/* Navigation: Back + Prev/Next */}
         <ListingNav currentId={params.id} />
