@@ -73,10 +73,6 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
-  if (!supabase) {
-    return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
-  }
-
   const body = await request.json().catch(() => ({}));
   const { name, email, phone, notes, date, time } = body;
 
@@ -106,6 +102,24 @@ export async function POST(request) {
   const bookDay = new Date(bookingDate.getFullYear(), bookingDate.getMonth(), bookingDate.getDate());
   if (bookDay < today) {
     return NextResponse.json({ error: 'Cannot book in the past' }, { status: 400 });
+  }
+
+  // No database: a booking is the hottest lead on the site — never drop it
+  // silently. Fall back to the email notification alone (no conflict check
+  // possible); fail only when there is no capture channel at all.
+  if (!supabase) {
+    if (process.env.RESEND_API_KEY) {
+      try {
+        await sendBookingNotification({ name, email, phone, date, time, notes });
+        return NextResponse.json({ success: true });
+      } catch (err) {
+        console.error('Booking fallback email failed:', err.message);
+      }
+    }
+    return NextResponse.json(
+      { error: 'Booking system is temporarily unavailable. Please call or email us directly.' },
+      { status: 503 }
+    );
   }
 
   // Check for conflicts
@@ -157,6 +171,12 @@ export async function POST(request) {
   return NextResponse.json({ success: true });
 }
 
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
 function formatTime(t) {
   const [h, m] = t.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -164,7 +184,12 @@ function formatTime(t) {
   return `${hr}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-async function sendBookingNotification({ name, email, phone, date, time, notes }) {
+async function sendBookingNotification({ name: rawName, email: rawEmail, phone: rawPhone, date, time, notes: rawNotes }) {
+  // User-supplied fields are interpolated into email HTML — escape them
+  const name = escapeHtml(rawName);
+  const email = escapeHtml(rawEmail);
+  const phone = rawPhone ? escapeHtml(rawPhone) : rawPhone;
+  const notes = rawNotes ? escapeHtml(rawNotes) : rawNotes;
   const displayTime = formatTime(time);
   const displayDate = new Date(date + 'T12:00:00').toLocaleDateString('en-CA', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
