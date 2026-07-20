@@ -102,7 +102,8 @@ export default function MarketPulsePage() {
       <div className="mb-10">
         <h1 className="section-title mb-2">Market Pulse</h1>
         <p className="section-subtitle">
-          Mississauga real estate market snapshot — updated regularly
+          Mississauga market snapshot — live MLS data blended with TRREB Market Watch
+          {stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}
         </p>
       </div>
 
