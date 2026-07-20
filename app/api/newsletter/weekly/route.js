@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
+import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -118,14 +119,16 @@ function buildEmailHTML(stats, date, extras = {}) {
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
 <!-- HEADER -->
-<tr><td style="background:linear-gradient(135deg,#0F2A4A 0%,#1a3a5c 100%);padding:32px 32px 24px;border-radius:12px 12px 0 0;">
+<tr><td bgcolor="#0F2A4A" style="background:linear-gradient(135deg,#0F2A4A 0%,#1a3a5c 100%);padding:32px 32px 24px;border-radius:12px 12px 0 0;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr>
       <td>
-        <span style="font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;">MississaugaInvestor</span><span style="font-size:22px;font-weight:800;color:#3b82f6;">.ca</span>
+        <span style="font-size:22px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">MississaugaInvestor</span><span style="font-size:22px;font-weight:800;color:#3b82f6;">.ca</span>
       </td>
-      <td align="right">
-        <span style="font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;">Weekly Market Report</span>
+    </tr>
+    <tr>
+      <td style="padding-top:8px;">
+        <span style="display:inline-block;background:rgba(59,130,246,0.18);border:1px solid rgba(59,130,246,0.4);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:#93c5fd;text-transform:uppercase;letter-spacing:1.2px;">GTA Investor Weekly</span>
       </td>
     </tr>
   </table>
@@ -192,6 +195,23 @@ function buildEmailHTML(stats, date, extras = {}) {
 
   ${extras.blogHtml || ''}
 
+  <!-- Signature — the human behind the data -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0 4px;border-top:1px solid #e2e8f0;padding-top:8px;">
+    <tr>
+      <td width="72" style="padding:20px 16px 0 0;vertical-align:top;">
+        <img src="https://www.mississaugainvestor.ca/images/hamza-headshot.jpg" alt="Hamza Nouman" width="64" height="64" style="border-radius:50%;display:block;object-fit:cover;" />
+      </td>
+      <td style="padding-top:20px;vertical-align:top;">
+        <div style="font-size:15px;font-weight:800;color:#0F2A4A;">Hamza Nouman</div>
+        <div style="font-size:12px;color:#64748b;margin-top:1px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
+        <div style="font-size:12px;color:#334155;margin-top:8px;line-height:1.5;">Spotted a deal you want to run the numbers on? Just hit reply &mdash; I read every response &mdash; or grab a time below.</div>
+        <div style="margin-top:10px;">
+          <a href="https://www.mississaugainvestor.ca/book-call?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-size:12px;font-weight:700;padding:9px 18px;border-radius:8px;text-decoration:none;">Book a Free 15-min Call</a>
+        </div>
+      </td>
+    </tr>
+  </table>
+
   <!-- CTA -->
   <div style="text-align:center;margin:32px 0 16px;">
     <a href="https://www.mississaugainvestor.ca/listings?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="display:inline-block;background:#3b82f6;color:#fff;font-size:15px;font-weight:700;padding:14px 36px;border-radius:8px;text-decoration:none;">Browse Top Investment Deals &#8594;</a>
@@ -226,7 +246,7 @@ function buildEmailHTML(stats, date, extras = {}) {
       &copy; ${new Date().getFullYear()} MississaugaInvestor.ca &middot; 885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5
     </div>
     <div style="margin-top:8px;">
-      <a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?email=${encodeURIComponent(extras.email || '')}" style="font-size:10px;color:rgba(255,255,255,0.4);text-decoration:underline;">Unsubscribe from weekly reports</a>
+      <a href="${extras.email ? unsubscribeUrl(extras.email) : 'https://www.mississaugainvestor.ca/api/alerts/unsubscribe'}" style="font-size:10px;color:rgba(255,255,255,0.55);text-decoration:underline;">Unsubscribe from weekly reports</a>
     </div>
   </div>
 </td></tr>
@@ -262,14 +282,19 @@ async function getSubscriberProfiles(supabase) {
     profiles.set(s.email, p);
   }
 
-  // Leads (registered users) — name only, no saved filters
+  // Leads (registered users + imported contacts) — name only, no saved filters
+  const optedOut = new Set();
   try {
     const { data: leads } = await supabase
       .from('leads')
-      .select('email, name')
+      .select('email, name, status')
       .not('email', 'is', null);
     for (const l of leads || []) {
       if (!l.email) continue;
+      if (l.status === 'unsubscribed') {
+        optedOut.add(l.email);
+        continue;
+      }
       const p = profiles.get(l.email) || { name: null, filtersList: [] };
       if (!p.name && l.name) p.name = l.name;
       profiles.set(l.email, p);
@@ -277,6 +302,9 @@ async function getSubscriberProfiles(supabase) {
   } catch {
     // leads table may not exist
   }
+
+  // An unsubscribed lead must not be re-added via their old saved searches
+  for (const email of optedOut) profiles.delete(email);
 
   return profiles;
 }
@@ -333,6 +361,10 @@ function buildDealsHTML(deals, personalized) {
       <td style="padding:12px 16px;border-bottom:1px solid #e2e8f0;">
         <a href="https://www.mississaugainvestor.ca/listings/${encodeURIComponent(d.id)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="font-size:13px;font-weight:700;color:#0F2A4A;text-decoration:none;">${esc(d.address)}</a>
         <div style="font-size:11px;color:#64748b;margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; ${d.beds || 0} bed</div>
+        <div style="margin-top:6px;">
+          ${d.capRate > 0 ? `<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:10px;color:#475569;font-weight:600;">CAP ${d.capRate}%</span>&nbsp;` : ''}
+          ${typeof d.cashFlow === 'number' ? `<span style="display:inline-block;background:${d.cashFlow >= 0 ? '#ecfdf5' : '#f1f5f9'};border-radius:6px;padding:2px 8px;font-size:10px;font-weight:700;color:${d.cashFlow >= 0 ? '#059669' : '#64748b'};">${d.cashFlow >= 0 ? '+' : ''}$${Math.round(d.cashFlow).toLocaleString()}/mo</span>` : ''}
+        </div>
       </td>
       <td align="right" style="padding:12px 16px;border-bottom:1px solid #e2e8f0;white-space:nowrap;">
         <div style="font-size:14px;font-weight:800;color:#0F2A4A;">${fmtPrice(d.price)}</div>
@@ -372,6 +404,11 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      headers: {
+        // Native one-click unsubscribe in Gmail/Outlook — deliverability signal
+        'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     }),
   });
   return res.ok;

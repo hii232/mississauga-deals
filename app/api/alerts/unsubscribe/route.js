@@ -1,32 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { unsubscribeTokenValid } from '@/lib/unsubscribe-token';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
-export async function GET(request) {
-  try {
-    if (!supabase) {
-      return new Response('Alerts are temporarily unavailable', { status: 503 });
-    }
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return new Response('Missing search ID', { status: 400 });
-    }
-
-    const { error } = await supabase
-      .from('saved_searches')
-      .update({ active: false })
-      .eq('id', id);
-
-    if (error) throw error;
-
-    // Return a simple HTML confirmation page
-    const html = `<!DOCTYPE html>
+function confirmationPage(message) {
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -44,17 +26,90 @@ export async function GET(request) {
 <body>
   <div class="card">
     <h1>You've been unsubscribed</h1>
-    <p>You won't receive any more deal alerts for this saved search. You can always set up new alerts on our site.</p>
+    <p>${message}</p>
     <a href="https://www.mississaugainvestor.ca/listings">Browse Listings</a>
   </div>
 </body>
 </html>`;
+}
 
-    return new Response(html, {
-      headers: { 'Content-Type': 'text/html' },
-    });
+export async function GET(request) {
+  try {
+    if (!supabase) {
+      return new Response('Alerts are temporarily unavailable', { status: 503 });
+    }
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const email = searchParams.get('email');
+    const token = searchParams.get('t') || '';
+
+    // ── Per-search unsubscribe (daily deal alert emails link with ?id=) ──
+    if (id) {
+      const { error } = await supabase
+        .from('saved_searches')
+        .update({ active: false })
+        .eq('id', id);
+      if (error) throw error;
+
+      return new Response(
+        confirmationPage(
+          "You won't receive any more deal alerts for this saved search. You can always set up new alerts on our site."
+        ),
+        { headers: { 'Content-Type': 'text/html' } }
+      );
+    }
+
+    // ── Email-level unsubscribe (weekly newsletter links with ?email=&t=) ──
+    if (email) {
+      const normalized = email.toLowerCase().trim();
+      if (!unsubscribeTokenValid(normalized, token)) {
+        return new Response('Invalid unsubscribe link', { status: 400 });
+      }
+
+      await supabase
+        .from('leads')
+        .update({ status: 'unsubscribed' })
+        .eq('email', normalized);
+      // Unsubscribing from email should stop ALL email — deal alerts included
+      await supabase
+        .from('saved_searches')
+        .update({ active: false })
+        .eq('email', normalized);
+
+      return new Response(
+        confirmationPage(
+          "You won't receive the weekly report or deal alerts anymore. You're welcome back anytime."
+        ),
+        { headers: { 'Content-Type': 'text/html' } }
+      );
+    }
+
+    return new Response('Missing unsubscribe parameters', { status: 400 });
   } catch (err) {
     console.error('Unsubscribe error:', err);
+    return new Response('Something went wrong', { status: 500 });
+  }
+}
+
+// RFC 8058 one-click unsubscribe: mail clients POST to the List-Unsubscribe URL
+export async function POST(request) {
+  try {
+    if (!supabase) return new Response('Unavailable', { status: 503 });
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+    const token = searchParams.get('t') || '';
+    if (!email) return new Response('Missing email', { status: 400 });
+
+    const normalized = email.toLowerCase().trim();
+    if (!unsubscribeTokenValid(normalized, token)) {
+      return new Response('Invalid unsubscribe link', { status: 400 });
+    }
+
+    await supabase.from('leads').update({ status: 'unsubscribed' }).eq('email', normalized);
+    await supabase.from('saved_searches').update({ active: false }).eq('email', normalized);
+    return new Response('Unsubscribed', { status: 200 });
+  } catch (err) {
+    console.error('One-click unsubscribe error:', err);
     return new Response('Something went wrong', { status: 500 });
   }
 }
