@@ -2,6 +2,16 @@
 
 Next.js 14 (App Router, JS not TS) + Tailwind + Supabase real-estate deals site for Mississauga and the GTA. Listings come from the PropTx/AMPRE OData feed; expert analysis uses the Anthropic API.
 
+## Mission (judge every change against this)
+
+The site exists to **generate investor leads and convert them**. In priority order:
+
+1. **Leads & conversions** — every page should move a visitor toward leaving their email or booking: alerts, newsletter, lead forms, viewing requests. Remove friction, never break a capture path.
+2. **Great data & perfect calculations** — investors trust numbers. Cap rates, cash flow, mortgage/land-transfer/CMHC math, price history, comps, market stats must be correct, sourced, and clearly presented. A wrong number is the worst bug on this site.
+3. **Great weekly emails & alerts** — the newsletter and deal alerts are the retention engine. They must render well in email clients, contain genuinely useful deals/data, and never spam.
+4. **Great design** — clean, trustworthy, fast, mobile-first (~375px). Design serves conversion, not decoration.
+5. **Investor value** — analysis, guides, and tools that make an investor smarter: that's what earns the email address.
+
 ## Layout
 
 - `app/(public)/` — public pages: homepage, `gta`, listing detail, blog, market-pulse, mortgage-calculator, recent, profile
