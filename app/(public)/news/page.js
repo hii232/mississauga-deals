@@ -3,7 +3,7 @@ import { fetchAllFeeds, getSources, getTopics } from '@/lib/news/fetch-feeds';
 import { NewsClient } from './news-client';
 
 export const metadata = {
-  title: 'Real Estate Intelligence — MississaugaInvestor.ca',
+  title: 'GTA Real Estate News & Market Intelligence for Investors',
   description:
     'Stay updated with the latest Canadian real estate news, Bank of Canada rate decisions, market reports, and investment insights.',
   alternates: { canonical: '/news' },

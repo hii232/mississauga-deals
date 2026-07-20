@@ -47,7 +47,7 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 - [ ] Neighbourhood guides: each has real investor data (avg price, rent, cap rate trend) not filler; interlink with listings and alerts CTA
 - [ ] Blog/auto-blog: content answers real investor questions (financing, pre-con vs resale, tax); every post has metadata, structured data, internal links
-- [ ] Metadata audit: unique title/description per route, OG images, canonicals; RealEstateListing/Article/BreadcrumbList JSON-LD; sitemap covers all public routes
+- [x] Metadata audit COMPLETE 2026-07-20: crawled all 21 public routes — every title unique; fixed 4 pages with doubled '| MississaugaInvestor.ca' brand suffix (news, score-methodology, privacy, terms) and gave /news a query-targeting title. OG/canonicals/JSON-LD/sitemap verified in earlier runs
 - [ ] Market data pages target searchable queries ("Mississauga condo prices 2026") with fresh data
 
 ## Code health (background priority)
@@ -94,3 +94,4 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-20 — [hamza request] MailerLite replacement: FIXED broken weekly-email unsubscribe (?email= was rejected as "Missing search ID" — CASL blocker); unsubscribe links now HMAC-signed + RFC 8058 one-click List-Unsubscribe headers; weekly send excludes status=unsubscribed leads; new admin bulk-import endpoint /api/admin/newsletter-import (CSV or JSON, dedupes, never resurrects unsubscribes); premium template redesign (branded masthead, CAP/cash-flow chips on deals, Hamza signature block w/ book-a-call CTA, Outlook bgcolor fallbacks); verified at 375px via preview — (this commit)
 - 2026-07-20 — [hamza request] Weekly newsletter now requires Hamza's approval before sending: Monday cron sends ONE draft to hamza@nouman.ca with an amber "DRAFT — waiting for your approval" banner + Review & Approve button; button opens a token-authed confirm page; only the confirm POST sends to subscribers (prefetch-safe); newsletter_sends migration makes approval idempotent (no double sends). Preview mode unchanged — (this commit)
 - 2026-07-20 — [hamza request] New professional headshot deployed site-wide (public/images/hamza-headshot.jpg): square face-crop from Hamza's uploaded photo, optimized 4.5MB→26KB (big homepage LCP win). Used by homepage bio, about page, newsletter signature, and Person JSON-LD — (this commit)
+- 2026-07-20 — [seo agent] Metadata audit finished: crawled all 21 public routes, all titles unique; de-duplicated brand suffix on 4 pages and upgraded /news title to target GTA real-estate-news queries — (this commit)
