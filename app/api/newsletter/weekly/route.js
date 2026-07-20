@@ -414,6 +414,125 @@ async function sendEmail(to, subject, html) {
   return res.ok;
 }
 
+// ── Approval flow ──
+// The Monday cron no longer mails subscribers directly. It sends ONE draft to
+// the approver (Hamza) with an "Approve & Send" button. The button opens a
+// confirmation page (GET ?approve=1&t=...), and the actual send happens only
+// on the confirm POST — so email-client link prefetchers can never trigger it.
+import { createHmac } from 'crypto';
+
+const APPROVER =
+  process.env.NEWSLETTER_APPROVER_EMAIL ||
+  process.env.LEAD_NOTIFICATION_EMAIL ||
+  'hamza@nouman.ca';
+
+function weekKey(date) {
+  const start = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  const week = Math.floor((date - start) / (7 * 24 * 3600 * 1000));
+  return `${date.getUTCFullYear()}-w${String(week).padStart(2, '0')}`;
+}
+
+function approvalToken(wk) {
+  if (!process.env.CRON_SECRET) return 'dev';
+  return createHmac('sha256', process.env.CRON_SECRET).update(`weekly-approve-${wk}`).digest('hex').slice(0, 20);
+}
+
+// Shared data prep for draft and approved send
+async function prepareSendData(request, supabase) {
+  const [stats, allListings] = await Promise.all([
+    fetchMarketStats(),
+    fetchScoredListings(request),
+  ]);
+
+  let latestPost = null;
+  try {
+    const { data: posts } = await supabase
+      .from('blog_posts')
+      .select('title, slug, excerpt')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    latestPost = posts?.[0] || null;
+  } catch {
+    // blog block is optional
+  }
+
+  const now = new Date();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return {
+    stats,
+    allListings,
+    blogHtml: buildBlogHTML(latestPost),
+    now,
+    dateLabel: `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`,
+  };
+}
+
+async function sendToAllSubscribers(supabase, data) {
+  const { stats, allListings, blogHtml, now, dateLabel } = data;
+  const profiles = await getSubscriberProfiles(supabase);
+  if (profiles.size === 0) return { subscribers: 0, sent: 0, failed: 0, personalized: 0 };
+
+  let sent = 0;
+  let failed = 0;
+  let personalizedCount = 0;
+  const entries = [...profiles.entries()];
+
+  for (let i = 0; i < entries.length; i += 10) {
+    const batch = entries.slice(i, i + 10);
+    const results = await Promise.allSettled(
+      batch.map(([email, profile]) => {
+        const { deals, personalized } = pickDealsFor(profile, allListings);
+        if (personalized) personalizedCount++;
+        const firstName = (profile.name || '').trim().split(/\s+/)[0] || '';
+        const html = buildEmailHTML(stats, now, {
+          greetingName: firstName,
+          dealsHtml: buildDealsHTML(deals, personalized),
+          blogHtml,
+          email,
+        });
+        const subject = personalized
+          ? `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`
+          : `Mississauga Market Weekly — ${dateLabel}`;
+        return sendEmail(email, subject, html);
+      })
+    );
+    results.forEach((r) => {
+      if (r.status === 'fulfilled' && r.value) sent++;
+      else failed++;
+    });
+  }
+
+  return {
+    subscribers: profiles.size,
+    sent,
+    failed,
+    personalized: personalizedCount,
+    genericTopDeals: profiles.size - personalizedCount,
+  };
+}
+
+function approvalBanner(wk, subscriberCount) {
+  const url = `https://www.mississaugainvestor.ca/api/newsletter/weekly?approve=1&t=${approvalToken(wk)}`;
+  return `
+<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
+  <tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:20px 24px;text-align:center;">
+    <div style="font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
+    <div style="font-size:12px;color:#92400E;margin-bottom:14px;">This is exactly what your ${subscriberCount} subscribers will receive. Nothing sends until you approve.</div>
+    <a href="${url}" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">Review &amp; Approve Send &#8594;</a>
+  </td></tr>
+</table>`;
+}
+
+function htmlPage(title, body) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
+<style>body{font-family:system-ui,sans-serif;background:#F8FAFC;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
+.card{background:#fff;border-radius:16px;padding:40px;max-width:440px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+h1{color:#1B2A4A;font-size:22px;margin:0 0 12px;}p{color:#64748B;font-size:15px;line-height:1.6;margin:0 0 20px;}
+button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;cursor:pointer;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;}</style>
+</head><body><div class="card">${body}</div></body></html>`;
+}
+
 // ── Main handler ──
 export async function GET(request) {
   try {
@@ -443,6 +562,32 @@ export async function GET(request) {
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
+    // ?approve=1&t=... — approval confirmation page (from the draft email's
+    // button). Token-authed; renders a confirm form, sends NOTHING itself.
+    if (searchParams.get('approve') === '1') {
+      const wk = weekKey(new Date());
+      if (searchParams.get('t') !== approvalToken(wk)) {
+        return new Response(
+          htmlPage('Link expired', '<h1>This approval link has expired</h1><p>Approval links are valid for the week of the draft. Wait for the next Monday draft, or trigger one from the admin.</p>'),
+          { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      }
+      const supabase = getSupabase();
+      const profiles = supabase ? await getSubscriberProfiles(supabase) : new Map();
+      return new Response(
+        htmlPage(
+          'Approve weekly send',
+          `<h1>Send this week's report?</h1>
+           <p>The email you just reviewed will go to <strong>${profiles.size} subscribers</strong>. This cannot be undone.</p>
+           <form method="POST" action="/api/newsletter/weekly?approve=1&t=${approvalToken(wk)}">
+             <button type="submit">Yes — Send to ${profiles.size} Subscribers</button>
+           </form>`
+        ),
+        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
+
+    // ── Default (Monday cron): send the DRAFT to the approver only ──
     if (!isAuthorized(request)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -451,87 +596,95 @@ export async function GET(request) {
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
     }
-
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({ error: 'Resend API key not configured' }, { status: 500 });
     }
 
-    // Fetch shared data once: market stats, scored listings, latest blog post
-    const [stats, allListings] = await Promise.all([
-      fetchMarketStats(),
-      fetchScoredListings(request),
-    ]);
-
-    let latestPost = null;
-    try {
-      const { data: posts } = await supabase
-        .from('blog_posts')
-        .select('title, slug, excerpt')
-        .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      latestPost = posts?.[0] || null;
-    } catch {
-      // blog block is optional
-    }
-    const blogHtml = buildBlogHTML(latestPost);
-
-    const now = new Date();
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const dateLabel = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
-
-    // Subscriber profiles: name + saved-search filters per email
+    const data = await prepareSendData(request, supabase);
     const profiles = await getSubscriberProfiles(supabase);
-
     if (profiles.size === 0) {
       return NextResponse.json({ success: true, message: 'No subscribers found', sent: 0 });
     }
 
-    // Build and send each subscriber's own email
-    let sent = 0;
-    let failed = 0;
-    let personalizedCount = 0;
-    const entries = [...profiles.entries()];
-
-    // Send in batches of 10 to avoid rate limits
-    for (let i = 0; i < entries.length; i += 10) {
-      const batch = entries.slice(i, i + 10);
-      const results = await Promise.allSettled(
-        batch.map(([email, profile]) => {
-          const { deals, personalized } = pickDealsFor(profile, allListings);
-          if (personalized) personalizedCount++;
-
-          const firstName = (profile.name || '').trim().split(/\s+/)[0] || '';
-          const html = buildEmailHTML(stats, now, {
-            greetingName: firstName,
-            dealsHtml: buildDealsHTML(deals, personalized),
-            blogHtml,
-            email,
-          });
-
-          const subject = personalized
-            ? `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`
-            : `Mississauga Market Weekly — ${dateLabel}`;
-
-          return sendEmail(email, subject, html);
-        })
-      );
-      results.forEach((r) => {
-        if (r.status === 'fulfilled' && r.value) sent++;
-        else failed++;
+    // Draft = the generic (non-personalized) edition with the approval banner
+    const wk = weekKey(data.now);
+    const { deals } = pickDealsFor({ filtersList: [] }, data.allListings);
+    const draftHtml =
+      approvalBanner(wk, profiles.size) +
+      buildEmailHTML(data.stats, data.now, {
+        greetingName: 'Hamza',
+        dealsHtml: buildDealsHTML(deals, false),
+        blogHtml: data.blogHtml,
+        email: APPROVER,
       });
-    }
+
+    const ok = await sendEmail(
+      APPROVER,
+      `[APPROVE] Mississauga Market Weekly — ${data.dateLabel} (${profiles.size} subscribers waiting)`,
+      draftHtml
+    );
 
     return NextResponse.json({
-      success: true,
+      success: ok,
+      mode: 'draft-for-approval',
+      draftSentTo: APPROVER,
       subscribers: profiles.size,
-      sent,
-      failed,
-      personalized: personalizedCount,
-      genericTopDeals: profiles.size - personalizedCount,
+      approveBy: 'Click the button in the draft email',
     });
   } catch (err) {
     console.error('Newsletter error:', err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+// ── Approved send: POST from the confirmation page ──
+export async function POST(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    if (searchParams.get('approve') !== '1') {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
+    const wk = weekKey(new Date());
+    if (searchParams.get('t') !== approvalToken(wk)) {
+      return new Response(htmlPage('Link expired', '<h1>This approval link has expired</h1><p>Wait for the next Monday draft.</p>'), {
+        status: 400,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
+    const supabase = getSupabase();
+    if (!supabase || !process.env.RESEND_API_KEY) {
+      return NextResponse.json({ error: 'Email infrastructure not configured' }, { status: 500 });
+    }
+
+    // Idempotency: one send per week. Uses newsletter_sends (unique week_key)
+    // when the table exists; proceeds without the guard if it doesn't.
+    try {
+      const { error: guardErr } = await supabase.from('newsletter_sends').insert({ week_key: wk, approved_by: APPROVER });
+      if (guardErr && (guardErr.code === '23505' || /duplicate/i.test(guardErr.message || ''))) {
+        return new Response(
+          htmlPage('Already sent', '<h1>This week\'s report was already sent</h1><p>No duplicate emails went out. See you next Monday.</p>'),
+          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      }
+    } catch {
+      // table missing — skip the guard
+    }
+
+    const data = await prepareSendData(request, supabase);
+    const result = await sendToAllSubscribers(supabase, data);
+
+    return new Response(
+      htmlPage(
+        'Sent',
+        `<h1>&#127881; Sent to ${result.sent} subscribers</h1>
+         <p>${result.personalized} personalized to saved searches, ${result.genericTopDeals} got the top-deals edition${result.failed ? ` — ${result.failed} failed (will appear in Resend logs)` : ''}.</p>
+         <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
+      ),
+      { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  } catch (err) {
+    console.error('Approved send error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
