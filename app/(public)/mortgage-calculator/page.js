@@ -208,6 +208,12 @@ export default function MortgageCalculatorPage() {
                   Below the federal minimum down payment for this price ({calc.minDownPct.toFixed(1)}% — 5% of the first $500K plus 10% of the rest; 20% at $1.5M+).
                 </p>
               )}
+              {downPct < 20 && amort > 25 && (
+                <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  Insured mortgages (under 20% down) are capped at 25-year amortization — 30 years is only
+                  available to first-time buyers or on new builds. Numbers below assume your lender approves it.
+                </p>
+              )}
               {downPct < 20 && (
                 <p className="mt-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                   Under 20% down requires CMHC insurance and is only available if you live in the property (e.g., house hacking).
