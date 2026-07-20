@@ -47,8 +47,8 @@ export default function AlertsPage() {
     setError('');
     setSuccess(false);
 
-    if (!form.email) {
-      setError('Email is required.');
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) {
+      setError('Please enter a valid email address.');
       return;
     }
 
@@ -65,7 +65,10 @@ export default function AlertsPage() {
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to submit');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Failed to submit');
+      }
 
       // Save alert locally
       const alert = {
@@ -80,8 +83,8 @@ export default function AlertsPage() {
 
       setSuccess(true);
       setForm({ name: form.name, email: form.email, maxPrice: '', minBeds: '', strategy: '', neighbourhood: '' });
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err?.message && err.message !== 'Failed to submit' ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
