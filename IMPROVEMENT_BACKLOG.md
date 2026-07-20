@@ -61,11 +61,12 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 (Items blocked on credentials, accounts, or product decisions — agents: add here, don't guess.)
 
-- Email sending provider/credentials for newsletter+alerts (verify what's configured in production — RESEND/SMTP key?); agents can perfect templates and logic but can't verify real delivery without it
+- Email sending is **Resend** (Supabase only stores subscribers/searches). Hamza: confirm in Vercel that `RESEND_API_KEY` and `RESEND_FROM_EMAIL` are set and the mississaugainvestor.ca domain is verified in the Resend dashboard, and that Vercel Cron is configured to hit `/api/alerts/send` (daily) and `/api/newsletter/weekly` with `CRON_SECRET`. Agents: templates/logic can be perfected without these, but real delivery can't be verified.
 
 ## Run Log
 
 (append one line per run: date — what changed — commit)
 
 - 2026-07-20 — Bootstrap: CLAUDE.md + backlog created, 24/7 routine scheduled; fixed env-less build in alerts routes — 47b196f
-- 2026-07-20 — Refocused mission on investor leads/conversions; restructured backlog around 5 goal areas — (this commit)
+- 2026-07-20 — Refocused mission on investor leads/conversions; restructured backlog around 5 goal areas — 3854e8b
+- 2026-07-20 — CRITICAL FIX: daily alert emails + SEO ping crons never ran (Vercel Cron uses GET, routes only exported POST); added GET handlers. Documented all real env vars in .env.example (email = Resend, not Supabase) — (this commit)

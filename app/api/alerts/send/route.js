@@ -9,10 +9,14 @@ const supabase =
     : null;
 
 /**
- * POST /api/alerts/send
- * Called by Vercel Cron daily at 8 AM UTC
+ * GET|POST /api/alerts/send
+ * Called by Vercel Cron daily (cron invokes with GET)
  * Sends email alerts for saved searches with new matching listings
  */
+export async function GET(request) {
+  return POST(request);
+}
+
 export async function POST(request) {
   // Verify cron secret (Vercel sends this automatically for cron jobs)
   const authHeader = request.headers.get('authorization');
