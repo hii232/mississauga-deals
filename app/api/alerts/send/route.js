@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase =
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 /**
  * POST /api/alerts/send
@@ -22,6 +22,9 @@ export async function POST(request) {
   }
 
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Alerts are temporarily unavailable' }, { status: 503 });
+    }
     // 1. Fetch all active saved searches
     const { data: searches, error: searchErr } = await supabase
       .from('saved_searches')

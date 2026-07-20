@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase =
+  process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 // Simple rate limiting
 const rateMap = new Map();
@@ -20,6 +20,9 @@ function rateLimited(ip) {
 
 export async function POST(request) {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Alerts are temporarily unavailable' }, { status: 503 });
+    }
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
     if (rateLimited(ip)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -104,6 +107,9 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
+    if (!supabase) {
+      return NextResponse.json({ error: 'Alerts are temporarily unavailable' }, { status: 503 });
+    }
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
 
