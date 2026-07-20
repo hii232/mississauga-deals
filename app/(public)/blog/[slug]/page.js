@@ -4,6 +4,7 @@ import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import InlineCTA from '@/components/ui/inline-cta';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
+import { blogCoverUrl } from '@/lib/blog-cover';
 
 export const revalidate = 60;
 
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }) {
       description: post.excerpt,
       url: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
       type: 'article',
-      ...(post.cover_image_url && { images: [{ url: post.cover_image_url }] }),
+      images: [{ url: blogCoverUrl(post, true) }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -149,13 +150,12 @@ export default async function BlogPostPage({ params }) {
               </div>
             </div>
 
-            {post.cover_image_url && (
-              <img
-                src={post.cover_image_url}
-                alt={post.title}
-                className="w-full rounded-xl mb-8 shadow-md"
-              />
-            )}
+            <img
+              src={blogCoverUrl(post)}
+              alt={post.title}
+              fetchPriority="high"
+              className="w-full rounded-xl mb-8 shadow-md"
+            />
 
             <MarkdownRenderer content={post.content} />
 
@@ -198,9 +198,7 @@ export default async function BlogPostPage({ params }) {
                       href={`/blog/${r.slug}`}
                       className="rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition no-underline group"
                     >
-                      {r.cover_image_url && (
-                        <img src={r.cover_image_url} alt="" className="w-full h-28 object-cover" />
-                      )}
+                      <img src={blogCoverUrl(r)} alt="" loading="lazy" className="w-full h-28 object-cover" />
                       <div className="p-3">
                         <span className="text-[10px] font-bold text-accent uppercase">{r.category}</span>
                         <p className="text-sm font-semibold text-navy leading-snug mt-1 group-hover:text-accent transition-colors">
