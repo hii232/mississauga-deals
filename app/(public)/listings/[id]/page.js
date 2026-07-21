@@ -181,6 +181,7 @@ function MortgageTab({ listing }) {
       city: listing.neighbourhood,
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
     });
     const closing = getClosingCosts(listing.price, downPct);
     const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct);
@@ -219,7 +220,11 @@ function MortgageTab({ listing }) {
           <BreakdownRow label="Mortgage" value={calc.mortgage} />
           <BreakdownRow label="Property Tax" value={calc.propTax} />
           <BreakdownRow label={`Insurance`} value={calc.insurance} />
-          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+          {calc.condoFee > 0 ? (
+            <BreakdownRow label="Condo Fee" value={calc.condoFee} />
+          ) : (
+            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+          )}
           <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={calc.vacancy} />
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={calc.management} />}
           <div className="border-t border-slate-300 pt-2">
@@ -266,6 +271,7 @@ function CapRateTab({ listing }) {
       calculateCashFlow(listing.price, listing.estimatedRent, {
         annualPropertyTax, city: listing.neighbourhood,
         monthlyInsurance: insurance, maintenancePct, vacancyPct, managementPct,
+        monthlyCondoFee: listing.condoFee || 0,
       }).cashFlow * 12,
       listing.price, 20
     );
