@@ -37,7 +37,7 @@ const FAQ_DATA = [
       {
         question: 'What does the cash flow estimate include?',
         answer:
-          'Our cash flow estimate assumes a standard 20% down payment with a 25-year amortization at current interest rates. We subtract estimated mortgage payments, property taxes, insurance, maintenance reserves (5%), and vacancy allowance (4%) from estimated rental income based on comparable rents in the area.',
+          'Our cash flow estimate assumes a standard 20% down payment with a 25-year amortization at current interest rates. We subtract estimated mortgage payments, property taxes, insurance, maintenance reserves (8% of rent), and vacancy allowance (5% of rent) from estimated rental income based on comparable rents in the area. Condo listings use the actual condo fee in place of the maintenance reserve.',
       },
       {
         question: 'Should I buy a property based solely on the Deal Score?',
