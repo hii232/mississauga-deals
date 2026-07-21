@@ -162,6 +162,11 @@ export async function GET() {
     // ── TRREB Market Watch February 2026 (MW2602) ──
     // Mississauga-specific from page 3; GTA from page 1
     tRREBMonth: 'February 2026',
+    // Machine-readable as-of date for the monthly TRREB snapshot (last day of the
+    // report month). Consumers use this to show honest "as of" labels and detect
+    // staleness — the monthly sold/volume/YoY figures are NOT live and must never
+    // be presented as today's numbers. Keep in sync with tRREBMonth above.
+    tRREBAsOf: '2026-02-28',
     gtaAvgPrice: 1008968,
     gtaMedianPrice: 865000,
     gtaYoyChange: -7.1,

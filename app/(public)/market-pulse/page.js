@@ -81,6 +81,21 @@ export default function MarketPulsePage() {
     { term: 'BoC Rate', rate: stats?.economic?.bocRate ? `${stats.economic.bocRate}%` : '2.3%' },
   ];
 
+  // Data provenance: the sale-to-list, inventory, sales-volume and YoY figures come
+  // from TRREB's MONTHLY Market Watch snapshot — not a live feed. Show an honest
+  // "as of {month}" so a monthly report is never mistaken for today's number.
+  const trrebMonth = stats?.tRREBMonth || null;
+  let monthsStale = null;
+  if (stats?.tRREBAsOf) {
+    const asOf = new Date(stats.tRREBAsOf);
+    if (!isNaN(asOf)) {
+      monthsStale = Math.max(
+        0,
+        Math.round((Date.now() - asOf.getTime()) / (1000 * 60 * 60 * 24 * 30.44))
+      );
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-16">
@@ -134,11 +149,35 @@ export default function MarketPulsePage() {
         )}
       </div>
 
+      {/* Data provenance — investors trust numbers only when they know the source
+          and vintage. Live active-market stats update continuously; sold prices,
+          sales volume, inventory and YoY are TRREB's monthly snapshot (as-of month
+          shown so a monthly report is never read as today's figure). */}
+      {trrebMonth && (
+        <div className="mb-10 rounded-xl border border-slate-200 bg-cloud px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-navy shrink-0">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" aria-hidden="true" />
+            Live MLS active-market data
+          </span>
+          <p className="text-xs text-muted leading-relaxed">
+            Days-on-market and active listings update continuously from MLS. Sale-to-list ratio,
+            months of inventory, sold prices, sales volume and year-over-year changes are from
+            TRREB Market Watch — <span className="font-semibold text-navy">as of {trrebMonth}</span>
+            {monthsStale != null && monthsStale >= 2 && (
+              <span> (latest published report; TRREB releases city figures monthly)</span>
+            )}.
+          </p>
+        </div>
+      )}
+
       {/* Avg Prices by Type - Bar Chart */}
       <div className="card p-6 mb-10">
-        <h2 className="font-heading font-semibold text-lg text-navy mb-6">
+        <h2 className="font-heading font-semibold text-lg text-navy mb-1">
           Average Prices by Property Type
         </h2>
+        <p className="text-xs text-muted mb-6">
+          Live list prices where available, otherwise TRREB sold averages{trrebMonth ? ` (${trrebMonth})` : ''}.
+        </p>
         <div className="flex items-end gap-6 h-56 justify-center">
           {priceTypes.map((pt) => {
             const heightPct = (pt.value / maxPrice) * 100;
