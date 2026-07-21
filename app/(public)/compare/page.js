@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { processListings } from '@/lib/listings/process-listings';
 import { fmtK, fmtNum, fmtCurrency } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
+import { PageHero } from '@/components/layout/page-hero';
+
+const HERO = {
+  eyebrow: 'Side-by-side analysis',
+  title: 'Compare Properties',
+  subtitle:
+    'Weigh Mississauga investment properties side by side — price, cash flow, cap rate, and deal score, with the better value on each metric highlighted.',
+};
 
 const METRICS = [
   { key: 'price', label: 'Price', format: (v) => fmtK(v), best: 'low' },
@@ -108,12 +116,14 @@ export default function ComparePage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-200 rounded w-48" />
-          <div className="h-96 bg-slate-100 rounded-xl" />
+      <>
+        <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="animate-pulse space-y-4">
+            <div className="h-96 bg-slate-100 rounded-xl" />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -123,30 +133,29 @@ export default function ComparePage() {
     : -1;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
+    <>
+      <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Control row */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Link href="/listings" className="text-sm text-accent hover:text-accent-dark no-underline">
-              ← Back to Listings
-            </Link>
-          </div>
-          <h1 className="font-heading text-2xl font-bold text-navy mb-1">Compare Properties</h1>
-          <p className="text-sm text-muted">
-            {listings.length > 0
-              ? `Comparing ${listings.length} propert${listings.length === 1 ? 'y' : 'ies'} side by side — green highlights show the better value`
-              : 'Add properties to compare from the listings page'}
-          </p>
+        <Link href="/listings" className="text-sm text-accent hover:text-accent-dark no-underline">
+          ← Back to Listings
+        </Link>
+        <div className="flex items-center gap-4">
+          {listings.length > 0 && (
+            <span className="text-sm text-muted">
+              Comparing {listings.length} propert{listings.length === 1 ? 'y' : 'ies'} — green highlights the better value
+            </span>
+          )}
+          {listings.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="text-xs text-muted hover:text-red-500 transition-colors"
+            >
+              Clear All
+            </button>
+          )}
         </div>
-        {listings.length > 0 && (
-          <button
-            onClick={handleClearAll}
-            className="text-xs text-muted hover:text-red-500 transition-colors"
-          >
-            Clear All
-          </button>
-        )}
       </div>
 
       {listings.length === 0 ? (
@@ -316,6 +325,7 @@ export default function ComparePage() {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
