@@ -45,10 +45,10 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 
 ## 5 — Investor value & SEO
 
-- [ ] Neighbourhood guides: each has real investor data (avg price, rent, cap rate trend) not filler; interlink with listings and alerts CTA
+- [x] Neighbourhood guides verified 2026-07-21: data-rich metadata with real numbers (price, YoY, yield, DOM), FAQ + breadcrumb schema, and full interlinking (filtered listings CTA, book-call, sibling guides, methodology). Listing detail pages link back to guides (Jul 20). Complete
 - [ ] Blog/auto-blog: content answers real investor questions (financing, pre-con vs resale, tax); every post has metadata, structured data, internal links
 - [x] Metadata audit COMPLETE 2026-07-20: crawled all 21 public routes — every title unique; fixed 4 pages with doubled '| MississaugaInvestor.ca' brand suffix (news, score-methodology, privacy, terms) and gave /news a query-targeting title. OG/canonicals/JSON-LD/sitemap verified in earlier runs
-- [ ] Market data pages target searchable queries ("Mississauga condo prices 2026") with fresh data
+- [x] Market data pages target searchable queries — complete 2026-07-21: recent-sales targets "Mississauga sold prices {year}" (Jul 20), market-pulse now titled "Mississauga Housing Market {year} — Prices, Trends & Stats" with build-time year and query-rich description
 
 ## Code health (background priority)
 
@@ -105,3 +105,4 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-21 — [seo agent] Article/Organization JSON-LD fixes: article image now always present (falls back to generated blog cover — required for Google rich results; was omitted for coverless posts), and replaced 3 references to /images/og-image.jpg (a 404 — never existed) with the real generated /opengraph-image — (this commit)
 - 2026-07-21 — [improvement agent] Auto-blog duplicate guard: prompt-level dedupe rule failed (3 near-identical BoC posts on Jul 20), so added a hard programmatic title-similarity check before publishing — significant-word overlap vs the 20 most recent titles, ≥0.5 blocks the post (verified: all 3 real dupe pairs score 0.60-1.00, distinct topics 0.00); slug collisions now skip instead of suffix-publishing. Hamza: the 2 duplicate posts already live still need manual unpublish in /admin/blog — (this commit)
 - 2026-07-21 — [design agent] Capture-form a11y: aria-labels on the placeholder-only email inputs (homepage EmailCapture, exit-intent popup), role=alert on all error messages and role=status on success confirmations (homepage, exit-intent, /alerts) so screen readers announce outcomes; accessibility backlog item checked off — (this commit)
+- 2026-07-21 — [seo agent] Market-pulse metadata now targets the high-volume "Mississauga housing market" query with build-time year; verified neighbourhood guides already fully optimized + interlinked (both #5 items checked off) — (this commit)

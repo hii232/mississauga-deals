@@ -1,6 +1,8 @@
+const YEAR = new Date().getFullYear();
+
 export const metadata = {
-  title: 'Market Pulse — Mississauga Real Estate Market Stats by Hamza Nouman',
-  description: 'Live Mississauga real estate market data by Hamza Nouman: TRREB stats, average prices by home type, sale-to-list ratios, days on market, mortgage rates, and months of inventory. Updated daily.',
+  title: `Mississauga Housing Market ${YEAR} — Prices, Trends & Stats | Market Pulse`,
+  description: `Mississauga housing market ${YEAR}: average home prices by type, sale-to-list ratios, days on market, months of inventory, and mortgage rates — live MLS data blended with TRREB Market Watch, explained for investors by Hamza Nouman.`,
   alternates: { canonical: '/market-pulse' },
   openGraph: {
     title: 'Market Pulse — Mississauga Real Estate Market Stats',
