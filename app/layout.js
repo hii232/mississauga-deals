@@ -73,6 +73,9 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'MississaugaInvestor.ca — Mississauga Investment Deals',
     description: 'Cash flow analysis, cap rates, and deal scores for Mississauga properties.',
+    // Next.js does not copy OG images to Twitter — set explicitly so links
+    // shared to X and other platforms render the branded card image
+    images: ['/opengraph-image'],
   },
   verification: {
     google: 'HMswsCSfiZJiN5IP8HeMHoOarI5MJlZmmLZr1_WOnu4',
