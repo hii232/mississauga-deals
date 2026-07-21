@@ -264,6 +264,7 @@ function CapRateTab({ listing }) {
       annualPropertyTax,
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
     });
     const capRate = calculateCapRate(noiResult.noi, listing.price);
     const grm = calculateGRM(listing.price, listing.estimatedRent);
@@ -304,7 +305,11 @@ function CapRateTab({ listing }) {
           </div>
           <BreakdownRow label="Property Tax" value={Math.round(calc.annualOpExPropertyTax)} annual negative />
           <BreakdownRow label="Insurance" value={Math.round(calc.annualOpExInsurance)} annual negative />
-          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+          {calc.annualOpExCondoFee > 0 ? (
+            <BreakdownRow label="Condo Fee" value={Math.round(calc.annualOpExCondoFee)} annual negative />
+          ) : (
+            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+          )}
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={Math.round(calc.annualOpExManagement)} annual negative />}
           <div className="border-t border-slate-300 pt-2">
             <BreakdownRow label="Net Operating Income" value={Math.round(calc.noi)} annual bold />
