@@ -5,6 +5,11 @@ import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
+// A malformed listing (missing/NaN derived number) must NEVER crash the card and
+// blank the whole listings grid. Format defensively; show a dash, never NaN.
+const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '—');
+const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() : '—');
+
 export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick }) {
   const [saved, setSaved] = useState(false);
 
@@ -87,7 +92,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           )}
           {listing.priceDrop > 0 && (
             <span className="rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
-              Price Drop -{listing.priceDrop.toFixed(0)}%
+              Price Drop -{Math.round(listing.priceDrop)}%
             </span>
           )}
           {listing.dom >= 45 && (
@@ -167,11 +172,11 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <>
                 <div>
                   <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
-                  <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
+                  <p className="text-sm font-bold text-navy">{pct1(listing.capRate)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
-                  <p className="text-sm font-bold text-navy">{listing.cashOnCash.toFixed(1)}%</p>
+                  <p className="text-sm font-bold text-navy">{pct1(listing.cashOnCash)}</p>
                 </div>
                 <div>
                   <p className="text-[9px] font-medium text-slate-400" title="Cash Flow per Month">Cash Flow/mo</p>
@@ -221,17 +226,17 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             </div>
             {listing.unitCount >= 2 && (
               <p className="text-[10px] text-accent font-medium">
-                {listing.unitCount}-unit {listing.unitType} · {listing.unitBreakdown?.map((u, i) => `Unit ${i+1}: ${u.beds}bed $${u.rent.toLocaleString()}`).join(' · ')}
+                {listing.unitCount}-unit {listing.unitType} · {listing.unitBreakdown?.map((u, i) => `Unit ${i+1}: ${u.beds}bed $${(u.rent||0).toLocaleString()}`).join(' · ')}
               </p>
             )}
             {listing.basementIncome > 0 && !listing.unitCount && (
               <p className="text-[10px] text-success font-medium">
-                Incl. +${listing.basementIncome.toLocaleString()}/mo basement income
+                Incl. +${money(listing.basementIncome)}/mo basement income
               </p>
             )}
             {listing.condoFee > 0 && (
               <p className="text-[10px] text-amber-600 font-medium">
-                Condo fee: ${listing.condoFee.toLocaleString()}/mo
+                Condo fee: ${money(listing.condoFee)}/mo
               </p>
             )}
           </div>
