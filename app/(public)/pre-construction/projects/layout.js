@@ -1,3 +1,5 @@
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
 export const metadata = {
   title: 'GTA Pre-Construction Projects — Condos & Townhomes Across the GTA | Hamza Nouman',
   description:
@@ -12,5 +14,16 @@ export const metadata = {
 };
 
 export default function Layout({ children }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Pre-Construction', url: 'https://www.mississaugainvestor.ca/pre-construction' },
+          { name: 'Projects', url: 'https://www.mississaugainvestor.ca/pre-construction/projects' },
+        ]}
+      />
+      {children}
+    </>
+  );
 }
