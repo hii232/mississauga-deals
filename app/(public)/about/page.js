@@ -1,3 +1,4 @@
+import { CityscapePanorama } from '@/components/art/cityscape';
 import Link from 'next/link';
 import { PersonJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
@@ -61,8 +62,8 @@ export default function AboutPage() {
       <BreadcrumbJsonLd items={breadcrumbs} />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto px-4">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C] py-16 md:py-24">
+        <div className="relative z-10 max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-10">
             <div className="flex-shrink-0">
               <img
@@ -106,6 +107,7 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+        <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-20 w-full opacity-80 md:h-28" />
       </section>
 
       {/* Stats Strip */}

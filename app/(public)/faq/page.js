@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { FAQJsonLd } from '@/components/seo/json-ld';
+import { PageHero } from '@/components/layout/page-hero';
 
 const FAQ_DATA = [
   {
@@ -36,7 +37,7 @@ const FAQ_DATA = [
       {
         question: 'What does the cash flow estimate include?',
         answer:
-          'Our cash flow estimate assumes a standard 20% down payment with a 25-year amortization at current interest rates. We subtract estimated mortgage payments, property taxes, insurance, maintenance reserves (5%), and vacancy allowance (4%) from estimated rental income based on comparable rents in the area.',
+          'Our cash flow estimate assumes a standard 20% down payment with a 25-year amortization at current interest rates. We subtract estimated mortgage payments, property taxes, insurance, maintenance reserves (8% of rent), and vacancy allowance (5% of rent) from estimated rental income based on comparable rents in the area. Condo listings use the actual condo fee in place of the maintenance reserve.',
       },
       {
         question: 'Should I buy a property based solely on the Deal Score?',
@@ -56,7 +57,7 @@ const FAQ_DATA = [
       {
         question: 'How do I get in touch?',
         answer:
-          'You can reach Hamza by phone at (647) 609-5615, by WhatsApp for quick responses, or by email. Use the floating chat button on any page to see all contact options. You can also take the "Find My Deal" quiz to get matched with properties that fit your investment strategy.',
+          'You can reach Hamza by phone at (647) 609-1289, by WhatsApp for quick responses, or by email. Use the floating chat button on any page to see all contact options. You can also take the "Find My Deal" quiz to get matched with properties that fit your investment strategy.',
       },
       {
         question: 'Do I have to use Hamza as my agent?',
@@ -97,16 +98,13 @@ export default function FAQPage() {
       <FAQJsonLd items={allItems} />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-16 md:py-20">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
-            Frequently Asked Questions
-          </h1>
-          <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            Everything you need to know about investing in Mississauga real estate with MississaugaInvestor.ca
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Help Centre"
+        title="Frequently Asked Questions"
+        subtitle="Everything you need to know about investing in Mississauga real estate with MississaugaInvestor.ca."
+        align="center"
+        compact
+      />
 
       {/* FAQ Content */}
       <section className="max-w-3xl mx-auto px-4 py-12 md:py-16">
