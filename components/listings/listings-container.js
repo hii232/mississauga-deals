@@ -164,6 +164,8 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
   const [compareIds, setCompareIds] = useState([]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(initialListings.length === 0);
+  const [loadError, setLoadError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
 
   const [photoMap, setPhotoMap] = useState({});
 
@@ -314,14 +316,19 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
 
         // Fetch page 1 and show immediately
         const res = await fetch(apiEndpoint + '?limit=200&page=1' + cityQs);
-        if (!res.ok) return;
+        if (!res.ok) {
+          // Feed down: stop the skeletons and show an honest error state
+          if (!cancelled) { setIsLoading(false); setLoadError(true); }
+          return;
+        }
         const data = await res.json();
         const page1 = data.listings || data || [];
         const totalPages = data.pages || 1;
 
-        if (!cancelled && page1.length > 0) {
-          setListings(processListings(page1));
+        if (!cancelled) {
+          setLoadError(false);
           setIsLoading(false);
+          if (page1.length > 0) setListings(processListings(page1));
         }
 
         // Fetch remaining pages in parallel batches, appending as they arrive
@@ -350,12 +357,12 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
           }
         }
       } catch {
-        // silently fail
+        if (!cancelled) { setIsLoading(false); setLoadError(true); }
       }
     }
     fetchClient();
     return () => { cancelled = true; };
-  }, [initialListings, cityParam, apiEndpoint]);
+  }, [initialListings, cityParam, apiEndpoint, retryKey]);
 
   const toggleCompare = useCallback((id) => {
     setCompareIds((prev) =>
@@ -473,6 +480,8 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
           onToggleCompare={toggleCompare}
           photoMap={photoMap}
           isLoading={isLoading}
+          loadError={loadError}
+          onRetry={() => { setIsLoading(true); setLoadError(false); setRetryKey((k) => k + 1); }}
           initialPage={initialPage}
         />
       )}

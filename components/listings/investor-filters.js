@@ -504,7 +504,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
         <div className="flex items-center gap-3">
           <p className="text-sm text-slate-500">
             Showing <span className="font-semibold text-navy">{resultCount.toLocaleString()}</span>{' '}
-            {totalCount && resultCount !== totalCount && (
+            {totalCount > 0 && resultCount !== totalCount && (
               <>of <span className="font-semibold text-navy">{totalCount.toLocaleString()}</span>{' '}</>
             )}
             investment {resultCount === 1 ? 'property' : 'properties'}

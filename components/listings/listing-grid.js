@@ -35,7 +35,7 @@ function SkeletonCard() {
   );
 }
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, initialPage }) {
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage }) {
   const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [accessVerified, setAccessVerified] = useState(isRegistered);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -101,6 +101,24 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
           {Array.from({ length: 9 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError && listings.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6">
+        <div className="text-center" role="alert">
+          <svg className="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <p className="mt-3 text-sm font-semibold text-navy">We couldn't load listings right now</p>
+          <p className="mt-1 text-xs text-muted">The data feed hiccuped — it usually recovers in a moment.</p>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <button onClick={onRetry} className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-dark transition">Try Again</button>
+            <a href="tel:+16476091289" className="text-sm font-semibold text-navy hover:text-accent no-underline">or call 647-609-1289</a>
+          </div>
         </div>
       </div>
     );
