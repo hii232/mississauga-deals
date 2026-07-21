@@ -290,16 +290,35 @@ async function getSubscriberProfiles(supabase) {
   return profiles;
 }
 
+// Public site URL — never build the internal fetch from request.url: on the
+// weekly cron that resolves to the *.vercel.app deployment host, which sits
+// behind Vercel deployment protection and serves an HTML auth wall (200), so
+// the deals fetch would silently return [] and the newsletter would ship with
+// zero deals — its whole point. Use the public domain (as the market-stats
+// fetch above already does).
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
 // ── Fetch scored listings once for the whole send ──
-async function fetchScoredListings(request) {
+async function fetchScoredListings() {
   try {
-    const url = new URL('/api/listings?limit=200&page=1', request.url);
-    const res = await fetch(url.toString(), { cache: 'no-store' });
-    if (!res.ok) return [];
+    const res = await fetch(`${SITE_URL}/api/listings?limit=200&page=1`, { cache: 'no-store' });
+    if (!res.ok) {
+      console.error(`Newsletter: listings fetch failed (HTTP ${res.status})`);
+      return [];
+    }
+    const ctype = res.headers.get('content-type') || '';
+    if (!ctype.includes('application/json')) {
+      console.error(`Newsletter: listings fetch returned non-JSON (content-type: ${ctype || 'none'})`);
+      return [];
+    }
     const json = await res.json();
     const raw = json.listings || (Array.isArray(json) ? json : []);
     return processListings(raw).sort((a, b) => b.hamzaScore - a.hamzaScore);
-  } catch {
+  } catch (err) {
+    console.error('Newsletter: listings fetch error', err);
     return [];
   }
 }
@@ -449,7 +468,7 @@ function approvalToken(wk) {
 async function prepareSendData(request, supabase) {
   const [stats, allListings] = await Promise.all([
     fetchMarketStats(),
-    fetchScoredListings(request),
+    fetchScoredListings(),
   ]);
 
   let latestPost = null;
