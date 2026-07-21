@@ -92,7 +92,7 @@ export function ListingMap({ listings, photoMap }) {
         // Popup content
         const popupContent = `
           <div style="min-width:220px;font-family:Inter,system-ui,sans-serif;">
-            ${photo ? `<img src="${photo}" style="width:100%;height:120px;object-fit:cover;border-radius:8px 8px 0 0;margin:-14px -14px 8px -14px;width:calc(100% + 28px);" />` : ''}
+            ${photo ? `<img src="${photo}" alt="${String(listing.address || 'Property').replace(/"/g, '&quot;')}" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:8px 8px 0 0;margin:-14px -14px 8px -14px;width:calc(100% + 28px);" />` : ''}
             <div style="padding:0 2px;">
               <a href="/listings/${listing.id}" style="color:#1B2A4A;font-weight:600;font-size:13px;text-decoration:none;display:block;margin-bottom:2px;">
                 ${listing.address}
