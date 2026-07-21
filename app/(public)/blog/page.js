@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
+import { CityscapePanorama } from '@/components/art/cityscape';
 import { createClient } from '@supabase/supabase-js';
 import InlineCTA from '@/components/ui/inline-cta';
 
@@ -36,8 +37,8 @@ export default async function BlogPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-16 md:py-20">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63] pt-16 pb-28 md:pt-20 md:pb-36">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
             Investment Insights
           </h1>
@@ -45,6 +46,7 @@ export default async function BlogPage() {
             Expert analysis, neighbourhood guides, and strategies for Mississauga real estate investors
           </p>
         </div>
+        <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-20 w-full opacity-90 md:h-28" />
       </section>
 
       {/* Articles Grid */}

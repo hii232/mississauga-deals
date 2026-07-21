@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
+import { PageHero } from '@/components/layout/page-hero';
 
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS)
 const CITY_COPY = {
@@ -70,24 +71,24 @@ export default function GtaListingsPage({ searchParams }) {
 
   return (
     <main className="min-h-screen bg-cloud">
+      <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
+        {chips.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {chips.map((c) => (
+              <span
+                key={c}
+                className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80"
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+      </PageHero>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-navy">{h1}</h1>
-          <p className="mt-1 text-sm text-slate-500">{sub}</p>
-          {chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {chips.map((c) => (
-                <span
-                  key={c}
-                  className="rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent"
-                >
-                  {c}
-                </span>
-              ))}
-            </div>
-          )}
           {city && (
-            <div className="mt-3">
+            <div>
               <a
                 href="/gta"
                 className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-dark no-underline"

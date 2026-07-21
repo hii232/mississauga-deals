@@ -35,6 +35,24 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - [x] Alert/newsletter emails UTM attribution — complete 2026-07-20: newsletter already had UTM everywhere; daily alert email now tags listing links + CTA with utm_source=alerts&utm_medium=email&utm_campaign=daily-alert. Also escaped name/address interpolation in alert HTML
 - [x] Confirmation email complete 2026-07-21: new newsletter subscribers get an instant branded welcome (magazine style) setting expectations — what (weekly top deals + market numbers), when (Mondays, one email/week), from whom — with signed unsubscribe + one-click List-Unsubscribe headers. Fire-and-forget, never blocks signup, only sends for genuinely new subscribers
 
+## 4b — Visual redesign rollout (started 2026-07-21, "Mississauga dusk" identity)
+
+Hamza's direction: the site was too plain, no imagery, not enough trust. New visual identity now in `components/art/cityscape.js` (layered Mississauga skyline w/ Absolute World towers, dusk + night variants, SkylineStrip divider), `components/art/scene-icons.js` (illustrated How-It-Works scenes), `components/layout/page-hero.js` (shared skyline hero). **Previous design is preserved on branch `design-v1-backup` — never delete that branch.**
+
+Done: homepage (hero w/ floating live deal card + trust chips + skyline, illustrated steps, tinted neighbourhood cards, review cards w/ avatars + verified badge, framed agent photo + credential chips, night-skyline CTA), blog index hero, mortgage-calculator hero, neighbourhoods hero, market-pulse hero, GTA hero.
+
+Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip; keep pages consistent; ~≤300 lines per run):
+- [ ] Listing detail page: verify photo gallery is prominent; add SkylineStrip section dividers; keep sticky CTA intact
+- [ ] /pre-construction + precon detail: PageHero + card imagery treatment
+- [ ] /alerts, /book-call, /quiz, /sell, /faq, /about: PageHero (compact) each
+- [ ] /recent-sales, /compare, /news, /score-methodology: PageHero (compact)
+- [ ] Blog post page ([slug]): cover treatment + SkylineStrip before CTA
+- [ ] 404 page: skyline night art + helpful links
+- [ ] Auth pages (login/signup): left panel with skyline art + trust chips (conversion-critical)
+- [ ] Listing cards on /listings: confirm real photos render at good aspect; hover polish to match HomeDealCards
+- [ ] Homepage 768px/tablet pass on the new hero grid
+- [ ] Email templates: adopt the same navy/dusk header identity (table-safe inline styles only)
+
 ## 4 — Design & trust
 
 - [x] Audit every public page at 375px for overflow, tap targets, layout breaks — COMPLETE 2026-07-20: homepage, listings, mortgage-calculator, market-pulse, gta, blog, precon, auth all clean (no horizontal overflow). Issues found & fixed along the way: cookie banner size, market-pulse zero-stat, deal-screener zero-dashboard. (768px pass still open if wanted)
@@ -110,3 +128,4 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-21 — [design agent] Listings feed-failure UX: eternal loading skeletons replaced with an error card (Try Again + call fallback, role=alert) when /api/listings fails; retry re-fetches; fixed 'Showing 0 0investment properties' falsy-JSX bug. Verified in simulated feed-down environment at 375px — (this commit)
 - 2026-07-21 — [seo agent] Auto-blog internal linking: prompt requires 2-3 internal links from an exact allowed-path whitelist; renderer no longer opens internal links in new tabs. Blog SEO item closed — (this commit)
 - 2026-07-21 — [improvement agent] Sold-comps recency: added 180-day window (stale sales were skewing averages presented as current), stats.windowDays exposed, freshness label under summary stats with honest fallback wording — (this commit)
+- 2026-07-21 — [redesign] New 'Mississauga dusk' visual identity: skyline art library, illustrated steps, live deal card in hero, trust chips/badges, redesigned reviews + agent profile + night CTA; PageHero applied to blog/calculator/neighbourhoods/market-pulse/GTA. Previous design saved on design-v1-backup — (this commit)

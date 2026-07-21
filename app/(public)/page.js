@@ -7,6 +7,8 @@ import { HeroSearch } from '@/components/home/hero-search';
 import { HeroButtons } from '@/components/home/hero-buttons';
 import { EmailCapture } from '@/components/home/email-capture';
 import { HomeDealCards } from '@/components/home/home-deal-cards';
+import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
+import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 
 export const metadata = {
   title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
@@ -125,6 +127,107 @@ async function fetchTopDeals() {
 }
 
 // ─────────────────────────────────────────────
+//   HERO — floating live deal card (real photo in production)
+// ─────────────────────────────────────────────
+function HeroDealCard({ deal, photo }) {
+  // Fallback when the feed is unavailable: top neighbourhood by yield (real data)
+  if (!deal) {
+    const [hoodName, hood] = Object.entries(HOOD_DATA)
+      .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))[0] || [];
+    if (!hoodName) return null;
+    return (
+      <div className="w-[300px] rounded-2xl bg-white p-5 shadow-2xl shadow-black/30 ring-1 ring-white/20">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Top neighbourhood by yield</p>
+        <p className="mt-1 font-heading text-lg font-bold text-navy">{hoodName}</p>
+        <p className="mt-3 text-4xl font-bold text-accent">{hood.rentYield}%</p>
+        <p className="text-[10px] font-medium uppercase text-muted">Gross rent yield</p>
+        <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+          <div className="rounded-lg bg-cloud p-2">
+            <p className="text-sm font-bold text-navy">{fmtK(hood.avgPrice)}</p>
+            <p className="text-[9px] text-muted">Avg price</p>
+          </div>
+          <div className="rounded-lg bg-cloud p-2">
+            <p className="text-sm font-bold text-navy">{hood.avgDOM} days</p>
+            <p className="text-[9px] text-muted">Avg DOM</p>
+          </div>
+        </div>
+        <Link href="/neighbourhoods" className="mt-4 block rounded-lg bg-navy px-4 py-2.5 text-center text-xs font-bold text-white no-underline transition hover:bg-navy/90">
+          Explore neighbourhoods &rarr;
+        </Link>
+      </div>
+    );
+  }
+
+  const scoreColor = deal.hamzaScore >= 8 ? 'bg-success' : deal.hamzaScore >= 6.5 ? 'bg-accent' : 'bg-gold';
+  return (
+    <Link
+      href={`/listings/${deal.id}`}
+      className="group block w-[300px] overflow-hidden rounded-2xl bg-white no-underline shadow-2xl shadow-black/30 ring-1 ring-white/20 transition-transform hover:-translate-y-1"
+    >
+      <div className="relative h-40 overflow-hidden bg-navy/10">
+        {photo ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photo} alt={deal.address} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        ) : (
+          <div className="flex h-full items-center justify-center bg-gradient-to-br from-navy to-accent/40">
+            <svg viewBox="0 0 24 24" className="h-10 w-10 text-white/40" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z" /></svg>
+          </div>
+        )}
+        <span className={`absolute right-3 top-3 rounded-full ${scoreColor} px-2.5 py-1 text-xs font-extrabold text-white shadow`}>
+          {deal.hamzaScore?.toFixed(1)} / 10
+        </span>
+        <span className="absolute bottom-3 left-3 rounded-lg bg-navy/85 px-2.5 py-1 text-sm font-bold text-white backdrop-blur-sm">
+          {fmtK(deal.price)}
+        </span>
+      </div>
+      <div className="p-4">
+        <p className="truncate text-sm font-semibold text-navy">{deal.address}</p>
+        <p className="mt-0.5 text-xs text-muted">{deal.beds} bed · {deal.baths} bath · {deal.type}</p>
+        <div className="mt-3 flex gap-2">
+          <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">CAP {deal.capRate}%</span>
+          <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+            {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
+          </span>
+          <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">{deal.dom} DOM</span>
+        </div>
+      </div>
+      <div className="border-t border-slate-100 bg-cloud px-4 py-2 text-center text-[11px] font-bold text-accent">
+        Today&apos;s top-scored deal &rarr;
+      </div>
+    </Link>
+  );
+}
+
+function TrustChips() {
+  const chips = [
+    {
+      label: '5.0 on Google · 28 reviews',
+      icon: <span className="text-gold">★</span>,
+    },
+    {
+      label: 'Licensed by RECO',
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-success" fill="currentColor"><path d="M12 2l7 3v6c0 5-3.4 9.4-7 11-3.6-1.6-7-6-7-11V5l7-3zm-1 13.6l6-6-1.4-1.4L11 12.8 9.4 11.2 8 12.6l3 3z" /></svg>
+      ),
+    },
+    {
+      label: 'Live MLS data · PropTx',
+      icon: <span className="inline-block h-2 w-2 rounded-full bg-success" />,
+    },
+  ];
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {chips.map((c) => (
+        <span key={c.label} className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/85 backdrop-blur-sm">
+          {c.icon}
+          {c.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
 //   STATS BAR
 // ─────────────────────────────────────────────
 function StatIcon({ name }) {
@@ -159,7 +262,7 @@ function StatsBar({ liveStats }) {
   ];
 
   return (
-    <div className="bg-cloud border-y border-gray-100">
+    <div className="border-y border-gray-100 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {stats.map((st) => (
@@ -180,43 +283,48 @@ function StatsBar({ liveStats }) {
 }
 
 // ─────────────────────────────────────────────
-//   HOW IT WORKS
+//   HOW IT WORKS — illustrated steps
 // ─────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
     {
       num: '01',
+      Scene: BrowseScene,
       title: 'Browse Scored Deals',
       desc: 'Every Mississauga listing is analyzed for cash flow, cap rate, and investment potential with a deal score out of 10.',
     },
     {
       num: '02',
+      Scene: AnalysisScene,
       title: 'Deep Dive Analysis',
       desc: 'Get mortgage breakdowns, cash-on-cash returns, BRRR projections, and expert commentary on every property.',
     },
     {
       num: '03',
+      Scene: ConnectScene,
       title: 'Connect with Hamza',
       desc: 'Book a free strategy call to discuss your investment goals and get personalized recommendations.',
     },
   ];
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-16">
-      <div className="text-center mb-12">
-        <h2 className="section-title mb-3">How It Works</h2>
-        <p className="section-subtitle mx-auto">Three steps to finding your next investment property</p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {steps.map((step) => (
-          <div key={step.num} className="text-center">
-            <div className="w-12 h-12 rounded-full bg-accent/10 text-accent font-heading font-bold text-lg flex items-center justify-center mx-auto mb-4">
-              {step.num}
+    <section className="relative">
+      <SkylineStrip className="pointer-events-none absolute inset-x-0 top-0 h-10 w-full" />
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="section-title mb-3">How It Works</h2>
+          <p className="section-subtitle mx-auto">Three steps to finding your next investment property</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {steps.map(({ num, Scene, title, desc }) => (
+            <div key={num} className="card relative overflow-hidden p-6 text-center transition-shadow hover:shadow-lg">
+              <span className="absolute left-4 top-3 font-heading text-4xl font-extrabold text-navy/5">{num}</span>
+              <Scene className="mx-auto mb-4 h-28 w-auto" />
+              <h3 className="font-heading font-semibold text-lg text-navy mb-2">{title}</h3>
+              <p className="text-sm text-muted leading-relaxed">{desc}</p>
             </div>
-            <h3 className="font-heading font-semibold text-lg text-navy mb-2">{step.title}</h3>
-            <p className="text-sm text-muted leading-relaxed">{step.desc}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -227,16 +335,19 @@ function HowItWorks() {
 // ─────────────────────────────────────────────
 function AgentProfile() {
   return (
-    <section className="bg-cloud py-16">
+    <section className="relative overflow-hidden bg-cloud py-16">
+      <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-          {/* Photo */}
+          {/* Photo — layered frame treatment */}
           <div className="flex-shrink-0">
             <div className="relative">
+              <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-accent/25 via-transparent to-gold/25" aria-hidden="true" />
+              <div className="absolute -left-5 -top-5 h-20 w-20 rounded-2xl border-2 border-accent/20" aria-hidden="true" />
               <img
                 src="/images/hamza-headshot.jpg"
                 alt="Hamza Nouman — Mississauga Investment Specialist"
-                className="w-56 h-56 md:w-72 md:h-72 rounded-2xl object-cover object-top shadow-lg"
+                className="relative w-56 h-56 md:w-72 md:h-72 rounded-2xl object-cover object-top shadow-xl"
               />
               <div className="absolute -bottom-3 -right-3 bg-accent text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
                 Investment Specialist
@@ -249,10 +360,21 @@ function AgentProfile() {
             <h2 className="font-heading font-bold text-2xl md:text-3xl text-navy mb-2">
               Hamza Nouman
             </h2>
-            <p className="text-accent font-semibold text-sm mb-1">
+            <p className="text-accent font-semibold text-sm mb-3">
               Sales Representative — Cityscape Real Estate Ltd., Brokerage
             </p>
-            <p className="text-xs text-muted mb-5">Licensed by RECO</p>
+            <div className="mb-5 flex flex-wrap justify-center gap-2 md:justify-start">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-[11px] font-bold text-success">
+                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor"><path d="M12 2l7 3v6c0 5-3.4 9.4-7 11-3.6-1.6-7-6-7-11V5l7-3zm-1 13.6l6-6-1.4-1.4L11 12.8 9.4 11.2 8 12.6l3 3z" /></svg>
+                Licensed by RECO
+              </span>
+              <span className="inline-flex items-center rounded-full border border-navy/15 bg-white px-3 py-1 text-[11px] font-bold text-navy">
+                TRREB Member
+              </span>
+              <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-bold text-gold-dark">
+                ★ 5.0 Google Rating
+              </span>
+            </div>
 
             <p className="text-sm text-navy/80 leading-relaxed mb-4">
               I specialize in helping investors find cash-flowing properties in Mississauga. Every listing on this platform is scored and analyzed so you can make data-driven decisions — not emotional ones.
@@ -261,7 +383,7 @@ function AgentProfile() {
               Whether you are looking for your first rental property or building a portfolio, I provide the market expertise and analytical tools to help you invest with confidence.
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center md:justify-start mb-6">
+            <div className="flex flex-wrap gap-6 justify-center md:justify-start mb-6">
               <div className="text-center">
                 <p className="text-2xl font-bold text-navy">2,000+</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
@@ -312,9 +434,18 @@ function AgentProfile() {
 // ─────────────────────────────────────────────
 //   GOOGLE REVIEWS
 // ─────────────────────────────────────────────
+const AVATAR_HUES = [
+  'bg-accent/15 text-accent',
+  'bg-success/15 text-success',
+  'bg-gold/20 text-gold-dark',
+  'bg-navy/10 text-navy',
+  'bg-rose-100 text-rose-600',
+  'bg-violet-100 text-violet-600',
+];
+
 function GoogleReviews() {
   return (
-    <section className="bg-cloud py-16">
+    <section className="bg-white py-16">
       <div className="max-w-7xl mx-auto px-4">
         <div className="text-center mb-10">
           <h2 className="section-title mb-3">What Clients Say</h2>
@@ -326,19 +457,30 @@ function GoogleReviews() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {GOOGLE_REVIEWS.slice(0, 6).map((r) => (
-            <div key={r.name} className="card p-6">
+          {GOOGLE_REVIEWS.slice(0, 6).map((r, idx) => (
+            <figure key={r.name} className="card relative p-6 transition-shadow hover:shadow-lg">
+              <svg viewBox="0 0 24 24" className="absolute right-5 top-5 h-7 w-7 text-accent/10" fill="currentColor" aria-hidden="true">
+                <path d="M9.6 4C6 6 3.6 9.2 3.6 13.4c0 3.4 2 6.6 5.5 6.6 2.6 0 4.5-2 4.5-4.4 0-2.5-1.8-4.2-4.1-4.2-.4 0-.9 0-1 .1.3-2.3 2.3-4.6 4.4-5.7L9.6 4zm10.3 0c-3.6 2-6 5.2-6 9.4 0 3.4 2 6.6 5.5 6.6 2.6 0 4.6-2 4.6-4.4 0-2.5-1.9-4.2-4.2-4.2-.4 0-.8 0-1 .1.3-2.3 2.3-4.6 4.4-5.7L19.9 4z" />
+              </svg>
               <div className="flex gap-0.5 mb-3">
                 {Array.from({ length: r.rating }).map((_, i) => (
                   <span key={i} className="text-gold text-sm">★</span>
                 ))}
               </div>
-              <p className="text-sm text-navy/80 leading-relaxed mb-4 italic">&ldquo;{r.text}&rdquo;</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-navy">{r.name}</span>
-                <span className="text-[10px] text-muted">Google Review</span>
-              </div>
-            </div>
+              <blockquote className="text-sm text-navy/80 leading-relaxed mb-5">&ldquo;{r.text}&rdquo;</blockquote>
+              <figcaption className="flex items-center gap-3 border-t border-slate-100 pt-4">
+                <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold ${AVATAR_HUES[idx % AVATAR_HUES.length]}`}>
+                  {r.name.trim().charAt(0).toUpperCase()}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-navy">{r.name}</span>
+                  <span className="flex items-center gap-1 text-[10px] text-muted">
+                    <svg viewBox="0 0 24 24" className="h-3 w-3 text-success" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 14.6l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9.6l-7 7z" /></svg>
+                    Verified Google review
+                  </span>
+                </span>
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
@@ -347,41 +489,51 @@ function GoogleReviews() {
 }
 
 // ─────────────────────────────────────────────
-//   CTA SECTION
+//   CTA SECTION — night skyline band
 // ─────────────────────────────────────────────
 function CTASection() {
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
-      <div className="bg-navy rounded-2xl p-8 md:p-12 text-center">
-        <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mb-3">
-          Ready to Find Your Next Investment?
-        </h2>
-        <p className="text-white/60 text-sm md:text-base mb-4 max-w-lg mx-auto">
-          Get free access to deal scores, cash flow analysis, and expert insights on every
-          Mississauga investment property.
-        </p>
-        <p className="text-emerald-400 text-sm font-semibold mb-8">
-          Close with Hamza — First month&apos;s mortgage on us.
-        </p>
-        <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
-          <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">
-            Get Free Access
-          </Link>
-          <Link href="/pre-construction" className="text-sm text-white/50 hover:text-white/80 transition no-underline">
-            Interested in pre-construction? Get VIP access &rarr;
-          </Link>
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-[#0E1729] via-navy to-[#1B2A4A] p-8 pb-32 text-center md:p-12 md:pb-36">
+        <div className="relative z-10">
+          <h2 className="font-heading font-bold text-2xl md:text-3xl text-white mb-3">
+            Ready to Find Your Next Investment?
+          </h2>
+          <p className="text-white/60 text-sm md:text-base mb-4 max-w-lg mx-auto">
+            Get free access to deal scores, cash flow analysis, and expert insights on every
+            Mississauga investment property.
+          </p>
+          <p className="text-emerald-400 text-sm font-semibold mb-8">
+            Close with Hamza — First month&apos;s mortgage on us.
+          </p>
+          <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
+            <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">
+              Get Free Access
+            </Link>
+            <Link href="/pre-construction" className="text-sm text-white/50 hover:text-white/80 transition no-underline">
+              Interested in pre-construction? Get VIP access &rarr;
+            </Link>
+          </div>
+          <p className="text-white/30 text-[10px] mt-6 max-w-md mx-auto">
+            Commission rebate applied as credit on closing. Buyer clients of Hamza Nouman, Cityscape Real Estate Ltd., Brokerage. Terms apply.
+          </p>
         </div>
-        <p className="text-white/30 text-[10px] mt-6 max-w-md mx-auto">
-          Commission rebate applied as credit on closing. Buyer clients of Hamza Nouman, Cityscape Real Estate Ltd., Brokerage. Terms apply.
-        </p>
+        <CityscapePanorama variant="night" className="pointer-events-none absolute inset-x-0 bottom-0 h-28 w-full md:h-32" />
       </div>
     </section>
   );
 }
 
 // ─────────────────────────────────────────────
-//   NEIGHBOURHOOD PREVIEW (Change 4)
+//   NEIGHBOURHOOD PREVIEW
 // ─────────────────────────────────────────────
+const HOOD_TINTS = [
+  { panel: 'from-accent/15 to-accent/5', tone: '#2563EB' },
+  { panel: 'from-success/15 to-success/5', tone: '#10B981' },
+  { panel: 'from-gold/20 to-gold/5', tone: '#D97706' },
+  { panel: 'from-navy/15 to-navy/5', tone: '#1B2A4A' },
+];
+
 function NeighbourhoodPreview() {
   // Pick top 4 neighbourhoods by rent yield
   const topHoods = Object.entries(HOOD_DATA)
@@ -395,7 +547,8 @@ function NeighbourhoodPreview() {
         <p className="section-subtitle mx-auto">Yield, price trends, and expert analysis on 24 Mississauga neighbourhoods</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {topHoods.map(([name, data]) => {
+        {topHoods.map(([name, data], idx) => {
+          const tint = HOOD_TINTS[idx % HOOD_TINTS.length];
           const trendColor =
             data.trend === 'hot'
               ? 'bg-red-50 text-red-600 border-red-100'
@@ -404,34 +557,42 @@ function NeighbourhoodPreview() {
               : 'bg-blue-50 text-blue-600 border-blue-100';
 
           return (
-            <div key={name} className="card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-heading font-semibold text-navy">{name}</h3>
-                <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`}>
+            <Link
+              key={name}
+              href={`/neighbourhoods/${encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'))}`}
+              className="card group block overflow-hidden p-0 no-underline transition-shadow hover:shadow-lg"
+            >
+              {/* illustrated header strip */}
+              <div className={`relative h-20 bg-gradient-to-br ${tint.panel}`}>
+                <SkylineStrip className="absolute inset-x-0 bottom-0 h-14 w-full" tone={tint.tone} opacity={0.35} />
+                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`}>
                   {data.trend}
                 </span>
               </div>
-              <div className="text-center mb-4">
-                <p className="text-3xl font-bold text-accent">{data.rentYield}%</p>
-                <p className="text-[10px] text-muted uppercase font-medium">Rent Yield</p>
+              <div className="p-5">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <h3 className="font-heading font-semibold text-navy group-hover:text-accent transition-colors">{name}</h3>
+                  <span className="text-2xl font-bold text-accent">{data.rentYield}%</span>
+                </div>
+                <p className="mb-4 text-right text-[10px] uppercase font-medium text-muted -mt-3">Rent yield</p>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="rounded-lg bg-cloud p-2">
+                    <p className="text-xs font-bold text-navy">{fmtK(data.avgPrice)}</p>
+                    <p className="text-[9px] text-muted">Avg Price</p>
+                  </div>
+                  <div className="rounded-lg bg-cloud p-2">
+                    <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
+                      {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
+                    </p>
+                    <p className="text-[9px] text-muted">YoY</p>
+                  </div>
+                  <div className="rounded-lg bg-cloud p-2">
+                    <p className="text-xs font-bold text-navy">{data.avgDOM}d</p>
+                    <p className="text-[9px] text-muted">Avg DOM</p>
+                  </div>
+                </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center">
-                <div className="rounded-lg bg-cloud p-2">
-                  <p className="text-xs font-bold text-navy">{fmtK(data.avgPrice)}</p>
-                  <p className="text-[9px] text-muted">Avg Price</p>
-                </div>
-                <div className="rounded-lg bg-cloud p-2">
-                  <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
-                    {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
-                  </p>
-                  <p className="text-[9px] text-muted">YoY</p>
-                </div>
-                <div className="rounded-lg bg-cloud p-2">
-                  <p className="text-xs font-bold text-navy">{data.avgDOM}d</p>
-                  <p className="text-[9px] text-muted">Avg DOM</p>
-                </div>
-              </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -455,51 +616,70 @@ export default async function HomePage() {
     ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
     : '2,000+';
 
+  const heroDeal = topDeals.deals[0] || null;
+
   return (
     <>
-      {/* Hero */}
-      <section className="relative bg-gradient-to-br from-navy via-navy to-accent/20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 py-20 md:py-28 relative z-10">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
-              <span className="text-success text-xs font-medium">Live Data</span>
-              <span className="text-white/50 text-xs">Updated every 24 hours</span>
-            </div>
-            <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4">
-              Mississauga Investment
-              <br />
-              <span className="text-accent">Deal Finder</span>
-            </h1>
-            <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-              {heroCount} GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
-            </p>
-            <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
-              <span className="text-accent text-sm font-bold">The Only Platform That Does It.</span>
+      {/* Hero — dusk skyline with live deal card */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63]">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 pt-16 pb-36 md:pt-24 md:pb-48">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr,320px]">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
+                <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
+                <span className="text-success text-xs font-medium">Live Data</span>
+                <span className="text-white/50 text-xs">Updated every 24 hours</span>
+              </div>
+              <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4">
+                Mississauga Investment
+                <br />
+                <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Deal Finder</span>
+              </h1>
+              <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
+                {heroCount} GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
+              </p>
+              <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
+                <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
+              </div>
+
+              {/* Search Bar */}
+              <HeroSearch />
+
+              {/* Popular Neighbourhoods */}
+              <div className="flex flex-wrap items-center gap-2 mb-6">
+                <span className="text-white/40 text-xs">Popular:</span>
+                {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
+                  <Link
+                    key={hood}
+                    href={`/listings?hood=${encodeURIComponent(hood)}`}
+                    className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
+                  >
+                    {hood}
+                  </Link>
+                ))}
+              </div>
+
+              <HeroButtons />
+
+              <div className="mt-6">
+                <TrustChips />
+              </div>
             </div>
 
-            {/* Search Bar */}
-            <HeroSearch />
-
-            {/* Popular Neighbourhoods */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              <span className="text-white/40 text-xs">Popular:</span>
-              {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
-                <Link
-                  key={hood}
-                  href={`/listings?hood=${encodeURIComponent(hood)}`}
-                  className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
-                >
-                  {hood}
-                </Link>
-              ))}
+            {/* Floating live deal card — real listing photo in production */}
+            <div className="hidden justify-center lg:flex">
+              <div className="relative">
+                <div className="absolute -inset-6 rounded-3xl bg-accent/20 blur-2xl" aria-hidden="true" />
+                <div className="relative rotate-2 transition-transform duration-300 hover:rotate-0">
+                  <HeroDealCard deal={heroDeal} photo={heroDeal ? topDeals.photoMap[heroDeal.id] : null} />
+                </div>
+              </div>
             </div>
-
-            <HeroButtons />
           </div>
         </div>
-        {/* Decorative gradient orbs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl opacity-30" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-success/20 rounded-full blur-3xl opacity-20" />
+
+        {/* Skyline panorama */}
+        <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-36 w-full md:h-52" />
       </section>
 
       <StatsBar liveStats={liveStats} />
@@ -520,7 +700,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Weekly Email Capture (Change 1) */}
+      {/* Weekly Email Capture */}
       <EmailCapture />
 
       {/* First Month's Mortgage Offer */}
@@ -559,10 +739,10 @@ export default async function HomePage() {
 
       <HowItWorks />
 
-      {/* Neighbourhood Preview (Change 4) */}
+      {/* Neighbourhood Preview */}
       <NeighbourhoodPreview />
 
-      {/* Testimonials BEFORE About Hamza (Change 3) */}
+      {/* Testimonials before About Hamza */}
       <GoogleReviews />
       <AgentProfile />
       <CTASection />
