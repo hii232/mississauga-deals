@@ -136,7 +136,7 @@ export default function ExitIntentPopup() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="text-navy font-semibold">Welcome to the inside track.</p>
+              <p role="status" className="text-navy font-semibold">Welcome to the inside track.</p>
               <p className="text-sm text-muted mt-1">You'll get your first alert tomorrow morning.</p>
             </div>
           ) : (
@@ -147,10 +147,11 @@ export default function ExitIntentPopup() {
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setError(''); }}
                   placeholder="Enter your email address"
+                  aria-label="Email address"
                   className="w-full rounded-xl border border-slate-200 bg-cloud px-4 py-3.5 text-navy placeholder:text-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all"
                   autoFocus
                 />
-                {error && <p className="text-danger text-xs mt-1.5">{error}</p>}
+                {error && <p role="alert" className="text-danger text-xs mt-1.5">{error}</p>}
               </div>
 
               <button

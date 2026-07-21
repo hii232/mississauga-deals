@@ -49,7 +49,7 @@ export function EmailCapture() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
-          <p className="text-lg font-semibold text-navy">{message}</p>
+          <p role="status" className="text-lg font-semibold text-navy">{message}</p>
         </div>
       </section>
     );
@@ -70,6 +70,7 @@ export function EmailCapture() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
+            aria-label="Email address"
             required
             className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
           />
@@ -82,7 +83,7 @@ export function EmailCapture() {
           </button>
         </form>
         {status === 'error' && (
-          <p className="text-xs text-red-500 mt-3">{message}</p>
+          <p role="alert" className="text-xs text-red-500 mt-3">{message}</p>
         )}
         <p className="text-[11px] text-navy/40 mt-4">
           Free weekly email. No spam, unsubscribe anytime.
