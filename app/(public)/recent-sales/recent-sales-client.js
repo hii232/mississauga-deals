@@ -74,7 +74,7 @@ export function RecentSalesClient() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="section-title">Recent Sales</h1>
+          <h1 className="section-title">Mississauga Recent Sales &amp; Sold Prices</h1>
           <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
             <span className="relative flex h-1.5 w-1.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />

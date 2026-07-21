@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'How the Deal Score Works — MississaugaInvestor.ca',
+  title: 'How the Deal Score Works — Methodology & Data Sources',
   description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
   alternates: { canonical: '/score-methodology' },
 };

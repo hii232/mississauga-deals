@@ -113,13 +113,13 @@ export default function AlertsPage() {
           </h2>
 
           {success && (
-            <div className="mb-4 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
+            <div role="status" className="mb-4 rounded-lg bg-success/10 border border-success/20 px-4 py-3 text-sm text-success">
               Alert created! You will receive email notifications when matching deals are found.
             </div>
           )}
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">
+            <div role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">
               {error}
             </div>
           )}

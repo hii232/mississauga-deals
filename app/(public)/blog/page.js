@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { blogCoverUrl } from '@/lib/blog-cover';
 import { createClient } from '@supabase/supabase-js';
 import InlineCTA from '@/components/ui/inline-cta';
 
@@ -60,7 +61,7 @@ export default async function BlogPage() {
             {posts.map((post) => {
               const readTime = Math.max(1, Math.ceil((post.content || '').split(/\s+/).length / 200));
               const dateStr = new Date(post.created_at).toLocaleDateString('en-CA', {
-                year: 'numeric', month: 'long',
+                year: 'numeric', month: 'long', day: 'numeric',
               });
               const colorClass = categoryColorMap[post.category] || categoryColorMap.General;
 
@@ -70,13 +71,12 @@ export default async function BlogPage() {
                   href={`/blog/${post.slug}`}
                   className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-md transition-all duration-300 no-underline"
                 >
-                  {post.cover_image_url && (
-                    <img
-                      src={post.cover_image_url}
-                      alt={post.title}
-                      className="w-full h-44 object-cover"
-                    />
-                  )}
+                  <img
+                    src={blogCoverUrl(post)}
+                    alt={post.title}
+                    loading="lazy"
+                    className="w-full h-44 object-cover"
+                  />
                   <div className="p-6">
                     <div className="flex items-center gap-2 mb-3">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colorClass}`}>

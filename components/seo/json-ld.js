@@ -73,8 +73,8 @@ export function OrganizationJsonLd() {
     name: 'Hamza Nouman — MississaugaInvestor.ca',
     alternateName: 'MississaugaInvestor.ca',
     url: 'https://www.mississaugainvestor.ca',
-    logo: 'https://www.mississaugainvestor.ca/images/og-image.jpg',
-    image: 'https://www.mississaugainvestor.ca/images/og-image.jpg',
+    logo: 'https://www.mississaugainvestor.ca/opengraph-image',
+    image: 'https://www.mississaugainvestor.ca/opengraph-image',
     description:
       'Mississauga real estate investment platform by Hamza Nouman. Data-driven cash flow analysis, deal scores, cap rates, and expert insights on every investment property.',
     telephone: '+1-647-609-1289',
@@ -253,12 +253,17 @@ export function PropertyJsonLd({ listing }) {
 export function ArticleJsonLd({ post }) {
   if (!post) return null;
 
+  // Every post has an image: the stored cover or the generated branded one
+  const coverImage =
+    post.cover_image_url ||
+    `https://www.mississaugainvestor.ca/api/blog-cover?title=${encodeURIComponent(post.title || '')}${post.category ? `&category=${encodeURIComponent(post.category)}` : ''}`;
+
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt || '',
-    ...(post.cover_image_url && { image: post.cover_image_url }),
+    image: coverImage,
     datePublished: post.created_at,
     dateModified: post.updated_at || post.created_at,
     author: {
@@ -274,7 +279,8 @@ export function ArticleJsonLd({ post }) {
       name: 'MississaugaInvestor.ca',
       logo: {
         '@type': 'ImageObject',
-        url: 'https://www.mississaugainvestor.ca/images/og-image.jpg',
+        // /images/og-image.jpg never existed (404) — use the generated brand image
+        url: 'https://www.mississaugainvestor.ca/opengraph-image',
       },
     },
     mainEntityOfPage: `https://www.mississaugainvestor.ca/blog/${post.slug}`,

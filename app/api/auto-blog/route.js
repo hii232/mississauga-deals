@@ -329,6 +329,27 @@ async function fetchCoverImage(keywords) {
 }
 
 // ── Ping search engines to index the new post immediately ──
+// Overlap of significant title words (0..1, against the smaller title). Two
+// posts about the same story share its distinctive nouns even when phrased
+// differently — e.g. "tiny condo glut" appears across all three 2026-07-20 dupes.
+function titleSimilarity(a, b) {
+  const STOP = new Set(['the','and','for','what','why','how','your','you','with','now','here','heres','means','should','could','will','just','this','that','are','its','not','buy','play','2025','2026','2027','mississauga','gta','real','estate','investors','investor','buyers','buyer','market','property','properties','home','homes']);
+  const toks = (t) =>
+    new Set(
+      String(t)
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2 && !STOP.has(w))
+    );
+  const A = toks(a);
+  const B = toks(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let inter = 0;
+  for (const w of A) if (B.has(w)) inter++;
+  return inter / Math.min(A.size, B.size);
+}
+
 async function pingSearchEngines(slug) {
   const blogUrl = `https://www.mississaugainvestor.ca/blog/${slug}`;
   const siteHost = 'www.mississaugainvestor.ca';
@@ -420,11 +441,25 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Generated post missing title or content' }, { status: 500 });
     }
 
-    // Generate slug and check uniqueness
-    let slug = generateSlug(post.title);
+    // HARD duplicate guard — the prompt-level "don't re-cover a story" rule is
+    // not reliable on its own (2026-07-20: three near-identical BoC posts).
+    // Better to publish nothing today than a duplicate.
+    const recentTitles = existingTitles.slice(0, 20);
+    const dupe = recentTitles.find((t) => titleSimilarity(post.title, t) >= 0.5);
+    if (dupe) {
+      return NextResponse.json({
+        skipped: true,
+        reason: 'Generated title too similar to a recent post',
+        generatedTitle: post.title,
+        similarTo: dupe,
+      });
+    }
+
+    // Slug collision = same title = duplicate; skip rather than suffix-publish
+    const slug = generateSlug(post.title);
     const existingSlugs = (existingPosts || []).map((p) => p.slug);
     if (existingSlugs.includes(slug)) {
-      slug = slug + '-' + Date.now().toString(36);
+      return NextResponse.json({ skipped: true, reason: 'Slug already exists', slug });
     }
 
     // Fetch a relevant cover image

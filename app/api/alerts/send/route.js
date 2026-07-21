@@ -125,6 +125,15 @@ export async function POST(request) {
   }
 }
 
+// Escape user/MLS-supplied strings interpolated into email HTML
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
+
 /**
  * Build HTML email template for deal alerts
  */
@@ -137,8 +146,8 @@ function buildAlertEmail(listings, name, searches) {
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <a href="https://www.mississaugainvestor.ca/listings/${l.id}" style="color: #1B2A4A; font-weight: 600; font-size: 15px; text-decoration: none;">
-                  ${l.address}
+                <a href="https://www.mississaugainvestor.ca/listings/${encodeURIComponent(l.id)}?${UTM}" style="color: #1B2A4A; font-weight: 600; font-size: 15px; text-decoration: none;">
+                  ${esc(l.address)}
                 </a>
                 <div style="color: #64748B; font-size: 13px; margin-top: 4px;">
                   ${l.beds} bed · ${l.baths} bath · ${l.type}${l.subType ? ' · ' + l.subType : ''}
@@ -206,7 +215,7 @@ function buildAlertEmail(listings, name, searches) {
           <tr>
             <td style="background: white; padding: 32px;">
               <div style="font-size: 18px; font-weight: 600; color: #1B2A4A; margin-bottom: 4px;">
-                Hi ${name},
+                Hi ${esc(name)},
               </div>
               <div style="color: #64748B; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
                 ${listings.length} new investment ${listings.length === 1 ? 'property matches' : 'properties match'} your saved search criteria.
@@ -217,7 +226,7 @@ function buildAlertEmail(listings, name, searches) {
               </table>
 
               <div style="text-align: center; margin-top: 28px;">
-                <a href="https://www.mississaugainvestor.ca/listings" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
+                <a href="https://www.mississaugainvestor.ca/listings?${UTM}" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
                   View All ${listings.length > 5 ? '1,800+' : ''} Listings
                 </a>
               </div>

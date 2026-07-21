@@ -1,5 +1,5 @@
-'use client';
-
+// Server component on public blog pages: keeps react-markdown out of the
+// client bundle. (Still bundles client-side when imported from admin pages.)
 import ReactMarkdown from 'react-markdown';
 
 export default function MarkdownRenderer({ content }) {
@@ -17,7 +17,7 @@ export default function MarkdownRenderer({ content }) {
           ol: ({children}) => <ol className="list-decimal pl-6 mb-4 text-muted space-y-1.5">{children}</ol>,
           li: ({children}) => <li className="leading-relaxed text-[15px] md:text-base">{children}</li>,
           blockquote: ({children}) => <blockquote className="border-l-4 border-accent/30 pl-4 italic text-muted my-4">{children}</blockquote>,
-          img: ({src, alt}) => <img src={src} alt={alt || ''} className="rounded-xl my-6 w-full" />,
+          img: ({src, alt}) => <img src={src} alt={alt || ''} loading="lazy" decoding="async" className="rounded-xl my-6 w-full" />,
           code: ({children}) => <code className="font-mono bg-cloud rounded px-1.5 py-0.5 text-sm">{children}</code>,
         strong: ({children}) => <strong className="font-bold text-navy">{children}</strong>,
         em: ({children}) => <em className="italic">{children}</em>,

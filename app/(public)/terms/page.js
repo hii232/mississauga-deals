@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Terms of Service — MississaugaInvestor.ca',
+  title: 'Terms of Service',
   description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
   alternates: { canonical: '/terms' },
 };
