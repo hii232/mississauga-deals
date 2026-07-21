@@ -47,7 +47,7 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 - [~] PageHero/skyline rollout: /faq + /book-call + /about + /alerts (Jul 21) done; still /quiz, /sell
 - [ ] /recent-sales, /compare, /news, /score-methodology: PageHero (compact)
 - [ ] Blog post page ([slug]): cover treatment + SkylineStrip before CTA
-- [ ] 404 page: skyline night art + helpful links
+- [x] 404 page 2026-07-21: redesigned onto the dusk identity — night CityscapePanorama anchored to the bottom, deeper night gradient, and FIXED real WCAG AA failures (recovery links were text-white/30 and body text-white/50 — both fail contrast on navy; now white/75–80). Turned the dead-end into a recovery path: 6 popular-page chips led by the lead-capture Deal Alerts link. Verified at 375px (no overflow, no layout shift)
 - [ ] Auth pages (login/signup): left panel with skyline art + trust chips (conversion-critical)
 - [ ] Listing cards on /listings: confirm real photos render at good aspect; hover polish to match HomeDealCards
 - [ ] Homepage 768px/tablet pass on the new hero grid
@@ -140,3 +140,4 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 - 2026-07-21 — [design agent] Dusk PageHero on /alerts (the main "Sign Up Free" CTA destination) — "Never miss a deal" eyebrow + skyline flowing into the alert form. Verified 375px, no overflow — (this commit)
 - 2026-07-21 — [seo agent] Verified no duplicate-H1 on any redesigned page (PageHero pages have exactly one h1; sell/precon two-h1 are in mutually-exclusive success/form branches) and all JSON-LD survived the redesign. Added BreadcrumbList schema to the high-value /pre-construction VIP page (had none) — (this commit)
 - 2026-07-21 — [improvement agent] Market-pulse data trust: verified aggregation math (sale-to-list, avg DOM/price all correct), then fixed the real issue — a 5-month-old TRREB monthly snapshot (Feb 2026) was blended with live MLS stats and shown as current. Added tRREBAsOf to /api/market-stats + a data-provenance strip (live-vs-monthly split, "as of {month}") and an as-of caption on the Avg-Prices-by-Type chart. Item checked off; Hamza to refresh TRREB block when newer Market Watch data ships — (this commit)
+- 2026-07-21 — [design agent] 404 page redesigned onto the dusk identity: night skyline panorama + deeper night gradient, fixed WCAG AA contrast failures (recovery links were text-white/30, body /50 — fail on navy; now /75–80), and turned the dead-end into a recovery path with 6 popular-page chips led by the lead-capture Deal Alerts link. Verified 375px, no overflow/layout shift, build green — (this commit)
