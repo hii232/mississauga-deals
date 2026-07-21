@@ -37,7 +37,9 @@ async function fetchMarketStats() {
 
 // ── Format price ──
 function fmtPrice(p) {
-  if (!p) return 'N/A';
+  // NEVER return the literal "N/A" — callers must guard on falsy value and omit
+  // the row/tile entirely. Empty string is the safety net, never a visible N/A.
+  if (!p || p <= 0) return '';
   if (p >= 1000000) return '$' + (p / 1000000).toFixed(2) + 'M';
   return '$' + Math.round(p / 1000) + 'K';
 }
@@ -89,10 +91,12 @@ function buildEmailHTML(stats, date, extras = {}) {
     { label: 'Condo', value: prices.condo?.avg || prices.condo?.soldAvg },
   ].filter((t) => t.value > 0);
 
-  const mortgage = s.mortgageRates || {};
-  const variable = mortgage.variable || null;
-  const fixed5 = mortgage.fixed5Year || mortgage.fixed5 || null;
-  const bocRate = s.economicIndicators?.bocRate || mortgage.bocRate || null;
+  // Match the ACTUAL /api/market-stats shape: `rates` and `economic`
+  // (older `mortgageRates`/`economicIndicators` kept as fallbacks just in case)
+  const rates = s.rates || s.mortgageRates || {};
+  const variable = rates.variable ?? null;
+  const fixed5 = rates.fixed5yr ?? rates.fixed5Year ?? rates.fixed5 ?? null;
+  const bocRate = s.economic?.bocRate ?? s.economicIndicators?.bocRate ?? rates.bocRate ?? null;
 
   const headerStats = [
     avgPrice ? { label: 'Average Price', value: avgPrice } : null,
@@ -108,7 +112,7 @@ function buildEmailHTML(stats, date, extras = {}) {
     fixed5 != null ? { label: '5-Year Fixed', value: `${fixed5}%` } : null,
   ].filter(Boolean);
 
-  const hoods = s.hotNeighbourhoods || [];
+  const hoods = (s.hotNeighbourhoods || []).filter((h) => (h.avgPrice || h.avg_price) > 0);
 
   const issueDate = date.toLocaleDateString('en-CA', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -554,7 +558,20 @@ export async function GET(request) {
         { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
       ];
       const html = buildEmailHTML(
-        { avgPrice: 985000, avgDOM: 31, salesToListRatio: 0.96, mississaugaMonthsOfInventory: 5.2 },
+        {
+          avgPrice: 985000, avgDOM: 31, salesToListRatio: 0.96, mississaugaMonthsOfInventory: 5.2,
+          avgPrices: {
+            detached: { avg: 1460000 }, semiDetached: { avg: 921000 },
+            townhouse: { avg: 840000 }, condo: { avg: 664000 },
+          },
+          economic: { bocRate: 2.3 },
+          rates: { variable: 4.45, fixed5yr: 6.09 },
+          hotNeighbourhoods: [
+            { name: 'Cooksville', avgPrice: 750000 },
+            { name: 'Square One / City Centre', avgPrice: 620000 },
+            { name: 'Port Credit', avgPrice: 1250000 },
+          ],
+        },
         new Date(),
         {
           greetingName: 'Sam',
