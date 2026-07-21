@@ -46,7 +46,7 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 ## 5 — Investor value & SEO
 
 - [x] Neighbourhood guides verified 2026-07-21: data-rich metadata with real numbers (price, YoY, yield, DOM), FAQ + breadcrumb schema, and full interlinking (filtered listings CTA, book-call, sibling guides, methodology). Listing detail pages link back to guides (Jul 20). Complete
-- [ ] Blog/auto-blog: content answers real investor questions (financing, pre-con vs resale, tax); every post has metadata, structured data, internal links
+- [x] Blog/auto-blog SEO complete 2026-07-21: metadata + Article/Breadcrumb schema + guaranteed images all in place; generation prompt now requires 2-3 internal links from a fixed allowed-path list (listings/calculator/market-pulse/recent-sales/alerts/neighbourhood guides — no invented URLs); markdown renderer keeps internal links same-tab (external still new-tab). Content quality directives already strong (voice, no AI tells, real neighbourhood numbers)
 - [x] Metadata audit COMPLETE 2026-07-20: crawled all 21 public routes — every title unique; fixed 4 pages with doubled '| MississaugaInvestor.ca' brand suffix (news, score-methodology, privacy, terms) and gave /news a query-targeting title. OG/canonicals/JSON-LD/sitemap verified in earlier runs
 - [x] Market data pages target searchable queries — complete 2026-07-21: recent-sales targets "Mississauga sold prices {year}" (Jul 20), market-pulse now titled "Mississauga Housing Market {year} — Prices, Trends & Stats" with build-time year and query-rich description
 
@@ -108,3 +108,4 @@ Priority order: (1) anything broken or misleading — especially wrong numbers, 
 - 2026-07-21 — [seo agent] Market-pulse metadata now targets the high-volume "Mississauga housing market" query with build-time year; verified neighbourhood guides already fully optimized + interlinked (both #5 items checked off) — (this commit)
 - 2026-07-21 — [improvement agent] Instant welcome email on newsletter signup: magazine-styled expectation-setting (what/when/from), signed unsubscribe, one-click List-Unsubscribe, UTM-tagged CTA; fire-and-forget after insert so signup latency is unchanged; verified subscribe path still 200 — (this commit)
 - 2026-07-21 — [design agent] Listings feed-failure UX: eternal loading skeletons replaced with an error card (Try Again + call fallback, role=alert) when /api/listings fails; retry re-fetches; fixed 'Showing 0 0investment properties' falsy-JSX bug. Verified in simulated feed-down environment at 375px — (this commit)
+- 2026-07-21 — [seo agent] Auto-blog internal linking: prompt requires 2-3 internal links from an exact allowed-path whitelist; renderer no longer opens internal links in new tabs. Blog SEO item closed — (this commit)

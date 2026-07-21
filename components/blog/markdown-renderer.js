@@ -12,7 +12,10 @@ export default function MarkdownRenderer({ content }) {
                   h2: ({children}) => <h2 className="font-heading text-xl font-bold text-navy mb-3 mt-6">{children}</h2>,
           h3: ({children}) => <h3 className="font-heading text-lg font-semibold text-navy mb-2 mt-5">{children}</h3>,
           p: ({children}) => <p className="text-muted leading-relaxed mb-4 text-[15px] md:text-base">{children}</p>,
-          a: ({href, children}) => <a href={href} className="text-accent hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+          a: ({href, children}) =>
+            href?.startsWith('/')
+              ? <a href={href} className="text-accent hover:underline">{children}</a>
+              : <a href={href} className="text-accent hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
           ul: ({children}) => <ul className="list-disc pl-6 mb-4 text-muted space-y-1.5">{children}</ul>,
           ol: ({children}) => <ol className="list-decimal pl-6 mb-4 text-muted space-y-1.5">{children}</ol>,
           li: ({children}) => <li className="leading-relaxed text-[15px] md:text-base">{children}</li>,
