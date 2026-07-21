@@ -44,7 +44,7 @@ Done: homepage (hero w/ floating live deal card + trust chips + skyline, illustr
 Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip; keep pages consistent; ~≤300 lines per run):
 - [ ] Listing detail page: verify photo gallery is prominent; add SkylineStrip section dividers; keep sticky CTA intact
 - [ ] /pre-construction + precon detail: PageHero + card imagery treatment
-- [~] PageHero rollout: /faq (Jul 21) + /book-call (Jul 21) done; still /alerts, /quiz, /sell, /about
+- [~] PageHero/skyline rollout: /faq + /book-call + /about (Jul 21) done; still /alerts, /quiz, /sell
 - [ ] /recent-sales, /compare, /news, /score-methodology: PageHero (compact)
 - [ ] Blog post page ([slug]): cover treatment + SkylineStrip before CTA
 - [ ] 404 page: skyline night art + helpful links
@@ -134,3 +134,4 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 - 2026-07-21 — [improvement agent] WRONG-NUMBER fix: FAQ claimed deal-score cash flow uses "maintenance reserves (5%)" and "vacancy allowance (4%)", but the actual engine (DEFAULT_ASSUMPTIONS) uses 8% maintenance + 5% vacancy — investors were told the wrong methodology. Corrected FAQ to 8%/5% and clarified condos use real condo fee. Did NOT touch the engine (would change every score). NEEDS HAMZA: mortgage-calculator page defaults (5% maint / 5% vac) differ from the deal-score engine (8%/5%) — intentional (user-adjustable tool) or should they match? — (this commit)
 - 2026-07-21 — [design agent] Dusk PageHero applied to /book-call (key lead-capture page) — branded skyline hero w/ "Free 30-min call" eyebrow flowing into the booking calendar. Verified 375px, no overflow. /sell left as-is (integrated two-column hero, restructuring risks the form) — (this commit)
 - 2026-07-21 — [seo agent] Image alt-text audit: every <img> site-wide now has alt (last gap was the map marker popup thumbnail — added address-based alt + lazy loading + quote-escaping). Decorative skyline SVGs confirmed aria-hidden. Canonicals verified on all 10 key routes — (this commit)
+- 2026-07-21 — [design agent] /about hero brought onto the dusk identity: kept its strong custom hero (headshot, credentials, call/email CTAs) but switched to the dusk gradient and added the CityscapePanorama skyline — enhance, don't replace. Verified 375px, no overflow — (this commit)
