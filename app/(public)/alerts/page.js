@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { HOOD_DATA } from '@/lib/constants';
+import { PageHero } from '@/components/layout/page-hero';
 
 const STRATEGIES = [
   { value: '', label: 'Any strategy' },
@@ -97,13 +98,15 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8">
-        <h1 className="section-title mb-2">Deal Alerts</h1>
-        <p className="section-subtitle">
-          Get notified when properties matching your criteria hit the market
-        </p>
-      </div>
+    <>
+      <PageHero
+        eyebrow="Never miss a deal"
+        title="Deal Alerts"
+        subtitle="Get notified the moment a property matching your criteria hits the market — scored and analyzed, straight to your inbox."
+        align="center"
+        compact
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Form */}
@@ -321,6 +324,7 @@ export default function AlertsPage() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

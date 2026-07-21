@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 const BUDGETS = [
   { value: '', label: 'Select budget range' },
@@ -92,6 +93,12 @@ export default function PreConstructionPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Pre-Construction', url: 'https://www.mississaugainvestor.ca/pre-construction' },
+        ]}
+      />
       {/* HST Rebate Highlight */}
       <div className="mb-8 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-5 md:p-6">
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">

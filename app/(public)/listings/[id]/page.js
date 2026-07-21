@@ -937,20 +937,24 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
       <div className="rounded-xl border-2 border-accent/30 bg-gradient-to-br from-accent/5 to-white p-6 text-center">
         <p className="text-xs font-semibold uppercase tracking-widest text-accent">Estimated Market Value</p>
         <p className="mt-2 text-4xl font-bold text-navy">${ev.estimatedValue.toLocaleString()}</p>
-        {ev.range && (
+        {Number.isFinite(ev.range?.[0]) && Number.isFinite(ev.range?.[1]) && (
           <p className="mt-1 text-sm text-muted">
-            Range: ${ev.range[0]?.toLocaleString()} – ${ev.range[1]?.toLocaleString()}
+            Range: ${ev.range[0].toLocaleString()} – ${ev.range[1].toLocaleString()}
           </p>
         )}
         <div className="mt-3 flex items-center justify-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-            ev.confidence === 'high' ? 'bg-emerald-100 text-emerald-700'
-              : ev.confidence === 'medium' ? 'bg-amber-100 text-amber-700'
-                : 'bg-slate-100 text-slate-600'
-          }`}>
-            {ev.confidence.charAt(0).toUpperCase() + ev.confidence.slice(1)} Confidence
-          </span>
-          <span className="text-xs text-muted">{ev.compCount} comparable sales</span>
+          {ev.confidence && (
+            <span className={`rounded-full px-3 py-1 text-xs font-bold ${
+              ev.confidence === 'high' ? 'bg-emerald-100 text-emerald-700'
+                : ev.confidence === 'medium' ? 'bg-amber-100 text-amber-700'
+                  : 'bg-slate-100 text-slate-600'
+            }`}>
+              {ev.confidence.charAt(0).toUpperCase() + ev.confidence.slice(1)} Confidence
+            </span>
+          )}
+          {Number.isFinite(ev.compCount) && (
+            <span className="text-xs text-muted">{ev.compCount} comparable sales</span>
+          )}
         </div>
       </div>
 
