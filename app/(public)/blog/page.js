@@ -61,7 +61,7 @@ export default async function BlogPage() {
             {posts.map((post) => {
               const readTime = Math.max(1, Math.ceil((post.content || '').split(/\s+/).length / 200));
               const dateStr = new Date(post.created_at).toLocaleDateString('en-CA', {
-                year: 'numeric', month: 'long',
+                year: 'numeric', month: 'long', day: 'numeric',
               });
               const colorClass = categoryColorMap[post.category] || categoryColorMap.General;
 
