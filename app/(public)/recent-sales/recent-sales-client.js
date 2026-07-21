@@ -3,6 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtCurrency } from '@/lib/utils/format';
+import { PageHero } from '@/components/layout/page-hero';
+
+const HERO = {
+  eyebrow: 'Live · MLS sold data',
+  title: 'Mississauga Recent Sales & Sold Prices',
+  subtitle:
+    'Recently sold properties in Mississauga — see what investors are actually paying, days on market, and the list-vs-sold gap.',
+};
 
 const TYPE_FILTERS = ['All', 'Detached', 'Semi-Detached', 'Townhouse', 'Condo'];
 
@@ -55,38 +63,26 @@ export function RecentSalesClient() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-slate-200 rounded w-56" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-slate-100 rounded-xl" />
-            ))}
+      <>
+        <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="animate-pulse space-y-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-24 bg-slate-100 rounded-xl" />
+              ))}
+            </div>
+            <div className="h-96 bg-slate-100 rounded-xl" />
           </div>
-          <div className="h-96 bg-slate-100 rounded-xl" />
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="section-title">Mississauga Recent Sales &amp; Sold Prices</h1>
-          <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
-            </span>
-            Live
-          </span>
-        </div>
-        <p className="section-subtitle">
-          Recently sold properties in Mississauga — see what investors are actually paying
-        </p>
-      </div>
+    <>
+      <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
       {/* Stats Cards */}
       {stats && (
@@ -256,6 +252,7 @@ export function RecentSalesClient() {
       <p className="mt-6 text-center text-[10px] text-slate-400">
         Data provided by TRREB via AMPRE. Sold prices and dates reflect MLS-recorded closings.
       </p>
-    </div>
+      </div>
+    </>
   );
 }
