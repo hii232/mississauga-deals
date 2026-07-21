@@ -44,7 +44,7 @@ Done: homepage (hero w/ floating live deal card + trust chips + skyline, illustr
 Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip; keep pages consistent; ~≤300 lines per run):
 - [ ] Listing detail page: verify photo gallery is prominent; add SkylineStrip section dividers; keep sticky CTA intact
 - [ ] /pre-construction + precon detail: PageHero + card imagery treatment
-- [~] PageHero/skyline rollout: /faq + /book-call + /about (Jul 21) done; still /alerts, /quiz, /sell
+- [~] PageHero/skyline rollout: /faq + /book-call + /about + /alerts (Jul 21) done; still /quiz, /sell
 - [ ] /recent-sales, /compare, /news, /score-methodology: PageHero (compact)
 - [ ] Blog post page ([slug]): cover treatment + SkylineStrip before CTA
 - [ ] 404 page: skyline night art + helpful links
@@ -137,3 +137,4 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 - 2026-07-21 — [design agent] /about hero brought onto the dusk identity: kept its strong custom hero (headshot, credentials, call/email CTAs) but switched to the dusk gradient and added the CityscapePanorama skyline — enhance, don't replace. Verified 375px, no overflow — (this commit)
 - 2026-07-21 — [seo agent] CRITICAL FIX: /robots.txt was returning 500 — my app/robots.js (added earlier this session) conflicted with the pre-existing, richer public/robots.txt ('conflicting public file and page file'). This shipped in PR #3 so production's robots.txt was likely broken (crawlers blocked). Removed app/robots.js, kept the detailed public/robots.txt (Googlebot/Bingbot rules + sitemap). robots.txt now 200. Shipping to prod now — (this commit)
 - 2026-07-21 — [improvement agent] Verified rental-comps recency (already sound: 12/18mo windows + labels) and estimated-value display (already shows range+confidence). Hardened the est-value render against undefined/partial data (confidence.charAt could throw; 'Range: $ – $' and 'undefined comparable sales' now impossible) — (this commit)
+- 2026-07-21 — [design agent] Dusk PageHero on /alerts (the main "Sign Up Free" CTA destination) — "Never miss a deal" eyebrow + skyline flowing into the alert form. Verified 375px, no overflow — (this commit)
