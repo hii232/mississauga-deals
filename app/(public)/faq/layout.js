@@ -1,3 +1,5 @@
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
 export const metadata = {
   title: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman',
   description:
@@ -20,4 +22,16 @@ export const metadata = {
     url: 'https://www.mississaugainvestor.ca/faq',
   },
 };
-export default function Layout({ children }) { return children; }
+export default function Layout({ children }) {
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'FAQ', url: 'https://www.mississaugainvestor.ca/faq' },
+        ]}
+      />
+      {children}
+    </>
+  );
+}

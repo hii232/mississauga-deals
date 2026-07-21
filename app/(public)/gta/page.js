@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { PageHero } from '@/components/layout/page-hero';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS)
 const CITY_COPY = {
@@ -71,6 +72,12 @@ export default function GtaListingsPage({ searchParams }) {
 
   return (
     <main className="min-h-screen bg-cloud">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
+        ]}
+      />
       <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import { RecentSalesClient } from './recent-sales-client';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 const YEAR = new Date().getFullYear();
 
@@ -16,5 +17,15 @@ export const metadata = {
 };
 
 export default function RecentSalesPage() {
-  return <RecentSalesClient />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Recent Sales', url: 'https://www.mississaugainvestor.ca/recent-sales' },
+        ]}
+      />
+      <RecentSalesClient />
+    </>
+  );
 }
