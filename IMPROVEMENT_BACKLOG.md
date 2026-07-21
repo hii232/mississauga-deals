@@ -44,7 +44,7 @@ Done: homepage (hero w/ floating live deal card + trust chips + skyline, illustr
 Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip; keep pages consistent; ~≤300 lines per run):
 - [ ] Listing detail page: verify photo gallery is prominent; add SkylineStrip section dividers; keep sticky CTA intact
 - [ ] /pre-construction + precon detail: PageHero + card imagery treatment
-- [ ] /alerts, /book-call, /quiz, /sell, /faq, /about: PageHero (compact) each
+- [~] PageHero rollout: /faq (Jul 21) + /book-call (Jul 21) done; still /alerts, /quiz, /sell, /about
 - [ ] /recent-sales, /compare, /news, /score-methodology: PageHero (compact)
 - [ ] Blog post page ([slug]): cover treatment + SkylineStrip before CTA
 - [ ] 404 page: skyline night art + helpful links
@@ -132,3 +132,4 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 - 2026-07-21 — [design agent] Applied dusk PageHero to /faq (redesign queue). FOUND + FIXED a lead-losing data bug: FAQ listed the wrong phone (647-609-5615) vs the correct 647-609-1289 used everywhere else on the site — callers were being sent to a dead number. Verified faq hero at 375px — (this commit)
 - 2026-07-21 — [seo agent] Root Twitter card had no image (Next.js doesn't inherit OG images into twitter) — links shared to X/Slack/etc rendered a cardless preview. Added twitter.images=/opengraph-image in root layout so every page's Twitter/social card shows the branded 1200x630 image. Verified twitter:image meta renders — (this commit)
 - 2026-07-21 — [improvement agent] WRONG-NUMBER fix: FAQ claimed deal-score cash flow uses "maintenance reserves (5%)" and "vacancy allowance (4%)", but the actual engine (DEFAULT_ASSUMPTIONS) uses 8% maintenance + 5% vacancy — investors were told the wrong methodology. Corrected FAQ to 8%/5% and clarified condos use real condo fee. Did NOT touch the engine (would change every score). NEEDS HAMZA: mortgage-calculator page defaults (5% maint / 5% vac) differ from the deal-score engine (8%/5%) — intentional (user-adjustable tool) or should they match? — (this commit)
+- 2026-07-21 — [design agent] Dusk PageHero applied to /book-call (key lead-capture page) — branded skyline hero w/ "Free 30-min call" eyebrow flowing into the booking calendar. Verified 375px, no overflow. /sell left as-is (integrated two-column hero, restructuring risks the form) — (this commit)

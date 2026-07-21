@@ -1,3 +1,4 @@
+import { PageHero } from '@/components/layout/page-hero';
 import { BookingCalendar } from '@/components/booking/booking-calendar';
 
 export const metadata = {
@@ -13,18 +14,15 @@ export const metadata = {
 
 export default function BookCallPage() {
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="text-center mb-10">
-        <h1 className="font-heading font-bold text-3xl sm:text-4xl text-navy mb-3">
-          Book a Free Consultation
-        </h1>
-        <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
-          Pick a time that works for you. Hamza will call you for a free 30-minute chat about
-          investment properties, pre-construction, the HST rebate, or anything real estate.
-        </p>
-      </div>
-
+    <>
+      <PageHero
+        eyebrow="Free 30-min call"
+        title="Book a Free Consultation"
+        subtitle="Pick a time that works for you. Hamza will call you for a free 30-minute chat about investment properties, pre-construction, the HST rebate, or anything real estate."
+        align="center"
+        compact
+      />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Calendar */}
       <BookingCalendar />
 
@@ -37,6 +35,7 @@ export default function BookCallPage() {
           No obligation. No pressure. Just honest advice.
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
