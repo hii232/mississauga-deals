@@ -43,8 +43,13 @@ export async function GET(request) {
     let usedFilter = '';
     let debugInfo = {};
 
+    // Comps older than this window are misleading as "current market" evidence
+    const WINDOW_DAYS = 180;
+    const cutoffIso = new Date(Date.now() - WINDOW_DAYS * 86400000).toISOString();
+
     for (const statusFilter of statusAttempts) {
       const filters = [statusFilter];
+      filters.push('ModificationTimestamp ge ' + cutoffIso);
       // Toronto sub-areas in TREB: "Toronto W03", "Toronto C01", etc.
       if (city.toLowerCase() === 'toronto') {
         filters.push("startswith(City, 'Toronto')");
@@ -211,6 +216,8 @@ export async function GET(request) {
         : 0,
       count: soldWithPrice.length,
       total,
+      // null = broad fallback with no recency guarantee — UI must say so
+      windowDays: usedFilter === 'broad_closed' ? null : WINDOW_DAYS,
     };
 
     const result = { comps, stats, usedFilter };
