@@ -490,6 +490,12 @@ function SoldCompsTab({ listing, onUseAsARV }) {
           </div>
         </div>
       )}
+      {stats && stats.count > 0 && (
+        <p className="text-[11px] text-muted text-center">
+          Based on {stats.count} closed sale{stats.count === 1 ? '' : 's'}
+          {stats.windowDays ? ` in the last ${stats.windowDays} days` : ' (older sales included — limited recent data in this area)'} near this property.
+        </p>
+      )}
 
       {/* Current Listing Context */}
       <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">

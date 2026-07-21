@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
+import { PageHero } from '@/components/layout/page-hero';
 
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
@@ -97,15 +98,14 @@ export default function MarketPulsePage() {
   }
 
   return (
+    <>
+    <PageHero
+      compact
+      eyebrow="Live market data"
+      title="Market Pulse"
+      subtitle={`Mississauga market snapshot — live MLS data blended with TRREB Market Watch${stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}`}
+    />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="section-title mb-2">Market Pulse</h1>
-        <p className="section-subtitle">
-          Mississauga market snapshot — live MLS data blended with TRREB Market Watch
-          {stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}
-        </p>
-      </div>
 
       {/* Key Metrics — active-listings tile hidden when the API has no real
           count: showing "0 on market" reads as broken data */}
@@ -331,5 +331,6 @@ export default function MarketPulsePage() {
         </Link>
       </div>
     </div>
+    </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { CityscapePanorama } from '@/components/art/cityscape';
 
 // Answers mirror exactly what the calculator implements — keep in sync with calc logic
 const CALC_FAQ = [
@@ -177,8 +178,8 @@ export default function MortgageCalculatorPage() {
         ]}
       />
       {/* Hero */}
-      <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-14 md:py-18">
-        <div className="max-w-3xl mx-auto px-4 text-center">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63] pt-14 pb-24 md:pt-16 md:pb-32">
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
             Mortgage & Cash Flow Calculator
           </h1>
@@ -186,6 +187,7 @@ export default function MortgageCalculatorPage() {
             Canadian semi-annual compounding, CMHC insurance, the federal stress test, itemized expenses, and Ontario land transfer tax — calculated correctly for investment properties.
           </p>
         </div>
+        <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full opacity-90 md:h-24" />
       </section>
 
       <section className="max-w-5xl mx-auto px-4 py-10 md:py-14">

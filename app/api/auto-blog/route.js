@@ -254,6 +254,7 @@ Avoid AI-writing tells: no "in today's fast-paced market", "navigating the lands
 ## Requirements
 - Title: 50–70 characters, includes "Mississauga", include ${currentYear} if it fits naturally.
 - Content: 900–1300 words of Markdown with ## and ### headings. Ground the story in Mississauga specifics — at least two neighbourhoods with concrete numbers from the data above. Where you don't have a real figure, use clearly framed approximations ("roughly", "around") rather than inventing precise statistics. Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section and a soft pointer to the deal scores on MississaugaInvestor.ca.
+- Internal links: weave in 2–3 Markdown links where they genuinely help the reader, using ONLY these exact relative paths — [current listings](/listings), [mortgage calculator](/mortgage-calculator), [market data](/market-pulse), [recent sold prices](/recent-sales), [deal alerts](/alerts), or a neighbourhood guide as /neighbourhoods/<name-in-lowercase-with-hyphens> for a neighbourhood you discuss. Never invent any other URL, and never use absolute URLs for internal links.
 - This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.`;
 
   const response = await anthropic.beta.messages.create({

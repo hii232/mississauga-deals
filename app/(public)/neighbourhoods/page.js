@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import InlineCTA from '@/components/ui/inline-cta';
+import { PageHero } from '@/components/layout/page-hero';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 
@@ -28,15 +29,14 @@ export default function NeighbourhoodsPage() {
       : hoodEntries.filter(([, data]) => data.trend === filter.toLowerCase());
 
   return (
+    <>
+    <PageHero
+      compact
+      eyebrow="24 neighbourhoods, scored"
+      title="Mississauga Neighbourhoods"
+      subtitle="Investment insights for every neighbourhood — trends, pricing, and expert notes"
+    />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="section-title mb-2">Mississauga Neighbourhoods</h1>
-        <p className="section-subtitle">
-          Investment insights for every neighbourhood — trends, pricing, and expert notes
-        </p>
-      </div>
-
       {/* Filter Pills */}
       <div className="flex gap-2 mb-8">
         {FILTERS.map((f) => (
@@ -199,5 +199,6 @@ export default function NeighbourhoodsPage() {
       {/* CTA */}
       <InlineCTA variant="alerts" className="mt-12" />
     </div>
+    </>
   );
 }
