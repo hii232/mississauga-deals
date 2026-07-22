@@ -28,7 +28,7 @@ export default async function sitemap() {
     { url: `${BASE}/pre-construction`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${BASE}/pre-construction/projects`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/pre-construction/hst-rebate`, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE}/sell`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/sell`, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/mortgage-calculator`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/rent-vs-buy-mississauga`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/hurontario-lrt-real-estate`, changeFrequency: 'monthly', priority: 0.7 },
