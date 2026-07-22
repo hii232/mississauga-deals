@@ -60,7 +60,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
-          {listing.hamzaScore}
+          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
         </div>
 
         {/* Tags row */}
