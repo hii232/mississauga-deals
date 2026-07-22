@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const YEAR = new Date().getFullYear();
 
@@ -142,6 +143,9 @@ export default function HurontarioLrtRealEstatePage() {
             <li><strong>But check for priced-in premiums.</strong> Some uplift can already be in the asking price near confirmed stations — always run the actual cash-flow math.</li>
           </ul>
         </div>
+
+        {/* Inline email capture — convert the reader who isn't ready to browse yet */}
+        <InlineCTA variant="newsletter" className="mb-10" />
 
         {/* Visible FAQ (mirrors the schema) */}
         <h2 className="font-heading font-bold text-xl text-navy mb-4">Hurontario LRT &amp; real estate: common questions</h2>

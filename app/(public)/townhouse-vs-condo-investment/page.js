@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const YEAR = new Date().getFullYear();
 
@@ -129,6 +130,9 @@ export default function TownhouseVsCondoPage() {
           General tendencies for the Mississauga/GTA market — not a rule for any specific property. A condo or
           common-element (POTL) townhouse still has a monthly fee; a freehold townhouse does not.
         </p>
+
+        {/* Inline email capture — convert the reader who isn't ready to browse yet */}
+        <InlineCTA variant="newsletter" className="mb-10" />
 
         {/* Visible FAQ (mirrors the schema) */}
         <h2 className="font-heading font-bold text-xl text-navy mb-4">Townhouse vs condo: common questions</h2>
