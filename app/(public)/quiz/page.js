@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { QUIZ, QUIZ_RESULTS } from '@/lib/constants';
+import { PageHero } from '@/components/layout/page-hero';
 
 const RESULT_MAP = {
   'Monthly cash flow': 'cashflow',
@@ -92,13 +93,15 @@ export default function QuizPage() {
   const result = resultKey ? QUIZ_RESULTS[resultKey] : null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-8 text-center">
-        <h1 className="section-title mb-2">Find Your Investment Strategy</h1>
-        <p className="section-subtitle">
-          Answer 5 quick questions to get personalized deal recommendations
-        </p>
-      </div>
+    <>
+      <PageHero
+        compact
+        align="center"
+        eyebrow="60-second quiz"
+        title="Find Your Investment Strategy"
+        subtitle="Answer 5 quick questions and get personalized Mississauga deal recommendations matched to your goals."
+      />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
       {/* Progress bar */}
       {step <= totalSteps && (
@@ -280,6 +283,7 @@ export default function QuizPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
