@@ -138,6 +138,12 @@ export default function NeighbourhoodGuidePage({ params }) {
             corridors in the GTA have historically seen above-average rent growth and price
             appreciation once service opens — a structural tailwind for buy-and-hold investors here.
           </p>
+          <Link
+            href="/hurontario-lrt-real-estate"
+            className="mt-2 inline-block text-sm font-semibold text-accent hover:text-accent-dark no-underline"
+          >
+            How the Hurontario LRT affects real estate →
+          </Link>
         </div>
       )}
 

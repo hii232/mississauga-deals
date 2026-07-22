@@ -8,6 +8,7 @@ import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
 import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { SkylineStrip } from '@/components/art/cityscape';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
@@ -16,7 +17,7 @@ import { HOOD_DATA } from '@/lib/constants';
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
 // ──────────────────────────────────────────
-function AuthGate({ children, isAuthenticated }) {
+function AuthGate({ children, isAuthenticated, signupHref = '/signup' }) {
   if (isAuthenticated) return children;
   return (
     <div className="relative">
@@ -25,7 +26,7 @@ function AuthGate({ children, isAuthenticated }) {
         <p className="mb-1 text-base font-semibold text-navy">Full Investment Analysis</p>
         <p className="mb-3 text-xs text-muted text-center max-w-xs">Mortgage payment, cash-on-cash return, cap rate, BRRR projections &amp; sold comps</p>
         <Link
-          href="/signup"
+          href={signupHref}
           className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark"
         >
           Sign Up Free — 10 Seconds
@@ -1313,6 +1314,16 @@ export default function PropertyDetailPage() {
   const scoreColor = scoreColorHex(listing.hamzaScore);
   const isGated = !isAuthenticated;
 
+  // Carry the property through to the booking + signup forms so the lead
+  // notification tells Hamza exactly which listing the visitor was viewing.
+  const listingCtx = new URLSearchParams({
+    listing: String(listing.id || params.id),
+    addr: listing.address || '',
+    price: String(listing.price || ''),
+  }).toString();
+  const bookHref = `/book-call?${listingCtx}`;
+  const signupHref = `/signup?${listingCtx}`;
+
   return (
     <main className="min-h-screen bg-cloud overflow-x-hidden pb-20 lg:pb-0">
       <PropertyJsonLd listing={listing} />
@@ -1396,7 +1407,7 @@ export default function PropertyDetailPage() {
               {/* Primary CTA — desktop (mobile uses the sticky bar) */}
               <div className="mt-4 hidden gap-2 lg:flex">
                 <Link
-                  href={`/book-call?listing=${encodeURIComponent(params.id)}`}
+                  href={bookHref}
                   className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition hover:bg-accent-dark"
                 >
                   Book a Viewing
@@ -1494,7 +1505,7 @@ export default function PropertyDetailPage() {
                 <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
                   <p className="mb-2 text-xs font-medium text-navy">Cash flow, cap rate &amp; mortgage breakdown</p>
                   <Link
-                    href="/signup"
+                    href={signupHref}
                     className="rounded-lg bg-accent px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-accent/90 no-underline"
                   >
                     Sign Up Free — 10 Seconds
@@ -1513,8 +1524,14 @@ export default function PropertyDetailPage() {
           </div>
         </div>
 
-        {/* Tabs Section */}
-        <div className="mt-8">
+        {/* Investment Analysis — titled section w/ dusk skyline divider */}
+        <div className="mt-10">
+          <div className="mb-4 flex items-center gap-3">
+            <h2 className="whitespace-nowrap font-heading text-lg font-bold text-navy sm:text-xl">
+              Investment Analysis
+            </h2>
+            <SkylineStrip className="h-6 flex-1" opacity={0.09} />
+          </div>
           {/* Tab Bar */}
           <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 border border-slate-200 scrollbar-hide">
             {TABS.map((tab) => (
@@ -1539,7 +1556,7 @@ export default function PropertyDetailPage() {
               <EstimatedValueTab listing={listing} estimatedValue={estimatedValue} evLoading={evLoading} />
             )}
             {activeTab === 'comps' && (
-              <AuthGate isAuthenticated={!isGated}>
+              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
                 <SoldCompsTab
                   listing={listing}
                   onUseAsARV={(price) => {
@@ -1551,17 +1568,17 @@ export default function PropertyDetailPage() {
             )}
             {activeTab === 'history' && <PriceHistoryTab listing={listing} />}
             {activeTab === 'mortgage' && (
-              <AuthGate isAuthenticated={!isGated}>
+              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
                 <MortgageTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'caprate' && (
-              <AuthGate isAuthenticated={!isGated}>
+              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
                 <CapRateTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'brrr' && (
-              <AuthGate isAuthenticated={!isGated}>
+              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
                 <BRRRTab listing={listing} initialARV={arvFromComps} />
               </AuthGate>
             )}
@@ -1586,7 +1603,7 @@ export default function PropertyDetailPage() {
             </svg>
           </a>
           <Link
-            href={`/book-call?listing=${encodeURIComponent(params.id)}`}
+            href={bookHref}
             className="flex-1 rounded-lg bg-accent px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition hover:bg-accent-dark"
           >
             Book a Viewing

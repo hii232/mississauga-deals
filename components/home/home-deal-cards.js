@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, formatAddress } from '@/lib/utils/format';
 
+// A malformed deal (missing/NaN derived number) must NEVER crash a card and
+// blank the whole homepage deal section. Format defensively — dash, never NaN.
+const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '—');
+
 export function HomeDealCards({ deals, photoMap }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -32,6 +36,8 @@ export function HomeDealCards({ deals, photoMap }) {
 
 function HomeDealCard({ deal, photo, isGated }) {
   const scoreHex = scoreColorHex(deal.hamzaScore);
+  const score = Number.isFinite(deal.hamzaScore) ? deal.hamzaScore : null;
+  const cf = Number.isFinite(deal.cashFlow) ? deal.cashFlow : null;
 
   return (
     <Link
@@ -53,7 +59,7 @@ function HomeDealCard({ deal, photo, isGated }) {
           className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white shadow-lg"
           style={{ backgroundColor: scoreHex }}
         >
-          {deal.hamzaScore}
+          {score == null ? '—' : score}
         </div>
         {/* Investor tags */}
         <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex flex-wrap gap-1">
@@ -106,12 +112,12 @@ function HomeDealCard({ deal, photo, isGated }) {
             <>
               <div>
                 <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">CAP</p>
-                <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.capRate.toFixed(1)}%</p>
+                <p className="text-[11px] sm:text-xs font-bold text-navy">{pct1(deal.capRate)}</p>
               </div>
               <div>
                 <p className="text-[9px] sm:text-[10px] font-medium text-slate-400">Cash Flow/mo</p>
-                <p className={`text-[11px] sm:text-xs font-bold ${deal.cashFlow >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {deal.cashFlow >= 0 ? '+' : '-'}${Math.abs(Math.round(deal.cashFlow))}
+                <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-400' : cf >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                  {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
                 </p>
               </div>
               <div>

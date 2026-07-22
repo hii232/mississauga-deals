@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CASL_TEXT } from '@/lib/constants';
@@ -12,6 +12,19 @@ export default function SignupPage() {
   const [caslConsent, setCaslConsent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // If the visitor came from a listing (e.g. "Sign Up Free" on a property
+  // page), capture which listing so the lead notification shows Hamza the exact
+  // property they were viewing. Read from the URL here (not useSearchParams) to
+  // keep this page statically renderable.
+  const [listingCtx, setListingCtx] = useState({ id: '', address: '', price: '' });
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    setListingCtx({
+      id: p.get('listing') || '',
+      address: p.get('addr') || '',
+      price: p.get('price') || '',
+    });
+  }, []);
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -61,6 +74,9 @@ export default function SignupPage() {
           email: form.email,
           phone: form.phone,
           source: 'registration',
+          listingId: listingCtx.id || undefined,
+          listingAddress: listingCtx.address || undefined,
+          listingPrice: listingCtx.price || undefined,
           timestamp: new Date().toISOString(),
         }),
       });
@@ -106,6 +122,9 @@ export default function SignupPage() {
       <GoogleSignIn
         onSuccess={() => router.push('/listings')}
         onError={(msg) => setError(msg)}
+        listingId={listingCtx.id}
+        listingAddress={listingCtx.address}
+        listingPrice={listingCtx.price}
       />
 
       <div className="relative my-6">

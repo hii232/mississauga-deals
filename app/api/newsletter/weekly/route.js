@@ -356,8 +356,8 @@ function scoreBadgeColor(score) {
 // ── "Picked for you" deals — editorial layout ──
 function statLine(d, size = 11) {
   const parts = [];
-  if (d.capRate > 0) parts.push(`CAP&nbsp;${d.capRate}%`);
-  if (typeof d.cashFlow === 'number') parts.push(`<span style="color:${d.cashFlow >= 0 ? '#3E7C4F' : '#9C5A44'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/MO</span>`);
+  if (Number.isFinite(d.capRate) && d.capRate > 0) parts.push(`CAP&nbsp;${d.capRate}%`);
+  if (Number.isFinite(d.cashFlow)) parts.push(`<span style="color:${d.cashFlow >= 0 ? '#3E7C4F' : '#9C5A44'};">${d.cashFlow >= 0 ? '+' : '&minus;'}$${Math.abs(Math.round(d.cashFlow)).toLocaleString()}/MO</span>`);
   if (d.beds) parts.push(`${d.beds}&nbsp;BED`);
   return `<div style="font-family:${SERIF};font-size:${size}px;color:${MUTED};letter-spacing:2px;text-transform:uppercase;">${parts.join(' &nbsp;&middot;&nbsp; ')}</div>`;
 }
@@ -379,7 +379,7 @@ function buildDealsHTML(deals, personalized) {
   const heroHtml = `
   ${kicker(personalized ? 'The Featured Deal &middot; Matched to Your Search' : 'The Featured Deal')}
   ${heroPhoto ? `<a href="${dealUrl(hero)}"><img src="${heroPhoto}" alt="${esc(hero.address)}" width="520" style="width:100%;max-width:520px;height:auto;display:block;" /></a>` : ''}
-  <div style="font-family:${SERIF};font-size:10px;color:${GOLD};letter-spacing:2.5px;text-transform:uppercase;margin-top:16px;">Rated ${hero.hamzaScore} / 10 &nbsp;&middot;&nbsp; ${esc(hero.neighbourhood || 'Mississauga')}</div>
+  <div style="font-family:${SERIF};font-size:10px;color:${GOLD};letter-spacing:2.5px;text-transform:uppercase;margin-top:16px;">Rated ${Number.isFinite(hero.hamzaScore) ? hero.hamzaScore : '—'} / 10 &nbsp;&middot;&nbsp; ${esc(hero.neighbourhood || 'Mississauga')}</div>
   <div style="margin-top:6px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-size:26px;font-weight:700;color:${INK};text-decoration:none;line-height:1.2;">${esc(hero.address)}</a></div>
   <div style="font-family:${SERIF};font-size:21px;color:${INK};margin-top:8px;">${fmtPrice(hero.price)} <span style="font-size:13px;color:${MUTED};font-style:italic;">&middot; ${esc(hero.type || 'Property')}</span></div>
   <div style="margin-top:12px;">${statLine(hero)}</div>
@@ -392,7 +392,7 @@ function buildDealsHTML(deals, personalized) {
       ${p ? `<td width="100" style="padding-right:16px;vertical-align:top;"><a href="${dealUrl(d)}"><img src="${p}" alt="${esc(d.address)}" width="84" height="84" style="display:block;" /></a></td>` : ''}
       <td style="vertical-align:top;">
         <a href="${dealUrl(d)}" style="font-family:${SERIF};font-size:17px;font-weight:700;color:${INK};text-decoration:none;">${esc(d.address)}</a>
-        <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${d.hamzaScore}/10</div>
+        <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${Number.isFinite(d.hamzaScore) ? d.hamzaScore : '—'}/10</div>
         <div style="margin-top:7px;">${statLine(d, 10)}</div>
       </td>
       <td align="right" style="vertical-align:top;white-space:nowrap;padding-left:10px;">

@@ -26,7 +26,7 @@ function getToday() {
   return new Date(etStr + 'T00:00:00');
 }
 
-export function BookingCalendar() {
+export function BookingCalendar({ listingId = '', listingAddress = '', listingPrice = '' }) {
   const [currentMonth, setCurrentMonth] = useState(() => {
     const t = getToday();
     return new Date(t.getFullYear(), t.getMonth(), 1);
@@ -103,6 +103,9 @@ export function BookingCalendar() {
           notes: form.notes,
           date: toDateStr(selectedDate),
           time: selectedTime,
+          listingId: listingId || undefined,
+          listingAddress: listingAddress || undefined,
+          listingPrice: listingPrice || undefined,
         }),
       });
 
@@ -155,6 +158,22 @@ export function BookingCalendar() {
   }
 
   return (
+    <>
+    {listingAddress && (
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-accent/20 bg-accent/5 px-5 py-4">
+        <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-accent">Viewing request</p>
+          <p className="text-sm font-semibold text-navy">
+            {listingAddress}
+            {listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : ''}
+          </p>
+        </div>
+      </div>
+    )}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       {/* Left: Calendar + Time */}
       <div className="space-y-5">
@@ -370,5 +389,6 @@ export function BookingCalendar() {
         </form>
       </div>
     </div>
+    </>
   );
 }
