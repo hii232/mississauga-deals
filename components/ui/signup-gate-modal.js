@@ -105,7 +105,24 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   }
 
   function handleSkipStep2() {
-    // They gave email but skipped name/phone — still a micro-conversion
+    // They gave email but skipped name/phone — still a real lead. Previously
+    // this only wrote to localStorage, so the email NEVER reached Hamza and the
+    // lead was silently lost. Capture it server-side (email-only, no phone — so
+    // NOT source 'registration', which would 400 without a phone). Fire-and-
+    // forget: never block the UI or lose the conversion on a network hiccup.
+    fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        firstName: firstName || undefined,
+        lastName: lastName || undefined,
+        name: (firstName || lastName) ? `${firstName} ${lastName}`.trim() : undefined,
+        phone: phone || undefined,
+        source: trigger === 'view-limit' ? 'View Limit (email only)' : 'Sign Up (email only)',
+        timestamp: new Date().toISOString(),
+      }),
+    }).catch(() => {});
     localStorage.setItem('user_registered', 'true');
     localStorage.setItem('user_email', email);
     if (onSuccess) onSuccess();
