@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { RelatedGuides } from '@/components/ui/related-guides';
 
 const YEAR = new Date().getFullYear();
 
@@ -177,6 +178,8 @@ export default function HurontarioLrtRealEstatePage() {
             </Link>
           </div>
         </div>
+
+        <RelatedGuides current="/hurontario-lrt-real-estate" />
       </div>
     </>
   );
