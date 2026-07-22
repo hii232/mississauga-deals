@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS, HOOD_DATA } from '@/lib/constants';
+import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { fmtK } from '@/lib/utils/format';
@@ -65,6 +65,32 @@ async function fetchLiveStats() {
 // ─────────────────────────────────────────────
 //   TOP DEALS FETCH
 // ─────────────────────────────────────────────
+// Live per-neighbourhood aggregates from the actual listing feed. Avg price and
+// DOM are pure live stats; rent yield uses the site's estimated rent over the
+// live average price. Only hoods with a meaningful sample (>=4 active listings)
+// get live numbers — thinner ones fall back to the curated HOOD_DATA values.
+function computeHoodStats(processed) {
+  const groups = {};
+  for (const l of processed) {
+    const n = l.neighbourhood;
+    if (!n || !HOOD_DATA[n]) continue;
+    if (!Number.isFinite(l.price) || l.price <= 0) continue;
+    (groups[n] ||= []).push(l);
+  }
+  const stats = {};
+  for (const [n, arr] of Object.entries(groups)) {
+    if (arr.length < 4) continue;
+    const avgPrice = Math.round(arr.reduce((s, l) => s + l.price, 0) / arr.length);
+    const domVals = arr.filter((l) => Number.isFinite(l.dom));
+    const avgDOM = domVals.length ? Math.round(domVals.reduce((s, l) => s + l.dom, 0) / domVals.length) : null;
+    const rentVals = arr.filter((l) => Number.isFinite(l.estimatedRent) && l.estimatedRent > 0);
+    const avgRent = rentVals.length ? rentVals.reduce((s, l) => s + l.estimatedRent, 0) / rentVals.length : null;
+    const rentYield = avgRent && avgPrice > 0 ? +((avgRent * 12) / avgPrice * 100).toFixed(1) : null;
+    stats[n] = { avgPrice, avgDOM, rentYield, count: arr.length };
+  }
+  return stats;
+}
+
 async function fetchTopDeals() {
   try {
     const h = await headers();
@@ -98,6 +124,7 @@ async function fetchTopDeals() {
     }
 
     const processed = processListings(raw);
+    const hoodStats = computeHoodStats(processed);
     const top = processed
       .sort((a, b) => b.hamzaScore - a.hamzaScore)
       .slice(0, 4);
@@ -120,9 +147,9 @@ async function fetchTopDeals() {
       await Promise.all(photoPromises);
     } catch { /* photos optional */ }
 
-    return { deals: top, photoMap, totalCount: processed.length };
+    return { deals: top, photoMap, totalCount: processed.length, hoodStats };
   } catch {
-    return { deals: [], photoMap: {}, totalCount: 0 };
+    return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {} };
   }
 }
 
@@ -534,20 +561,32 @@ const HOOD_TINTS = [
   { panel: 'from-navy/15 to-navy/5', tone: '#1B2A4A' },
 ];
 
-function NeighbourhoodPreview() {
-  // Pick top 4 neighbourhoods by rent yield
-  const topHoods = Object.entries(HOOD_DATA)
-    .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))
-    .slice(0, 4);
+function NeighbourhoodPreview({ hoodStats = {} }) {
+  // Merge curated HOOD_DATA with live per-neighbourhood aggregates. Avg price,
+  // DOM and yield come from active listings when we have a sample; trend + YoY
+  // stay curated (they can't be computed live). Rank by the effective yield.
+  const merged = Object.entries(HOOD_DATA).map(([name, data]) => {
+    const live = hoodStats[name];
+    return {
+      name,
+      data,
+      avgPrice: live?.avgPrice ?? data.avgPrice,
+      avgDOM: live?.avgDOM ?? data.avgDOM,
+      rentYield: live?.rentYield ?? data.rentYield,
+      isLive: !!live,
+    };
+  });
+  const topHoods = merged.sort((a, b) => (b.rentYield || 0) - (a.rentYield || 0)).slice(0, 4);
+  const anyLive = topHoods.some((h) => h.isLive);
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
       <div className="text-center mb-10">
         <h2 className="section-title mb-3">Top neighbourhoods for investors</h2>
-        <p className="section-subtitle mx-auto">Yield, price trends, and expert analysis on 24 Mississauga neighbourhoods</p>
+        <p className="section-subtitle mx-auto">Avg price, days-on-market &amp; yield are live from active Mississauga listings; the trend and year-over-year are Hamza&apos;s outlook.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {topHoods.map(([name, data], idx) => {
+        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => {
           const tint = HOOD_TINTS[idx % HOOD_TINTS.length];
           const trendColor =
             data.trend === 'hot'
@@ -565,38 +604,46 @@ function NeighbourhoodPreview() {
               {/* illustrated header strip */}
               <div className={`relative h-20 bg-gradient-to-br ${tint.panel}`}>
                 <SkylineStrip className="absolute inset-x-0 bottom-0 h-14 w-full" tone={tint.tone} opacity={0.35} />
-                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`}>
+                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`} title="Hamza's outlook">
                   {data.trend}
                 </span>
               </div>
               <div className="p-5">
                 <div className="mb-3 flex items-baseline justify-between">
                   <h3 className="font-heading font-semibold text-navy group-hover:text-accent transition-colors">{name}</h3>
-                  <span className="text-2xl font-bold text-accent">{data.rentYield}%</span>
+                  <span className="text-2xl font-bold text-accent">{rentYield != null ? `${rentYield}%` : '—'}</span>
                 </div>
                 <p className="mb-4 text-right text-[10px] uppercase font-medium text-muted -mt-3">Rent yield</p>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{fmtK(data.avgPrice)}</p>
+                    <p className="text-xs font-bold text-navy">{fmtK(avgPrice)}</p>
                     <p className="text-[9px] text-muted">Avg Price</p>
                   </div>
                   <div className="rounded-lg bg-cloud p-2">
                     <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
                       {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
                     </p>
-                    <p className="text-[9px] text-muted">YoY</p>
+                    <p className="text-[9px] text-muted" title="Hamza's outlook">YoY*</p>
                   </div>
                   <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{data.avgDOM}d</p>
+                    <p className="text-xs font-bold text-navy">{avgDOM != null ? `${avgDOM}d` : '—'}</p>
                     <p className="text-[9px] text-muted">Avg DOM</p>
                   </div>
                 </div>
+                {isLive && (
+                  <p className="mt-2 flex items-center justify-center gap-1 text-[9px] font-medium text-emerald-600">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live from active listings
+                  </p>
+                )}
               </div>
             </Link>
           );
         })}
       </div>
-      <div className="text-center mt-8">
+      <p className="text-center text-[11px] text-muted mt-6">
+        Avg price, DOM{anyLive ? '' : ' and yield'} update live from current listings. <span className="whitespace-nowrap">*Trend &amp; YoY</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
+      </p>
+      <div className="text-center mt-6">
         <Link href="/neighbourhoods" className="text-sm font-semibold text-accent hover:text-accent/80 transition no-underline">
           Explore All 24 Neighbourhoods &rarr;
         </Link>
@@ -740,7 +787,7 @@ export default async function HomePage() {
       <HowItWorks />
 
       {/* Neighbourhood Preview */}
-      <NeighbourhoodPreview />
+      <NeighbourhoodPreview hoodStats={topDeals.hoodStats} />
 
       {/* Testimonials before About Hamza */}
       <GoogleReviews />
