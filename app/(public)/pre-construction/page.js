@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { PageHero } from '@/components/layout/page-hero';
 
 const BUDGETS = [
   { value: '', label: 'Select budget range' },
@@ -92,7 +93,14 @@ export default function PreConstructionPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <>
+      <PageHero
+        compact
+        eyebrow="Pre-construction VIP"
+        title="Pre-Construction VIP Access"
+        subtitle="Exclusive first access to new Mississauga developments — plus save up to $130K with the Ontario HST rebate."
+      />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -126,7 +134,9 @@ export default function PreConstructionPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         {/* Left side - Info */}
         <div>
-          <h1 className="section-title mb-3">Pre-Construction VIP Access</h1>
+          <h2 className="font-heading font-bold text-xl text-navy mb-3">
+            Why go VIP on pre-construction
+          </h2>
           <p className="section-subtitle mb-8">
             Get exclusive first access to new developments in Mississauga + save up to $130K in HST
           </p>
@@ -300,6 +310,7 @@ export default function PreConstructionPage() {
           </form>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
