@@ -12,19 +12,34 @@ export const metadata = {
   },
 };
 
-export default function BookCallPage() {
+export default function BookCallPage({ searchParams }) {
+  // When the visitor clicks "Book a Viewing" on a property, the listing id +
+  // address ride along in the URL so the booking notification tells Hamza
+  // exactly which property they want to see.
+  const listingId = typeof searchParams?.listing === 'string' ? searchParams.listing : '';
+  const listingAddress = typeof searchParams?.addr === 'string' ? searchParams.addr : '';
+  const listingPrice = typeof searchParams?.price === 'string' ? searchParams.price : '';
+
   return (
     <>
       <PageHero
-        eyebrow="Free 30-min call"
-        title="Book a Free Consultation"
-        subtitle="Pick a time that works for you. Hamza will call you for a free 30-minute chat about investment properties, pre-construction, the HST rebate, or anything real estate."
+        eyebrow={listingAddress ? 'Book a viewing' : 'Free 30-min call'}
+        title={listingAddress ? 'Book a Viewing' : 'Book a Free Consultation'}
+        subtitle={
+          listingAddress
+            ? `Pick a time and Hamza will confirm a viewing of ${listingAddress}. Prefer to talk first? He'll call you for a free 30-minute chat about this property or anything real estate.`
+            : 'Pick a time that works for you. Hamza will call you for a free 30-minute chat about investment properties, pre-construction, the HST rebate, or anything real estate.'
+        }
         align="center"
         compact
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Calendar */}
-      <BookingCalendar />
+      <BookingCalendar
+        listingId={listingId}
+        listingAddress={listingAddress}
+        listingPrice={listingPrice}
+      />
 
       {/* Trust signals */}
       <div className="mt-12 text-center space-y-2">

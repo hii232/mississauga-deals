@@ -74,7 +74,7 @@ export async function POST(request) {
       // Email already exists — still allow login, just don't create a duplicate lead
       // But still send notification email so Hamza knows about the return visit
       if (process.env.RESEND_API_KEY) {
-        sendLeadNotification({ name, email, phone, source: source + ' (returning)', listingAddress, listingPrice, notes }).catch(() => {});
+        sendLeadNotification({ name, email, phone, source: source + ' (returning)', listingId, listingAddress, listingPrice, notes }).catch(() => {});
       }
       return NextResponse.json({ success: true, existing: true });
     }
@@ -102,7 +102,7 @@ export async function POST(request) {
 
   // Send notification email to Hamza (non-blocking)
   if (process.env.RESEND_API_KEY) {
-    sendLeadNotification({ name, email, phone, source, listingAddress, listingPrice, notes }).catch((err) =>
+    sendLeadNotification({ name, email, phone, source, listingId, listingAddress, listingPrice, notes }).catch((err) =>
       console.error('Email notification failed:', err.message)
     );
   }
@@ -111,22 +111,61 @@ export async function POST(request) {
 }
 
 // ── Email notification via Resend ──
-async function sendLeadNotification({ name, email, phone, source, listingAddress, listingPrice, notes }) {
-  const sourceLabels = { registration: 'Sign Up', quiz: 'Quiz', 'google-signin': 'Google', 'deal-alert': 'Alert' };
-  const srcLabel = sourceLabels[source] || source || 'Unknown';
+async function sendLeadNotification({ name, email, phone, source, listingId, listingAddress, listingPrice, notes }) {
+  // Human-friendly source labels. Keep in sync with the sources sent across the
+  // site (signup, quiz, Google, alerts, pre-con VIP, exit-intent, saved search,
+  // bookings). A " (returning)" suffix is preserved for repeat leads.
+  const sourceLabels = {
+    registration: 'Sign Up',
+    quiz: 'Quiz',
+    'google-signin': 'Google',
+    'deal-alert': 'Deal Alert',
+    'precon-vip': 'Pre-Construction VIP',
+    'exit-intent': 'Exit-Intent Popup',
+    'saved-search': 'Saved Search',
+    newsletter: 'Newsletter',
+    booking: 'Booked Call',
+    viewing: 'Viewing Request',
+  };
+  const isReturning = typeof source === 'string' && source.endsWith(' (returning)');
+  const baseSource = isReturning ? source.replace(/ \(returning\)$/, '') : source;
+  const srcLabel = (sourceLabels[baseSource] || baseSource || 'Unknown') + (isReturning ? ' (returning)' : '');
+
+  // One-line "what this lead is for", derived from the source + property so
+  // Hamza can tell at a glance what the person did.
+  const intentBySource = {
+    registration: listingAddress ? 'Created a free account while viewing a property' : 'Created a free account',
+    quiz: 'Completed the investor quiz',
+    'google-signin': listingAddress ? 'Signed in with Google while viewing a property' : 'Signed in with Google',
+    'deal-alert': 'Signed up for deal alerts',
+    'precon-vip': 'Requested pre-construction VIP access',
+    'exit-intent': 'Grabbed the exit-intent offer',
+    'saved-search': 'Saved a search for alerts',
+    newsletter: 'Subscribed to the newsletter',
+  };
+  const intentLine = intentBySource[baseSource] || 'New lead captured';
+
+  const listingUrl = listingId ? `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(listingId)}` : '';
+  const priceLabel = listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : '';
 
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:500px;margin:0 auto;">
       <div style="background:#0F2A4A;padding:20px 24px;border-radius:12px 12px 0 0;">
         <h2 style="color:#fff;margin:0;font-size:18px;">🔔 New Lead on MississaugaInvestor.ca</h2>
+        <p style="color:#9db4d4;margin:6px 0 0;font-size:13px;">${intentLine}</p>
       </div>
       <div style="background:#f8f9fa;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
+        ${listingAddress ? `<div style="background:#eef4ff;border:1px solid #c7d7fb;border-radius:8px;padding:14px 16px;margin-bottom:16px;">
+          <p style="margin:0 0 2px;color:#2563EB;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Looking at this property</p>
+          <p style="margin:0;font-size:15px;font-weight:700;color:#0F2A4A;">${listingAddress}${priceLabel}</p>
+          ${listingUrl ? `<a href="${listingUrl}" style="display:inline-block;margin-top:6px;color:#2563EB;font-size:13px;font-weight:600;text-decoration:none;">View listing →</a>` : ''}
+        </div>` : ''}
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Name</td><td style="padding:6px 0;font-weight:600;font-size:14px;">${name || '—'}</td></tr>
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Email</td><td style="padding:6px 0;font-size:14px;"><a href="mailto:${email}">${email}</a></td></tr>
           ${phone ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Phone</td><td style="padding:6px 0;font-size:14px;"><a href="tel:${phone}">${phone}</a></td></tr>` : ''}
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Source</td><td style="padding:6px 0;font-size:14px;">${srcLabel}</td></tr>
-          ${listingAddress ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Property</td><td style="padding:6px 0;font-size:14px;">${listingAddress}${listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : ''}</td></tr>` : ''}
+          ${listingAddress ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Property</td><td style="padding:6px 0;font-size:14px;">${listingUrl ? `<a href="${listingUrl}" style="color:#2563EB;text-decoration:none;">${listingAddress}</a>` : listingAddress}${priceLabel}</td></tr>` : ''}
           ${notes ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Notes</td><td style="padding:6px 0;font-size:14px;font-style:italic;">${notes}</td></tr>` : ''}
         </table>
         <div style="margin-top:16px;">

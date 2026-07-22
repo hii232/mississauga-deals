@@ -74,7 +74,7 @@ export async function POST(request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { name, email, phone, notes, date, time } = body;
+  const { name, email, phone, notes, date, time, listingId, listingAddress, listingPrice } = body;
 
   // Validation
   if (!name || !name.trim()) {
@@ -110,7 +110,7 @@ export async function POST(request) {
   if (!supabase) {
     if (process.env.RESEND_API_KEY) {
       try {
-        await sendBookingNotification({ name, email, phone, date, time, notes });
+        await sendBookingNotification({ name, email, phone, date, time, notes, listingId, listingAddress, listingPrice });
         return NextResponse.json({ success: true });
       } catch (err) {
         console.error('Booking fallback email failed:', err.message);
@@ -151,19 +151,23 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
   }
 
-  // Also save as a lead
+  // Also save as a lead — a property-specific booking is a viewing request, so
+  // tag the source and keep the listing so it shows up in the leads dashboard.
   await supabase.from('leads').insert({
     name: name.trim(),
     email: email.toLowerCase().trim(),
     phone: phone || null,
-    source: 'booking',
-    notes: `Booked call: ${date} at ${formatTime(time)} ET${notes ? '. ' + notes : ''}`,
+    listing_id: listingId || null,
+    listing_address: listingAddress || null,
+    listing_price: listingPrice || null,
+    source: listingAddress ? 'viewing' : 'booking',
+    notes: `${listingAddress ? `Viewing request: ${listingAddress}. ` : ''}Booked call: ${date} at ${formatTime(time)} ET${notes ? '. ' + notes : ''}`,
     created_at: new Date().toISOString(),
   }).catch(() => {});
 
   // Send notification email
   if (process.env.RESEND_API_KEY) {
-    sendBookingNotification({ name, email, phone, date, time, notes }).catch((err) =>
+    sendBookingNotification({ name, email, phone, date, time, notes, listingId, listingAddress, listingPrice }).catch((err) =>
       console.error('Booking email failed:', err.message)
     );
   }
@@ -184,12 +188,15 @@ function formatTime(t) {
   return `${hr}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
-async function sendBookingNotification({ name: rawName, email: rawEmail, phone: rawPhone, date, time, notes: rawNotes }) {
+async function sendBookingNotification({ name: rawName, email: rawEmail, phone: rawPhone, date, time, notes: rawNotes, listingId, listingAddress: rawAddr, listingPrice }) {
   // User-supplied fields are interpolated into email HTML — escape them
   const name = escapeHtml(rawName);
   const email = escapeHtml(rawEmail);
   const phone = rawPhone ? escapeHtml(rawPhone) : rawPhone;
   const notes = rawNotes ? escapeHtml(rawNotes) : rawNotes;
+  const listingAddress = rawAddr ? escapeHtml(rawAddr) : rawAddr;
+  const priceLabel = listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : '';
+  const listingUrl = listingId ? `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(listingId)}` : '';
   const displayTime = formatTime(time);
   const displayDate = new Date(date + 'T12:00:00').toLocaleDateString('en-CA', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -198,11 +205,16 @@ async function sendBookingNotification({ name: rawName, email: rawEmail, phone: 
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:500px;margin:0 auto;">
       <div style="background:#0F2A4A;padding:20px 24px;border-radius:12px 12px 0 0;">
-        <h2 style="color:#fff;margin:0;font-size:18px;">📅 New Booking on MississaugaInvestor.ca</h2>
+        <h2 style="color:#fff;margin:0;font-size:18px;">${listingAddress ? '🏠 New Viewing Request' : '📅 New Booking'} on MississaugaInvestor.ca</h2>
       </div>
       <div style="background:#f8f9fa;padding:24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;">
+        ${listingAddress ? `<div style="background:#eef4ff;border:1px solid #c7d7fb;border-radius:8px;padding:14px 16px;margin-bottom:16px;">
+          <p style="margin:0 0 2px;color:#2563EB;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Wants to view this property</p>
+          <p style="margin:0;font-size:15px;font-weight:700;color:#0F2A4A;">${listingAddress}${priceLabel}</p>
+          ${listingUrl ? `<a href="${listingUrl}" style="display:inline-block;margin-top:6px;color:#2563EB;font-size:13px;font-weight:600;text-decoration:none;">View listing →</a>` : ''}
+        </div>` : ''}
         <div style="background:#fff;border:2px solid #2563EB;border-radius:8px;padding:16px;margin-bottom:16px;text-align:center;">
-          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;">Scheduled Call</p>
+          <p style="margin:0 0 4px;color:#6b7280;font-size:12px;text-transform:uppercase;">${listingAddress ? 'Preferred Time' : 'Scheduled Call'}</p>
           <p style="margin:0;font-size:20px;font-weight:700;color:#0F2A4A;">${displayDate}</p>
           <p style="margin:4px 0 0;font-size:18px;font-weight:600;color:#2563EB;">${displayTime} ET</p>
         </div>
@@ -210,6 +222,7 @@ async function sendBookingNotification({ name: rawName, email: rawEmail, phone: 
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Name</td><td style="padding:6px 0;font-weight:600;font-size:14px;">${name}</td></tr>
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Email</td><td style="padding:6px 0;font-size:14px;"><a href="mailto:${email}">${email}</a></td></tr>
           ${phone ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Phone</td><td style="padding:6px 0;font-size:14px;"><a href="tel:${phone}">${phone}</a></td></tr>` : ''}
+          ${listingAddress ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Property</td><td style="padding:6px 0;font-size:14px;">${listingUrl ? `<a href="${listingUrl}" style="color:#2563EB;text-decoration:none;">${listingAddress}</a>` : listingAddress}${priceLabel}</td></tr>` : ''}
           ${notes ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Notes</td><td style="padding:6px 0;font-size:14px;font-style:italic;">${notes}</td></tr>` : ''}
         </table>
         <div style="margin-top:16px;">
@@ -229,7 +242,9 @@ async function sendBookingNotification({ name: rawName, email: rawEmail, phone: 
     body: JSON.stringify({
       from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
       to: process.env.LEAD_NOTIFICATION_EMAIL || 'hamza@nouman.ca',
-      subject: `📅 New Booking: ${name} — ${displayDate} at ${displayTime} ET`,
+      subject: listingAddress
+        ? `🏠 Viewing Request: ${rawName} wants to see ${rawAddr} — ${displayDate} at ${displayTime} ET`
+        : `📅 New Booking: ${name} — ${displayDate} at ${displayTime} ET`,
       html,
     }),
   });

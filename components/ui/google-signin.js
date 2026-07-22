@@ -9,7 +9,7 @@ import { useEffect, useRef, useCallback } from 'react';
  * On success: decodes the JWT credential, posts lead to /api/lead,
  * sets localStorage, and calls onSuccess with user info.
  */
-export function GoogleSignIn({ onSuccess, onError }) {
+export function GoogleSignIn({ onSuccess, onError, listingId = '', listingAddress = '', listingPrice = '' }) {
   const btnRef = useRef(null);
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -27,7 +27,8 @@ export function GoogleSignIn({ onSuccess, onError }) {
           picture: payload.picture || '',
         };
 
-        // Capture the lead
+        // Capture the lead — carry the listing the visitor was viewing (if any)
+        // so Hamza's notification shows the property, not just a bare sign-in.
         await fetch('/api/lead', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -35,6 +36,9 @@ export function GoogleSignIn({ onSuccess, onError }) {
             name: userData.name,
             email: userData.email,
             source: 'google-signin',
+            listingId: listingId || undefined,
+            listingAddress: listingAddress || undefined,
+            listingPrice: listingPrice || undefined,
             timestamp: new Date().toISOString(),
           }),
         }).catch(() => {});
@@ -49,7 +53,7 @@ export function GoogleSignIn({ onSuccess, onError }) {
         onError?.('Failed to process Google sign-in.');
       }
     },
-    [onSuccess, onError]
+    [onSuccess, onError, listingId, listingAddress, listingPrice]
   );
 
   useEffect(() => {
