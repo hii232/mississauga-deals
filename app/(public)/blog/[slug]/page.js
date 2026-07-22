@@ -5,6 +5,7 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
+import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 
 export const revalidate = 60;
 
@@ -109,21 +110,25 @@ export default async function BlogPostPage({ params }) {
         </div>
       </div>
 
-      {/* Hero — single H1 */}
-      <section className="bg-gradient-to-br from-navy via-navy to-accent/20 py-12 md:py-16">
-        <div className="max-w-3xl mx-auto px-4 text-center">
+      {/* Hero — single H1, dusk skyline identity */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C] py-12 md:py-16">
+        <CityscapePanorama
+          variant="dusk"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-28 w-full opacity-60"
+        />
+        <div className="relative z-10 max-w-3xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${categoryColorMap[post.category] || categoryColorMap.General}`}>
               {post.category}
             </span>
-            <span className="text-xs text-white/40">{dateStr}</span>
-            <span className="text-xs text-white/40">{readTime} min read</span>
+            <span className="text-xs text-white/70">{dateStr}</span>
+            <span className="text-xs text-white/70">{readTime} min read</span>
           </div>
           <h1 className="font-heading text-2xl md:text-3xl lg:text-4xl font-bold text-white leading-tight">
             {post.title}
           </h1>
           {post.excerpt && (
-            <p className="text-white/50 text-sm md:text-base mt-4 max-w-2xl mx-auto">
+            <p className="text-white/75 text-sm md:text-base mt-4 max-w-2xl mx-auto">
               {post.excerpt}
             </p>
           )}
@@ -184,7 +189,7 @@ export default async function BlogPostPage({ params }) {
                   📞 647-609-1289
                 </a>
               </div>
-              <p className="text-white/30 text-[10px] mt-3">★★★★★ 5.0 on Google · 28 Reviews</p>
+              <p className="text-white/60 text-[10px] mt-3">★★★★★ 5.0 on Google · 28 Reviews</p>
             </div>
 
             {/* Related Posts */}
@@ -211,7 +216,8 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            <InlineCTA variant="newsletter" className="mt-10" />
+            <SkylineStrip className="mt-12 h-10 w-full" tone="#1B2A4A" opacity={0.1} />
+            <InlineCTA variant="newsletter" className="mt-6" />
           </article>
 
           {/* Sidebar */}
