@@ -35,6 +35,25 @@ export default async function BlogPage() {
     posts = data || [];
   }
 
+  // ItemList of published articles — helps search engines understand the blog
+  // index as a collection and discover/rank the individual posts. Built from the
+  // fetched posts; only emitted when there are valid entries.
+  const listablePosts = posts.filter((p) => p.slug && p.title);
+  const blogListSchema =
+    listablePosts.length > 0
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: 'MississaugaInvestor.ca — Investment Insights',
+          itemListElement: listablePosts.map((p, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            url: `https://www.mississaugainvestor.ca/blog/${p.slug}`,
+            name: p.title,
+          })),
+        }
+      : null;
+
   return (
     <>
       <BreadcrumbJsonLd
@@ -43,6 +62,12 @@ export default async function BlogPage() {
           { name: 'Blog', url: 'https://www.mississaugainvestor.ca/blog' },
         ]}
       />
+      {blogListSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListSchema) }}
+        />
+      )}
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63] pt-16 pb-28 md:pt-20 md:pb-36">
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
