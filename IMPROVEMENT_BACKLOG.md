@@ -70,12 +70,18 @@ Design-agent propagation queue (use PageHero / CityscapePanorama / SkylineStrip;
 
 GSC shows 358 queries, avg position 9, impressions 8.94K & clicks 117 both trending UP over 3mo. These queries get real impressions but ~0 clicks (page 2 / bottom of page 1) — the highest-ROI SEO work is pushing the RIGHT existing page onto page 1 for each. Method: exact-match the target page's title + H1 + add a direct answer block + FAQ JSON-LD; don't fabricate — keep answers synced to real data. One per SEO-agent run.
 
-- [x] "best neighbourhoods to invest in mississauga" (70 impr, pos ~14.7) → /neighbourhoods retitled + answer block + FAQ schema (2026-07-21)
-- [ ] "rent vs buy mississauga 2026" (89 impr, 0 clicks) → needs a dedicated rent-vs-buy page or blog post with a live calculator embed + FAQ schema; link from mortgage-calculator
-- [ ] "townhouse or condo better investment" (50 impr) → comparison guide (townhouse vs condo for GTA investors: fees, appreciation, cash flow) + FAQ schema; link from /listings type filters
-- [ ] "hurontario lrt real estate impact" / "hazel mccallion LRT" (45 impr) → LRT-impact article naming the corridor neighbourhoods (Cooksville, City Centre, Port Credit); strong internal links to those guides
-- [ ] "hamza" / "hamza nouman" (129 + 10 impr, mostly 0 clicks) → /about should rank #1 for the brand name: ensure Person/ProfilePage schema, H1 = "Hamza Nouman", and the page is in sitemap with high priority (brand queries should never leak clicks)
-- [ ] Pull the FULL GSC query export from Hamza periodically (he can Export → share) to refresh this list; also watch address-level queries (listings pages already earning clicks — good sign the listing SEO works)
+Ranked from the real export (52a407e3 …Performance…20260722.xlsx, 3-month, 358 queries). Do the topmost unchecked one per SEO run.
+
+- [x] "best neighbourhoods to invest in mississauga" (70 impr, pos 14.7) → /neighbourhoods retitled + answer block + FAQ schema (2026-07-21)
+- [x] "income property mortgage calculator" (24 impr, pos ~51) + "investment property mortgages in mississauga" (19 impr, pos 17) → /mortgage-calculator title + H1 exact-match "Income Property Mortgage Calculator" (2026-07-21). Watch position; page was on page 5 so biggest potential jump
+- [ ] "rent vs buy mississauga 2026" (89 impr, pos 16) → dedicated /rent-vs-buy-mississauga page with a live buy-vs-rent breakeven calc + FAQ schema; link from mortgage-calculator & blog. HIGHEST non-brand impressions
+- [ ] "investment properties for sale mississauga" (29 impr, pos 13.9) — THE money keyword → make /listings (or a landing section) exact-match this: title/H1/intro copy "Investment Properties for Sale in Mississauga" + item schema. High commercial intent
+- [ ] "hurontario lrt real estate impact" (45 impr, pos 7.8 — nearly page 1) → auto-blog/article on the Hazel McCallion (Hurontario) LRT's impact on Cooksville/City Centre/Port Credit values; internal-link those guides. Very winnable
+- [ ] "townhouse or condo better investment" (50 impr, pos 25.6) → comparison guide (townhouse vs condo for GTA investors: fees, appreciation, cash flow) + FAQ schema; link from /listings type filters
+- [ ] "cash flow positive properties ontario" (26 impr, pos 19.7) → /listings already screens for positive cash flow; add a landing/section + copy targeting this phrase
+- [ ] "rental property insurance mississauga" (26 impr, pos 14.4) → short guide/FAQ on landlord insurance for Mississauga rentals (info intent; builds topical authority + a lead CTA)
+- [ ] "hamza nouman" brand (129 "hamza" impr pos 4.4; "hamza nouman" 10 impr) → /about must own the brand: confirm Person/ProfilePage schema + H1 "Hamza Nouman" + high sitemap priority. Bare "hamza" is a common name (0 clicks expected); focus on "hamza nouman"
+- [ ] REFRESH: Hamza can re-export GSC (Performance → Export) anytime and drop the xlsx in chat — reprioritize this list from the new numbers. Address-level queries already earn clicks (listing SEO works — leave it)
 
 ## 5 — Investor value & SEO
 

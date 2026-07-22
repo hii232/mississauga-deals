@@ -1,10 +1,10 @@
 export const metadata = {
-  title: 'Mortgage Calculator — Mississauga Investment Properties',
-  description: 'Free mortgage calculator for Mississauga investment properties. Calculate payments, cash flow, and returns with current Canadian mortgage rates. Built by Hamza Nouman for real estate investors.',
+  title: 'Income Property Mortgage Calculator — Mississauga Cash Flow, Payments & Cap Rate',
+  description: 'Free income property mortgage calculator for Mississauga & GTA investors. Calculate mortgage payments, rental cash flow, cap rate, CMHC insurance, land transfer tax and the federal stress test with current Canadian rates. Built by Hamza Nouman.',
   alternates: { canonical: '/mortgage-calculator' },
   openGraph: {
-    title: 'Mortgage Calculator — Mississauga Investment Properties',
-    description: 'Free mortgage calculator for Mississauga real estate investors by Hamza Nouman.',
+    title: 'Income Property Mortgage Calculator — Mississauga Cash Flow & Payments',
+    description: 'Free income property mortgage & cash-flow calculator for Mississauga real estate investors by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/mortgage-calculator',
   },
 };
