@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PageHero } from '@/components/layout/page-hero';
 
 const PROPERTY_TYPES = [
   { value: '', label: 'Select property type' },
@@ -94,14 +95,18 @@ export default function SellPage() {
   }
 
   return (
+    <>
+    <PageHero
+      compact
+      eyebrow="Free home valuation · No obligation"
+      title="What's Your Property Worth?"
+      subtitle="Get a free, no-obligation comparative market analysis from a Mississauga investment specialist — positioned to attract serious, pre-qualified buyers."
+    />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
         {/* Left side - Info */}
         <div>
-          <h1 className="section-title mb-3">What&apos;s Your Property Worth?</h1>
-          <p className="section-subtitle mb-8">
-            Get a free, no-obligation comparative market analysis from a Mississauga investment specialist
-          </p>
+          <h2 className="font-heading font-bold text-xl text-navy mb-5">How your free valuation works</h2>
 
           <div className="space-y-5 mb-8">
             <div className="flex items-start gap-3">
@@ -286,5 +291,6 @@ export default function SellPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
