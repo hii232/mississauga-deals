@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
@@ -29,6 +30,12 @@ export default function ListingsPage() {
           </h1>
           <p className="mt-1 text-sm text-slate-500">
             Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
+          </p>
+          <p className="mt-1.5 text-sm text-slate-500">
+            Deciding on a property type?{' '}
+            <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">
+              Townhouse or condo — which is the better investment?
+            </Link>
           </p>
         </div>
         <Suspense>

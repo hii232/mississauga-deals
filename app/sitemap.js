@@ -32,6 +32,7 @@ export default async function sitemap() {
     { url: `${BASE}/mortgage-calculator`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/rent-vs-buy-mississauga`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/hurontario-lrt-real-estate`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/townhouse-vs-condo-investment`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/faq`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/blog`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${BASE}/score-methodology`, changeFrequency: 'monthly', priority: 0.4 },
