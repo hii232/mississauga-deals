@@ -351,6 +351,12 @@ export default function MortgageCalculatorPage() {
             Read: Rent vs Buy in Mississauga →
           </Link>
         </p>
+        <p className="mt-2 text-sm text-muted">
+          Budgeting the carrying costs?{' '}
+          <Link href="/rental-property-insurance-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
+            Read: Rental Property Insurance in Mississauga →
+          </Link>
+        </p>
       </section>
     </>
   );
