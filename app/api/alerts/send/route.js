@@ -116,7 +116,7 @@ export async function POST(request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
           to: email,
-          subject: `${listings.length} New Investment ${listings.length === 1 ? 'Deal' : 'Deals'} in Mississauga`,
+          subject: alertSubject(listings),
           html: emailHtml,
         }),
       });
@@ -137,6 +137,27 @@ export async function POST(request) {
     console.error('Alert send error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
+}
+
+// Daily-alert subject: lead with the top new match's real hook (cash flow, else
+// cap rate) to lift open rates, falling back to a plain count. `listings` is
+// sorted by score, so listings[0] is the best match. Every value is guarded so
+// the subject can never render N/A, $NaN, or undefined.
+function alertSubject(listings) {
+  const n = listings.length;
+  const top = listings[0];
+  if (top) {
+    const hood = (top.neighbourhood || top.city || '').toString().trim();
+    const where = hood ? ` in ${hood}` : '';
+    if (typeof top.cashFlow === 'number' && isFinite(top.cashFlow) && top.cashFlow > 0) {
+      const more = n > 1 ? ` + ${n - 1} more` : '';
+      return `New deal: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow${where}${more}`;
+    }
+    if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
+      return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} — top ${top.capRate.toFixed(1)}% cap rate${where}`;
+    }
+  }
+  return `${n} New Investment ${n === 1 ? 'Deal' : 'Deals'} in Mississauga`;
 }
 
 // Escape user/MLS-supplied strings interpolated into email HTML
