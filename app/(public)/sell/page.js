@@ -27,6 +27,31 @@ export const metadata = {
   },
 };
 
+// Page-relevant service structured data for the seller page. No self-serving
+// aggregateRating (Google discourages it on self-markup) — the real 5.0 Google
+// rating stays as visible on-page proof only.
+const agentServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: 'Hamza Nouman — Cityscape Real Estate',
+  description: 'Investment-focused Mississauga listing agent. Free home valuations and a private Investor Offer Preview from a network of pre-qualified buyers.',
+  url: `${BASE}/sell`,
+  image: `${BASE}/images/hamza-headshot.jpg`,
+  telephone: '+1-647-609-1289',
+  areaServed: [
+    { '@type': 'City', name: 'Mississauga' },
+    { '@type': 'AdministrativeArea', name: 'Peel Region, Ontario' },
+  ],
+  makesOffer: {
+    '@type': 'Offer',
+    name: 'Free Home Valuation & Investor Offer Preview',
+    description: 'A free, no-obligation home valuation plus a private preview of what an investor buyer would pay for your Mississauga home.',
+    price: '0',
+    priceCurrency: 'CAD',
+  },
+  provider: { '@type': 'Person', '@id': `${BASE}/about#hamza-nouman`, name: 'Hamza Nouman' },
+};
+
 // Honest, general answers — no fabricated stats, commissions, or timelines.
 // Specifics come from the free preview + CMA, which every answer routes back to.
 const SELL_FAQ = [
@@ -132,6 +157,7 @@ export default function SellPage() {
         ]}
       />
       <FAQJsonLd items={SELL_FAQ} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(agentServiceSchema) }} />
 
       {/* ── Hero with embedded form ── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C]">

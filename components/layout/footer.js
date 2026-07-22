@@ -38,6 +38,7 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-sm text-white mb-3">Platform</h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/listings" className="text-white/50 hover:text-white no-underline transition-colors">Investment Listings</Link></li>
+              <li><Link href="/sell" className="text-white/50 hover:text-white no-underline transition-colors">Sell Your Home</Link></li>
               <li><Link href="/market-pulse" className="text-white/50 hover:text-white no-underline transition-colors">Market Pulse</Link></li>
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
