@@ -1,10 +1,13 @@
 import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
+// Title/H1/intro exact-match the high-intent GSC query "investment properties
+// for sale mississauga" (pos ~14, real impressions — the money keyword).
 export const metadata = {
-  title: 'Mississauga Investment Properties — 1,800+ Listings Scored for Cash Flow | MississaugaInvestor.ca',
+  title: 'Investment Properties for Sale in Mississauga — 1,800+ Scored for Cash Flow',
   description:
-    'Browse 1,800+ scored investment properties in Mississauga. Cash flow analysis, cap rates, deal scores, legal suite detection, and price drop alerts on every listing. Free for investors.',
+    'Investment properties for sale in Mississauga — browse 1,800+ active listings, each scored for cash flow, cap rate, and ROI, with legal-suite detection and price-drop alerts. Free for investors.',
   alternates: { canonical: '/listings' },
 };
 
@@ -13,13 +16,19 @@ export const metadata = {
 export default function ListingsPage() {
   return (
     <main className="min-h-screen bg-cloud">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Investment Properties for Sale', url: 'https://www.mississaugainvestor.ca/listings' },
+        ]}
+      />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-navy">
-            Mississauga Investment Properties
+            Investment Properties for Sale in Mississauga
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            All active listings scored and analyzed
+            Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
           </p>
         </div>
         <Suspense>
