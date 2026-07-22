@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import InlineCTA from '@/components/ui/inline-cta';
+import { PageHero } from '@/components/layout/page-hero';
 
 /* ── helpers ─────────────────────────────────────────────── */
 
@@ -234,25 +235,26 @@ export function NewsClient({ articles, sources, topics }) {
 
   return (
     <div className="min-h-screen bg-cloud">
+      <PageHero
+        compact
+        eyebrow="Live market news"
+        title="Real Estate Intelligence"
+        subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports — curated for investors and updated continuously."
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* ── Header ─────────────────────────────────────── */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-navy mb-1">
-              Real Estate Intelligence
-            </h1>
-            <p className="text-sm text-muted flex items-center gap-2">
-              Live market news · Updated {timeAgo(articles[0]?.date)}
-              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
-                </span>
-                Live Feed
+        {/* ── Controls: freshness signal + manual refresh ── */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <p className="text-sm text-muted flex items-center gap-2">
+            Updated {timeAgo(articles[0]?.date)}
+            <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
               </span>
-            </p>
-          </div>
+              Live Feed
+            </span>
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-navy shadow-sm hover:border-accent hover:text-accent transition-colors"
