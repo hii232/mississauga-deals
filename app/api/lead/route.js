@@ -127,6 +127,7 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
     booking: 'Booked Call',
     viewing: 'Viewing Request',
     'seller-valuation': 'Seller — Home Valuation',
+    'investor-offer-preview': 'Seller — Investor Offer Preview',
   };
   const isReturning = typeof source === 'string' && source.endsWith(' (returning)');
   const baseSource = isReturning ? source.replace(/ \(returning\)$/, '') : source;
@@ -144,6 +145,7 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
     'saved-search': 'Saved a search for alerts',
     newsletter: 'Subscribed to the newsletter',
     'seller-valuation': 'Requested a free home valuation (seller lead)',
+    'investor-offer-preview': 'Requested a free Investor Offer Preview (seller lead)',
   };
   const intentLine = intentBySource[baseSource] || 'New lead captured';
 

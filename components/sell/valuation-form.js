@@ -14,6 +14,13 @@ const PROPERTY_TYPES = [
   { value: 'other', label: 'Other' },
 ];
 
+const GOALS = [
+  { value: '', label: 'What are you looking for?' },
+  { value: 'investor-preview', label: 'An investor offer preview (quiet sale)' },
+  { value: 'full-listing', label: 'A full-market listing (top dollar)' },
+  { value: 'both', label: 'Not sure — show me both options' },
+];
+
 const SELL_TIMELINES = [
   { value: '', label: 'Select timeline' },
   { value: 'asap', label: 'As soon as possible' },
@@ -24,14 +31,14 @@ const SELL_TIMELINES = [
 ];
 
 /**
- * Home-valuation lead form for the /sell page. Posts to /api/lead with
- * source 'seller-valuation' (labelled "Seller — Home Valuation" in Hamza's
- * inbox + CRM). Kept as its own client component so the page stays a server
- * component with SEO metadata + structured data.
+ * Seller lead form for the /sell page. Posts to /api/lead with source
+ * 'investor-offer-preview' (labelled "Seller — Investor Offer Preview" in
+ * Hamza's inbox + CRM). Kept as its own client component so the page stays a
+ * server component with SEO metadata + structured data.
  */
 export function ValuationForm({ id }) {
   const [form, setForm] = useState({
-    name: '', email: '', phone: '', address: '', propertyType: '', estimatedValue: '', timeline: '',
+    name: '', email: '', phone: '', address: '', propertyType: '', goal: '', timeline: '',
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -50,6 +57,7 @@ export function ValuationForm({ id }) {
     }
     setLoading(true);
     try {
+      const goalLabel = (GOALS.find((g) => g.value === form.goal) || {}).label;
       const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,8 +65,8 @@ export function ValuationForm({ id }) {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          source: 'seller-valuation',
-          notes: `Address: ${form.address}, Type: ${form.propertyType || 'Not specified'}, Est. Value: ${form.estimatedValue || 'Not specified'}, Timeline: ${form.timeline || 'Not specified'}`,
+          source: 'investor-offer-preview',
+          notes: `Address: ${form.address}, Type: ${form.propertyType || 'Not specified'}, Wants: ${goalLabel || 'Not specified'}, Timeline: ${form.timeline || 'Not specified'}`,
         }),
       });
       if (!res.ok) throw new Error('Failed to submit');
@@ -74,9 +82,10 @@ export function ValuationForm({ id }) {
     return (
       <div id={id} className="card p-8 text-center scroll-mt-24">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-3xl">🏡</div>
-        <h2 className="font-heading font-bold text-xl text-navy mb-2">Valuation request received</h2>
+        <h2 className="font-heading font-bold text-xl text-navy mb-2">Your Investor Offer Preview is on the way</h2>
         <p className="text-sm text-muted leading-relaxed max-w-sm mx-auto mb-6">
-          Hamza will prepare a complimentary, no-obligation market analysis for your property and follow up personally within 24–48 hours.
+          Hamza will quietly check his investor buyers on your home and prepare a data-backed market valuation, then
+          follow up personally within 24–48 hours. No obligation, fully confidential.
         </p>
         <a href="/listings" className="btn-primary !px-8 !py-3 no-underline inline-block">
           Browse Investment Listings
@@ -90,8 +99,8 @@ export function ValuationForm({ id }) {
 
   return (
     <div id={id} className="card p-6 scroll-mt-24">
-      <h2 className="font-heading font-semibold text-lg text-navy">Get your free home valuation</h2>
-      <p className="mt-1 mb-5 text-xs text-muted">No obligation. No pressure. A real analysis from a real specialist.</p>
+      <h2 className="font-heading font-semibold text-lg text-navy">Get your free Investor Offer Preview</h2>
+      <p className="mt-1 mb-5 text-xs text-muted">See what an investor would pay — plus your market valuation. Private, no obligation.</p>
 
       {error && (
         <div role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">{error}</div>
@@ -124,8 +133,10 @@ export function ValuationForm({ id }) {
             </select>
           </div>
           <div>
-            <label htmlFor="sv-value" className="mb-1 block text-sm font-medium text-navy">Estimated Value</label>
-            <input id="sv-value" name="estimatedValue" type="text" value={form.estimatedValue} onChange={handleChange} placeholder="e.g. $850,000" className={inputCls} />
+            <label htmlFor="sv-goal" className="mb-1 block text-sm font-medium text-navy">Your goal</label>
+            <select id="sv-goal" name="goal" value={form.goal} onChange={handleChange} className={inputCls}>
+              {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+            </select>
           </div>
         </div>
         <div>
@@ -135,9 +146,9 @@ export function ValuationForm({ id }) {
           </select>
         </div>
         <button type="submit" disabled={loading} className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60">
-          {loading ? 'Submitting…' : 'Get My Free Valuation'}
+          {loading ? 'Submitting…' : 'Get My Investor Offer Preview'}
         </button>
-        <p className="text-[11px] text-muted text-center">100% free · No obligation · Your information stays confidential</p>
+        <p className="text-[11px] text-muted text-center">100% free · Confidential · No obligation to list or sell</p>
       </form>
     </div>
   );

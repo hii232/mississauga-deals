@@ -7,57 +7,58 @@ import { ValuationForm } from '@/components/sell/valuation-form';
 const BASE = 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
-  title: 'Sell Your Home in Mississauga — Free Valuation from Hamza Nouman',
+  title: 'Sell Your Home in Mississauga — Free Investor Offer Preview',
   description:
-    'Thinking of selling your Mississauga home? Get a free, no-obligation home valuation from Hamza Nouman — an investment-focused agent with a network of pre-qualified buyers and data-driven pricing that sells for top dollar.',
+    'See what an investor would pay for your Mississauga home before you list. Get a free, private Investor Offer Preview from Hamza Nouman’s network of pre-qualified buyers, plus a data-backed market valuation. Sell quietly and fast, or list for top dollar.',
   keywords: [
     'sell my house mississauga',
     'sell my home mississauga',
     'mississauga home valuation',
     'what is my home worth mississauga',
+    'sell house to investor mississauga',
+    'off market home sale mississauga',
     'mississauga listing agent',
-    'sell house fast mississauga',
   ],
   alternates: { canonical: '/sell' },
   openGraph: {
-    title: 'Sell Your Home in Mississauga — Free Valuation from Hamza Nouman',
-    description: 'A free, no-obligation home valuation from an investment-focused Mississauga agent with a network of pre-qualified buyers and data-driven pricing.',
+    title: 'Sell Your Home in Mississauga — Free Investor Offer Preview',
+    description: 'See what an investor would pay before you list — a free, private preview from a network of pre-qualified buyers, plus a data-backed valuation.',
     url: `${BASE}/sell`,
   },
 };
 
 // Honest, general answers — no fabricated stats, commissions, or timelines.
-// Specifics come from the free CMA, which every answer routes back to.
+// Specifics come from the free preview + CMA, which every answer routes back to.
 const SELL_FAQ = [
   {
-    question: 'How much is my Mississauga home worth?',
+    question: 'What is an Investor Offer Preview?',
     answer:
-      'It depends on your home’s size, condition, and location, recent comparable sales nearby, and what buyers are paying right now. The honest way to find out is a comparative market analysis (CMA) — Hamza prepares one for free, grounded in real recent sales and current buyer demand, so you get a data-backed number rather than a guess.',
+      'It’s a free, confidential first look at what a real investor buyer might pay for your home. Hamza quietly checks your property against his network of pre-qualified investor buyers and reports back genuine interest, alongside a data-backed open-market valuation — so you can weigh a quiet sale against a public listing. There’s no obligation, and no one has to know your home is even being considered.',
+  },
+  {
+    question: 'Is the investor sale or the public listing better for me?',
+    answer:
+      'It depends on what you value. A quiet investor sale is fast, private, often as-is — great when speed and discretion matter. A full public listing usually nets the highest price because more buyers compete for your home. The preview shows you what each path realistically looks like for your specific home, and Hamza will tell you honestly which one is likely to serve you best — even if that means a public listing over a quick sale.',
   },
   {
     question: 'How do you decide what to list my home for?',
     answer:
-      'Pricing is data-driven, not a hunch. The listing price comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score over 1,800 Mississauga listings. Price it right and you attract more buyers and stronger offers; the CMA lays out the strategy for your specific home.',
+      'Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score over 1,800 Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.',
   },
   {
     question: 'What does it cost to sell a home in Ontario?',
     answer:
-      'The main costs are the real estate commission (agreed with you up front, in writing), your lawyer’s fees for closing, and any prep you choose to do (cleaning, minor repairs, staging). There’s no cost to get a valuation or to talk through your options — you only list when you’re ready and the terms are clear.',
-  },
-  {
-    question: 'Can you sell my home to an investor without listing it publicly?',
-    answer:
-      'Sometimes, yes. Because Hamza works with a network of active, pre-qualified investor buyers, some homes can be matched to a buyer quietly — useful if you want privacy or a faster, more certain sale. It isn’t right for every property (a public listing often nets the most), so Hamza will tell you honestly which path is likely to serve you best.',
+      'The main costs are the real estate commission (agreed with you up front, in writing), your lawyer’s fees for closing, and any prep you choose to do. There’s no cost to get a preview or a valuation, and no cost to talk through your options — you only move forward when you’re ready and the terms are clear.',
   },
   {
     question: 'How long will it take to sell?',
     answer:
-      'It depends on your price, your home’s condition, and the market at the time — anyone who promises an exact number before seeing your home is guessing. What Hamza can do is give you a realistic timeline in your CMA, based on how similar homes near you are actually selling, and a plan to sell within it.',
+      'It depends on your price, your home’s condition, and the market — anyone who promises an exact number before seeing your home is guessing. A quiet investor match can move quickly; a public listing’s timing depends on the market. Your preview includes a realistic timeline for each path, based on how similar homes near you are actually selling.',
   },
   {
-    question: 'Do I have to commit to selling to get a valuation?',
+    question: 'Do I have to commit to selling to get a preview?',
     answer:
-      'No. The valuation is free and there’s no obligation. Many people request one just to understand their equity or plan ahead. If and when you decide to move forward, Hamza is there — and if now isn’t the time, that’s a perfectly good answer too.',
+      'No. The preview is free, confidential, and there’s no obligation — to sell, to list, or to do anything at all. Many people request one just to understand their equity or plan ahead. If the time is right, Hamza is there; if it isn’t, that’s a perfectly good answer too.',
   },
 ];
 
@@ -65,7 +66,7 @@ const DIFFERENTIATORS = [
   {
     icon: '🤝',
     title: 'A network of buyers, already waiting',
-    body: 'As an investment-focused agent, Hamza works with a database of pre-qualified investor buyers actively looking in Mississauga — so your home reaches serious buyers who move quickly and close reliably.',
+    body: 'As an investment-focused agent, Hamza works with a database of pre-qualified investor buyers actively looking in Mississauga — so your home can be matched to a serious buyer who moves quickly and closes reliably.',
   },
   {
     icon: '📊',
@@ -75,7 +76,7 @@ const DIFFERENTIATORS = [
   {
     icon: '🛠️',
     title: 'Full-service, handled for you',
-    body: 'Professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end so you can focus on your move.',
+    body: 'When you list, you get the works — professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end.',
   },
   {
     icon: '🎯',
@@ -87,18 +88,33 @@ const DIFFERENTIATORS = [
 const STEPS = [
   {
     n: '1',
-    title: 'Free market analysis',
-    body: 'Share your address and Hamza prepares a complimentary, data-backed comparative market analysis — what your home is really worth and the strategy to maximize it.',
+    title: 'Free Investor Offer Preview',
+    body: 'Share your address. Hamza quietly checks his investor buyers on your home and prepares a data-backed valuation — what an investor might pay, and what the open market would.',
   },
   {
     n: '2',
-    title: 'Prep &amp; launch',
-    body: 'Photography, staging guidance, and a marketing plan that puts your home in front of the right buyers — including Hamza’s investor network.',
+    title: 'You choose your path',
+    body: 'Take a quiet, fast sale to an investor — or list for the open market with full marketing to draw competing offers. No pressure either way; you decide with the real numbers in front of you.',
   },
   {
     n: '3',
     title: 'Negotiate &amp; close',
-    body: 'Skilled negotiation and pre-qualified buyers mean a smoother path to a strong offer and a reliable, on-time close.',
+    body: 'Skilled negotiation and pre-qualified buyers mean a smoother path to a strong offer and a reliable, on-time close — whichever route you pick.',
+  },
+];
+
+const PATHS = [
+  {
+    icon: '🔑',
+    kicker: 'Path 1',
+    title: 'Sell quietly to an investor',
+    body: 'Match with a pre-qualified investor buyer from Hamza’s network. Fast, private, often as-is — no staging, no showings, no sign on the lawn. Ideal when speed and discretion matter most.',
+  },
+  {
+    icon: '🏆',
+    kicker: 'Path 2',
+    title: 'List for the open market',
+    body: 'Full marketing muscle — professional photography, targeted exposure, and data-driven pricing to draw competing offers and the highest possible price. Ideal when maximizing your number is the goal.',
   },
 ];
 
@@ -117,20 +133,21 @@ export default function SellPage() {
       />
       <FAQJsonLd items={SELL_FAQ} />
 
-      {/* ── Hero with embedded valuation form ── */}
+      {/* ── Hero with embedded form ── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C]">
         <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pt-12 pb-24 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:pt-16 lg:pb-28">
           {/* Left: value prop */}
           <div className="max-w-xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
-              For Mississauga home sellers
+              Off-market first look
             </span>
-            <h1 className="mt-4 font-heading text-3xl font-bold leading-tight text-white md:text-4xl lg:text-[2.75rem]">
-              Sell Your Mississauga Home for What It’s Truly Worth
+            <h1 className="mt-4 font-heading text-3xl font-bold leading-tight text-white md:text-4xl lg:text-[2.6rem]">
+              See What an Investor Would Pay for Your Mississauga Home — Before You List
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-white/70 md:text-base">
-              Get a free, no-obligation valuation from Hamza Nouman — an investment-focused agent with a network of
-              pre-qualified buyers and the data-driven pricing that gets sellers top dollar.
+              Get a free, private <strong className="text-white">Investor Offer Preview</strong> from a network of
+              pre-qualified buyers — plus a data-backed market valuation. Sell quietly and fast, or list for top dollar.
+              You choose.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <span className={chip}>★ 5.0 on Google</span>
@@ -138,7 +155,7 @@ export default function SellPage() {
               <span className={chip}>Cityscape Real Estate</span>
             </div>
             <ul className="mt-6 space-y-2.5">
-              {['A network of pre-qualified buyers ready to move', 'Data-driven pricing that sells for the most', 'Full-service, managed end to end'].map((b) => (
+              {['A real offer preview from active investor buyers', 'Or a full-market listing priced with data for top dollar', 'Free, confidential, zero obligation'].map((b) => (
                 <li key={b} className="flex items-start gap-2.5 text-sm text-white/80">
                   <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -148,7 +165,7 @@ export default function SellPage() {
               ))}
             </ul>
             <a href="#valuation-form" className="btn-primary mt-7 inline-block !px-7 !py-3 no-underline lg:hidden">
-              Get My Free Valuation →
+              Get My Investor Offer Preview →
             </a>
           </div>
 
@@ -161,6 +178,32 @@ export default function SellPage() {
       </section>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* ── Two ways to sell ── */}
+        <section className="py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title mb-3">Two ways to sell — you choose</h2>
+            <p className="section-subtitle mx-auto">
+              Most agents only offer one. Because Hamza has a network of investor buyers, you get both — and the free
+              preview shows you which wins for your home.
+            </p>
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
+            {PATHS.map((p) => (
+              <div key={p.title} className="card p-6">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-2xl">{p.icon}</div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-accent">{p.kicker}</p>
+                <h3 className="mt-0.5 font-heading font-semibold text-navy">{p.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{p.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-sm text-muted">
+            Not sure which is right? <a href="#valuation-form" className="font-semibold text-accent hover:text-accent-dark no-underline">The free preview shows you both</a>, then you decide.
+          </p>
+        </section>
+
+        <SkylineStrip className="h-10 w-full" opacity={0.06} />
+
         {/* ── Differentiators ── */}
         <section className="py-14 md:py-16">
           <div className="mx-auto max-w-2xl text-center">
@@ -185,7 +228,7 @@ export default function SellPage() {
         {/* ── How it works ── */}
         <section className="py-14 md:py-16">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="section-title mb-3">How selling with Hamza works</h2>
+            <h2 className="section-title mb-3">How it works</h2>
             <p className="section-subtitle mx-auto">Three simple steps, from “what’s it worth?” to sold.</p>
           </div>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -204,8 +247,8 @@ export default function SellPage() {
       <section className="bg-cloud py-14 md:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="mb-2 flex items-center justify-center gap-1 text-gold" aria-hidden="true">
-              {'★★★★★'.split('').map((s, i) => <span key={i} className="text-lg">★</span>)}
+            <div className="mb-2 flex items-center justify-center gap-0.5 text-gold" aria-hidden="true">
+              {Array.from({ length: 5 }).map((_, i) => <span key={i} className="text-lg">★</span>)}
             </div>
             <h2 className="section-title mb-2">Clients trust Hamza — 5.0 on Google</h2>
             <p className="section-subtitle mx-auto">Honest advice, done properly. Here’s what people say after working with him.</p>
@@ -245,12 +288,12 @@ export default function SellPage() {
         {/* ── Final CTA ── */}
         <section className="pb-16">
           <div className="rounded-2xl bg-navy p-8 text-center md:p-10">
-            <h2 className="font-heading text-2xl font-bold text-white">Find out what your home is worth</h2>
+            <h2 className="font-heading text-2xl font-bold text-white">See what an investor would pay</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-white/70">
-              Free, no-obligation, and grounded in real data. Get your valuation today, or talk it through with Hamza first.
+              Free, private, and grounded in real data. Get your Investor Offer Preview today, or talk it through with Hamza first.
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a href="#valuation-form" className="btn-primary !px-7 no-underline text-center">Get My Free Valuation</a>
+              <a href="#valuation-form" className="btn-primary !px-7 no-underline text-center">Get My Investor Offer Preview</a>
               <Link href="/book-call" className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-7 no-underline text-center">
                 Book a Call with Hamza
               </Link>
