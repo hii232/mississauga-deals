@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
+import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
@@ -185,7 +185,15 @@ function MortgageTab({ listing }) {
     });
     const closing = getClosingCosts(listing.price, downPct);
     const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct);
-    return { ...cf, ...closing, cashOnCash: cocReturn };
+    const breakEven = breakEvenRent(listing.price, {
+      downPct, rate, amortYears: amort,
+      annualPropertyTax: listing.annualPropertyTax || null,
+      city: listing.neighbourhood,
+      monthlyInsurance: insurance,
+      maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
+    });
+    return { ...cf, ...closing, cashOnCash: cocReturn, breakEven };
   }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, downPct, rate, amort, insurance, maintenancePct, vacancyPct, managementPct]);
 
   return (
@@ -213,6 +221,20 @@ function MortgageTab({ listing }) {
         <ResultCard label="Potential Cash Flow" value={fmtNum(calc.cashFlow)} positive={calc.cashFlow >= 0} />
         <ResultCard label="Cash-on-Cash" value={`${calc.cashOnCash}%`} positive={calc.cashOnCash > 0} />
       </div>
+
+      {typeof calc.breakEven === 'number' && calc.breakEven > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-cloud px-4 py-3 text-xs leading-relaxed text-muted">
+          <span className="font-semibold text-navy">Break-even rent: ${calc.breakEven.toLocaleString()}/mo</span>
+          {' — the rent at which this property covers every cost (mortgage, property tax, insurance, '}
+          {listing.condoFee > 0 ? 'condo fee' : 'maintenance'}
+          {', vacancy).'}
+          {listing.estimatedRent > 0 && (
+            calc.breakEven <= listing.estimatedRent
+              ? ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent clears it by $${(listing.estimatedRent - calc.breakEven).toLocaleString()}/mo.`
+              : ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent falls $${(calc.breakEven - listing.estimatedRent).toLocaleString()}/mo short.`
+          )}
+        </div>
+      )}
 
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
         <h4 className="mb-3 text-sm font-semibold text-navy">Monthly Breakdown</h4>
