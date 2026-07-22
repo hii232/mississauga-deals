@@ -345,6 +345,12 @@ export default function MortgageCalculatorPage() {
             </details>
           ))}
         </div>
+        <p className="mt-5 text-sm text-muted">
+          Trying to decide whether to buy at all?{' '}
+          <Link href="/rent-vs-buy-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
+            Read: Rent vs Buy in Mississauga →
+          </Link>
+        </p>
       </section>
     </>
   );
