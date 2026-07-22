@@ -8,6 +8,15 @@ const supabase =
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
+// Public site URL — never build the internal fetch from request.url / VERCEL_URL:
+// on a cron invocation that resolves to the *.vercel.app deployment host, which is
+// behind Vercel deployment protection and serves an HTML auth wall (200), so the
+// self-fetch never reaches /api/listings and JSON.parse chokes on "<!DOCTYPE ...".
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
 /**
  * GET|POST /api/alerts/send
  * Called by Vercel Cron daily (cron invokes with GET)
@@ -40,10 +49,15 @@ export async function POST(request) {
       return NextResponse.json({ message: 'No active searches', sent: 0 });
     }
 
-    // 2. Fetch current listings from our own API
-    const listingsUrl = new URL('/api/listings', request.url);
-    const listingsRes = await fetch(listingsUrl.toString());
-    if (!listingsRes.ok) throw new Error('Failed to fetch listings');
+    // 2. Fetch current listings from our own API (absolute public URL — see SITE_URL note)
+    const listingsRes = await fetch(`${SITE_URL}/api/listings`);
+    if (!listingsRes.ok) throw new Error(`Failed to fetch listings (HTTP ${listingsRes.status})`);
+    // Guard against a non-JSON body (e.g. an HTML auth/redirect page) so a bad
+    // upstream response gives a clear error instead of a cryptic JSON.parse crash.
+    const ctype = listingsRes.headers.get('content-type') || '';
+    if (!ctype.includes('application/json')) {
+      throw new Error(`Listings API returned non-JSON (content-type: ${ctype || 'none'})`);
+    }
     const rawListings = await listingsRes.json();
     // /api/listings returns { listings, page, ... } — processListings needs the array
     const allListings = processListings(rawListings.listings || rawListings);

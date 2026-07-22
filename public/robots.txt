@@ -26,5 +26,6 @@ Disallow: /api/
 Disallow: /admin/
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
+Sitemap: https://www.mississaugainvestor.ca/image-sitemap.xml
 
 # MississaugaInvestor.ca — Hamza Nouman, Cityscape Real Estate Ltd.

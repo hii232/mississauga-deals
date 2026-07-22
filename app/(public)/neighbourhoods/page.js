@@ -8,6 +8,7 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
+const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 export default function NeighbourhoodsPage() {
   const [filter, setFilter] = useState('All');
@@ -23,6 +24,10 @@ export default function NeighbourhoodsPage() {
   }, []);
 
   const hoodEntries = Object.entries(HOOD_DATA);
+  // Top 3 by gross rent yield — powers the "best neighbourhoods" answer block
+  const topByYield = [...hoodEntries]
+    .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))
+    .slice(0, 3);
   const filtered =
     filter === 'All'
       ? hoodEntries
@@ -32,11 +37,28 @@ export default function NeighbourhoodsPage() {
     <>
     <PageHero
       compact
-      eyebrow="24 neighbourhoods, scored"
-      title="Mississauga Neighbourhoods"
-      subtitle="Investment insights for every neighbourhood — trends, pricing, and expert notes"
+      eyebrow="24 neighbourhoods, ranked"
+      title="Best Neighbourhoods to Invest in Mississauga"
+      subtitle="Every Mississauga neighbourhood ranked for investors by rent yield, price trend, and days on market — so you can match an area to your strategy."
     />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      {/* Top picks — directly answers "best neighbourhoods to invest in Mississauga" */}
+      <div className="mb-8 rounded-2xl border border-accent/15 bg-gradient-to-br from-accent/5 to-white p-5 md:p-6">
+        <h2 className="font-heading text-lg font-bold text-navy">
+          Where to invest in Mississauga right now
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-navy/80">
+          For rental <strong>cash flow</strong>, the top Mississauga neighbourhoods by gross rent yield are{' '}
+          {topByYield.map(([name], i) => (
+            <span key={name}>
+              <Link href={`/neighbourhoods/${slugify(name)}`} className="font-semibold text-accent no-underline hover:underline">{name}</Link>
+              {i < topByYield.length - 2 ? ', ' : i === topByYield.length - 2 ? ' and ' : ''}
+            </span>
+          ))}
+          . For <strong>appreciation</strong>, transit-driven areas like City Centre and Port Credit trade lower yields for stronger long-term growth. Full rankings below.
+        </p>
+      </div>
+
       {/* Filter Pills */}
       <div className="flex gap-2 mb-8">
         {FILTERS.map((f) => (

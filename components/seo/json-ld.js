@@ -219,8 +219,46 @@ export function BreadcrumbJsonLd({ items }) {
 }
 
 // ── Property Listing Schema — for individual listing detail pages ──
+// Map our listing type/subType to the closest schema.org Residence subtype so
+// the property entity is described precisely for search engines.
+function residenceType(listing) {
+  const t = `${listing.type || ''} ${listing.subType || ''}`.toLowerCase();
+  if (t.includes('condo') || t.includes('apart')) return 'Apartment';
+  if (t.includes('town') || t.includes('row')) return 'House';
+  return 'SingleFamilyResidence';
+}
+
 export function PropertyJsonLd({ listing }) {
   if (!listing) return null;
+
+  const num = (v) => (typeof v === 'number' && isFinite(v) && v > 0 ? v : null);
+
+  // The property itself — nested under `about` so the RealEstateListing (the
+  // page) and the residence (the property) are modelled correctly.
+  const about = {
+    '@type': residenceType(listing),
+    name: listing.address,
+  };
+  const address = {
+    '@type': 'PostalAddress',
+    streetAddress: listing.address,
+    addressLocality: listing.city || 'Mississauga',
+    addressRegion: 'ON',
+    addressCountry: 'CA',
+    ...(listing.postalCode && { postalCode: listing.postalCode }),
+  };
+  about.address = address;
+  if (num(listing.lat) !== null && num(listing.lng) !== null) {
+    about.geo = { '@type': 'GeoCoordinates', latitude: listing.lat, longitude: listing.lng };
+  }
+  if (num(listing.beds) !== null) about.numberOfBedrooms = listing.beds;
+  if (num(listing.baths) !== null) about.numberOfBathroomsTotal = listing.baths;
+  if (num(listing.beds) !== null) about.numberOfRooms = listing.beds;
+  if (num(listing.sqft) !== null) {
+    about.floorSize = { '@type': 'QuantitativeValue', value: listing.sqft, unitCode: 'FTK' };
+  }
+
+  const images = Array.isArray(listing.photos) ? listing.photos.filter(Boolean).slice(0, 6) : [];
 
   const schema = {
     '@context': 'https://schema.org',
@@ -229,12 +267,14 @@ export function PropertyJsonLd({ listing }) {
     url: `https://www.mississaugainvestor.ca/listings/${listing.id}`,
     description: `${listing.type || 'Property'} for sale at ${listing.address}, ${listing.city || 'Mississauga'}. ${listing.beds || 0} bed, ${listing.baths || 0} bath. Analyzed by Hamza Nouman at MississaugaInvestor.ca.`,
     datePosted: listing.listDate || undefined,
-    ...(listing.photos?.[0] && { image: listing.photos[0] }),
+    ...(images.length && { image: images }),
+    about,
   };
 
-  if (listing.price) {
+  if (num(listing.price) !== null) {
     schema.offers = {
       '@type': 'Offer',
+      url: `https://www.mississaugainvestor.ca/listings/${listing.id}`,
       price: listing.price,
       priceCurrency: 'CAD',
       availability: 'https://schema.org/InStock',

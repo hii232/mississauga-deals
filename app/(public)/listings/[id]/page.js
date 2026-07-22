@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
+import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
@@ -181,10 +181,19 @@ function MortgageTab({ listing }) {
       city: listing.neighbourhood,
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
     });
     const closing = getClosingCosts(listing.price, downPct);
     const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct);
-    return { ...cf, ...closing, cashOnCash: cocReturn };
+    const breakEven = breakEvenRent(listing.price, {
+      downPct, rate, amortYears: amort,
+      annualPropertyTax: listing.annualPropertyTax || null,
+      city: listing.neighbourhood,
+      monthlyInsurance: insurance,
+      maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
+    });
+    return { ...cf, ...closing, cashOnCash: cocReturn, breakEven };
   }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, downPct, rate, amort, insurance, maintenancePct, vacancyPct, managementPct]);
 
   return (
@@ -213,13 +222,31 @@ function MortgageTab({ listing }) {
         <ResultCard label="Cash-on-Cash" value={`${calc.cashOnCash}%`} positive={calc.cashOnCash > 0} />
       </div>
 
+      {typeof calc.breakEven === 'number' && calc.breakEven > 0 && (
+        <div className="rounded-lg border border-slate-200 bg-cloud px-4 py-3 text-xs leading-relaxed text-muted">
+          <span className="font-semibold text-navy">Break-even rent: ${calc.breakEven.toLocaleString()}/mo</span>
+          {' — the rent at which this property covers every cost (mortgage, property tax, insurance, '}
+          {listing.condoFee > 0 ? 'condo fee' : 'maintenance'}
+          {', vacancy).'}
+          {listing.estimatedRent > 0 && (
+            calc.breakEven <= listing.estimatedRent
+              ? ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent clears it by $${(listing.estimatedRent - calc.breakEven).toLocaleString()}/mo.`
+              : ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent falls $${(calc.breakEven - listing.estimatedRent).toLocaleString()}/mo short.`
+          )}
+        </div>
+      )}
+
       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
         <h4 className="mb-3 text-sm font-semibold text-navy">Monthly Breakdown</h4>
         <div className="space-y-2">
           <BreakdownRow label="Mortgage" value={calc.mortgage} />
           <BreakdownRow label="Property Tax" value={calc.propTax} />
           <BreakdownRow label={`Insurance`} value={calc.insurance} />
-          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+          {calc.condoFee > 0 ? (
+            <BreakdownRow label="Condo Fee" value={calc.condoFee} />
+          ) : (
+            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+          )}
           <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={calc.vacancy} />
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={calc.management} />}
           <div className="border-t border-slate-300 pt-2">
@@ -259,6 +286,7 @@ function CapRateTab({ listing }) {
       annualPropertyTax,
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
+      monthlyCondoFee: listing.condoFee || 0,
     });
     const capRate = calculateCapRate(noiResult.noi, listing.price);
     const grm = calculateGRM(listing.price, listing.estimatedRent);
@@ -266,6 +294,7 @@ function CapRateTab({ listing }) {
       calculateCashFlow(listing.price, listing.estimatedRent, {
         annualPropertyTax, city: listing.neighbourhood,
         monthlyInsurance: insurance, maintenancePct, vacancyPct, managementPct,
+        monthlyCondoFee: listing.condoFee || 0,
       }).cashFlow * 12,
       listing.price, 20
     );
@@ -298,7 +327,11 @@ function CapRateTab({ listing }) {
           </div>
           <BreakdownRow label="Property Tax" value={Math.round(calc.annualOpExPropertyTax)} annual negative />
           <BreakdownRow label="Insurance" value={Math.round(calc.annualOpExInsurance)} annual negative />
-          <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+          {calc.annualOpExCondoFee > 0 ? (
+            <BreakdownRow label="Condo Fee" value={Math.round(calc.annualOpExCondoFee)} annual negative />
+          ) : (
+            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+          )}
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={Math.round(calc.annualOpExManagement)} annual negative />}
           <div className="border-t border-slate-300 pt-2">
             <BreakdownRow label="Net Operating Income" value={Math.round(calc.noi)} annual bold />

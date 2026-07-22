@@ -397,12 +397,62 @@ export default function LeadsCRM() {
     );
   }
 
+  // Export the currently-filtered leads to CSV so no captured lead is stranded
+  // in the dashboard — Hamza can work them in a spreadsheet / CRM / mail-merge.
+  function exportCsv() {
+    if (filtered.length === 0) return;
+    const cols = [
+      ['Name', (l) => l.name],
+      ['Email', (l) => l.email],
+      ['Phone', (l) => l.phone],
+      ['Source', (l) => l.source],
+      ['Status', (l) => l.status || 'new'],
+      ['Created', (l) => l.created_at],
+      ['Listing', (l) => l.listing_address],
+      ['Listing Price', (l) => l.listing_price],
+      ['Calls', (l) => l.call_count],
+      ['Next Follow-Up', (l) => l.next_follow_up],
+      ['Notes', (l) => l.notes],
+    ];
+    const esc = (v) => {
+      const s = v == null ? '' : String(v);
+      return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lines = [
+      cols.map((c) => c[0]).join(','),
+      ...filtered.map((l) => cols.map((c) => esc(c[1](l))).join(',')),
+    ];
+    // Prepend a UTF-8 BOM so Excel reads accents/names correctly
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `mississauga-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-5">
       {/* Header with stats */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-heading text-xl font-bold text-white">Lead Management</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading text-xl font-bold text-white">Lead Management</h1>
+            <button
+              onClick={exportCsv}
+              disabled={filtered.length === 0}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/70 transition-colors hover:bg-white/[0.08] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Download the currently-filtered leads as a CSV"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              Export CSV
+            </button>
+          </div>
           <p className="text-sm text-white/40">{leads.filter((l) => l.status !== 'archived').length} active leads</p>
         </div>
         {stats && (

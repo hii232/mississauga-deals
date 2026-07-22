@@ -27,20 +27,37 @@ export default function ExitIntentPopup() {
       armed.current = true;
     }, 10000);
 
-    const handleMouseLeave = (e) => {
+    const trigger = () => {
       if (!armed.current) return;
-      // Only trigger when mouse exits toward the top (browser chrome)
-      if (e.clientY > 0) return;
-      armed.current = false; // One-shot
+      armed.current = false; // One-shot — whichever intent signal fires first
       setVisible(true);
       trackExitIntent('shown');
     };
 
+    // Desktop: mouse leaves toward the browser chrome (classic exit intent)
+    const handleMouseLeave = (e) => {
+      if (e.clientY > 0) return;
+      trigger();
+    };
+
+    // Mobile (most of our traffic): mouseleave never fires, so use scroll depth.
+    // Only on genuinely long pages, after real downward scroll past ~60% — a
+    // high-engagement moment, not a spammy on-load popup.
+    const handleScroll = () => {
+      if (!armed.current) return;
+      const total = document.documentElement.scrollHeight;
+      if (total < window.innerHeight * 1.8) return; // page must be substantially scrollable
+      if (window.scrollY < 300) return; // require meaningful engagement first
+      if ((window.scrollY + window.innerHeight) / total >= 0.6) trigger();
+    };
+
     document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       clearTimeout(timerRef.current);
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PageHero } from '@/components/layout/page-hero';
 
 export const metadata = {
   title: 'How the Deal Score Works — Methodology & Data Sources',
@@ -8,9 +9,14 @@ export const metadata = {
 
 export default function ScoreMethodologyPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-16">
-      <h1 className="font-heading font-bold text-3xl text-navy mb-2">How the Deal Score Works</h1>
-      <p className="text-sm text-muted mb-8">Understanding our investment scoring methodology</p>
+    <>
+      <PageHero
+        compact
+        eyebrow="Methodology"
+        title="How the Deal Score Works"
+        subtitle="The data sources and investment formulas behind every property rating — so you can trust the number."
+      />
+      <div className="max-w-3xl mx-auto px-4 py-12">
 
       {/* Primary Disclaimer */}
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 mb-10">
@@ -259,6 +265,7 @@ export default function ScoreMethodologyPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

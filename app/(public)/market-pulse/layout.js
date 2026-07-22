@@ -1,3 +1,5 @@
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
@@ -10,4 +12,16 @@ export const metadata = {
     url: 'https://www.mississaugainvestor.ca/market-pulse',
   },
 };
-export default function Layout({ children }) { return children; }
+export default function Layout({ children }) {
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Market Pulse', url: 'https://www.mississaugainvestor.ca/market-pulse' },
+        ]}
+      />
+      {children}
+    </>
+  );
+}
