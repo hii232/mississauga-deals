@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { SkylineStrip } from '@/components/art/cityscape';
 
 /* ------------------------------------------------------------------ */
 /*  Hardcoded fallback — used only if Supabase fetch fails             */
@@ -287,7 +288,7 @@ export default function PreConstructionProjectsPage() {
                   <h3 className="text-sm font-semibold text-muted uppercase tracking-wide mb-3 ml-1">{area}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {areaProjects.map((p, i) => (
-                      <div key={p.id || i} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow group">
+                      <div key={p.id || i} className="bg-white rounded-xl border border-slate-200 overflow-hidden transition-all duration-300 hover:border-accent/30 hover:shadow-lg group">
                         {/* Project Image */}
                         {p.image_url ? (
                           <div className="relative h-44 bg-slate-100 overflow-hidden">
@@ -310,16 +311,19 @@ export default function PreConstructionProjectsPage() {
                             </div>
                           </div>
                         ) : (
-                          <div className="relative h-32 bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden">
-                            <span className="text-5xl opacity-20">🏗️</span>
+                          // Dusk-skyline placeholder — same height as the photo
+                          // version so grid rows stay even, and on-brand instead
+                          // of a lone emoji on grey.
+                          <div className="relative h-44 overflow-hidden bg-gradient-to-br from-[#16223D] via-navy to-[#25355C]">
+                            <SkylineStrip className="absolute inset-x-0 bottom-0 h-20 w-full" tone="#0A1122" opacity={0.6} />
                             <div className="absolute top-3 left-3 flex gap-1.5">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                p.status === 'Selling' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm ${
+                                p.status === 'Selling' ? 'bg-green-500/90 text-white' : 'bg-amber-500/90 text-white'
                               }`}>
                                 {p.status}
                               </span>
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
-                                p.type === 'Condo' ? 'bg-blue-50 text-blue-600' : p.type === 'Townhome' ? 'bg-purple-50 text-purple-600' : 'bg-slate-50 text-slate-600'
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium backdrop-blur-sm bg-white/90 ${
+                                p.type === 'Condo' ? 'text-blue-600' : p.type === 'Townhome' ? 'text-purple-600' : 'text-slate-600'
                               }`}>
                                 {p.type}
                               </span>
