@@ -37,6 +37,7 @@ export default async function sitemap() {
     { url: `${BASE}/rental-property-insurance-mississauga`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/faq`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/blog`, changeFrequency: 'weekly', priority: 0.6 },
+    { url: `${BASE}/guides`, changeFrequency: 'weekly', priority: 0.7 },
     { url: `${BASE}/score-methodology`, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE}/book-call`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/alerts`, changeFrequency: 'monthly', priority: 0.5 },

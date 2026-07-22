@@ -1,8 +1,9 @@
 import Link from 'next/link';
 
 // The investor-guide hub. Each landing page shows the others so a reader who
-// finishes one has a next step on-site instead of a dead end.
-const GUIDES = [
+// finishes one has a next step on-site instead of a dead end. Also consumed by
+// the /guides index page.
+export const GUIDES = [
   { href: '/cash-flow-positive-properties-ontario', title: 'Cash-Flow-Positive Properties', blurb: 'What it actually takes to clear positive cash flow at today’s rates.' },
   { href: '/rent-vs-buy-mississauga', title: 'Rent vs Buy in Mississauga', blurb: 'When buying beats renting — and how to find your break-even.' },
   { href: '/townhouse-vs-condo-investment', title: 'Townhouse vs Condo', blurb: 'Fees, land, appreciation and cash flow, compared side by side.' },
@@ -33,6 +34,9 @@ export function RelatedGuides({ current, limit = 4, className = '' }) {
           </Link>
         ))}
       </div>
+      <Link href="/guides" className="mt-4 inline-block text-sm font-semibold text-accent hover:text-accent-dark no-underline">
+        See all investor guides →
+      </Link>
     </div>
   );
 }

@@ -54,7 +54,9 @@ export default function Footer() {
 
           {/* Investor Guides */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-white mb-3">Investor Guides</h4>
+            <h4 className="font-heading font-semibold text-sm text-white mb-3">
+              <Link href="/guides" className="text-white hover:text-accent no-underline transition-colors">Investor Guides</Link>
+            </h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/cash-flow-positive-properties-ontario" className="text-white/50 hover:text-white no-underline transition-colors">Cash-Flow-Positive Properties</Link></li>
               <li><Link href="/rent-vs-buy-mississauga" className="text-white/50 hover:text-white no-underline transition-colors">Rent vs Buy in Mississauga</Link></li>
