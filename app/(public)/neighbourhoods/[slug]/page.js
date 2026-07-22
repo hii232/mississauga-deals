@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { HOOD_DATA, HOOD_RENTS, LRT_CORRIDOR_HOODS } from '@/lib/constants';
+import { HOOD_DATA, HOOD_RENTS, LRT_CORRIDOR_HOODS, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { calculateCashFlow, estimateRent } from '@/lib/cash-flow-engine';
 import { fmtK } from '@/lib/utils/format';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
@@ -10,6 +10,26 @@ const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 const SLUG_TO_HOOD = Object.fromEntries(
   Object.keys(HOOD_DATA).map((name) => [slugify(name), name])
 );
+
+// ISR: statically generated, refreshed every 10 min so the live avg price / DOM
+// / yield stay current from the listing feed.
+export const revalidate = 600;
+
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
+async function getHoodStats() {
+  try {
+    const res = await fetch(`${SITE_URL}/api/neighbourhood-stats`, { next: { revalidate: 600 } });
+    if (!res.ok) return {};
+    const d = await res.json();
+    return d.stats || {};
+  } catch {
+    return {};
+  }
+}
 
 export function generateStaticParams() {
   return Object.keys(SLUG_TO_HOOD).map((slug) => ({ slug }));
@@ -42,7 +62,7 @@ const TREND_COLOR = {
   cool: 'bg-blue-50 text-blue-600 border-blue-100',
 };
 
-export default function NeighbourhoodGuidePage({ params }) {
+export default async function NeighbourhoodGuidePage({ params }) {
   const name = SLUG_TO_HOOD[params.slug];
   if (!name) notFound();
 
@@ -50,9 +70,17 @@ export default function NeighbourhoodGuidePage({ params }) {
   const rents = HOOD_RENTS[name];
   const isLRT = LRT_CORRIDOR_HOODS.includes(name);
 
+  // Live avg price / DOM / yield from active listings; trend, YoY & inventory
+  // stay curated (Hamza's outlook). Fall back to curated when the feed is thin.
+  const live = (await getHoodStats())[name];
+  const avgPrice = live?.avgPrice ?? d.avgPrice;
+  const avgDOM = live?.avgDOM ?? d.avgDOM;
+  const rentYield = live?.rentYield ?? d.rentYield;
+  const isLive = !!live;
+
   // Worked example: 3-bed at the neighbourhood average price, model assumptions
-  const exampleRent = estimateRent(d.avgPrice, 3, name, 'Detached', name);
-  const cf = calculateCashFlow(d.avgPrice, exampleRent, { city: name });
+  const exampleRent = estimateRent(avgPrice, 3, name, 'Detached', name);
+  const cf = calculateCashFlow(avgPrice, exampleRent, { city: name });
 
   // Related neighbourhoods: same trend, closest average price
   const related = Object.entries(HOOD_DATA)
@@ -63,11 +91,11 @@ export default function NeighbourhoodGuidePage({ params }) {
   const faqs = [
     {
       question: `Is ${name} a good place to buy an investment property in 2026?`,
-      answer: `${name} is currently a ${TREND_LABEL[d.trend].toLowerCase()} with a ${d.rentYield}% average rent yield, ${d.avgDOM} days on market, and ${d.inventory.toLowerCase()} inventory. ${d.note}.`,
+      answer: `${name} is currently a ${TREND_LABEL[d.trend].toLowerCase()} with a ${rentYield}% average rent yield, ${avgDOM} days on market, and ${d.inventory.toLowerCase()} inventory. ${d.note}.`,
     },
     {
       question: `What is the average home price in ${name}, Mississauga?`,
-      answer: `The average price in ${name} is approximately ${fmtK(d.avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`,
+      answer: `The average price in ${name} is approximately ${fmtK(avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`,
     },
     {
       question: `How much rent can an investment property in ${name} earn?`,
@@ -103,19 +131,24 @@ export default function NeighbourhoodGuidePage({ params }) {
         </span>
       </div>
       <p className="text-sm text-muted mb-8">
-        Prices, rents, yield, and cash flow for real estate investors in {name}, Mississauga — updated for 2026.
+        Prices, rents, yield, and cash flow for real estate investors in {name}, Mississauga.
+        {isLive && (
+          <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] font-medium text-emerald-600">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Price, DOM &amp; yield live from active listings
+          </span>
+        )}
       </p>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
         {[
-          ['Avg Price', fmtK(d.avgPrice)],
-          ['Price YoY', `${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}%`],
-          ['Avg DOM', `${d.avgDOM} days`],
-          ['Inventory', d.inventory],
-          ['Rent Yield', `${d.rentYield}%`],
-          ['Transit Score', `${d.transitScore}/10`],
-          ['School Score', `${d.schoolScore}/10`],
+          ['Avg Price', fmtK(avgPrice)],
+          ['Price YoY*', `${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}%`],
+          ['Avg DOM', avgDOM != null ? `${avgDOM} days` : '—'],
+          ['Inventory*', d.inventory],
+          ['Rent Yield', rentYield != null ? `${rentYield}%` : '—'],
+          ['Transit Score*', `${d.transitScore}/10`],
+          ['School Score*', `${d.schoolScore}/10`],
           ['LRT Corridor', isLRT ? 'Yes' : 'No'],
         ].map(([k, v]) => (
           <div key={k} className="rounded-lg bg-cloud p-3 text-center">
@@ -124,6 +157,9 @@ export default function NeighbourhoodGuidePage({ params }) {
           </div>
         ))}
       </div>
+      <p className="text-[11px] text-muted mb-8">
+        Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY, inventory &amp; scores</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
+      </p>
 
       {/* Hamza's take */}
       <div className="bg-navy rounded-xl p-5 mb-8">
@@ -175,7 +211,7 @@ export default function NeighbourhoodGuidePage({ params }) {
       {/* Worked cash flow example */}
       <h2 className="font-heading font-semibold text-xl text-navy mb-3">Sample Cash Flow: 3-Bed at the {name} Average Price</h2>
       <p className="text-sm text-navy/80 leading-relaxed mb-4">
-        A 3-bedroom detached home at the {name} average of {fmtK(d.avgPrice)} with 20% down, a 4.89%
+        A 3-bedroom detached home at the {name} average of {fmtK(avgPrice)} with 20% down, a 4.89%
         five-year fixed mortgage, and 25-year amortization — the same assumptions used for every
         deal score on this site:
       </p>
@@ -239,9 +275,10 @@ export default function NeighbourhoodGuidePage({ params }) {
       )}
 
       <p className="text-[10px] text-muted/60 leading-relaxed">
-        Neighbourhood statistics are estimates compiled from TRREB market data and public sources,
-        updated periodically. Cash flow figures are illustrative estimates, not financial advice or
-        an appraisal. Hamza Nouman, Sales Representative, Cityscape Real Estate Ltd., Brokerage.
+        Average price, days-on-market and rent yield are computed live from active Mississauga
+        listings; trend, year-over-year and inventory reflect Hamza&apos;s expert outlook (last
+        reviewed {HOOD_OUTLOOK_AS_OF}). Cash flow figures are illustrative estimates, not financial
+        advice or an appraisal. Hamza Nouman, Sales Representative, Cityscape Real Estate Ltd., Brokerage.
       </p>
     </div>
   );

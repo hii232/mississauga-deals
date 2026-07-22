@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { HOOD_DATA } from '@/lib/constants';
+import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
@@ -13,6 +13,7 @@ const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 export default function NeighbourhoodsPage() {
   const [filter, setFilter] = useState('All');
   const [recentSales, setRecentSales] = useState([]);
+  const [hoodStats, setHoodStats] = useState({});
 
   useEffect(() => {
     fetch('/api/sold-comps?limit=8')
@@ -21,17 +22,33 @@ export default function NeighbourhoodsPage() {
         if (data?.comps) setRecentSales(data.comps);
       })
       .catch(() => {});
+    // Live per-neighbourhood avg price / DOM / yield from active listings.
+    fetch('/api/neighbourhood-stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.stats) setHoodStats(data.stats);
+      })
+      .catch(() => {});
   }, []);
 
-  const hoodEntries = Object.entries(HOOD_DATA);
+  // Merge curated HOOD_DATA with live aggregates: price/DOM/yield go live when
+  // we have a sample, trend + YoY stay curated (Hamza's outlook).
+  const merged = Object.entries(HOOD_DATA).map(([name, data]) => {
+    const live = hoodStats[name];
+    return {
+      name,
+      data,
+      avgPrice: live?.avgPrice ?? data.avgPrice,
+      avgDOM: live?.avgDOM ?? data.avgDOM,
+      rentYield: live?.rentYield ?? data.rentYield,
+      isLive: !!live,
+    };
+  });
   // Top 3 by gross rent yield — powers the "best neighbourhoods" answer block
-  const topByYield = [...hoodEntries]
-    .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))
-    .slice(0, 3);
-  const filtered =
-    filter === 'All'
-      ? hoodEntries
-      : hoodEntries.filter(([, data]) => data.trend === filter.toLowerCase());
+  const topByYield = [...merged].sort((a, b) => (b.rentYield || 0) - (a.rentYield || 0)).slice(0, 3);
+  const filtered = filter === 'All' ? merged : merged.filter((h) => h.data.trend === filter.toLowerCase());
+  const hoodCount = merged.length;
+  const trendCount = (t) => merged.filter((h) => h.data.trend === t).length;
 
   return (
     <>
@@ -49,7 +66,7 @@ export default function NeighbourhoodsPage() {
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-navy/80">
           For rental <strong>cash flow</strong>, the top Mississauga neighbourhoods by gross rent yield are{' '}
-          {topByYield.map(([name], i) => (
+          {topByYield.map(({ name }, i) => (
             <span key={name}>
               <Link href={`/neighbourhoods/${slugify(name)}`} className="font-semibold text-accent no-underline hover:underline">{name}</Link>
               {i < topByYield.length - 2 ? ', ' : i === topByYield.length - 2 ? ' and ' : ''}
@@ -76,7 +93,7 @@ export default function NeighbourhoodsPage() {
             {f === 'Cool' && '🧊 '}
             {f}
             <span className="ml-1.5 text-xs opacity-70">
-              ({f === 'All' ? hoodEntries.length : hoodEntries.filter(([, d]) => d.trend === f.toLowerCase()).length})
+              ({f === 'All' ? hoodCount : trendCount(f.toLowerCase())})
             </span>
           </button>
         ))}
@@ -84,7 +101,7 @@ export default function NeighbourhoodsPage() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map(([name, data]) => {
+        {filtered.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }) => {
           const trendColor =
             data.trend === 'hot'
               ? 'bg-red-50 text-red-600 border-red-100'
@@ -100,7 +117,7 @@ export default function NeighbourhoodsPage() {
                   <span className="text-xl">{data.emoji}</span>
                   <h3 className="font-heading font-semibold text-navy">{name}</h3>
                 </div>
-                <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`}>
+                <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`} title="Hamza's outlook">
                   {data.trend}
                 </span>
               </div>
@@ -109,20 +126,20 @@ export default function NeighbourhoodsPage() {
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-400">Avg Price</p>
-                  <p className="text-sm font-bold text-navy">{fmtK(data.avgPrice)}</p>
+                  <p className="text-sm font-bold text-navy">{fmtK(avgPrice)}</p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">YoY Change</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-400">YoY Change*</p>
                   <p className={`text-sm font-bold ${data.priceYoY >= 4 ? 'text-success' : data.priceYoY >= 2.5 ? 'text-gold-dark' : 'text-muted'}`}>
                     +{data.priceYoY}%
                   </p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-400">Avg DOM</p>
-                  <p className="text-sm font-bold text-navy">{data.avgDOM} days</p>
+                  <p className="text-sm font-bold text-navy">{avgDOM != null ? `${avgDOM} days` : '—'}</p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">Inventory</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-400">Inventory*</p>
                   <p className={`text-sm font-bold ${data.inventory === 'Low' ? 'text-red-500' : data.inventory === 'Medium' ? 'text-gold-dark' : 'text-muted'}`}>
                     {data.inventory}
                   </p>
@@ -131,8 +148,8 @@ export default function NeighbourhoodsPage() {
 
               {/* Rent Yield */}
               <div className="flex items-center justify-between text-xs mb-4 pb-3 border-b border-slate-100">
-                <span className="text-muted">Rent Yield</span>
-                <span className="font-semibold text-navy">{data.rentYield}%</span>
+                <span className="text-muted">Rent Yield {isLive && <span className="ml-1 inline-flex items-center gap-1 align-middle text-[9px] font-medium text-emerald-600"><span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />Live</span>}</span>
+                <span className="font-semibold text-navy">{rentYield != null ? `${rentYield}%` : '—'}</span>
               </div>
 
               {/* Hamza's Note */}
@@ -162,6 +179,10 @@ export default function NeighbourhoodsPage() {
           );
         })}
       </div>
+
+      <p className="mt-6 text-[11px] text-muted">
+        Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY &amp; inventory</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
+      </p>
 
       {/* Recent Sales Activity */}
       {recentSales.length > 0 && (

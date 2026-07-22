@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
+import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroButtons } from '@/components/home/hero-buttons';
@@ -65,32 +66,6 @@ async function fetchLiveStats() {
 // ─────────────────────────────────────────────
 //   TOP DEALS FETCH
 // ─────────────────────────────────────────────
-// Live per-neighbourhood aggregates from the actual listing feed. Avg price and
-// DOM are pure live stats; rent yield uses the site's estimated rent over the
-// live average price. Only hoods with a meaningful sample (>=4 active listings)
-// get live numbers — thinner ones fall back to the curated HOOD_DATA values.
-function computeHoodStats(processed) {
-  const groups = {};
-  for (const l of processed) {
-    const n = l.neighbourhood;
-    if (!n || !HOOD_DATA[n]) continue;
-    if (!Number.isFinite(l.price) || l.price <= 0) continue;
-    (groups[n] ||= []).push(l);
-  }
-  const stats = {};
-  for (const [n, arr] of Object.entries(groups)) {
-    if (arr.length < 4) continue;
-    const avgPrice = Math.round(arr.reduce((s, l) => s + l.price, 0) / arr.length);
-    const domVals = arr.filter((l) => Number.isFinite(l.dom));
-    const avgDOM = domVals.length ? Math.round(domVals.reduce((s, l) => s + l.dom, 0) / domVals.length) : null;
-    const rentVals = arr.filter((l) => Number.isFinite(l.estimatedRent) && l.estimatedRent > 0);
-    const avgRent = rentVals.length ? rentVals.reduce((s, l) => s + l.estimatedRent, 0) / rentVals.length : null;
-    const rentYield = avgRent && avgPrice > 0 ? +((avgRent * 12) / avgPrice * 100).toFixed(1) : null;
-    stats[n] = { avgPrice, avgDOM, rentYield, count: arr.length };
-  }
-  return stats;
-}
-
 async function fetchTopDeals() {
   try {
     const h = await headers();
