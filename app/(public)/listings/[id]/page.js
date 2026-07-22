@@ -1485,22 +1485,30 @@ export default function PropertyDetailPage() {
 
               {/* Key Metrics */}
               {!isGated ? (
-                <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
-                  <div className="text-center">
-                    <p className="text-xs text-muted">Cap Rate</p>
-                    <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
+                <>
+                  <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                    <div className="text-center">
+                      <p className="text-xs text-muted">Cap Rate</p>
+                      <p className="text-sm font-bold text-navy">{listing.capRate}%</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted">Potential CF</p>
+                      <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {fmtNum(listing.cashFlow)}
+                      </p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-muted">Est. Rent</p>
+                      <p className="text-sm font-bold text-navy">${listing.estimatedRent.toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div className="text-center">
-                    <p className="text-xs text-muted">Potential CF</p>
-                    <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
-                      {fmtNum(listing.cashFlow)}
+                  {/* Explain the CAP-positive / CF-negative case exactly when it occurs */}
+                  {listing.capRate > 0 && listing.cashFlow < 0 && (
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted">
+                      Cap rate is the all-cash yield (before financing); cash flow is after the mortgage. A positive cap rate with slightly negative cash flow is normal at today&apos;s rates — most of that gap is principal you keep as equity.
                     </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xs text-muted">Est. Rent</p>
-                    <p className="text-sm font-bold text-navy">${listing.estimatedRent.toLocaleString()}</p>
-                  </div>
-                </div>
+                  )}
+                </>
               ) : (
                 <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
                   <p className="mb-2 text-xs font-medium text-navy">Cash flow, cap rate &amp; mortgage breakdown</p>

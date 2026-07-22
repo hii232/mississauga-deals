@@ -272,6 +272,11 @@ function buildAlertEmail(listings, name, searches) {
                 ${listingRows}
               </table>
 
+              <!-- Metric legend — explains the CAP vs PCF question every investor asks -->
+              <div style="margin-top: 18px; padding: 12px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #64748B; font-size: 12px; line-height: 1.55;">
+                <strong style="color: #475569;">CAP</strong> is the yield before financing (all-cash). <strong style="color: #475569;">PCF</strong> is your monthly cash flow after the mortgage. A positive CAP with a small negative PCF is normal at today&rsquo;s rates &mdash; most of that gap is principal you keep as equity.
+              </div>
+
               <div style="text-align: center; margin-top: 28px;">
                 <a href="https://www.mississaugainvestor.ca/listings?${UTM}" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
                   View All ${listings.length > 5 ? '1,800+' : ''} Listings

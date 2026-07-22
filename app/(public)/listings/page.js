@@ -31,6 +31,10 @@ export default function ListingsPage() {
           <p className="mt-1 text-sm text-slate-500">
             Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
           </p>
+          <p className="mt-1 text-xs text-slate-400">
+            <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+          </p>
           <p className="mt-1.5 text-sm text-slate-500">
             <span className="text-slate-400">Investor guides:</span>{' '}
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">
