@@ -175,7 +175,18 @@ const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 function buildAlertEmail(listings, name, searches) {
   const listingRows = listings
     .map(
-      (l) => `
+      (l) => {
+        // Guard every rendered number: a single malformed listing (undefined /
+        // NaN capRate, cashFlow or score — the same case the listings grid had
+        // to defend against) must never throw and abort the whole email, which
+        // would leave this subscriber with NO alert. Fall back to safe values.
+        const score = Number.isFinite(l.hamzaScore) ? l.hamzaScore : null;
+        const cap = Number.isFinite(l.capRate) ? l.capRate : null;
+        const cf = Number.isFinite(l.cashFlow) ? l.cashFlow : null;
+        const price = Number.isFinite(l.price) ? l.price : 0;
+        const dom = Number.isFinite(l.dom) ? l.dom : null;
+        const scoreBg = score == null ? '#94A3B8' : score >= 8 ? '#10B981' : score >= 6.5 ? '#2563EB' : '#F59E0B';
+        return `
       <tr>
         <td style="padding: 16px 0; border-bottom: 1px solid #E2E8F0;">
           <table width="100%" cellpadding="0" cellspacing="0">
@@ -185,13 +196,13 @@ function buildAlertEmail(listings, name, searches) {
                   ${esc(l.address)}
                 </a>
                 <div style="color: #64748B; font-size: 13px; margin-top: 4px;">
-                  ${l.beds} bed · ${l.baths} bath · ${l.type}${l.subType ? ' · ' + l.subType : ''}
+                  ${l.beds || 0} bed · ${l.baths || 0} bath · ${esc(l.type || 'Residential')}${l.subType ? ' · ' + esc(l.subType) : ''}
                 </div>
               </td>
               <td style="text-align: right; vertical-align: top;">
-                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">$${(l.price / 1000).toFixed(0)}K</div>
-                <div style="display: inline-block; background: ${l.hamzaScore >= 8 ? '#10B981' : l.hamzaScore >= 6.5 ? '#2563EB' : '#F59E0B'}; color: white; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-top: 4px;">
-                  ${l.hamzaScore.toFixed(1)}
+                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">$${(price / 1000).toFixed(0)}K</div>
+                <div style="display: inline-block; background: ${scoreBg}; color: white; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-top: 4px;">
+                  ${score == null ? '—' : score.toFixed(1)}
                 </div>
               </td>
             </tr>
@@ -200,15 +211,15 @@ function buildAlertEmail(listings, name, searches) {
                 <table cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #475569; margin-right: 8px;">
-                      CAP ${l.capRate}%
+                      CAP ${cap == null ? '—' : cap + '%'}
                     </td>
                     <td width="8"></td>
-                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${l.cashFlow >= 0 ? '#10B981' : '#EF4444'}; font-weight: 600;">
-                      PCF ${l.cashFlow >= 0 ? '+' : ''}$${l.cashFlow.toLocaleString()}/mo
+                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#10B981' : '#EF4444'}; font-weight: 600;">
+                      PCF ${cf == null ? '—' : cf >= 0 ? `+$${cf.toLocaleString()}/mo` : `−$${Math.abs(cf).toLocaleString()}/mo`}
                     </td>
                     <td width="8"></td>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #475569;">
-                      ${l.dom} DOM
+                      ${dom == null ? '—' : dom + ' DOM'}
                     </td>
                   </tr>
                 </table>
@@ -216,7 +227,8 @@ function buildAlertEmail(listings, name, searches) {
             </tr>
           </table>
         </td>
-      </tr>`
+      </tr>`;
+      }
     )
     .join('');
 
