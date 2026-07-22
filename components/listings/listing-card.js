@@ -37,14 +37,14 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
   const scoreHex = scoreColorHex(listing.hamzaScore);
 
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.02]">
+    <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-accent/30 hover:shadow-lg">
       {/* Photo — links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
           <img
             src={photo}
             alt={listing.address}
-            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
         ) : (
