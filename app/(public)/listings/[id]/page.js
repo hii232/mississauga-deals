@@ -8,6 +8,7 @@ import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
 import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { SkylineStrip } from '@/components/art/cityscape';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
@@ -1523,8 +1524,14 @@ export default function PropertyDetailPage() {
           </div>
         </div>
 
-        {/* Tabs Section */}
-        <div className="mt-8">
+        {/* Investment Analysis — titled section w/ dusk skyline divider */}
+        <div className="mt-10">
+          <div className="mb-4 flex items-center gap-3">
+            <h2 className="whitespace-nowrap font-heading text-lg font-bold text-navy sm:text-xl">
+              Investment Analysis
+            </h2>
+            <SkylineStrip className="h-6 flex-1" opacity={0.09} />
+          </div>
           {/* Tab Bar */}
           <div className="mb-6 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 border border-slate-200 scrollbar-hide">
             {TABS.map((tab) => (
