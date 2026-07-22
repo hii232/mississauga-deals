@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
+import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, mortgageSplit, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
@@ -194,7 +194,8 @@ function MortgageTab({ listing }) {
       maintenancePct, vacancyPct, managementPct,
       monthlyCondoFee: listing.condoFee || 0,
     });
-    return { ...cf, ...closing, cashOnCash: cocReturn, breakEven };
+    const split = mortgageSplit(listing.price, downPct, rate, amort);
+    return { ...cf, ...closing, cashOnCash: cocReturn, breakEven, equityBuild: split.principal };
   }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, downPct, rate, amort, insurance, maintenancePct, vacancyPct, managementPct]);
 
   return (
@@ -234,6 +235,15 @@ function MortgageTab({ listing }) {
               ? ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent clears it by $${(listing.estimatedRent - calc.breakEven).toLocaleString()}/mo.`
               : ` The $${listing.estimatedRent.toLocaleString()}/mo estimated rent falls $${(calc.breakEven - listing.estimatedRent).toLocaleString()}/mo short.`
           )}
+        </div>
+      )}
+
+      {calc.equityBuild > 0 && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs leading-relaxed text-emerald-900">
+          <span className="font-semibold">You build ~${calc.equityBuild.toLocaleString()}/mo in equity.</span>
+          {` Of the $${calc.mortgage.toLocaleString()}/mo mortgage payment, about $${calc.equityBuild.toLocaleString()} pays down principal (year one) — that's money you keep, not a cost.`}
+          {calc.cashFlow < 0 && calc.equityBuild > Math.abs(calc.cashFlow) &&
+            ` So even at ${fmtNum(calc.cashFlow)} cash flow, your net worth grows — the $${calc.equityBuild.toLocaleString()}/mo of equity outweighs the $${Math.abs(calc.cashFlow).toLocaleString()}/mo shortfall.`}
         </div>
       )}
 
