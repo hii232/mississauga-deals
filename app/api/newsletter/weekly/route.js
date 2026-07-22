@@ -518,9 +518,7 @@ async function sendToAllSubscribers(supabase, data) {
           blogHtml,
           email,
         });
-        const subject = personalized
-          ? `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`
-          : `Mississauga Market Weekly — ${dateLabel}`;
+        const subject = buildSubject(personalized, deals, dateLabel);
         return sendEmail(email, subject, html);
       })
     );
@@ -537,6 +535,28 @@ async function sendToAllSubscribers(supabase, data) {
     personalized: personalizedCount,
     genericTopDeals: profiles.size - personalizedCount,
   };
+}
+
+// Build a specific, honest subject line. Personalized subscribers get their
+// match count; generic subscribers lead with the top deal's real hook (cash
+// flow, else cap rate) to lift open rates. Every value is guarded so the subject
+// can never render "N/A", "$NaN", or "undefined".
+function buildSubject(personalized, deals, dateLabel) {
+  if (personalized) {
+    return `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`;
+  }
+  const top = deals && deals[0];
+  if (top) {
+    const hood = (top.neighbourhood || top.city || '').toString().trim() || 'Mississauga';
+    if (typeof top.cashFlow === 'number' && isFinite(top.cashFlow) && top.cashFlow > 0) {
+      return `Top deal this week: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow in ${hood}`;
+    }
+    if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
+      return `${deals.length} new Mississauga ${deals.length === 1 ? 'deal' : 'deals'} — top pick ${top.capRate.toFixed(1)}% cap rate in ${hood}`;
+    }
+    return `${deals.length} new Mississauga investment ${deals.length === 1 ? 'deal' : 'deals'} — ${dateLabel}`;
+  }
+  return `Mississauga Market Weekly — ${dateLabel}`;
 }
 
 function approvalBanner(wk, subscriberCount) {
