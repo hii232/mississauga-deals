@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import { GUIDES } from '@/components/ui/related-guides';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const YEAR = new Date().getFullYear();
 const BASE = 'https://www.mississaugainvestor.ca';
@@ -69,6 +70,9 @@ export default function GuidesIndexPage() {
             </Link>
           ))}
         </div>
+
+        {/* Inline email capture — this is a search-traffic landing, so capture */}
+        <InlineCTA variant="newsletter" className="mt-12" />
 
         {/* CTA */}
         <div className="mt-12 rounded-2xl bg-navy p-8 text-center">
