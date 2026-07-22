@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { fmtK, fmtNum } from '@/lib/utils/format';
+import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
 const PAGE_SIZE = 30;
@@ -138,12 +138,12 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
 
                   {/* CAP */}
                   <td className={`px-4 py-3 text-slate-600 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    {listing.capRate.toFixed(1)}%
+                    {pct1(listing.capRate)}
                   </td>
 
                   {/* CoC */}
                   <td className={`px-4 py-3 text-slate-600 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    {listing.cashOnCash.toFixed(1)}%
+                    {pct1(listing.cashOnCash)}
                   </td>
 
                   {/* Cash Flow */}

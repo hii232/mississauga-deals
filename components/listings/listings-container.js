@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { fmtK, fmtNum } from '@/lib/utils/format';
+import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { DealScreener } from './deal-screener';
 import { ListingGrid } from './listing-grid';
@@ -46,7 +46,7 @@ function TopPickCard({ listing, photo }) {
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
-          {listing.hamzaScore}
+          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
         </div>
         {/* CF+ badge */}
         <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
@@ -60,15 +60,15 @@ function TopPickCard({ listing, photo }) {
         <div className="mt-1.5 grid grid-cols-3 gap-0.5 text-center rounded-md bg-cloud p-1.5">
           <div className="min-w-0">
             <p className="text-[9px] font-medium uppercase text-slate-400">CAP</p>
-            <p className="text-[11px] font-bold text-navy truncate">{listing.capRate.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.capRate)}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[9px] font-medium uppercase text-slate-400">CF/mo</p>
-            <p className="text-[11px] font-bold text-emerald-500 truncate">{listing.cashFlow >= 0 ? '+' : '-'}${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}</p>
+            <p className="text-[11px] font-bold text-emerald-500 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[9px] font-medium uppercase text-slate-400">CoC</p>
-            <p className="text-[11px] font-bold text-navy truncate">{listing.cashOnCash.toFixed(1)}%</p>
+            <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.cashOnCash)}</p>
           </div>
         </div>
       </div>
