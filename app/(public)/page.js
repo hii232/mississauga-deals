@@ -10,6 +10,7 @@ import { EmailCapture } from '@/components/home/email-capture';
 import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
+import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
 
 export const metadata = {
   title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
@@ -529,13 +530,6 @@ function CTASection() {
 // ─────────────────────────────────────────────
 //   NEIGHBOURHOOD PREVIEW
 // ─────────────────────────────────────────────
-const HOOD_TINTS = [
-  { panel: 'from-accent/15 to-accent/5', tone: '#2563EB' },
-  { panel: 'from-success/15 to-success/5', tone: '#10B981' },
-  { panel: 'from-gold/20 to-gold/5', tone: '#D97706' },
-  { panel: 'from-navy/15 to-navy/5', tone: '#1B2A4A' },
-];
-
 function NeighbourhoodPreview({ hoodStats = {} }) {
   // Merge curated HOOD_DATA with live per-neighbourhood aggregates. Avg price,
   // DOM and yield come from active listings when we have a sample; trend + YoY
@@ -561,59 +555,17 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
         <p className="section-subtitle mx-auto">Avg price, days-on-market &amp; yield are live from active Mississauga listings; the trend and year-over-year are Hamza&apos;s outlook.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => {
-          const tint = HOOD_TINTS[idx % HOOD_TINTS.length];
-          const trendColor =
-            data.trend === 'hot'
-              ? 'bg-red-50 text-red-600 border-red-100'
-              : data.trend === 'warm'
-              ? 'bg-amber-50 text-amber-700 border-amber-100'
-              : 'bg-blue-50 text-blue-600 border-blue-100';
-
-          return (
-            <Link
-              key={name}
-              href={`/neighbourhoods/${encodeURIComponent(name.toLowerCase().replace(/\s+/g, '-'))}`}
-              className="card group block overflow-hidden p-0 no-underline transition-shadow hover:shadow-lg"
-            >
-              {/* illustrated header strip */}
-              <div className={`relative h-20 bg-gradient-to-br ${tint.panel}`}>
-                <SkylineStrip className="absolute inset-x-0 bottom-0 h-14 w-full" tone={tint.tone} opacity={0.35} />
-                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`} title="Hamza's outlook">
-                  {data.trend}
-                </span>
-              </div>
-              <div className="p-5">
-                <div className="mb-3 flex items-baseline justify-between">
-                  <h3 className="font-heading font-semibold text-navy group-hover:text-accent transition-colors">{name}</h3>
-                  <span className="text-2xl font-bold text-accent">{rentYield != null ? `${rentYield}%` : '—'}</span>
-                </div>
-                <p className="mb-4 text-right text-[10px] uppercase font-medium text-muted -mt-3">Rent yield</p>
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{fmtK(avgPrice)}</p>
-                    <p className="text-[9px] text-muted">Avg Price</p>
-                  </div>
-                  <div className="rounded-lg bg-cloud p-2">
-                    <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
-                      {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
-                    </p>
-                    <p className="text-[9px] text-muted" title="Hamza's outlook">YoY*</p>
-                  </div>
-                  <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{avgDOM != null ? `${avgDOM}d` : '—'}</p>
-                    <p className="text-[9px] text-muted">Avg DOM</p>
-                  </div>
-                </div>
-                {isLive && (
-                  <p className="mt-2 flex items-center justify-center gap-1 text-[9px] font-medium text-emerald-600">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live from active listings
-                  </p>
-                )}
-              </div>
-            </Link>
-          );
-        })}
+        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }) => (
+          <NeighbourhoodCard
+            key={name}
+            name={name}
+            data={data}
+            avgPrice={avgPrice}
+            avgDOM={avgDOM}
+            rentYield={rentYield}
+            isLive={isLive}
+          />
+        ))}
       </div>
       <p className="text-center text-[11px] text-muted mt-6">
         Avg price, DOM{anyLive ? '' : ' and yield'} update live from current listings. <span className="whitespace-nowrap">*Trend &amp; YoY</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).

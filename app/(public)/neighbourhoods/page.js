@@ -6,6 +6,8 @@ import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
+import { NeighbourhoodScene } from '@/components/art/neighbourhood-scene';
+import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
@@ -109,19 +111,33 @@ export default function NeighbourhoodsPage() {
               ? 'bg-amber-50 text-amber-700 border-amber-100'
               : 'bg-blue-50 text-blue-600 border-blue-100';
 
+          const photo = neighbourhoodPhoto(name);
           return (
-            <div key={name} className="card p-5 hover:shadow-md transition-shadow">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{data.emoji}</span>
-                  <h3 className="font-heading font-semibold text-navy">{name}</h3>
-                </div>
-                <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor}`} title="Hamza's outlook">
-                  {data.trend}
+            <div key={name} className="card group p-0 overflow-hidden hover:shadow-lg transition-shadow">
+              {/* Image / scene header */}
+              <div className="relative h-40 overflow-hidden">
+                {photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={photo} alt={`${name}, Mississauga`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                ) : (
+                  <NeighbourhoodScene name={name} className="h-full w-full transition-transform duration-500 group-hover:scale-105" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/15 to-transparent" />
+                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/85 backdrop-blur-sm`} title="Hamza's outlook">
+                  {data.emoji} {data.trend}
                 </span>
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4">
+                  <h3 className="font-heading text-lg font-bold text-white drop-shadow-sm">{name}</h3>
+                  <div className="flex-shrink-0 rounded-xl bg-white/95 px-3 py-1.5 text-center shadow-md">
+                    <p className="text-lg font-extrabold leading-none text-accent">{rentYield != null ? `${rentYield}%` : '—'}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-wide text-muted">
+                      Rent Yield{isLive && <span className="ml-0.5 text-emerald-600">·Live</span>}
+                    </p>
+                  </div>
+                </div>
               </div>
 
+              <div className="p-5">
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="rounded-lg bg-cloud p-2.5">
@@ -146,12 +162,6 @@ export default function NeighbourhoodsPage() {
                 </div>
               </div>
 
-              {/* Rent Yield */}
-              <div className="flex items-center justify-between text-xs mb-4 pb-3 border-b border-slate-100">
-                <span className="text-muted">Rent Yield {isLive && <span className="ml-1 inline-flex items-center gap-1 align-middle text-[9px] font-medium text-emerald-600"><span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />Live</span>}</span>
-                <span className="font-semibold text-navy">{rentYield != null ? `${rentYield}%` : '—'}</span>
-              </div>
-
               {/* Hamza's Note */}
               <div className="mb-4">
                 <p className="text-[11px] font-medium text-slate-400 uppercase mb-1">Hamza&apos;s Take</p>
@@ -174,6 +184,7 @@ export default function NeighbourhoodsPage() {
                 >
                   View Listings
                 </Link>
+              </div>
               </div>
             </div>
           );
