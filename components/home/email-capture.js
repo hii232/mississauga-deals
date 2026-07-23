@@ -59,10 +59,10 @@ export function EmailCapture() {
     <section className="bg-[#E6F1FB]">
       <div className="max-w-xl mx-auto px-6 py-10 text-center">
         <h2 className="font-heading font-bold text-2xl text-navy mb-2">
-          Get the top 10 deals every Monday
+          Get the 10 best cash-flowing deals in Mississauga
         </h2>
         <p className="text-sm text-navy/70 mb-6">
-          The highest-scoring Mississauga investment properties delivered to your inbox. Free.
+          Hand-picked every Monday — the highest cash-flow investment properties on the market, delivered free to your inbox.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
@@ -79,7 +79,7 @@ export function EmailCapture() {
             disabled={status === 'loading'}
             className="rounded-lg bg-accent px-6 py-3 text-sm font-semibold text-white hover:bg-accent/90 transition disabled:opacity-60 whitespace-nowrap"
           >
-            {status === 'loading' ? 'Subscribing...' : 'Subscribe Free'}
+            {status === 'loading' ? 'Subscribing...' : 'Send Me the Deals'}
           </button>
         </form>
         {status === 'error' && (
