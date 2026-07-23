@@ -1,9 +1,9 @@
 // Distinct illustrated landmark scenes for Mississauga neighbourhood cards.
 // Original artwork, palette-consistent, server components (no network, no photos
-// required). Each neighbourhood maps to the archetype that best fits it, so the
-// cards feel place-specific — waterfront areas get the Port Credit lighthouse,
-// City Centre gets the tower cluster, villages get a main street, etc.
-// These render as the card header UNTIL a real photo is supplied (photo-ready).
+// required). Each neighbourhood maps to the archetype that fits it (waterfront /
+// skyline / village / suburban / transit) AND gets a deterministic sky + light
+// variation from its name, so same-archetype areas (e.g. all the waterfront
+// hoods) still look distinct. Renders UNTIL a real photo is supplied (photo-ready).
 
 const NAVY = '#1B2A4A';
 
@@ -29,31 +29,67 @@ export function archetypeFor(name) {
   return ARCHETYPE[name] || 'suburban';
 }
 
-// Shared sky gradient defs, unique id per instance to avoid collisions
-function Sky({ id, from, to }) {
+// Deterministic hash from the name (stable across renders/SSR).
+function hashName(name) {
+  let h = 0;
+  const s = String(name || '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) & 0xffffffff;
+  return Math.abs(h);
+}
+
+// Sky/light palettes — each area's card picks one by name hash, so cards vary.
+const SKIES = [
+  { from: '#243A61', to: '#5A6E8C', sun: '#FCD34D' }, // dusk blue
+  { from: '#3A3560', to: '#8A6C86', sun: '#FBBF24' }, // twilight violet
+  { from: '#2B4A6B', to: '#7FA0B8', sun: '#FDE68A' }, // clear afternoon
+  { from: '#402E4B', to: '#9A5E6B', sun: '#FB923C' }, // sunset warm
+  { from: '#213B57', to: '#5E7E93', sun: '#FCD34D' }, // overcast cool
+];
+const SUN_X = [130, 200, 270];
+
+function variant(name) {
+  const h = hashName(name);
+  return {
+    ...SKIES[h % SKIES.length],
+    sunX: SUN_X[(h >> 3) % SUN_X.length],
+    flip: ((h >> 5) & 1) === 1,
+  };
+}
+
+// Shared sky gradient + soft sun-glow defs, unique id per instance.
+function Sky({ id, v }) {
+  const sunPct = ((v.sunX / 400) * 100).toFixed(0);
   return (
     <defs>
       <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor={from} />
-        <stop offset="100%" stopColor={to} />
+        <stop offset="0%" stopColor={v.from} />
+        <stop offset="100%" stopColor={v.to} />
       </linearGradient>
-      <radialGradient id={`${id}-sun`} cx="50%" cy="88%" r="60%">
-        <stop offset="0%" stopColor="#FBBF24" stopOpacity="0.55" />
-        <stop offset="55%" stopColor="#F59E0B" stopOpacity="0.14" />
+      <radialGradient id={`${id}-sun`} cx={`${sunPct}%`} cy="70%" r="60%">
+        <stop offset="0%" stopColor={v.sun} stopOpacity="0.5" />
+        <stop offset="55%" stopColor="#F59E0B" stopOpacity="0.12" />
         <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
       </radialGradient>
     </defs>
   );
 }
 
-function Waterfront({ uid }) {
+function skyRect(uid) {
   return (
     <>
-      <Sky id={uid} from="#2A3F63" to="#5A6E8C" />
       <rect x="0" y="0" width="400" height="220" fill={`url(#${uid})`} />
       <rect x="0" y="0" width="400" height="220" fill={`url(#${uid}-sun)`} />
+    </>
+  );
+}
+
+function Waterfront({ uid, v }) {
+  return (
+    <>
+      <Sky id={uid} v={v} />
+      {skyRect(uid)}
       {/* sun */}
-      <circle cx="200" cy="150" r="30" fill="#FCD34D" opacity="0.85" />
+      <circle cx={v.sunX} cy="150" r="30" fill={v.sun} opacity="0.85" />
       {/* far shoreline */}
       <path d="M0 150 H400 V220 H0 Z" fill="#31456B" opacity="0.5" />
       {/* water */}
@@ -71,8 +107,8 @@ function Waterfront({ uid }) {
         <rect x="326" y="78" width="8" height="10" fill="#FBBF24" />
         <path d="M318 156 H342 L346 164 H314 Z" fill={NAVY} opacity="0.9" />
       </g>
-      {/* sailboat */}
-      <g opacity="0.9">
+      {/* sailboat (mirrors with flip for variety) */}
+      <g opacity="0.9" transform={v.flip ? 'translate(210,0)' : ''}>
         <path d="M96 150 l18 0 -4 10 -10 0 z" fill="#F8FAFC" />
         <path d="M105 118 l0 32 14 0 z" fill="#F8FAFC" />
         <path d="M105 120 l-11 30 11 0 z" fill="#DCE6F5" />
@@ -83,16 +119,11 @@ function Waterfront({ uid }) {
   );
 }
 
-function Skyline({ uid }) {
+function Skyline({ uid, v }) {
   return (
     <>
-      <Sky id={uid} from="#26375A" to="#4E628A" />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid})`} />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid}-sun)`} />
-      {/* back towers */}
-      {[[40,80],[300,70],[350,110]].map(([x,h],i)=>(
-        <rect key={i} x={x} y={220-h} width="34" height={h} fill="#33477010" />
-      ))}
+      <Sky id={uid} v={v} />
+      {skyRect(uid)}
       <g fill="#2C3F66">
         <rect x="30" y="96" width="30" height="124" />
         <rect x="330" y="70" width="28" height="150" />
@@ -121,12 +152,11 @@ function Skyline({ uid }) {
   );
 }
 
-function Transit({ uid }) {
+function Transit({ uid, v }) {
   return (
     <>
-      <Sky id={uid} from="#294066" to="#5B6F94" />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid})`} />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid}-sun)`} />
+      <Sky id={uid} v={v} />
+      {skyRect(uid)}
       {/* towers behind */}
       <g fill="#2C3F66">
         <rect x="40" y="70" width="30" height="150" />
@@ -157,12 +187,11 @@ function Transit({ uid }) {
   );
 }
 
-function Village({ uid }) {
+function Village({ uid, v }) {
   return (
     <>
-      <Sky id={uid} from="#334870" to="#6B7E9E" />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid})`} />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid}-sun)`} />
+      <Sky id={uid} v={v} />
+      {skyRect(uid)}
       {/* storefront row */}
       {[
         ['#2C3F66', 40], ['#334770', 118], ['#2A3B63', 196], ['#35497A', 274], ['#2C3F66', 344],
@@ -188,12 +217,13 @@ function Village({ uid }) {
   );
 }
 
-function Suburban({ uid }) {
+function Suburban({ uid, v }) {
   return (
     <>
-      <Sky id={uid} from="#2E4368" to="#5D7196" />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid})`} />
-      <rect x="0" y="0" width="400" height="220" fill={`url(#${uid}-sun)`} />
+      <Sky id={uid} v={v} />
+      {skyRect(uid)}
+      {/* sun peeking */}
+      <circle cx={v.sunX} cy="120" r="22" fill={v.sun} opacity="0.7" />
       {/* rolling ground */}
       <path d="M0 168 q100 -22 200 0 t200 0 V220 H0 Z" fill="#2A3B63" />
       {/* houses (pitched roofs) */}
@@ -221,16 +251,17 @@ function Suburban({ uid }) {
 const SCENES = { waterfront: Waterfront, skyline: Skyline, transit: Transit, village: Village, suburban: Suburban };
 
 /**
- * Renders the landmark scene for a neighbourhood. `name` chooses the archetype.
- * `uid` must be unique per render (pass the slug) so gradient ids don't collide.
+ * Renders the landmark scene for a neighbourhood. `name` chooses the archetype
+ * and a deterministic sky/light variation, so same-archetype cards differ.
  */
 export function NeighbourhoodScene({ name, className = '' }) {
   const kind = archetypeFor(name);
   const Scene = SCENES[kind] || Suburban;
   const uid = `nb-${(name || 'x').toLowerCase().replace(/[^a-z]/g, '')}`;
+  const v = variant(name);
   return (
     <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" className={className} aria-hidden="true" focusable="false">
-      <Scene uid={uid} />
+      <Scene uid={uid} v={v} />
     </svg>
   );
 }
