@@ -220,6 +220,7 @@ export default function AnalyticsPage() {
   const trafficSources = visitorData?.sources || [];
   const topPages = visitorData?.topPages || [];
   const emailCampaigns = visitorData?.emailCampaigns || [];
+  const clickers = visitorData?.clickers || [];
   const needsSetup = visitorData?.needsSetup;
 
   return (
@@ -292,6 +293,56 @@ export default function AnalyticsPage() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Who clicked — per-person email attribution, so hot contacts are callable */}
+      {emailCampaigns.length > 0 && (
+        <div className="bg-[#141B2D] border border-green-500/20 rounded-xl p-5">
+          <div className="flex items-baseline justify-between mb-1">
+            <h2 className="text-sm font-bold text-white">📞 Who Clicked — Call List</h2>
+            <span className="text-[10px] text-white/30">last 30 days</span>
+          </div>
+          <p className="text-[11px] text-white/40 mb-4">
+            Contacts who clicked a link in your emails, hottest first.
+            {clickers.length === 0 && ' Tracking starts with your NEXT email send — earlier sends only show totals above (per-person clicks for those are in Resend).'}
+          </p>
+          {clickers.length > 0 && (
+            <div className="divide-y divide-white/[0.04]">
+              {clickers.map((c) => (
+                <div key={c.email} className="flex items-center justify-between gap-3 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white truncate">{c.name || c.email}</p>
+                    <p className="text-[11px] text-white/40 truncate">
+                      {c.name ? `${c.email} · ` : ''}
+                      {c.topPages.map((p) => p.page).join(', ')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="font-mono text-sm font-bold text-green-400">{c.clicks}</span>
+                    <span className="text-[10px] text-white/30">click{c.clicks === 1 ? '' : 's'}</span>
+                    {c.phone ? (
+                      <a
+                        href={`tel:${c.phone}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-green-500/20 bg-green-500/10 text-sm text-green-400 no-underline transition-colors hover:bg-green-500/20"
+                        title={`Call ${c.name || c.email}`}
+                      >
+                        📞
+                      </a>
+                    ) : (
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-accent/20 bg-accent/10 text-sm text-accent no-underline transition-colors hover:bg-accent/20"
+                        title={`Email ${c.email}`}
+                      >
+                        ✉️
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

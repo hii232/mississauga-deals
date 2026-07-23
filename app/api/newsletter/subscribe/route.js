@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
+import { tagRecipient } from '@/lib/emails/recipient-token';
 
 // Instant expectation-setting welcome — fire-and-forget, never blocks signup
 async function sendWelcomeEmail(email) {
@@ -43,7 +44,7 @@ async function sendWelcomeEmail(email) {
         from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
         to: email,
         subject: "You're in — the Mississauga Market Weekly arrives Monday",
-        html,
+        html: tagRecipient(html, email),
         headers: {
           'List-Unsubscribe': `<${unsubscribeUrl(email)}>`,
           'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',

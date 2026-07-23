@@ -12,7 +12,7 @@ export async function POST(request) {
   }
 
   try {
-    const { path, referrer, utm_source } = await request.json();
+    const { path, referrer, utm_source, mi } = await request.json();
 
     if (!path || typeof path !== 'string') {
       return NextResponse.json({ ok: true });
@@ -38,11 +38,26 @@ export async function POST(request) {
       }
     }
 
-    await supabase.from('page_views').insert({
+    // Per-recipient email-click token (hex HMAC from recipient-token.js).
+    // Validate the shape so arbitrary junk never lands in the column.
+    const subscriberToken =
+      typeof mi === 'string' && /^[a-f0-9]{8,32}$/.test(mi) ? mi : null;
+
+    const row = {
       path: path.substring(0, 500),
       referrer: cleanReferrer,
       utm_source: utm_source || null,
-    });
+    };
+    if (subscriberToken) {
+      // Insert with the token; if the subscriber_token migration hasn't run
+      // yet, retry without it so tracking itself never breaks.
+      const { error } = await supabase
+        .from('page_views')
+        .insert({ ...row, subscriber_token: subscriberToken });
+      if (error) await supabase.from('page_views').insert(row);
+    } else {
+      await supabase.from('page_views').insert(row);
+    }
   } catch {
     // Silently fail — tracking should never break the site
   }
