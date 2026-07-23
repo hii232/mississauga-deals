@@ -36,6 +36,30 @@ function approvalToken() {
     .slice(0, 20);
 }
 
+// ── Latest published blog posts for the "Fresh from the blog" section ──
+async function fetchLatestPosts(supabase) {
+  if (!supabase) return [];
+  try {
+    const { data } = await supabase
+      .from('blog_posts')
+      .select('title, slug, excerpt')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .limit(3);
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+// Shown only in ?preview=1 when this sandbox has no database, so the blog
+// section is visible in the design. Real sends always use live posts.
+const SAMPLE_POSTS = [
+  { title: 'Where cash flow still pencils in the GTA (2026)', slug: 'sample-cash-flow', excerpt: 'The pockets where rent still covers the carrying costs — and the ones to steer clear of this year.' },
+  { title: 'Hurontario LRT: which corridors reprice first', slug: 'sample-lrt', excerpt: 'The stops likely to move values as the line opens, and the timing an investor should watch.' },
+  { title: 'Duplex vs. condo: the real 5-year return', slug: 'sample-duplex-vs-condo', excerpt: 'A side-by-side on cash flow, appreciation and the headaches nobody mentions.' },
+];
+
 // ── Send one email via Resend, with native one-click unsubscribe headers ──
 async function sendEmail(to, subject, html) {
   const res = await fetch('https://api.resend.com/emails', {
@@ -81,14 +105,14 @@ function approvalBanner(count) {
 }
 
 // ── Fan out to the whole list in small batches ──
-async function sendToAll(recipients) {
+async function sendToAll(recipients, posts) {
   let sent = 0;
   let failed = 0;
   for (let i = 0; i < recipients.length; i += 10) {
     const batch = recipients.slice(i, i + 10);
     const results = await Promise.allSettled(
       batch.map(({ email, name }) => {
-        const { subject, html } = buildAnnouncementEmail({ email, name });
+        const { subject, html } = buildAnnouncementEmail({ email, name, posts });
         return sendEmail(email, subject, html);
       })
     );
@@ -110,9 +134,12 @@ export async function GET(request) {
       if (process.env.NODE_ENV !== 'development' && !isAuthorized(request, searchParams)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
+      let posts = await fetchLatestPosts(getSupabaseAdmin());
+      if (!posts.length) posts = SAMPLE_POSTS;
       const { html } = buildAnnouncementEmail({
         email: 'preview@example.com',
         name: searchParams.get('name') || '',
+        posts,
       });
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
@@ -162,7 +189,8 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
     }
     const recipients = await getBroadcastRecipients(supabase);
-    const { html } = buildAnnouncementEmail({ email: APPROVER, name: 'Hamza' });
+    const posts = await fetchLatestPosts(supabase);
+    const { html } = buildAnnouncementEmail({ email: APPROVER, name: 'Hamza', posts });
     const draftHtml = approvalBanner(recipients.length) + html;
     const ok = await sendEmail(
       APPROVER,
@@ -222,7 +250,8 @@ export async function POST(request) {
       );
     }
 
-    const { sent, failed } = await sendToAll(recipients);
+    const posts = await fetchLatestPosts(supabase);
+    const { sent, failed } = await sendToAll(recipients, posts);
     return new Response(
       htmlPage(
         'Sent',
