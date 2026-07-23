@@ -138,8 +138,20 @@ export function deserializeFilters(searchParams) {
   if (dmin) f.domRange = [Number(dmin) || 0, f.domRange[1]];
   const dmax = searchParams.get('dmax');
   if (dmax) f.domRange = [f.domRange[0], Number(dmax) || 365];
-  const hoods = searchParams.get('hoods');
-  if (hoods) f.neighbourhoods = hoods.split(',');
+  // Accept both `hoods` (plural, from the filter UI) and `hood` (singular — used
+  // by the neighbourhood guides' "View Live Listings in {Hood}" CTA, the homepage
+  // popular-hood chips + hood cards, market-pulse, and the /neighbourhoods index).
+  // Only `hoods` was read before, so every `?hood=` link silently landed on the
+  // UNFILTERED list. Build a fresh array so we never mutate the shared DEFAULT_FILTERS.
+  const hoodsParam = searchParams.get('hoods');
+  const singleHood = searchParams.get('hood');
+  const hoodList = [
+    ...(hoodsParam ? hoodsParam.split(',') : []),
+    ...(singleHood ? [singleHood] : []),
+  ]
+    .map((h) => h.trim())
+    .filter(Boolean);
+  if (hoodList.length) f.neighbourhoods = [...new Set(hoodList)];
   if (searchParams.get('lrt') === '1') f.lrtOnly = true;
   if (searchParams.get('suite') === '1') f.hasBasementSuite = true;
   if (searchParams.get('pos') === '1') f.isPowerOfSale = true;
