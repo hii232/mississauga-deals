@@ -599,10 +599,22 @@ export default async function HomePage() {
         <div className="relative z-10 max-w-7xl mx-auto px-4 pt-16 pb-36 md:pt-24 md:pb-48">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr,320px]">
             <div className="max-w-2xl">
+              {/* Only claim "Live Data" when the market-stats API actually
+                  returned — otherwise the StatsBar shows curated fallback
+                  numbers, and labelling those "Live" would be misleading. */}
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
-                <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
-                <span className="text-success text-xs font-medium">Live Data</span>
-                <span className="text-white/50 text-xs">Updated every 24 hours</span>
+                {liveStats ? (
+                  <>
+                    <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
+                    <span className="text-success text-xs font-medium">Live Data</span>
+                    <span className="text-white/50 text-xs">Updated every 24 hours</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-block h-2 w-2 rounded-full bg-white/40" />
+                    <span className="text-white/70 text-xs font-medium">Market snapshot</span>
+                  </>
+                )}
               </div>
               <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4">
                 Mississauga Investment
