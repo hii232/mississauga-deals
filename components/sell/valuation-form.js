@@ -16,9 +16,9 @@ const PROPERTY_TYPES = [
 
 const GOALS = [
   { value: '', label: 'What are you looking for?' },
-  { value: 'investor-preview', label: 'An investor offer preview (quiet sale)' },
-  { value: 'full-listing', label: 'A full-market listing (top dollar)' },
-  { value: 'both', label: 'Not sure — show me both options' },
+  { value: 'sell-now', label: 'I want to sell for the most' },
+  { value: 'valuation', label: 'Just want to know what it’s worth' },
+  { value: 'planning', label: 'Planning ahead — exploring options' },
 ];
 
 const SELL_TIMELINES = [
@@ -32,7 +32,7 @@ const SELL_TIMELINES = [
 
 /**
  * Seller lead form for the /sell page. Posts to /api/lead with source
- * 'investor-offer-preview' (labelled "Seller — Investor Offer Preview" in
+ * 'seller-valuation' (labelled "Seller — Home Valuation" / "🏡 Seller" in
  * Hamza's inbox + CRM). Kept as its own client component so the page stays a
  * server component with SEO metadata + structured data.
  */
@@ -69,8 +69,8 @@ export function ValuationForm({ id }) {
           name: form.name,
           email: form.email,
           phone: form.phone,
-          source: 'investor-offer-preview',
-          notes: `Address: ${form.address}, Type: ${form.propertyType || 'Not specified'}, Wants: ${goalLabel || 'Not specified'}, Timeline: ${form.timeline || 'Not specified'}`,
+          source: 'seller-valuation',
+          notes: `Address: ${form.address}, Type: ${form.propertyType || 'Not specified'}, Goal: ${goalLabel || 'Not specified'}, Timeline: ${form.timeline || 'Not specified'}`,
         }),
       });
       if (!res.ok) throw new Error('Failed to submit');
@@ -86,13 +86,13 @@ export function ValuationForm({ id }) {
     return (
       <div id={id} className="card p-8 text-center scroll-mt-24">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-3xl">🏡</div>
-        <h2 className="font-heading font-bold text-xl text-navy mb-2">Your Investor Offer Preview is on the way</h2>
+        <h2 className="font-heading font-bold text-xl text-navy mb-2">Your home valuation is on the way</h2>
         <p className="text-sm text-muted leading-relaxed max-w-sm mx-auto mb-6">
-          Hamza will quietly check his investor buyers on your home and prepare a data-backed market valuation, then
-          follow up personally within 24–48 hours. No obligation, fully confidential.
+          Hamza will prepare a data-backed valuation of your home and a plan to sell it for the most, then follow up
+          personally within 24–48 hours. No obligation.
         </p>
-        <a href="/listings" className="btn-primary !px-8 !py-3 no-underline inline-block">
-          Browse Investment Listings
+        <a href="/book-call" className="btn-primary !px-8 !py-3 no-underline inline-block">
+          Book a Call with Hamza
         </a>
       </div>
     );
@@ -103,8 +103,8 @@ export function ValuationForm({ id }) {
 
   return (
     <div id={id} className="card p-6 scroll-mt-24">
-      <h2 className="font-heading font-semibold text-lg text-navy">Get your free Investor Offer Preview</h2>
-      <p className="mt-1 mb-5 text-xs text-muted">See what an investor would pay — plus your market valuation. Private, no obligation.</p>
+      <h2 className="font-heading font-semibold text-lg text-navy">Get your free home valuation</h2>
+      <p className="mt-1 mb-5 text-xs text-muted">See what your home is worth — and how to sell it for the most. No obligation.</p>
 
       {error && (
         <div role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">{error}</div>
@@ -150,9 +150,9 @@ export function ValuationForm({ id }) {
           </select>
         </div>
         <button type="submit" disabled={loading} className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60">
-          {loading ? 'Submitting…' : 'Get My Investor Offer Preview'}
+          {loading ? 'Submitting…' : 'Get My Free Home Valuation'}
         </button>
-        <p className="text-[11px] text-muted text-center">100% free · Confidential · No obligation to list or sell</p>
+        <p className="text-[11px] text-muted text-center">100% free · No obligation · Sell when you’re ready</p>
       </form>
     </div>
   );
