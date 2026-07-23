@@ -4,8 +4,9 @@ import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
-// All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS)
-const CITY_COPY = {
+// All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS).
+// Exported so the sitemap can list every indexable /gta?city= page.
+export const CITY_COPY = {
   'Toronto': { h1: 'Toronto Investment Properties', sub: 'Active listings across Toronto, Etobicoke, North York, Scarborough, East York & York' },
   'Brampton': { h1: 'Brampton Investment Properties', sub: 'Active Brampton listings — cash flow, cap rate, and deal score analysis' },
   'Caledon': { h1: 'Caledon Investment Properties', sub: 'Active Caledon listings — scored and analyzed' },
