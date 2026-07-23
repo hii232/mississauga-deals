@@ -219,6 +219,7 @@ export default function AnalyticsPage() {
   const visitorDaily = visitorData?.visitors?.daily || [];
   const trafficSources = visitorData?.sources || [];
   const topPages = visitorData?.topPages || [];
+  const emailCampaigns = visitorData?.emailCampaigns || [];
   const needsSetup = visitorData?.needsSetup;
 
   return (
@@ -254,6 +255,45 @@ export default function AnalyticsPage() {
           <p className="text-[10px] text-white/30">visitors to leads</p>
         </div>
       </div>
+
+      {/* Email campaign clicks — visits arriving via the UTM-tagged email links */}
+      {emailCampaigns.length > 0 && (
+        <div className="bg-[#141B2D] border border-accent/20 rounded-xl p-5">
+          <div className="flex items-baseline justify-between mb-1">
+            <h2 className="text-sm font-bold text-white">📧 Email Campaign Clicks</h2>
+            <span className="text-[10px] text-white/30">last 30 days</span>
+          </div>
+          <p className="text-[11px] text-white/40 mb-4">
+            Site visits from links in your emails. Per-person opens &amp; clicks are in your Resend dashboard.
+          </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {emailCampaigns.map((c) => (
+              <div key={c.key} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-white">{c.label}</p>
+                  <div className="text-right">
+                    <span className="font-mono text-lg font-bold text-accent">{c.total.toLocaleString()}</span>
+                    <span className="ml-1 text-[10px] text-white/30">clicks</span>
+                    {c.today > 0 && (
+                      <span className="ml-2 rounded-full bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 text-[9px] font-bold text-green-400">
+                        +{c.today} today
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  {c.topPages.map((p) => (
+                    <div key={p.page} className="flex items-center justify-between gap-3">
+                      <span className="text-[11px] text-white/50 truncate">{p.page}</span>
+                      <span className="font-mono text-[11px] font-bold text-white shrink-0">{p.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Visitor line graph */}
       <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-5">

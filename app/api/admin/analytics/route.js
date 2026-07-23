@@ -104,6 +104,42 @@ export async function GET(request) {
       .slice(0, 10)
       .map(([page, count]) => ({ page, count }));
 
+    // ── Email-campaign clicks ──
+    // Every link in the outbound emails is UTM-tagged, so a visit with one of
+    // these utm_source values IS a click-through from that email. Aggregated
+    // per campaign: total visits, today, and which pages were clicked.
+    // (PageTracker dedupes per path per session, so this counts distinct page
+    // visits per session — not raw taps; per-recipient opens/clicks live in
+    // Resend, since page_views intentionally stores no personal identifiers.)
+    const EMAIL_SOURCES = {
+      announcement: 'Announcement (platform launch)',
+      newsletter: 'Weekly newsletter',
+      alerts: 'Daily deal alerts',
+      welcome: 'Welcome email',
+    };
+    const campaignMap = {};
+    rows.forEach((row) => {
+      const src = row.utm_source;
+      if (!src || !(src in EMAIL_SOURCES)) return;
+      const c = campaignMap[src] || (campaignMap[src] = { total: 0, today: 0, pages: {} });
+      c.total++;
+      if ((row.created_at || '').split('T')[0] === todayKey) c.today++;
+      const page = row.path || '/';
+      c.pages[page] = (c.pages[page] || 0) + 1;
+    });
+    const emailCampaigns = Object.entries(campaignMap)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([key, c]) => ({
+        key,
+        label: EMAIL_SOURCES[key],
+        total: c.total,
+        today: c.today,
+        topPages: Object.entries(c.pages)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([page, count]) => ({ page, count })),
+      }));
+
     const response = NextResponse.json({
       visitors: {
         daily,
@@ -112,6 +148,7 @@ export async function GET(request) {
       },
       sources,
       topPages,
+      emailCampaigns,
       needsSetup: false,
     });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
