@@ -55,6 +55,10 @@ export function ValuationForm({ id }) {
       setError('Name, email, and property address are required.');
       return;
     }
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     setLoading(true);
     try {
       const goalLabel = (GOALS.find((g) => g.value === form.goal) || {}).label;
