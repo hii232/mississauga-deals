@@ -85,6 +85,9 @@ export default function AdminDashboard() {
         <StatCard icon="🚨" label="Overdue" value={stats?.overdue || 0} color="red" />
       </div>
 
+      {/* Announcement broadcast — one-click send of the platform-launch email */}
+      <AnnouncementBroadcast />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Leads */}
         <div className="lg:col-span-2 bg-[#141B2D] border border-white/[0.06] rounded-xl overflow-hidden">
@@ -181,6 +184,79 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// One-click send of the platform-launch announcement email to the whole
+// database. Uses the admin key already in context (same x-admin-key the rest of
+// the dashboard uses), so there's no URL/secret fiddling. Clicking only emails
+// Hamza a DRAFT — the actual send to contacts still requires the token button
+// inside that draft, so this button can never blast the list by itself.
+function AnnouncementBroadcast() {
+  const { adminKey } = useAdmin();
+  const [count, setCount] = useState(null);
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [result, setResult] = useState(null);
+
+  useEffect(() => {
+    if (!adminKey) return;
+    fetch('/api/broadcast/announcement?count=1', { headers: { 'x-admin-key': adminKey } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && typeof d.recipients === 'number') setCount(d.recipients); })
+      .catch(() => {});
+  }, [adminKey]);
+
+  async function sendDraft() {
+    if (!adminKey || status === 'sending' || status === 'sent') return;
+    setStatus('sending');
+    try {
+      const res = await fetch('/api/broadcast/announcement', { headers: { 'x-admin-key': adminKey } });
+      const data = await res.json();
+      if (res.ok && data.success) { setStatus('sent'); setResult(data); }
+      else { setStatus('error'); setResult(data); }
+    } catch {
+      setStatus('error'); setResult({ error: 'Network error — try again.' });
+    }
+  }
+
+  const n = result?.recipients ?? count;
+  const btnLabel = status === 'sending' ? 'Sending draft…' : status === 'sent' ? 'Draft sent ✓' : 'Email me the draft';
+
+  return (
+    <div className="bg-[#141B2D] border border-accent/20 rounded-xl p-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2 className="text-sm font-bold text-white">📣 Announcement Broadcast</h2>
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
+            Send the platform-launch email to your whole database
+            {count != null ? ` — ${count.toLocaleString()} contact${count === 1 ? '' : 's'}` : ''}.
+            It emails <span className="text-white/80">you</span> a draft first — nothing reaches your
+            contacts until you open it and click <span className="text-white/80">&ldquo;Review &amp; Send&rdquo;</span>.
+          </p>
+        </div>
+        <button
+          onClick={sendDraft}
+          disabled={!adminKey || status === 'sending' || status === 'sent'}
+          className="shrink-0 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark disabled:opacity-50"
+        >
+          {btnLabel}
+        </button>
+      </div>
+
+      {status === 'sent' && (
+        <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-xs leading-relaxed text-green-300">
+          ✅ Draft sent to <span className="font-semibold">{result?.draftSentTo || 'your inbox'}</span>
+          {n != null ? ` (${Number(n).toLocaleString()} contacts)` : ''}. Open it and click
+          <span className="font-semibold"> &ldquo;Review &amp; Send{n != null ? ` to ${Number(n).toLocaleString()}` : ''}&rdquo; </span>
+          to send. Every email carries a one-click unsubscribe.
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs leading-relaxed text-red-300">
+          Couldn&rsquo;t send the draft{result?.error ? `: ${result.error}` : ''}. Check that your admin key is entered and email (Resend) is configured.
+        </div>
+      )}
     </div>
   );
 }
