@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ListingsContainer } from '@/components/listings/listings-container';
+import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 // Title/H1/intro exact-match the high-intent GSC query "investment properties
@@ -45,6 +46,14 @@ export default function ListingsPage() {
               Townhouse vs condo
             </Link>
           </p>
+          {/* Region switcher — Mississauga is the flagship default, but any GTA
+              city is one tap away (routes to the /gta?city= pages). */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
+            <RegionSwitcher current="mississauga" />
+            <span className="text-xs text-slate-500">
+              Now covering the whole GTA — switch to Toronto, Brampton, Oakville, Hamilton &amp; more.
+            </span>
+          </div>
         </div>
         <Suspense>
           <ListingsContainer

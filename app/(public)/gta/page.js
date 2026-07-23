@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { ListingsContainer } from '@/components/listings/listings-container';
+import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
@@ -95,7 +96,7 @@ export default function GtaListingsPage({ searchParams }) {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           {city && (
-            <div>
+            <div className="mb-3">
               <a
                 href="/gta"
                 className="inline-flex items-center gap-1 text-sm text-accent hover:text-accent-dark no-underline"
@@ -107,6 +108,13 @@ export default function GtaListingsPage({ searchParams }) {
               </a>
             </div>
           )}
+          {/* Region switcher — jump to Mississauga, All GTA, or any city. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
+            <RegionSwitcher current={city ? city : 'all-gta'} />
+            <span className="text-xs text-slate-500">
+              Switch area — Mississauga, all GTA, or any city.
+            </span>
+          </div>
         </div>
         <Suspense>
           <ListingsContainer
