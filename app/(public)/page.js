@@ -711,24 +711,29 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* GTA coverage band — Mississauga is home base, but the platform covers the whole GTA */}
+      {/* GTA coverage band — Mississauga is home base, but the platform covers the whole GTA.
+          Light-themed to pair with the navy seller band below (buyer/light + seller/dark). */}
       <section className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Now across the whole GTA</span>
-              <h2 className="mt-1 font-heading text-xl font-bold text-navy md:text-2xl">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-cloud via-white to-cloud p-8 md:p-12">
+          <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-14 w-full" tone="#1B2A4A" opacity={0.06} />
+          <div className="relative z-10 flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
+            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-4xl">🌆</div>
+            <div className="flex-1">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Now across the whole GTA</span>
+              </div>
+              <h2 className="mb-2 font-heading text-2xl font-bold text-navy md:text-3xl">
                 Investing beyond Mississauga? We cover the entire GTA.
               </h2>
-              <p className="mt-1.5 text-sm text-muted">
+              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
                 Every listing scored for cash flow, cap rate, and deal score — now across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
               </p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="flex flex-wrap justify-center gap-2 md:justify-start">
                 {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton', 'Burlington', 'Milton'].map((c) => (
                   <Link
                     key={c}
                     href={`/gta?city=${encodeURIComponent(c)}`}
-                    className="rounded-full border border-slate-200 bg-cloud px-3 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
+                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
                   >
                     {c}
                   </Link>
