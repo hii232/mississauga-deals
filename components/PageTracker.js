@@ -14,6 +14,8 @@ export default function PageTracker() {
     tracked.current.add(pathname);
 
     const utm_source = searchParams.get('utm_source') || null;
+    // `mi` = per-recipient email-click token (see lib/emails/recipient-token.js)
+    const mi = searchParams.get('mi') || null;
 
     fetch('/api/track', {
       method: 'POST',
@@ -22,6 +24,7 @@ export default function PageTracker() {
         path: pathname,
         referrer: document.referrer || null,
         utm_source,
+        mi,
       }),
       keepalive: true,
     }).catch(() => {});

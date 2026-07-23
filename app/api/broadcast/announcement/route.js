@@ -3,6 +3,7 @@ import { createHmac } from 'crypto';
 import { getSupabaseAdmin, getBroadcastRecipients } from '@/lib/emails/audience';
 import { buildAnnouncementEmail } from '@/lib/emails/announcement-email';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
+import { tagRecipient } from '@/lib/emails/recipient-token';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -62,6 +63,9 @@ const SAMPLE_POSTS = [
 
 // ── Send one email via Resend, with native one-click unsubscribe headers ──
 async function sendEmail(to, subject, html) {
+  // Per-recipient click identity: appends &mi=<token> to every tagged link so
+  // the admin "Who Clicked" list can attribute site visits to this recipient.
+  html = tagRecipient(html, to);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {

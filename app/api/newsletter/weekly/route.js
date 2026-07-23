@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
+import { tagRecipient } from '@/lib/emails/recipient-token';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -420,6 +421,8 @@ function buildBlogHTML(post) {
 
 // ── Send email via Resend ──
 async function sendEmail(to, subject, html) {
+  // Per-recipient click identity for the admin "Who Clicked" list
+  html = tagRecipient(html, to);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
