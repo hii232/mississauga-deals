@@ -7,9 +7,9 @@ import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 // Title/H1/intro exact-match the high-intent GSC query "investment properties
 // for sale mississauga" (pos ~14, real impressions — the money keyword).
 export const metadata = {
-  title: 'Investment Properties for Sale in Mississauga — 1,800+ Scored for Cash Flow',
+  title: 'Investment Properties for Sale in Mississauga — Scored for Cash Flow & Cap Rate',
   description:
-    'Investment properties for sale in Mississauga — browse 1,800+ active listings, each scored for cash flow, cap rate, and ROI, with legal-suite detection and price-drop alerts. Free for investors.',
+    'Investment properties for sale in Mississauga — every active listing scored for cash flow, cap rate, and ROI, with legal-suite detection and price-drop alerts. Free for investors.',
   alternates: { canonical: '/listings' },
 };
 
