@@ -102,9 +102,29 @@ export default function GtaListingsPage({ searchParams }) {
       : []),
   ];
 
+  // On the hub view (no city) mark /gta as the collection page for all the
+  // per-city pages — mirrors the ItemList on /neighbourhoods so search engines
+  // understand the directory and can discover/rank each of the 28 city pages.
+  const cityListSchema = !city
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'GTA Investment Property Markets',
+        itemListElement: Object.keys(CITY_COPY).map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(c)}`,
+          name: CITY_COPY[c].h1 || c,
+        })),
+      }
+    : null;
+
   return (
     <main className="min-h-screen bg-cloud">
       <BreadcrumbJsonLd items={breadcrumbItems} />
+      {cityListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(cityListSchema) }} />
+      )}
       <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">
