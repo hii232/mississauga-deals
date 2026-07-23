@@ -13,6 +13,7 @@ export function PersonJsonLd() {
     description:
       'Hamza Nouman is a licensed real estate Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. He specializes in investment properties and data-driven real estate analysis. Creator of MississaugaInvestor.ca.',
     url: 'https://www.mississaugainvestor.ca/about',
+    mainEntityOfPage: 'https://www.mississaugainvestor.ca/about',
     image: 'https://www.mississaugainvestor.ca/images/hamza-headshot.jpg',
     email: 'hamza@nouman.ca',
     telephone: '+1-647-609-1289',
@@ -366,6 +367,8 @@ export function ProfilePageJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
+    name: 'Hamza Nouman — Mississauga Real Estate Investment Specialist',
+    url: 'https://www.mississaugainvestor.ca/about',
     dateCreated: '2024-01-01',
     dateModified: new Date().toISOString().split('T')[0],
     mainEntity: {

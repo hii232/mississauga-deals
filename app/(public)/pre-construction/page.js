@@ -49,6 +49,10 @@ export default function PreConstructionPage() {
       setError('Name and email are required.');
       return;
     }
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
 
     setLoading(true);
     try {

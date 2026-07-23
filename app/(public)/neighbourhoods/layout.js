@@ -10,6 +10,7 @@ export const metadata = {
     'The best neighbourhoods to invest in Mississauga for cash flow and appreciation, ranked by rent yield, price trend, and days on market. Compare Clarkson, Cooksville, Malton, Erin Mills, City Centre, Port Credit and 24 areas — analysis by Hamza Nouman.',
   alternates: { canonical: '/neighbourhoods' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Best Neighbourhoods to Invest in Mississauga (2026)',
     description:
       'Mississauga neighbourhoods ranked for real estate investment — rent yields, average prices, cap rates, and market temperature.',

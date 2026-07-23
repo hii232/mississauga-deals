@@ -45,8 +45,12 @@ export default function QuizPage() {
     e.preventDefault();
     setError('');
 
-    if (!email) {
-      setError('Please enter your email to see your results.');
+    // Validate email FORMAT, not just presence: a typo (e.g. "me@gmail")
+    // makes /api/lead return 400, which the old bare `await fetch` swallowed —
+    // the visitor saw their results while this high-intent lead (5 answers +
+    // name + email + phone) was silently lost. Catch it before we submit.
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email to see your results.');
       return;
     }
 
@@ -54,7 +58,7 @@ export default function QuizPage() {
     try {
       const key = determineResult(answers);
 
-      await fetch('/api/lead', {
+      const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -65,6 +69,10 @@ export default function QuizPage() {
           notes: `Strategy: ${key} | Budget: ${answers[1]} | Type: ${answers[2]} | Timeline: ${answers[3]} | Priority: ${answers[4]}`,
         }),
       });
+
+      // Surface a genuine capture failure instead of showing results as if the
+      // lead was saved (don't strand the lead AND mislead the visitor).
+      if (!res.ok) throw new Error('capture-failed');
 
       localStorage.setItem('user_registered', 'true');
       localStorage.setItem('quiz_result', key);

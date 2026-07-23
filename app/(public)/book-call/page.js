@@ -6,6 +6,7 @@ export const metadata = {
   description: 'Schedule a free 30-minute consultation with Hamza Nouman, REALTOR® at Cityscape Real Estate. Discuss Mississauga investment properties, pre-construction, HST rebate, and more.',
   alternates: { canonical: '/book-call' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Book a Call — Free 30-Min Consultation with Hamza Nouman',
     description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
     url: 'https://www.mississaugainvestor.ca/book-call',

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { RelatedGuides } from '@/components/ui/related-guides';
 
 const YEAR = new Date().getFullYear();
 
@@ -17,6 +18,7 @@ export const metadata = {
   ],
   alternates: { canonical: '/townhouse-vs-condo-investment' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: `Townhouse or Condo: Which Is the Better Investment? (${YEAR})`,
     description: 'How condo fees, land, appreciation, cash flow and tenant demand compare for townhouse vs condo investing in Mississauga and the GTA.',
     url: 'https://www.mississaugainvestor.ca/townhouse-vs-condo-investment',
@@ -164,6 +166,8 @@ export default function TownhouseVsCondoPage() {
             </Link>
           </div>
         </div>
+
+        <RelatedGuides current="/townhouse-vs-condo-investment" />
       </div>
     </>
   );

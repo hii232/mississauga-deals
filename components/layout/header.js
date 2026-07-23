@@ -9,8 +9,8 @@ import { usePathname, useRouter } from 'next/navigation';
    - Mississauga Deals  → /listings        (single tab, no dropdown)
    - GTA Deals ▾        → /gta             (mega-menu grouped by region)
    - Pre-Con            → /pre-construction/projects
-   - Market Data ▾      → /market-pulse, /neighbourhoods
-   - Blog               → /blog
+   - Sell               → /sell            (home sellers / free valuation)
+   - Resources ▾        → /guides, /blog, /market-pulse, /neighbourhoods, /recent-sales, /score-methodology
    - About Hamza        → /about
    ============================================================ */
 
@@ -50,16 +50,18 @@ const NAV_ITEMS = [
   { href: '/listings', label: 'Mississauga Deals' },
   { label: 'GTA Deals', mega: true, href: '/gta' },
   { href: '/pre-construction/projects', label: 'Pre-Con' },
+  { href: '/sell', label: 'Sell' },
   {
-    label: 'Market Data',
+    label: 'Resources',
     children: [
+      { href: '/guides', label: 'Investor Guides' },
+      { href: '/blog', label: 'Blog' },
       { href: '/market-pulse', label: 'Market Pulse' },
       { href: '/neighbourhoods', label: 'Neighbourhoods' },
       { href: '/recent-sales', label: 'Recent Sales' },
       { href: '/score-methodology', label: 'Deal Score Method' },
     ],
   },
-  { href: '/blog', label: 'Blog' },
   { href: '/about', label: 'About Hamza' },
 ];
 

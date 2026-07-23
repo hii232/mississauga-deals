@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS, HOOD_DATA } from '@/lib/constants';
+import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
+import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroButtons } from '@/components/home/hero-buttons';
@@ -98,6 +99,7 @@ async function fetchTopDeals() {
     }
 
     const processed = processListings(raw);
+    const hoodStats = computeHoodStats(processed);
     const top = processed
       .sort((a, b) => b.hamzaScore - a.hamzaScore)
       .slice(0, 4);
@@ -120,9 +122,9 @@ async function fetchTopDeals() {
       await Promise.all(photoPromises);
     } catch { /* photos optional */ }
 
-    return { deals: top, photoMap, totalCount: processed.length };
+    return { deals: top, photoMap, totalCount: processed.length, hoodStats };
   } catch {
-    return { deals: [], photoMap: {}, totalCount: 0 };
+    return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {} };
   }
 }
 
@@ -534,20 +536,32 @@ const HOOD_TINTS = [
   { panel: 'from-navy/15 to-navy/5', tone: '#1B2A4A' },
 ];
 
-function NeighbourhoodPreview() {
-  // Pick top 4 neighbourhoods by rent yield
-  const topHoods = Object.entries(HOOD_DATA)
-    .sort(([, a], [, b]) => (b.rentYield || 0) - (a.rentYield || 0))
-    .slice(0, 4);
+function NeighbourhoodPreview({ hoodStats = {} }) {
+  // Merge curated HOOD_DATA with live per-neighbourhood aggregates. Avg price,
+  // DOM and yield come from active listings when we have a sample; trend + YoY
+  // stay curated (they can't be computed live). Rank by the effective yield.
+  const merged = Object.entries(HOOD_DATA).map(([name, data]) => {
+    const live = hoodStats[name];
+    return {
+      name,
+      data,
+      avgPrice: live?.avgPrice ?? data.avgPrice,
+      avgDOM: live?.avgDOM ?? data.avgDOM,
+      rentYield: live?.rentYield ?? data.rentYield,
+      isLive: !!live,
+    };
+  });
+  const topHoods = merged.sort((a, b) => (b.rentYield || 0) - (a.rentYield || 0)).slice(0, 4);
+  const anyLive = topHoods.some((h) => h.isLive);
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-16">
       <div className="text-center mb-10">
         <h2 className="section-title mb-3">Top neighbourhoods for investors</h2>
-        <p className="section-subtitle mx-auto">Yield, price trends, and expert analysis on 24 Mississauga neighbourhoods</p>
+        <p className="section-subtitle mx-auto">Avg price, days-on-market &amp; yield are live from active Mississauga listings; the trend and year-over-year are Hamza&apos;s outlook.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {topHoods.map(([name, data], idx) => {
+        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => {
           const tint = HOOD_TINTS[idx % HOOD_TINTS.length];
           const trendColor =
             data.trend === 'hot'
@@ -565,38 +579,46 @@ function NeighbourhoodPreview() {
               {/* illustrated header strip */}
               <div className={`relative h-20 bg-gradient-to-br ${tint.panel}`}>
                 <SkylineStrip className="absolute inset-x-0 bottom-0 h-14 w-full" tone={tint.tone} opacity={0.35} />
-                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`}>
+                <span className={`absolute right-3 top-3 text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${trendColor} bg-white/80 backdrop-blur-sm`} title="Hamza's outlook">
                   {data.trend}
                 </span>
               </div>
               <div className="p-5">
                 <div className="mb-3 flex items-baseline justify-between">
                   <h3 className="font-heading font-semibold text-navy group-hover:text-accent transition-colors">{name}</h3>
-                  <span className="text-2xl font-bold text-accent">{data.rentYield}%</span>
+                  <span className="text-2xl font-bold text-accent">{rentYield != null ? `${rentYield}%` : '—'}</span>
                 </div>
                 <p className="mb-4 text-right text-[10px] uppercase font-medium text-muted -mt-3">Rent yield</p>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{fmtK(data.avgPrice)}</p>
+                    <p className="text-xs font-bold text-navy">{fmtK(avgPrice)}</p>
                     <p className="text-[9px] text-muted">Avg Price</p>
                   </div>
                   <div className="rounded-lg bg-cloud p-2">
                     <p className={`text-xs font-bold ${data.priceYoY >= 0 ? 'text-success' : 'text-red-500'}`}>
                       {data.priceYoY >= 0 ? '+' : ''}{data.priceYoY}%
                     </p>
-                    <p className="text-[9px] text-muted">YoY</p>
+                    <p className="text-[9px] text-muted" title="Hamza's outlook">YoY*</p>
                   </div>
                   <div className="rounded-lg bg-cloud p-2">
-                    <p className="text-xs font-bold text-navy">{data.avgDOM}d</p>
+                    <p className="text-xs font-bold text-navy">{avgDOM != null ? `${avgDOM}d` : '—'}</p>
                     <p className="text-[9px] text-muted">Avg DOM</p>
                   </div>
                 </div>
+                {isLive && (
+                  <p className="mt-2 flex items-center justify-center gap-1 text-[9px] font-medium text-emerald-600">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live from active listings
+                  </p>
+                )}
               </div>
             </Link>
           );
         })}
       </div>
-      <div className="text-center mt-8">
+      <p className="text-center text-[11px] text-muted mt-6">
+        Avg price, DOM{anyLive ? '' : ' and yield'} update live from current listings. <span className="whitespace-nowrap">*Trend &amp; YoY</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
+      </p>
+      <div className="text-center mt-6">
         <Link href="/neighbourhoods" className="text-sm font-semibold text-accent hover:text-accent/80 transition no-underline">
           Explore All 24 Neighbourhoods &rarr;
         </Link>
@@ -737,10 +759,42 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Seller offer band — captures homeowners who land on the homepage */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#16223D] via-navy to-[#25355C] p-8 md:p-12">
+          <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full" tone="#0A1122" opacity={0.5} />
+          <div className="relative z-10 flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
+            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 text-4xl">🔑</div>
+            <div className="flex-1">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gold">For Mississauga homeowners</span>
+              </div>
+              <h2 className="mb-2 font-heading text-2xl font-bold text-white md:text-3xl">
+                Thinking of selling? See what an investor would pay.
+              </h2>
+              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-white/70 md:text-base">
+                Get a free, private Investor Offer Preview from Hamza&apos;s network of pre-qualified buyers — plus a
+                data-backed market valuation. Sell quietly and fast, or list for top dollar. No obligation.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/60 md:justify-start">
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free &amp; confidential</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Real investor buyers</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Zero obligation</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Link href="/sell" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+                Get My Free Preview &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <HowItWorks />
 
       {/* Neighbourhood Preview */}
-      <NeighbourhoodPreview />
+      <NeighbourhoodPreview hoodStats={topDeals.hoodStats} />
 
       {/* Testimonials before About Hamza */}
       <GoogleReviews />

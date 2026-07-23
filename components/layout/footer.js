@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="bg-navy text-white/80 mt-20">
       {/* Main Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-0.5 mb-3">
@@ -38,6 +38,7 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-sm text-white mb-3">Platform</h4>
             <ul className="space-y-2 text-xs">
               <li><Link href="/listings" className="text-white/50 hover:text-white no-underline transition-colors">Investment Listings</Link></li>
+              <li><Link href="/sell" className="text-white/50 hover:text-white no-underline transition-colors">Sell Your Home</Link></li>
               <li><Link href="/market-pulse" className="text-white/50 hover:text-white no-underline transition-colors">Market Pulse</Link></li>
               <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
               <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
@@ -49,6 +50,20 @@ export default function Footer() {
               <li><Link href="/book-call" className="text-white/50 hover:text-white no-underline transition-colors">Book a Free Call</Link></li>
               <li><Link href="/about" className="text-white/50 hover:text-white no-underline transition-colors">About Hamza Nouman</Link></li>
               <li><Link href="/faq" className="text-white/50 hover:text-white no-underline transition-colors">FAQ</Link></li>
+            </ul>
+          </div>
+
+          {/* Investor Guides */}
+          <div>
+            <h4 className="font-heading font-semibold text-sm text-white mb-3">
+              <Link href="/guides" className="text-white hover:text-accent no-underline transition-colors">Investor Guides</Link>
+            </h4>
+            <ul className="space-y-2 text-xs">
+              <li><Link href="/cash-flow-positive-properties-ontario" className="text-white/50 hover:text-white no-underline transition-colors">Cash-Flow-Positive Properties</Link></li>
+              <li><Link href="/rent-vs-buy-mississauga" className="text-white/50 hover:text-white no-underline transition-colors">Rent vs Buy in Mississauga</Link></li>
+              <li><Link href="/townhouse-vs-condo-investment" className="text-white/50 hover:text-white no-underline transition-colors">Townhouse vs Condo</Link></li>
+              <li><Link href="/hurontario-lrt-real-estate" className="text-white/50 hover:text-white no-underline transition-colors">Hurontario LRT &amp; Real Estate</Link></li>
+              <li><Link href="/rental-property-insurance-mississauga" className="text-white/50 hover:text-white no-underline transition-colors">Rental Property Insurance</Link></li>
             </ul>
           </div>
 

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { RelatedGuides } from '@/components/ui/related-guides';
 
 const YEAR = new Date().getFullYear();
 
@@ -16,6 +17,7 @@ export const metadata = {
   ],
   alternates: { canonical: '/rent-vs-buy-mississauga' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: `Rent vs Buy in Mississauga (${YEAR})`,
     description: 'How rates, prices, closing costs, and time horizon decide rent vs buy in Mississauga — plus a free break-even calculator.',
     url: 'https://www.mississaugainvestor.ca/rent-vs-buy-mississauga',
@@ -147,6 +149,8 @@ export default function RentVsBuyMississaugaPage() {
             </Link>
           </div>
         </div>
+
+        <RelatedGuides current="/rent-vs-buy-mississauga" />
       </div>
     </>
   );

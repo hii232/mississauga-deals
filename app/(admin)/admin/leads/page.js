@@ -34,7 +34,7 @@ function daysUntil(dateStr) {
 }
 
 function sourceLabel(src) {
-  const map = { registration: 'Sign Up', quiz: 'Quiz', 'google-signin': 'Google', 'deal-alert': 'Alert', 'exit-intent': 'Exit Intent', 'saved-search': 'Saved Search', viewing: '🏠 Viewing', booking: 'Booked Call', 'precon-vip': 'Pre-Con VIP', newsletter: 'Newsletter' };
+  const map = { registration: 'Sign Up', quiz: 'Quiz', 'google-signin': 'Google', 'deal-alert': 'Alert', 'exit-intent': 'Exit Intent', 'saved-search': 'Saved Search', viewing: '🏠 Viewing', booking: 'Booked Call', 'precon-vip': 'Pre-Con VIP', newsletter: 'Newsletter', 'seller-valuation': '🏡 Seller', 'investor-offer-preview': '🔑 Seller Preview' };
   return map[src] || src || 'Unknown';
 }
 
@@ -50,6 +50,8 @@ function sourceColor(src) {
     booking: 'bg-green-500/10 text-green-400 border-green-500/20',
     'precon-vip': 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
     newsletter: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    'seller-valuation': 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+    'investor-offer-preview': 'bg-orange-500/15 text-orange-300 border-orange-500/30',
   };
   return map[src] || 'bg-white/5 text-white/50 border-white/10';
 }
@@ -113,7 +115,7 @@ const OUTCOME_LABELS = {
   ghosted: '👻 Ghosted',
 };
 
-const SOURCES = ['All', 'viewing', 'booking', 'registration', 'quiz', 'google-signin', 'deal-alert', 'precon-vip', 'exit-intent', 'saved-search'];
+const SOURCES = ['All', 'investor-offer-preview', 'viewing', 'booking', 'seller-valuation', 'registration', 'quiz', 'google-signin', 'deal-alert', 'precon-vip', 'exit-intent', 'saved-search'];
 const STATUS_FILTERS = ['All', 'new', 'contacted', 'following-up', 'callback', 'not-interested', 'ghosted', 'archived'];
 
 // ── Log Activity Modal ──────────────────────────────────

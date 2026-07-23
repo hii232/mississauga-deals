@@ -1,6 +1,6 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
 import Link from 'next/link';
-import { PersonJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
   title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
@@ -59,6 +59,7 @@ export default function AboutPage() {
   return (
     <>
       <PersonJsonLd />
+      <ProfilePageJsonLd />
       <BreadcrumbJsonLd items={breadcrumbs} />
 
       {/* Hero */}

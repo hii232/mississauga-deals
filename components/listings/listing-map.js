@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { fmtK, fmtNum } from '@/lib/utils/format';
+import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
 // Leaflet CSS is imported once globally via useEffect
@@ -110,7 +110,7 @@ export function ListingMap({ listings, photoMap }) {
                 </div>
                 <div>
                   <div style="font-size:9px;text-transform:uppercase;color:#94A3B8;font-weight:500;">CAP</div>
-                  <div style="font-size:12px;font-weight:700;color:#1B2A4A;">${listing.capRate.toFixed(1)}%</div>
+                  <div style="font-size:12px;font-weight:700;color:#1B2A4A;">${pct1(listing.capRate)}</div>
                 </div>
                 <div>
                   <div style="font-size:8px;color:#94A3B8;font-weight:500;">Cash Flow/mo</div>

@@ -97,18 +97,28 @@ export default function MarketPulsePage() {
   }
 
   if (loading) {
+    // Render the hero (and its h1) in the loading state too, so the h1 is in
+    // the server HTML crawlers see — not only after the client fetch resolves.
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-slate-200 rounded w-48" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 bg-slate-100 rounded-xl" />
-            ))}
+      <>
+        <PageHero
+          compact
+          eyebrow="Live market data"
+          title="Market Pulse"
+          subtitle="Mississauga market snapshot — live MLS data blended with TRREB Market Watch"
+        />
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-slate-200 rounded w-48" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-28 bg-slate-100 rounded-xl" />
+              ))}
+            </div>
+            <div className="h-64 bg-slate-100 rounded-xl" />
           </div>
-          <div className="h-64 bg-slate-100 rounded-xl" />
         </div>
-      </div>
+      </>
     );
   }
 

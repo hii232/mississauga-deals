@@ -287,12 +287,12 @@ export function DealScreener({ listings, loading = false }) {
               <div className="text-center">
                 <p className="text-[9px] uppercase text-slate-400 font-medium">Avg CoC Return</p>
                 <p className={`font-mono text-sm font-bold ${metrics.avgCoc >= 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
-                  {metrics.avgCoc.toFixed(1)}%
+                  {Number.isFinite(metrics.avgCoc) ? metrics.avgCoc.toFixed(1) + '%' : '—'}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-[9px] uppercase text-slate-400 font-medium">Avg Score</p>
-                <p className="font-mono text-sm font-bold text-navy">{metrics.avgScore.toFixed(1)}/10</p>
+                <p className="font-mono text-sm font-bold text-navy">{Number.isFinite(metrics.avgScore) ? metrics.avgScore.toFixed(1) + '/10' : '—'}</p>
               </div>
               <div className="text-center">
                 <p className="text-[9px] uppercase text-slate-400 font-medium">Legal Suites</p>

@@ -6,6 +6,16 @@ export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function Image() {
+  // Brand "Mississauga dusk" palette (from tailwind.config.js): navy #1B2A4A,
+  // accent #2563EB, gold #F59E0B, text-secondary #94A3B8, muted #64748B.
+  // Evergreen capability chips only — no market stats that would silently go
+  // stale on a static, un-refreshable social card (the brand's most-shared asset).
+  const chips = [
+    'Live MLS Listings',
+    'Cash Flow & Cap Rate',
+    'Investor Deal Scores',
+    'Free Deal Alerts',
+  ];
   return new ImageResponse(
     (
       <div
@@ -16,7 +26,7 @@ export default function Image() {
           justifyContent: 'center',
           width: '100%',
           height: '100%',
-          background: 'linear-gradient(135deg, #0F2A4A 0%, #1a3a5c 50%, #0F2A4A 100%)',
+          background: 'linear-gradient(160deg, #16223D 0%, #1B2A4A 55%, #25355C 100%)',
           fontFamily: 'system-ui, sans-serif',
         }}
       >
@@ -29,64 +39,71 @@ export default function Image() {
             padding: '40px 60px',
           }}
         >
+          {/* Wordmark — matches the site header/footer (white + accent-blue .ca) */}
           <div
             style={{
               display: 'flex',
               alignItems: 'baseline',
-              marginBottom: '20px',
             }}
           >
-            <span style={{ fontSize: '52px', fontWeight: 800, color: '#ffffff' }}>
+            <span style={{ fontSize: '54px', fontWeight: 800, color: '#ffffff', letterSpacing: '-1px' }}>
               MississaugaInvestor
             </span>
-            <span style={{ fontSize: '52px', fontWeight: 800, color: '#10b981' }}>
+            <span style={{ fontSize: '54px', fontWeight: 800, color: '#2563EB', letterSpacing: '-1px' }}>
               .ca
             </span>
           </div>
 
+          {/* Gold accent underline for premium polish */}
           <div
             style={{
-              fontSize: '26px',
-              color: '#94a3b8',
+              display: 'flex',
+              width: '120px',
+              height: '5px',
+              backgroundColor: '#F59E0B',
+              borderRadius: '3px',
+              marginTop: '18px',
+              marginBottom: '26px',
+            }}
+          />
+
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '27px',
+              color: '#CBD5E1',
               textAlign: 'center',
-              marginBottom: '40px',
-              maxWidth: '800px',
+              marginBottom: '42px',
+              maxWidth: '840px',
+              lineHeight: 1.3,
             }}
           >
-            Every active listing scored for cash flow, cap rate, and investment potential
+            Every active Mississauga listing scored for cash flow, cap rate &amp; investment potential
           </div>
 
           <div
             style={{
               display: 'flex',
-              gap: '30px',
-              marginBottom: '40px',
+              gap: '18px',
+              marginBottom: '44px',
             }}
           >
-            {[
-              { label: 'Active Listings', value: '2,000+' },
-              { label: 'Sale-to-List', value: '96%' },
-              { label: 'Avg DOM', value: '36 days' },
-              { label: 'Inventory', value: '5.2 mo' },
-            ].map((stat) => (
+            {chips.map((label) => (
               <div
-                key={stat.label}
+                key={label}
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
-                  padding: '16px 24px',
-                  backgroundColor: 'rgba(255,255,255,0.08)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(255,255,255,0.12)',
+                  padding: '14px 24px',
+                  fontSize: '22px',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  backgroundColor: 'rgba(37,99,235,0.16)',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(37,99,235,0.45)',
                 }}
               >
-                <span style={{ fontSize: '28px', fontWeight: 700, color: '#ffffff' }}>
-                  {stat.value}
-                </span>
-                <span style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
-                  {stat.label}
-                </span>
+                {label}
               </div>
             ))}
           </div>
@@ -96,8 +113,8 @@ export default function Image() {
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              fontSize: '16px',
-              color: '#64748b',
+              fontSize: '18px',
+              color: '#94A3B8',
             }}
           >
             <span>Hamza Nouman</span>

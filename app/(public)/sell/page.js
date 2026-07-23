@@ -1,290 +1,336 @@
-'use client';
+import Link from 'next/link';
+import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
+import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { GOOGLE_REVIEWS } from '@/lib/constants';
+import { ValuationForm } from '@/components/sell/valuation-form';
 
-import { useState } from 'react';
+const BASE = 'https://www.mississaugainvestor.ca';
 
-const PROPERTY_TYPES = [
-  { value: '', label: 'Select property type' },
-  { value: 'detached', label: 'Detached' },
-  { value: 'semi-detached', label: 'Semi-Detached' },
-  { value: 'townhouse', label: 'Townhouse' },
-  { value: 'condo', label: 'Condo Apartment' },
-  { value: 'condo-town', label: 'Condo Townhouse' },
-  { value: 'duplex', label: 'Duplex' },
-  { value: 'triplex', label: 'Triplex' },
-  { value: 'other', label: 'Other' },
+export const metadata = {
+  title: 'Sell Your Home in Mississauga — Free Investor Offer Preview',
+  description:
+    'See what an investor would pay for your Mississauga home before you list. Get a free, private Investor Offer Preview from Hamza Nouman’s network of pre-qualified buyers, plus a data-backed market valuation. Sell quietly and fast, or list for top dollar.',
+  keywords: [
+    'sell my house mississauga',
+    'sell my home mississauga',
+    'mississauga home valuation',
+    'what is my home worth mississauga',
+    'sell house to investor mississauga',
+    'off market home sale mississauga',
+    'mississauga listing agent',
+  ],
+  alternates: { canonical: '/sell' },
+  openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    title: 'Sell Your Home in Mississauga — Free Investor Offer Preview',
+    description: 'See what an investor would pay before you list — a free, private preview from a network of pre-qualified buyers, plus a data-backed valuation.',
+    url: `${BASE}/sell`,
+  },
+};
+
+// Page-relevant service structured data for the seller page. No self-serving
+// aggregateRating (Google discourages it on self-markup) — the real 5.0 Google
+// rating stays as visible on-page proof only.
+const agentServiceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: 'Hamza Nouman — Cityscape Real Estate',
+  description: 'Investment-focused Mississauga listing agent. Free home valuations and a private Investor Offer Preview from a network of pre-qualified buyers.',
+  url: `${BASE}/sell`,
+  image: `${BASE}/images/hamza-headshot.jpg`,
+  telephone: '+1-647-609-1289',
+  areaServed: [
+    { '@type': 'City', name: 'Mississauga' },
+    { '@type': 'AdministrativeArea', name: 'Peel Region, Ontario' },
+  ],
+  makesOffer: {
+    '@type': 'Offer',
+    name: 'Free Home Valuation & Investor Offer Preview',
+    description: 'A free, no-obligation home valuation plus a private preview of what an investor buyer would pay for your Mississauga home.',
+    price: '0',
+    priceCurrency: 'CAD',
+  },
+  provider: { '@type': 'Person', '@id': `${BASE}/about#hamza-nouman`, name: 'Hamza Nouman' },
+};
+
+// Honest, general answers — no fabricated stats, commissions, or timelines.
+// Specifics come from the free preview + CMA, which every answer routes back to.
+const SELL_FAQ = [
+  {
+    question: 'What is an Investor Offer Preview?',
+    answer:
+      'It’s a free, confidential first look at what a real investor buyer might pay for your home. Hamza quietly checks your property against his network of pre-qualified investor buyers and reports back genuine interest, alongside a data-backed open-market valuation — so you can weigh a quiet sale against a public listing. There’s no obligation, and no one has to know your home is even being considered.',
+  },
+  {
+    question: 'Is the investor sale or the public listing better for me?',
+    answer:
+      'It depends on what you value. A quiet investor sale is fast, private, often as-is — great when speed and discretion matter. A full public listing usually nets the highest price because more buyers compete for your home. The preview shows you what each path realistically looks like for your specific home, and Hamza will tell you honestly which one is likely to serve you best — even if that means a public listing over a quick sale.',
+  },
+  {
+    question: 'How do you decide what to list my home for?',
+    answer:
+      'Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score over 1,800 Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.',
+  },
+  {
+    question: 'What does it cost to sell a home in Ontario?',
+    answer:
+      'The main costs are the real estate commission (agreed with you up front, in writing), your lawyer’s fees for closing, and any prep you choose to do. There’s no cost to get a preview or a valuation, and no cost to talk through your options — you only move forward when you’re ready and the terms are clear.',
+  },
+  {
+    question: 'How long will it take to sell?',
+    answer:
+      'It depends on your price, your home’s condition, and the market — anyone who promises an exact number before seeing your home is guessing. A quiet investor match can move quickly; a public listing’s timing depends on the market. Your preview includes a realistic timeline for each path, based on how similar homes near you are actually selling.',
+  },
+  {
+    question: 'Do I have to commit to selling to get a preview?',
+    answer:
+      'No. The preview is free, confidential, and there’s no obligation — to sell, to list, or to do anything at all. Many people request one just to understand their equity or plan ahead. If the time is right, Hamza is there; if it isn’t, that’s a perfectly good answer too.',
+  },
 ];
 
-const SELL_TIMELINES = [
-  { value: '', label: 'Select timeline' },
-  { value: 'asap', label: 'As soon as possible' },
-  { value: '1-3mo', label: '1-3 months' },
-  { value: '3-6mo', label: '3-6 months' },
-  { value: '6-12mo', label: '6-12 months' },
-  { value: 'exploring', label: 'Just exploring' },
+const DIFFERENTIATORS = [
+  {
+    icon: '🤝',
+    title: 'A network of buyers, already waiting',
+    body: 'As an investment-focused agent, Hamza works with a database of pre-qualified investor buyers actively looking in Mississauga — so your home can be matched to a serious buyer who moves quickly and closes reliably.',
+  },
+  {
+    icon: '📊',
+    title: 'Priced with data, not guesswork',
+    body: 'The same analytics engine that scores 1,800+ Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.',
+  },
+  {
+    icon: '🛠️',
+    title: 'Full-service, handled for you',
+    body: 'When you list, you get the works — professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end.',
+  },
+  {
+    icon: '🎯',
+    title: 'An investor’s read on your home',
+    body: 'Hamza knows exactly what today’s buyers value — layout, location, secondary-suite potential, cash-flow appeal — and positions your home to the buyers most likely to pay a premium.',
+  },
 ];
+
+const STEPS = [
+  {
+    n: '1',
+    title: 'Free Investor Offer Preview',
+    body: 'Share your address. Hamza quietly checks his investor buyers on your home and prepares a data-backed valuation — what an investor might pay, and what the open market would.',
+  },
+  {
+    n: '2',
+    title: 'You choose your path',
+    body: 'Take a quiet, fast sale to an investor — or list for the open market with full marketing to draw competing offers. No pressure either way; you decide with the real numbers in front of you.',
+  },
+  {
+    n: '3',
+    title: 'Negotiate &amp; close',
+    body: 'Skilled negotiation and pre-qualified buyers mean a smoother path to a strong offer and a reliable, on-time close — whichever route you pick.',
+  },
+];
+
+const PATHS = [
+  {
+    icon: '🔑',
+    kicker: 'Path 1',
+    title: 'Sell quietly to an investor',
+    body: 'Match with a pre-qualified investor buyer from Hamza’s network. Fast, private, often as-is — no staging, no showings, no sign on the lawn. Ideal when speed and discretion matter most.',
+  },
+  {
+    icon: '🏆',
+    kicker: 'Path 2',
+    title: 'List for the open market',
+    body: 'Full marketing muscle — professional photography, targeted exposure, and data-driven pricing to draw competing offers and the highest possible price. Ideal when maximizing your number is the goal.',
+  },
+];
+
+const chip = 'inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm';
 
 export default function SellPage() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    propertyType: '',
-    estimatedValue: '',
-    timeline: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState('');
-
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError('');
-    setSuccess(false);
-
-    if (!form.name || !form.email || !form.address) {
-      setError('Name, email, and property address are required.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await fetch('/api/lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          source: 'seller-valuation',
-          notes: `Address: ${form.address}, Type: ${form.propertyType || 'Not specified'}, Est. Value: ${form.estimatedValue || 'Not specified'}, Timeline: ${form.timeline || 'Not specified'}`,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to submit');
-      setSuccess(true);
-    } catch {
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  if (success) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="card p-10 text-center">
-          <div className="text-5xl mb-4">🏡</div>
-          <h1 className="font-heading font-bold text-2xl text-navy mb-3">
-            Valuation Request Received!
-          </h1>
-          <p className="text-sm text-muted leading-relaxed max-w-md mx-auto mb-6">
-            Hamza will prepare a complimentary comparative market analysis for your property. Expect a personalized report within 24-48 hours.
-          </p>
-          <a href="/listings" className="btn-primary !px-8 !py-3 no-underline">
-            Browse Investment Listings
-          </a>
-        </div>
-      </div>
-    );
-  }
+  const reviews = GOOGLE_REVIEWS.slice(0, 3);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        {/* Left side - Info */}
-        <div>
-          <h1 className="section-title mb-3">What&apos;s Your Property Worth?</h1>
-          <p className="section-subtitle mb-8">
-            Get a free, no-obligation comparative market analysis from a Mississauga investment specialist
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: `${BASE}/` },
+          { name: 'Sell Your Home', url: `${BASE}/sell` },
+        ]}
+      />
+      <FAQJsonLd items={SELL_FAQ} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(agentServiceSchema) }} />
+
+      {/* ── Hero with embedded form ── */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C]">
+        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pt-12 pb-24 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:pt-16 lg:pb-28">
+          {/* Left: value prop */}
+          <div className="max-w-xl">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
+              Off-market first look
+            </span>
+            <h1 className="mt-4 font-heading text-3xl font-bold leading-tight text-white md:text-4xl lg:text-[2.6rem]">
+              See What an Investor Would Pay for Your Mississauga Home — Before You List
+            </h1>
+            <p className="mt-4 text-sm leading-relaxed text-white/70 md:text-base">
+              Get a free, private <strong className="text-white">Investor Offer Preview</strong> from a network of
+              pre-qualified buyers — plus a data-backed market valuation. Sell quietly and fast, or list for top dollar.
+              You choose.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className={chip}>★ 5.0 on Google</span>
+              <span className={chip}>RECO Licensed</span>
+              <span className={chip}>Cityscape Real Estate</span>
+            </div>
+            <ul className="mt-6 space-y-2.5">
+              {['A real offer preview from active investor buyers', 'Or a full-market listing priced with data for top dollar', 'Free, confidential, zero obligation'].map((b) => (
+                <li key={b} className="flex items-start gap-2.5 text-sm text-white/80">
+                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                  {b}
+                </li>
+              ))}
+            </ul>
+            <a href="#valuation-form" className="btn-primary mt-7 inline-block !px-7 !py-3 no-underline lg:hidden">
+              Get My Investor Offer Preview →
+            </a>
+          </div>
+
+          {/* Right: form */}
+          <div className="lg:pt-1">
+            <ValuationForm id="valuation-form" />
+          </div>
+        </div>
+        <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full opacity-90 md:h-32" />
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* ── Two ways to sell ── */}
+        <section className="py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title mb-3">Two ways to sell — you choose</h2>
+            <p className="section-subtitle mx-auto">
+              Most agents only offer one. Because Hamza has a network of investor buyers, you get both — and the free
+              preview shows you which wins for your home.
+            </p>
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2">
+            {PATHS.map((p) => (
+              <div key={p.title} className="card p-6">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-2xl">{p.icon}</div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-accent">{p.kicker}</p>
+                <h3 className="mt-0.5 font-heading font-semibold text-navy">{p.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{p.body}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-sm text-muted">
+            Not sure which is right? <a href="#valuation-form" className="font-semibold text-accent hover:text-accent-dark no-underline">The free preview shows you both</a>, then you decide.
           </p>
+        </section>
 
-          <div className="space-y-5 mb-8">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success text-sm font-bold">
-                1
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-navy">Comparable Sales Analysis</h3>
-                <p className="text-xs text-muted">Review of recent sales of similar properties in your neighbourhood.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success text-sm font-bold">
-                2
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-navy">Market Positioning</h3>
-                <p className="text-xs text-muted">Strategic pricing recommendation to maximize your return.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success text-sm font-bold">
-                3
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-navy">Investor Network</h3>
-                <p className="text-xs text-muted">Access to our network of pre-qualified investors looking to buy in Mississauga.</p>
-              </div>
-            </div>
-          </div>
+        <SkylineStrip className="h-10 w-full" opacity={0.06} />
 
-          <div className="card bg-cloud p-5">
-            <p className="text-xs text-muted leading-relaxed">
-              As an investment-focused realtor, Hamza understands what investors look for — and positions your property to attract serious, pre-qualified buyers who move quickly and close reliably.
+        {/* ── Differentiators ── */}
+        <section className="py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title mb-3">Why sell with an investment specialist</h2>
+            <p className="section-subtitle mx-auto">
+              Most agents list your home and hope. Hamza brings buyers, data, and an investor’s eye for what makes a home sell.
             </p>
           </div>
-        </div>
-
-        {/* Right side - Form */}
-        <div className="card p-6">
-          <h2 className="font-heading font-semibold text-lg text-navy mb-5">
-            Request Your Free Valuation
-          </h2>
-
-          {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
-                Name <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                required
-                value={form.name}
-                onChange={handleChange}
-                placeholder="Your full name"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {DIFFERENTIATORS.map((d) => (
+              <div key={d.title} className="card p-6">
+                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-2xl">{d.icon}</div>
+                <h3 className="font-heading font-semibold text-navy">{d.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{d.body}</p>
               </div>
-              <div>
-                <label htmlFor="phone" className="mb-1 block text-sm font-medium text-navy">
-                  Phone
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="647-XXX-XXXX"
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
+            ))}
+          </div>
+        </section>
+
+        <SkylineStrip className="h-10 w-full" opacity={0.06} />
+
+        {/* ── How it works ── */}
+        <section className="py-14 md:py-16">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="section-title mb-3">How it works</h2>
+            <p className="section-subtitle mx-auto">Three simple steps, from “what’s it worth?” to sold.</p>
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {STEPS.map((s) => (
+              <div key={s.n} className="card p-6">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-bold text-white">{s.n}</div>
+                <h3 className="mt-3 font-heading font-semibold text-navy" dangerouslySetInnerHTML={{ __html: s.title }} />
+                <p className="mt-1.5 text-sm leading-relaxed text-muted" dangerouslySetInnerHTML={{ __html: s.body }} />
               </div>
-            </div>
-
-            <div>
-              <label htmlFor="address" className="mb-1 block text-sm font-medium text-navy">
-                Property Address <span className="text-red-400">*</span>
-              </label>
-              <input
-                id="address"
-                name="address"
-                type="text"
-                required
-                value={form.address}
-                onChange={handleChange}
-                placeholder="123 Main Street, Mississauga ON"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="propertyType" className="mb-1 block text-sm font-medium text-navy">
-                  Property Type
-                </label>
-                <select
-                  id="propertyType"
-                  name="propertyType"
-                  value={form.propertyType}
-                  onChange={handleChange}
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                >
-                  {PROPERTY_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="estimatedValue" className="mb-1 block text-sm font-medium text-navy">
-                  Estimated Value
-                </label>
-                <input
-                  id="estimatedValue"
-                  name="estimatedValue"
-                  type="text"
-                  value={form.estimatedValue}
-                  onChange={handleChange}
-                  placeholder="e.g. $850,000"
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="timeline" className="mb-1 block text-sm font-medium text-navy">
-                Timeline to Sell
-              </label>
-              <select
-                id="timeline"
-                name="timeline"
-                value={form.timeline}
-                onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              >
-                {SELL_TIMELINES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
-            >
-              {loading ? 'Submitting...' : 'Get Free Valuation'}
-            </button>
-
-            <p className="text-[11px] text-muted text-center">
-              100% free. No obligation. Your information is kept confidential.
-            </p>
-          </form>
-        </div>
+            ))}
+          </div>
+        </section>
       </div>
-    </div>
+
+      {/* ── Social proof ── */}
+      <section className="bg-cloud py-14 md:py-16">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="mb-2 flex items-center justify-center gap-0.5 text-gold" aria-hidden="true">
+              {Array.from({ length: 5 }).map((_, i) => <span key={i} className="text-lg">★</span>)}
+            </div>
+            <h2 className="section-title mb-2">Clients trust Hamza — 5.0 on Google</h2>
+            <p className="section-subtitle mx-auto">Honest advice, done properly. Here’s what people say after working with him.</p>
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {reviews.map((r) => (
+              <figure key={r.name} className="card p-6">
+                <div className="mb-2 flex gap-0.5 text-gold" aria-label={`${r.rating} out of 5 stars`}>
+                  {Array.from({ length: r.rating }).map((_, i) => <span key={i}>★</span>)}
+                </div>
+                <blockquote className="text-sm leading-relaxed text-navy/80">&ldquo;{r.text}&rdquo;</blockquote>
+                <figcaption className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-3 text-xs">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 font-bold text-accent">{r.name.charAt(0)}</span>
+                  <span className="font-semibold text-navy">{r.name}</span>
+                  <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium text-success">Verified Google review</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        {/* ── FAQ ── */}
+        <section className="py-14 md:py-16">
+          <h2 className="section-title mb-6 text-center">Selling your home: common questions</h2>
+          <div className="space-y-4">
+            {SELL_FAQ.map((qa) => (
+              <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 className="font-heading font-semibold text-sm text-navy mb-1.5">{qa.question}</h3>
+                <p className="text-sm leading-relaxed text-muted">{qa.answer}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Final CTA ── */}
+        <section className="pb-16">
+          <div className="rounded-2xl bg-navy p-8 text-center md:p-10">
+            <h2 className="font-heading text-2xl font-bold text-white">See what an investor would pay</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-white/70">
+              Free, private, and grounded in real data. Get your Investor Offer Preview today, or talk it through with Hamza first.
+            </p>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="#valuation-form" className="btn-primary !px-7 no-underline text-center">Get My Investor Offer Preview</a>
+              <Link href="/book-call" className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-7 no-underline text-center">
+                Book a Call with Hamza
+              </Link>
+            </div>
+            <p className="mt-5 text-xs text-white/50">
+              Hamza Nouman, Sales Representative · Cityscape Real Estate Ltd., Brokerage · Licensed by RECO
+            </p>
+          </div>
+        </section>
+      </div>
+    </>
   );
 }
