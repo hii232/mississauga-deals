@@ -511,7 +511,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
             className={`hidden sm:flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
