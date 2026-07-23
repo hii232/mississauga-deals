@@ -1,6 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { GOOGLE_REVIEWS } from '@/lib/constants';
+
+// One real, investor-relevant Google review, shown as proof right at the capture
+// point. Falls back to the first review if that reviewer is ever removed.
+const FEATURED_REVIEW =
+  GOOGLE_REVIEWS.find((r) => r.name === 'Ryan Yau') || GOOGLE_REVIEWS[0] || null;
 
 export function EmailCapture() {
   const [email, setEmail] = useState('');
@@ -84,6 +90,17 @@ export function EmailCapture() {
         </form>
         {status === 'error' && (
           <p role="alert" className="text-xs text-red-500 mt-3">{message}</p>
+        )}
+        {FEATURED_REVIEW && (
+          <figure className="mx-auto mt-6 max-w-sm">
+            <div aria-hidden="true" className="text-gold text-base leading-none tracking-[0.15em]">★★★★★</div>
+            <blockquote className="mt-2 text-sm italic leading-relaxed text-navy/80">
+              &ldquo;{FEATURED_REVIEW.text.length > 132 ? FEATURED_REVIEW.text.slice(0, 130).trimEnd() + '…' : FEATURED_REVIEW.text}&rdquo;
+            </blockquote>
+            <figcaption className="mt-2 text-[11px] font-semibold text-navy/70">
+              &mdash; {FEATURED_REVIEW.name} · Verified Google review · 5.0 on Google (28 reviews)
+            </figcaption>
+          </figure>
         )}
         <p className="text-[11px] text-navy/40 mt-4">
           Free weekly email. No spam, unsubscribe anytime.
