@@ -61,6 +61,13 @@ function HomeDealCard({ deal, photo, isGated }) {
         >
           {score == null ? '—' : score}
         </div>
+        {/* Freshness cue — honest "New" from real days-on-market (1–7d; dom=0 is
+            the missing-data fallback, so it's excluded to avoid false positives) */}
+        {deal.dom >= 1 && deal.dom <= 7 && (
+          <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 rounded-full bg-accent px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
+            New
+          </div>
+        )}
         {/* Investor tags */}
         <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex flex-wrap gap-1">
           {(deal.basementTier === 'legal' || deal.basementTier === 'potential') && (
