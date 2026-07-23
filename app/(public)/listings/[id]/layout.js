@@ -71,21 +71,19 @@ export async function generateMetadata({ params }) {
       description,
       url: `https://www.mississaugainvestor.ca/listings/${listing.id}`,
       type: 'article',
-      ...(photo && {
-        images: [
-          {
-            url: photo,
-            width: 1200,
-            height: 630,
-            alt: address,
-          },
-        ],
-      }),
+      // Prefer the real listing photo; fall back to the branded OG card so a
+      // listing whose photo fetch fails (the /api/photos endpoint occasionally
+      // times out) never shares with a blank preview — realtors share these
+      // links constantly.
+      images: photo
+        ? [{ url: photo, width: 1200, height: 630, alt: address }]
+        : ['/opengraph-image'],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: photo ? [photo] : ['/opengraph-image'],
     },
   };
 }
