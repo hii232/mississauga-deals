@@ -722,21 +722,21 @@ export default async function HomePage() {
                 <span className="text-[11px] font-bold uppercase tracking-wider text-gold">For Mississauga homeowners</span>
               </div>
               <h2 className="mb-2 font-heading text-2xl font-bold text-white md:text-3xl">
-                Thinking of selling? See what an investor would pay.
+                Thinking of selling? Find out what your home is worth.
               </h2>
               <p className="mb-4 max-w-2xl text-sm leading-relaxed text-white/70 md:text-base">
-                Get a free, private Investor Offer Preview from Hamza&apos;s network of pre-qualified buyers — plus a
-                data-backed market valuation. Sell quietly and fast, or list for top dollar. No obligation.
+                Get a free, data-backed home valuation and a plan to sell for the most — precise pricing, professional
+                marketing, and hard negotiation from an agent who knows exactly what today&apos;s buyers pay for. No obligation.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/60 md:justify-start">
-                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free &amp; confidential</span>
-                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Real investor buyers</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free valuation</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Priced with data</span>
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Zero obligation</span>
               </div>
             </div>
             <div className="flex-shrink-0">
               <Link href="/sell" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
-                Get My Free Preview &rarr;
+                Get My Free Valuation &rarr;
               </Link>
             </div>
           </div>
