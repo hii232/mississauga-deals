@@ -140,6 +140,12 @@ export default function GtaListingsPage({ searchParams }) {
               Switch area — Mississauga, all GTA, or any city.
             </span>
           </div>
+          {/* CAP-vs-cash-flow clarifier (matches /listings) so GTA investors
+              aren't confused by a positive cap rate next to negative cash flow. */}
+          <p className="mt-3 text-xs text-slate-400">
+            <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+          </p>
         </div>
         <Suspense>
           <ListingsContainer
