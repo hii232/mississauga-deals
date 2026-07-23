@@ -610,7 +610,7 @@ export default async function HomePage() {
                 <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Property Finder</span>
               </h1>
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-                {heroCount} GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
+                {heroCount} Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
               <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
                 <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
