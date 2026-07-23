@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { HOOD_DATA } from '@/lib/constants';
+import { CITY_COPY } from '@/app/(public)/gta/page';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
@@ -52,6 +53,16 @@ export default async function sitemap() {
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.75,
+  }));
+
+  // ── GTA city pages (/gta?city=X) — each has a unique title/description +
+  // self-canonical, but is only linked from the mega-menu, so list them here
+  // for discovery/indexing (targets "{City} investment properties"). ──
+  const gtaCityPages = Object.keys(CITY_COPY).map((city) => ({
+    url: `${BASE}/gta?city=${encodeURIComponent(city)}`,
+    lastModified: now,
+    changeFrequency: 'daily',
+    priority: 0.7,
   }));
 
   // ── Dynamic listing pages ──
@@ -126,5 +137,5 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch blog posts', err);
   }
 
-  return [...staticPages, ...hoodGuidePages, ...listingPages, ...blogPages];
+  return [...staticPages, ...gtaCityPages, ...hoodGuidePages, ...listingPages, ...blogPages];
 }
