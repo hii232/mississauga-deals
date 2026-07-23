@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -145,6 +146,16 @@ export default function GtaListingsPage({ searchParams }) {
           <p className="mt-3 text-xs text-slate-400">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+          </p>
+          {/* Internal links to the investor guides — passes link equity from the
+              GTA pages and gives search visitors a useful next step. */}
+          <p className="mt-2 text-sm text-slate-500">
+            <span className="text-slate-400">Investor guides:</span>{' '}
+            <Link href="/guides" className="font-medium text-accent hover:text-accent-dark no-underline">All guides</Link>
+            <span className="text-slate-300"> · </span>
+            <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
+            <span className="text-slate-300"> · </span>
+            <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">Townhouse vs condo</Link>
           </p>
         </div>
         <Suspense>
