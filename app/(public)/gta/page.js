@@ -72,14 +72,20 @@ export default function GtaListingsPage({ searchParams }) {
     ? []
     : ['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown', '+ More'];
 
+  // Breadcrumb: add a city node on the city pages so each /gta?city= page gets
+  // its own rich-result trail (Home › GTA Listings › {City}) instead of a
+  // generic one shared across all 28 indexable city pages.
+  const breadcrumbItems = [
+    { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+    { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
+    ...(copy
+      ? [{ name: city, url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(city)}` }]
+      : []),
+  ];
+
   return (
     <main className="min-h-screen bg-cloud">
-      <BreadcrumbJsonLd
-        items={[
-          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
-          { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
-        ]}
-      />
+      <BreadcrumbJsonLd items={breadcrumbItems} />
       <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">
