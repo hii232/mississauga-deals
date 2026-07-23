@@ -759,6 +759,38 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Seller offer band — captures homeowners who land on the homepage */}
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#16223D] via-navy to-[#25355C] p-8 md:p-12">
+          <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full" tone="#0A1122" opacity={0.5} />
+          <div className="relative z-10 flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
+            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 text-4xl">🔑</div>
+            <div className="flex-1">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-gold">For Mississauga homeowners</span>
+              </div>
+              <h2 className="mb-2 font-heading text-2xl font-bold text-white md:text-3xl">
+                Thinking of selling? See what an investor would pay.
+              </h2>
+              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-white/70 md:text-base">
+                Get a free, private Investor Offer Preview from Hamza&apos;s network of pre-qualified buyers — plus a
+                data-backed market valuation. Sell quietly and fast, or list for top dollar. No obligation.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/60 md:justify-start">
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free &amp; confidential</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Real investor buyers</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Zero obligation</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Link href="/sell" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+                Get My Free Preview &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <HowItWorks />
 
       {/* Neighbourhood Preview */}
