@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -41,10 +42,22 @@ export function generateMetadata({ searchParams }) {
   const city = (searchParams?.city || '').trim();
   const copy = CITY_COPY[city];
   if (copy) {
+    const canonical = '/gta?city=' + encodeURIComponent(city);
     return {
       title: copy.h1,
       description: copy.sub,
-      alternates: { canonical: '/gta?city=' + encodeURIComponent(city) },
+      alternates: { canonical },
+      // Per-city social card: without this the 28 city pages inherit the root's
+      // generic OG title (Next uses the parent openGraph when a page omits it),
+      // so a shared Toronto link read "MississaugaInvestor.ca…" not "Toronto…".
+      // Keep the branded /opengraph-image.
+      openGraph: {
+        title: copy.h1,
+        description: copy.sub,
+        url: `https://www.mississaugainvestor.ca${canonical}`,
+        images: ['/opengraph-image'],
+      },
+      twitter: { card: 'summary_large_image', title: copy.h1, description: copy.sub },
     };
   }
   return {
@@ -52,6 +65,12 @@ export function generateMetadata({ searchParams }) {
     description:
       'Browse scored investment properties across the Greater Toronto Area. Cash flow analysis, cap rates, and deal scores on thousands of listings in Toronto, Brampton, Vaughan, Oakville, Hamilton and more.',
     alternates: { canonical: '/gta' },
+    openGraph: {
+      title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
+      description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
+      url: 'https://www.mississaugainvestor.ca/gta',
+      images: ['/opengraph-image'],
+    },
   };
 }
 
@@ -72,25 +91,60 @@ export default function GtaListingsPage({ searchParams }) {
     ? []
     : ['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown', '+ More'];
 
+  // Breadcrumb: add a city node on the city pages so each /gta?city= page gets
+  // its own rich-result trail (Home › GTA Listings › {City}) instead of a
+  // generic one shared across all 28 indexable city pages.
+  const breadcrumbItems = [
+    { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+    { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
+    ...(copy
+      ? [{ name: city, url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(city)}` }]
+      : []),
+  ];
+
+  // On the hub view (no city) mark /gta as the collection page for all the
+  // per-city pages — mirrors the ItemList on /neighbourhoods so search engines
+  // understand the directory and can discover/rank each of the 28 city pages.
+  const cityListSchema = !city
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'GTA Investment Property Markets',
+        itemListElement: Object.keys(CITY_COPY).map((c, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(c)}`,
+          name: CITY_COPY[c].h1 || c,
+        })),
+      }
+    : null;
+
   return (
     <main className="min-h-screen bg-cloud">
-      <BreadcrumbJsonLd
-        items={[
-          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
-          { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
-        ]}
-      />
+      <BreadcrumbJsonLd items={breadcrumbItems} />
+      {cityListSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(cityListSchema) }} />
+      )}
       <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {chips.map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80"
-              >
-                {c}
-              </span>
-            ))}
+            {chips.map((c) =>
+              c === '+ More' ? (
+                <span key={c} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/70">
+                  {c}
+                </span>
+              ) : (
+                // Clickable so a visitor can jump straight to the city (they
+                // looked tappable but were plain text) — also crawlable links.
+                <Link
+                  key={c}
+                  href={`/gta?city=${encodeURIComponent(c)}`}
+                  className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 no-underline transition hover:bg-white/20 hover:text-white"
+                >
+                  {c}
+                </Link>
+              )
+            )}
           </div>
         )}
       </PageHero>
@@ -116,6 +170,22 @@ export default function GtaListingsPage({ searchParams }) {
               Switch area — Mississauga, all GTA, or any city.
             </span>
           </div>
+          {/* CAP-vs-cash-flow clarifier (matches /listings) so GTA investors
+              aren't confused by a positive cap rate next to negative cash flow. */}
+          <p className="mt-3 text-xs text-slate-400">
+            <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+          </p>
+          {/* Internal links to the investor guides — passes link equity from the
+              GTA pages and gives search visitors a useful next step. */}
+          <p className="mt-2 text-sm text-slate-500">
+            <span className="text-slate-400">Investor guides:</span>{' '}
+            <Link href="/guides" className="font-medium text-accent hover:text-accent-dark no-underline">All guides</Link>
+            <span className="text-slate-300"> · </span>
+            <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
+            <span className="text-slate-300"> · </span>
+            <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">Townhouse vs condo</Link>
+          </p>
         </div>
         <Suspense>
           <ListingsContainer
