@@ -105,7 +105,8 @@ export default async function NeighbourhoodGuidePage({ params }) {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
+    <>
+    <div className="max-w-3xl mx-auto px-4 pt-12 pb-28 lg:pb-12">
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -282,5 +283,19 @@ export default async function NeighbourhoodGuidePage({ params }) {
         advice or an appraisal. Hamza Nouman, Sales Representative, Cityscape Real Estate Ltd., Brokerage.
       </p>
     </div>
+
+    {/* Sticky mobile CTA — keeps the primary action reachable while scrolling a
+        long guide (search visitors land here and may never reach the mid-page
+        CTA). z-[150] stays under the cookie banner (z-[200]) until consent;
+        lg:hidden because the desktop layout keeps the in-flow CTA in view. */}
+    <div className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
+      <Link
+        href={`/listings?hood=${encodeURIComponent(name)}`}
+        className="btn-primary flex w-full items-center justify-center !py-3 no-underline"
+      >
+        View {name} Listings &rarr;
+      </Link>
+    </div>
+    </>
   );
 }
