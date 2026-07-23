@@ -99,9 +99,19 @@ export function DealScreener({ listings, loading = false }) {
   const [soldStats, setSoldStats] = useState(null);
   const [showPortfolio, setShowPortfolio] = useState(false);
 
-  // Fetch sold market stats
+  // Fetch sold market stats — SCOPED to the page's city so a GTA page doesn't
+  // show Mississauga sold data. /listings → Mississauga; /gta?city=X → that
+  // city; the /gta "All GTA" hub has no single city, so skip the sold stat
+  // rather than show a misleading one.
   useEffect(() => {
-    fetch('/api/sold-comps?limit=20')
+    let city = 'Mississauga';
+    if (typeof window !== 'undefined') {
+      const c = (new URLSearchParams(window.location.search).get('city') || '').trim();
+      const onGta = window.location.pathname.startsWith('/gta');
+      if (onGta && !c) return; // All-GTA hub — no single-city sold data
+      if (onGta && c) city = c;
+    }
+    fetch(`/api/sold-comps?limit=20&city=${encodeURIComponent(city)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.stats) setSoldStats(data.stats);
