@@ -89,14 +89,18 @@ export default function ExitIntentPopup() {
     setError('');
 
     try {
-      const res = await fetch('/api/lead', {
+      // Subscribe to the weekly top-10 newsletter (deliverable to any email) —
+      // this endpoint also inserts the lead, so Hamza still gets the contact.
+      const params = new URLSearchParams(window.location.search);
+      const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
-          name: '',
           source: 'exit-intent',
-          notes: 'Subscribed via exit-intent popup for daily deal alerts',
+          utm_source: params.get('utm_source') || null,
+          utm_medium: params.get('utm_medium') || null,
+          utm_campaign: params.get('utm_campaign') || null,
         }),
       });
 
@@ -146,12 +150,12 @@ export default function ExitIntentPopup() {
             </svg>
           </div>
           <h2 className="text-2xl font-bold text-white font-heading">
-            {success ? "You're In!" : 'Get Daily Deal Alerts'}
+            {success ? "You're In!" : "Get This Week's Top 10 Cash-Flow Deals"}
           </h2>
           <p className="text-slate-300 mt-2 text-sm leading-relaxed">
             {success
-              ? 'Check your inbox for investment opportunities.'
-              : 'New Mississauga investment properties scored and delivered to your inbox every morning.'}
+              ? 'Your first deal roundup lands Monday.'
+              : 'The highest cash-flow Mississauga investment properties — scored, ranked, and delivered free every Monday.'}
           </p>
         </div>
 
@@ -165,7 +169,7 @@ export default function ExitIntentPopup() {
                 </svg>
               </div>
               <p role="status" className="text-navy font-semibold">Welcome to the inside track.</p>
-              <p className="text-sm text-muted mt-1">You'll get your first alert tomorrow morning.</p>
+              <p className="text-sm text-muted mt-1">Your first top-10 deal roundup lands Monday.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -196,7 +200,7 @@ export default function ExitIntentPopup() {
                     Subscribing...
                   </span>
                 ) : (
-                  'Get Free Daily Alerts'
+                  'Send Me the Deals'
                 )}
               </button>
 
