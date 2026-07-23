@@ -27,8 +27,19 @@ export default function ExitIntentPopup() {
       armed.current = true;
     }, 10000);
 
+    // Don't interrupt visitors who are on a dedicated conversion page with an
+    // off-message BUYER popup — sellers on /sell and anyone mid-booking on
+    // /book-call already have a stronger, page-specific CTA in front of them.
+    // Read the live path so the one-shot stays armed for other pages.
+    const EXCLUDED = ['/sell', '/book-call'];
+    const isExcludedPath = () => {
+      const p = window.location.pathname;
+      return EXCLUDED.some((x) => p === x || p.startsWith(x + '/'));
+    };
+
     const trigger = () => {
       if (!armed.current) return;
+      if (isExcludedPath()) return; // keep armed; fire later on a relevant page
       armed.current = false; // One-shot — whichever intent signal fires first
       setVisible(true);
       trackExitIntent('shown');
