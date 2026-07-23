@@ -41,10 +41,22 @@ export function generateMetadata({ searchParams }) {
   const city = (searchParams?.city || '').trim();
   const copy = CITY_COPY[city];
   if (copy) {
+    const canonical = '/gta?city=' + encodeURIComponent(city);
     return {
       title: copy.h1,
       description: copy.sub,
-      alternates: { canonical: '/gta?city=' + encodeURIComponent(city) },
+      alternates: { canonical },
+      // Per-city social card: without this the 28 city pages inherit the root's
+      // generic OG title (Next uses the parent openGraph when a page omits it),
+      // so a shared Toronto link read "MississaugaInvestor.ca…" not "Toronto…".
+      // Keep the branded /opengraph-image.
+      openGraph: {
+        title: copy.h1,
+        description: copy.sub,
+        url: `https://www.mississaugainvestor.ca${canonical}`,
+        images: ['/opengraph-image'],
+      },
+      twitter: { card: 'summary_large_image', title: copy.h1, description: copy.sub },
     };
   }
   return {
@@ -52,6 +64,12 @@ export function generateMetadata({ searchParams }) {
     description:
       'Browse scored investment properties across the Greater Toronto Area. Cash flow analysis, cap rates, and deal scores on thousands of listings in Toronto, Brampton, Vaughan, Oakville, Hamilton and more.',
     alternates: { canonical: '/gta' },
+    openGraph: {
+      title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
+      description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
+      url: 'https://www.mississaugainvestor.ca/gta',
+      images: ['/opengraph-image'],
+    },
   };
 }
 
