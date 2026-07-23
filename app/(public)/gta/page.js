@@ -108,14 +108,23 @@ export default function GtaListingsPage({ searchParams }) {
       <PageHero compact eyebrow="Greater Toronto Area" title={h1} subtitle={sub}>
         {chips.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {chips.map((c) => (
-              <span
-                key={c}
-                className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80"
-              >
-                {c}
-              </span>
-            ))}
+            {chips.map((c) =>
+              c === '+ More' ? (
+                <span key={c} className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/70">
+                  {c}
+                </span>
+              ) : (
+                // Clickable so a visitor can jump straight to the city (they
+                // looked tappable but were plain text) — also crawlable links.
+                <Link
+                  key={c}
+                  href={`/gta?city=${encodeURIComponent(c)}`}
+                  className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 no-underline transition hover:bg-white/20 hover:text-white"
+                >
+                  {c}
+                </Link>
+              )
+            )}
           </div>
         )}
       </PageHero>
