@@ -607,7 +607,7 @@ export default async function HomePage() {
               <h1 className="font-heading font-bold text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-4">
                 Mississauga Investment
                 <br />
-                <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Deal Finder</span>
+                <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Property Finder</span>
               </h1>
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
                 {heroCount} GTA Investment Properties — Cash Flow, Cap Rate & Deal Score Calculated on Every Listing.
