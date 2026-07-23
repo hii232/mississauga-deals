@@ -711,6 +711,39 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* GTA coverage band — Mississauga is home base, but the platform covers the whole GTA */}
+      <section className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="max-w-2xl">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Now across the whole GTA</span>
+              <h2 className="mt-1 font-heading text-xl font-bold text-navy md:text-2xl">
+                Investing beyond Mississauga? We cover the entire GTA.
+              </h2>
+              <p className="mt-1.5 text-sm text-muted">
+                Every listing scored for cash flow, cap rate, and deal score — now across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton', 'Burlington', 'Milton'].map((c) => (
+                  <Link
+                    key={c}
+                    href={`/gta?city=${encodeURIComponent(c)}`}
+                    className="rounded-full border border-slate-200 bg-cloud px-3 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
+                  >
+                    {c}
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Link href="/gta" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+                Browse all GTA deals &rarr;
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Seller offer band — captures homeowners who land on the homepage */}
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#16223D] via-navy to-[#25355C] p-8 md:p-12">
