@@ -85,6 +85,9 @@ export default function AdminDashboard() {
         <StatCard icon="🚨" label="Overdue" value={stats?.overdue || 0} color="red" />
       </div>
 
+      {/* Import subscribers — CSV upload into the leads database */}
+      <ImportSubscribers />
+
       {/* Announcement broadcast — one-click send of the platform-launch email */}
       <AnnouncementBroadcast />
 
@@ -255,6 +258,77 @@ function AnnouncementBroadcast() {
       {status === 'error' && (
         <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs leading-relaxed text-red-300">
           Couldn&rsquo;t send the draft{result?.error ? `: ${result.error}` : ''}. Check that your admin key is entered and email (Resend) is configured.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Upload a subscriber CSV export (MailerLite, Mailchimp, etc.) straight into the
+// leads database via /api/admin/newsletter-import, using the admin key already in
+// context. The endpoint validates emails, dedupes, and skips anyone already in
+// the database or unsubscribed — so re-uploading the same file is safe.
+function ImportSubscribers() {
+  const { adminKey } = useAdmin();
+  const [status, setStatus] = useState('idle'); // idle | uploading | done | error
+  const [result, setResult] = useState(null);
+  const [fileName, setFileName] = useState('');
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0];
+    if (!file || !adminKey) return;
+    setFileName(file.name);
+    setStatus('uploading');
+    setResult(null);
+    try {
+      const text = await file.text();
+      const res = await fetch('/api/admin/newsletter-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/csv', 'x-admin-key': adminKey },
+        body: text,
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) { setStatus('done'); setResult(data); }
+      else { setStatus('error'); setResult(data); }
+    } catch {
+      setStatus('error');
+      setResult({ error: 'Upload failed — try again.' });
+    }
+    e.target.value = ''; // let the same file be re-selected
+  }
+
+  return (
+    <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-5">
+      <h2 className="text-sm font-bold text-white">📥 Import Subscribers</h2>
+      <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
+        Upload a CSV export (MailerLite, Mailchimp, etc.) to add contacts to your database.
+        Emails already in your database — and anyone unsubscribed — are skipped automatically, so it&rsquo;s safe to re-upload.
+      </p>
+      <div className="mt-3 flex items-center gap-3">
+        <label className={`inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark ${status === 'uploading' || !adminKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+          {status === 'uploading' ? 'Uploading…' : 'Choose CSV file'}
+          <input
+            type="file"
+            accept=".csv,text/csv,text/plain"
+            onChange={handleFile}
+            disabled={status === 'uploading' || !adminKey}
+            className="hidden"
+          />
+        </label>
+        {fileName && <span className="text-xs text-white/40 truncate max-w-[180px]">{fileName}</span>}
+      </div>
+
+      {status === 'done' && (
+        <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-xs leading-relaxed text-green-300">
+          ✅ Imported <span className="font-semibold">{result.imported}</span> new contact{result.imported === 1 ? '' : 's'}.
+          {result.skippedExisting ? ` ${result.skippedExisting} already in your database (skipped).` : ''}
+          {result.invalid ? ` ${result.invalid} row${result.invalid === 1 ? '' : 's'} had no valid email.` : ''}
+          {typeof result.totalNowEligible === 'number' ? ` Your database now has ${result.totalNowEligible.toLocaleString()} eligible contacts.` : ''}
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs leading-relaxed text-red-300">
+          Import failed{result?.error ? `: ${result.error}` : ''}. Check that the file is a CSV with an email column.
         </div>
       )}
     </div>
