@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -169,6 +170,7 @@ export default function TownhouseVsCondoPage() {
 
         <RelatedGuides current="/townhouse-vs-condo-investment" />
       </div>
+      <StickyMobileCTA href="/listings" label="Browse Scored Listings" />
     </>
   );
 }

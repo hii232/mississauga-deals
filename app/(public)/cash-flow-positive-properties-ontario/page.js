@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -155,6 +156,7 @@ export default function CashFlowPositivePage() {
 
         <RelatedGuides current="/cash-flow-positive-properties-ontario" />
       </div>
+      <StickyMobileCTA href="/listings?cf=1&sort=cashflow" label="See Cash-Flowing Listings" />
     </>
   );
 }
