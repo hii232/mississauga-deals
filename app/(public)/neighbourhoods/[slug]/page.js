@@ -48,6 +48,7 @@ export function generateMetadata({ params }) {
     description,
     alternates: { canonical: `/neighbourhoods/${params.slug}` },
     openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
       title,
       description,
       url: `https://www.mississaugainvestor.ca/neighbourhoods/${params.slug}`,

@@ -21,6 +21,7 @@ export const metadata = {
   ],
   alternates: { canonical: '/sell' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Sell Your Home in Mississauga — Free Investor Offer Preview',
     description: 'See what an investor would pay before you list — a free, private preview from a network of pre-qualified buyers, plus a data-backed valuation.',
     url: `${BASE}/sell`,

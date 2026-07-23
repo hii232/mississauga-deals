@@ -18,6 +18,7 @@ export const metadata = {
   ],
   alternates: { canonical: '/rental-property-insurance-mississauga' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: `Rental Property Insurance in Mississauga (${YEAR})`,
     description: 'What landlord insurance covers, why it differs from a homeowner policy, and what drives the cost for a Mississauga rental.',
     url: 'https://www.mississaugainvestor.ca/rental-property-insurance-mississauga',

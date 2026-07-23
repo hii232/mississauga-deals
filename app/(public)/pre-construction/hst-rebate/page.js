@@ -36,6 +36,7 @@ export const metadata = {
     'Ontario HST rebate on new homes explained for Mississauga buyers and investors. Save up to $130,000 on new builds and pre-construction. Learn who qualifies, savings tiers, and eligible property types. April 2026 – March 2027.',
   alternates: { canonical: '/pre-construction/hst-rebate' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
     description:
       'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',

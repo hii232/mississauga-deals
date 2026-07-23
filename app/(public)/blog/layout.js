@@ -3,6 +3,7 @@ export const metadata = {
   description: 'Expert analysis, neighbourhood guides, and investment strategies for Mississauga real estate investors by Hamza Nouman, Cityscape Real Estate Ltd.. Market updates, cash flow analysis, and data-driven insights.',
   alternates: { canonical: '/blog' },
   openGraph: {
+    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
     description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/blog',
