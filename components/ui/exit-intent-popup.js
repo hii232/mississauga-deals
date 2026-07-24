@@ -222,7 +222,7 @@ export default function ExitIntentPopup() {
         {!success && (
           <div className="bg-cloud border-t border-slate-100 px-8 py-4 text-center">
             <p className="text-xs text-muted">
-              <span className="font-semibold text-navy">1,800+</span> active listings tracked daily across Mississauga
+              <span className="font-semibold text-navy">Every</span> new Mississauga &amp; GTA MLS listing — scored for cash flow daily
             </p>
           </div>
         )}
