@@ -170,7 +170,7 @@ function HeroDealCard({ deal, photo }) {
       <div className="relative h-40 overflow-hidden bg-navy/10">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={deal.address} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={photo} alt={deal.address} fetchPriority="high" decoding="async" width={300} height={160} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-navy to-accent/40">
             <svg viewBox="0 0 24 24" className="h-10 w-10 text-white/40" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z" /></svg>

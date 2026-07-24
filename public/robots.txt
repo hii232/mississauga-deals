@@ -10,22 +10,10 @@ Disallow: /recent/
 Disallow: /login
 Disallow: /signup
 
-User-agent: Googlebot
-Allow: /
-Allow: /about
-Allow: /listings
-Allow: /blog
-Allow: /faq
-Allow: /neighbourhoods
-Disallow: /api/
-Disallow: /admin/
-
-User-agent: Bingbot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
 Sitemap: https://www.mississaugainvestor.ca/image-sitemap.xml
 
 # MississaugaInvestor.ca — Hamza Nouman, Cityscape Real Estate Ltd.
+# Single group: robots.txt groups are NOT additive, so bot-specific groups
+# (Googlebot/Bingbot) used to silently drop the private-path Disallows above.
+# One "*" group keeps every crawler on the same complete rule set.
