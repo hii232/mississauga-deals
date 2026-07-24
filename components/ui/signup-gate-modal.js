@@ -91,6 +91,13 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       });
 
       const data = await res.json();
+      // Don't fake success on a server rejection (429 rate-limit, 400, 500) —
+      // that would mark the visitor registered and dismiss the modal while the
+      // lead never reached Hamza. Surface the error and let them retry.
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
       localStorage.setItem('user_registered', 'true');
       trackConversion('signup', { source: 'gate-complete' });
       localStorage.setItem('user_name', `${firstName} ${lastName}`);
@@ -257,7 +264,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(formatPhone(e.target.value))}
-                    placeholder="(647) 555-1234"
+                    placeholder="(647) 361-1234"
                     required
                     className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
