@@ -17,9 +17,26 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
   }, [listings]);
 
   if (listings.length === 0) {
+    // Same high-intent lead moment as the grid view — offer a deal alert rather
+    // than dead-ending an investor whose specific search has no match right now.
     return (
-      <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
-        <p className="text-sm text-slate-500">No properties match your filters</p>
+      <div className="flex min-h-[16rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8">
+        <div className="mx-auto max-w-sm text-center">
+          <p className="text-sm font-semibold text-navy">No properties match your filters right now</p>
+          <p className="mt-1 text-xs text-slate-500">
+            New investment deals are added daily. Get a free alert and we&apos;ll email you the moment one matches your search.
+          </p>
+          <Link
+            href="/alerts"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-accent-dark no-underline"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+            </svg>
+            Get free deal alerts
+          </Link>
+          <p className="mt-3 text-xs text-slate-500">or adjust your search filters to see more</p>
+        </div>
       </div>
     );
   }
