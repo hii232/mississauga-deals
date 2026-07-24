@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { PageHero } from '@/components/layout/page-hero';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
+const BASE = 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
   title: 'How the Deal Score Works — Methodology & Data Sources',
@@ -10,6 +13,12 @@ export const metadata = {
 export default function ScoreMethodologyPage() {
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: `${BASE}/` },
+          { name: 'How the Deal Score Works', url: `${BASE}/score-methodology` },
+        ]}
+      />
       <PageHero
         compact
         eyebrow="Methodology"

@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FAQJsonLd } from '@/components/seo/json-ld';
+import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
+
+const BASE = 'https://www.mississaugainvestor.ca';
 
 const FAQ_DATA = [
   {
@@ -96,6 +98,12 @@ export default function FAQPage() {
   return (
     <>
       <FAQJsonLd items={allItems} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: `${BASE}/` },
+          { name: 'FAQ', url: `${BASE}/faq` },
+        ]}
+      />
 
       {/* Hero */}
       <PageHero
