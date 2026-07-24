@@ -4,6 +4,7 @@ import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
+import { tagRecipient } from '@/lib/emails/recipient-token';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -134,8 +135,12 @@ export async function POST(request) {
         .sort((a, b) => b.hamzaScore - a.hamzaScore)
         .slice(0, 15); // Cap at 15 listings per email
 
-      // 5. Send email via Resend
-      const emailHtml = buildAlertEmail(listings, userData.name || 'Investor', userData.searches);
+      // 5. Send email via Resend (tagRecipient adds per-recipient click
+      // identity so the admin "Who Clicked" list can attribute visits)
+      const emailHtml = tagRecipient(
+        buildAlertEmail(listings, userData.name || 'Investor', userData.searches),
+        email
+      );
 
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',

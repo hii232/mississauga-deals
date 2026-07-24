@@ -45,7 +45,17 @@ function contactsFromCsv(text) {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length < 2) return [];
   const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase().trim());
-  const emailIdx = header.findIndex((h) => h.includes('email'));
+  // Find the email column by name (email / e-mail / email address / subscriber /
+  // contact), then fall back to whichever column actually holds an email in the
+  // first data row — so exports that label it "Subscriber" (MailerLite) or
+  // anything unexpected still import correctly.
+  let emailIdx = header.findIndex(
+    (h) => h.includes('email') || h.includes('e-mail') || h === 'subscriber' || h === 'contact'
+  );
+  if (emailIdx === -1) {
+    const firstRow = parseCsvLine(lines[1]);
+    emailIdx = firstRow.findIndex((v) => EMAIL_RE.test((v || '').trim()));
+  }
   if (emailIdx === -1) return [];
   const nameIdx = header.findIndex((h) => h === 'name' || h.includes('first name') || h === 'first_name' || h === 'fields.name');
   const lastIdx = header.findIndex((h) => h.includes('last name') || h === 'last_name');

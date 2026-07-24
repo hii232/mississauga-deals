@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { unsubscribeToken } from '@/lib/unsubscribe-token';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -33,13 +34,23 @@ export async function GET(request) {
     let allViews = [];
     let cursor = thirtyDaysAgo.toISOString();
     const batchSize = 1000;
+    // subscriber_token powers the "Who Clicked" list; drop it from the select
+    // if its migration hasn't run yet so the dashboard keeps working.
+    let tokenColumn = true;
     while (true) {
+      const cols = tokenColumn
+        ? 'path, referrer, utm_source, created_at, subscriber_token'
+        : 'path, referrer, utm_source, created_at';
       const { data: batch, error: batchErr } = await supabase
         .from('page_views')
-        .select('path, referrer, utm_source, created_at')
+        .select(cols)
         .gt('created_at', cursor)
         .order('created_at', { ascending: true })
         .limit(batchSize);
+      if (batchErr && tokenColumn && /subscriber_token/.test(batchErr.message || '')) {
+        tokenColumn = false;
+        continue;
+      }
       if (batchErr) {
         if (batchErr.code === '42P01' || batchErr.message?.includes('does not exist')) {
           return NextResponse.json({
@@ -104,6 +115,92 @@ export async function GET(request) {
       .slice(0, 10)
       .map(([page, count]) => ({ page, count }));
 
+    // ── Email-campaign clicks ──
+    // Every link in the outbound emails is UTM-tagged, so a visit with one of
+    // these utm_source values IS a click-through from that email. Aggregated
+    // per campaign: total visits, today, and which pages were clicked.
+    // (PageTracker dedupes per path per session, so this counts distinct page
+    // visits per session — not raw taps; per-recipient opens/clicks live in
+    // Resend, since page_views intentionally stores no personal identifiers.)
+    const EMAIL_SOURCES = {
+      announcement: 'Announcement (platform launch)',
+      newsletter: 'Weekly newsletter',
+      alerts: 'Daily deal alerts',
+      welcome: 'Welcome email',
+    };
+    const campaignMap = {};
+    rows.forEach((row) => {
+      const src = row.utm_source;
+      if (!src || !(src in EMAIL_SOURCES)) return;
+      const c = campaignMap[src] || (campaignMap[src] = { total: 0, today: 0, pages: {} });
+      c.total++;
+      if ((row.created_at || '').split('T')[0] === todayKey) c.today++;
+      const page = row.path || '/';
+      c.pages[page] = (c.pages[page] || 0) + 1;
+    });
+    const emailCampaigns = Object.entries(campaignMap)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([key, c]) => ({
+        key,
+        label: EMAIL_SOURCES[key],
+        total: c.total,
+        today: c.today,
+        topPages: Object.entries(c.pages)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6)
+          .map(([page, count]) => ({ page, count })),
+      }));
+
+    // ── Who clicked (per-person email attribution) ──
+    // Outbound email links carry mi=<HMAC(email)>; re-derive each lead's token
+    // here and match, so clicks resolve to a callable contact (name/email/
+    // phone). Only sends AFTER the token rollout carry mi — older sends show
+    // up in the campaign totals but can't be attributed to a person.
+    let clickers = [];
+    try {
+      const tokenRows = rows.filter((r) => r.subscriber_token);
+      if (tokenRows.length > 0 && process.env.CRON_SECRET) {
+        const { data: leadRows } = await supabase
+          .from('leads')
+          .select('email, name, phone')
+          .not('email', 'is', null);
+        const byToken = new Map();
+        for (const l of leadRows || []) {
+          const email = (l.email || '').toLowerCase().trim();
+          if (email) byToken.set(unsubscribeToken(email), l);
+        }
+        const agg = new Map(); // token -> { lead, clicks, lastClick, pages }
+        for (const r of tokenRows) {
+          const lead = byToken.get(r.subscriber_token);
+          if (!lead) continue; // token from a contact no longer in leads
+          const a =
+            agg.get(r.subscriber_token) ||
+            (agg.set(r.subscriber_token, { lead, clicks: 0, lastClick: '', pages: {} }),
+            agg.get(r.subscriber_token));
+          a.clicks++;
+          if ((r.created_at || '') > a.lastClick) a.lastClick = r.created_at;
+          const page = r.path || '/';
+          a.pages[page] = (a.pages[page] || 0) + 1;
+        }
+        clickers = [...agg.values()]
+          .sort((a, b) => b.clicks - a.clicks || (b.lastClick > a.lastClick ? 1 : -1))
+          .slice(0, 100)
+          .map((a) => ({
+            name: a.lead.name || '',
+            email: a.lead.email,
+            phone: a.lead.phone || '',
+            clicks: a.clicks,
+            lastClick: a.lastClick,
+            topPages: Object.entries(a.pages)
+              .sort((x, y) => y[1] - x[1])
+              .slice(0, 3)
+              .map(([page, count]) => ({ page, count })),
+          }));
+      }
+    } catch {
+      // attribution is additive — never break the dashboard over it
+    }
+
     const response = NextResponse.json({
       visitors: {
         daily,
@@ -112,6 +209,8 @@ export async function GET(request) {
       },
       sources,
       topPages,
+      emailCampaigns,
+      clickers,
       needsSetup: false,
     });
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
