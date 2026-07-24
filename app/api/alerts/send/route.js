@@ -41,6 +41,15 @@ export async function POST(request) {
     if (!supabase) {
       return NextResponse.json({ error: 'Alerts are temporarily unavailable' }, { status: 503 });
     }
+    // Fail loudly if the sender isn't configured at all. Without this the run
+    // would look "successful" (sent: 0) while every send was doomed.
+    if (!process.env.RESEND_API_KEY) {
+      console.error('Alerts: RESEND_API_KEY is not set — no alert email can be sent.');
+      return NextResponse.json(
+        { error: 'Email sending is not configured (RESEND_API_KEY missing)', sent: 0 },
+        { status: 503 }
+      );
+    }
     // 1. Fetch all active saved searches
     const { data: searches, error: searchErr } = await supabase
       .from('saved_searches')
@@ -98,6 +107,7 @@ export async function POST(request) {
     }
 
     let sentCount = 0;
+    const failures = [];
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
@@ -170,10 +180,34 @@ export async function POST(request) {
           .from('saved_searches')
           .update({ last_sent_at: new Date().toISOString() })
           .in('id', ids);
+      } else {
+        // A rejected send used to be swallowed silently — the run just reported
+        // "sent: 0" with no reason, so a misconfigured sender (unverified domain
+        // -> 403, bad key -> 401, bad from-address -> 422) looked identical to
+        // "nobody matched today". Capture Resend's own message so one look at
+        // the cron response or the logs says exactly what is wrong.
+        const detail = await resendRes.text().catch(() => '');
+        const reason = `HTTP ${resendRes.status}${detail ? ` — ${detail.slice(0, 300)}` : ''}`;
+        failures.push({ email, reason });
+        console.error(`Alerts: Resend REJECTED the send to ${email}: ${reason}`);
       }
     }
 
-    return NextResponse.json({ message: `Sent ${sentCount} alert emails`, sent: sentCount });
+    if (failures.length) {
+      console.error(
+        `Alerts: ${failures.length} of ${failures.length + sentCount} sends were rejected by Resend. ` +
+          'A 401 means RESEND_API_KEY is wrong; 403 usually means the sending domain is not verified in Resend; ' +
+          '422 usually means RESEND_FROM_EMAIL is not a valid verified sender.'
+      );
+    }
+
+    return NextResponse.json({
+      message: `Sent ${sentCount} alert emails${failures.length ? `, ${failures.length} rejected` : ''}`,
+      sent: sentCount,
+      failed: failures.length,
+      // Surfaced so the daily run is self-diagnosing without dashboard access.
+      failures: failures.slice(0, 5),
+    });
   } catch (err) {
     console.error('Alert send error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });

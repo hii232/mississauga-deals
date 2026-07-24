@@ -6,7 +6,7 @@ const HST_FAQ = [
   {
     question: 'How much is the Ontario HST rebate on new homes?',
     answer:
-      'Up to $130,000, depending on purchase price: homes up to $1,000,000 get the full rebate (effectively ~0% HST), homes between $1M and $1.5M get a flat $130,000, the rebate declines to $24,000 between $1.5M and $1.85M, and above $1.85M only the $24,000 federal portion applies.',
+      'Up to $130,000, depending on purchase price: homes up to $1,000,000 get the full 13% HST rebated (both the 8% provincial and 5% federal portions), homes between $1M and $1.5M get a flat $130,000, the rebate declines from $130,000 to $24,000 between $1.5M and $1.85M, and above $1.85M the existing $24,000 Ontario new housing rebate applies.',
   },
   {
     question: 'Who qualifies for the Ontario HST rebate on new homes?',
@@ -144,7 +144,7 @@ export default function HSTRebatePage() {
             />
             <SavingsTier
               range="Over $1.85M"
-              rebate="$24,000 (federal only)"
+              rebate="$24,000 (provincial)"
               effective="Standard HST"
             />
           </div>
@@ -266,11 +266,18 @@ export default function HSTRebatePage() {
               <p className="text-xs text-white/40 uppercase font-semibold mb-3">With Rebate</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-white/60">Purchase Price</span><span className="font-mono">$850,000</span></div>
+                {/* Under the enhanced rebate a qualifying home at or below $1M
+                    has BOTH HST portions rebated in full, so the split is simply
+                    the two components of the 13%: provincial 8% of $850,000 =
+                    $68,000 and federal 5% = $42,500 (together the $110,500 of HST
+                    charged above). The previous figures (-$104,000 provincial /
+                    -$6,300 federal) were impossible: a provincial rebate cannot
+                    exceed the $68,000 of provincial HST actually paid. */}
                 <div className="flex justify-between"><span className="text-white/60">HST (13%)</span><span className="font-mono">+$110,500</span></div>
-                <div className="flex justify-between"><span className="text-white/60">Provincial Rebate</span><span className="font-mono text-emerald-400">-$104,000</span></div>
-                <div className="flex justify-between"><span className="text-white/60">Federal Rebate</span><span className="font-mono text-emerald-400">-$6,300</span></div>
-                <div className="flex justify-between border-t border-white/10 pt-2"><span className="font-semibold">Total Cost</span><span className="font-mono font-bold">$850,200</span></div>
-                <div className="flex justify-between"><span className="text-emerald-400 font-semibold">You Save</span><span className="font-mono font-bold text-emerald-400">$110,300</span></div>
+                <div className="flex justify-between"><span className="text-white/60">Provincial Rebate (8%)</span><span className="font-mono text-emerald-400">-$68,000</span></div>
+                <div className="flex justify-between"><span className="text-white/60">Federal Rebate (5%)</span><span className="font-mono text-emerald-400">-$42,500</span></div>
+                <div className="flex justify-between border-t border-white/10 pt-2"><span className="font-semibold">Total Cost</span><span className="font-mono font-bold">$850,000</span></div>
+                <div className="flex justify-between"><span className="text-emerald-400 font-semibold">You Save</span><span className="font-mono font-bold text-emerald-400">$110,500</span></div>
               </div>
             </div>
           </div>
