@@ -155,7 +155,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
               {/* Urgency counter */}
               <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-emerald-50 px-4 py-2.5">
                 <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-                <span className="text-xs font-semibold text-emerald-700">388 premium deals available right now</span>
+                <span className="text-xs font-semibold text-emerald-700">New investment deals added daily</span>
               </div>
 
               {error && (
@@ -181,7 +181,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 </button>
               </form>
 
-              <p className="mt-3 text-center text-[11px] text-slate-400">
+              <p className="mt-3 text-center text-[11px] text-slate-500">
                 Free forever. No credit card. No spam.
               </p>
 
@@ -189,17 +189,17 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
               <div className="mt-4 flex items-center justify-center gap-4 border-t border-slate-100 pt-4">
                 <div className="text-center">
                   <p className="text-sm font-bold text-navy">4,000+</p>
-                  <p className="text-[10px] text-slate-400">Listings Scored</p>
+                  <p className="text-[10px] text-slate-500">Listings Scored</p>
                 </div>
                 <div className="h-6 w-px bg-slate-200"></div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-navy">5.0 ★</p>
-                  <p className="text-[10px] text-slate-400">Google Rating</p>
+                  <p className="text-[10px] text-slate-500">Google Rating</p>
                 </div>
                 <div className="h-6 w-px bg-slate-200"></div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-navy">Free</p>
-                  <p className="text-[10px] text-slate-400">No Catch</p>
+                  <p className="text-[10px] text-slate-500">No Catch</p>
                 </div>
               </div>
             </div>
