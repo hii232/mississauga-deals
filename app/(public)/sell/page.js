@@ -147,9 +147,15 @@ export default function SellPage() {
 
       {/* ── Hero with embedded form ── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C]">
-        <div className="relative z-10 mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 pt-12 pb-24 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:pt-16 lg:pb-28">
-          {/* Left: value prop */}
-          <div className="max-w-xl">
+        {/* On mobile the pitch (headline + copy + chips + 3 bullets + a jump
+            link) pushed the valuation form 1.1 screens down — a seller had to
+            scroll past a full screen to reach the one action that converts.
+            Mobile order is now headline → FORM → supporting bullets (flex
+            order); desktop keeps the two-column pitch-beside-form layout via
+            explicit grid placement. */}
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col gap-8 px-4 pt-12 pb-24 sm:px-6 lg:grid lg:grid-cols-2 lg:gap-x-12 lg:gap-y-6 lg:px-8 lg:pt-16 lg:pb-28">
+          {/* Headline block */}
+          <div className="max-w-xl lg:col-start-1 lg:row-start-1">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-gold">
               Free home valuation
             </span>
@@ -166,25 +172,24 @@ export default function SellPage() {
               <span className={chip}>RECO Licensed</span>
               <span className={chip}>Cityscape Real Estate</span>
             </div>
-            <ul className="mt-6 space-y-2.5">
-              {['A free, data-backed valuation of your home', 'A listing priced and marketed to draw competing offers', 'Free, no pressure, zero obligation'].map((b) => (
-                <li key={b} className="flex items-start gap-2.5 text-sm text-white/80">
-                  <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                  {b}
-                </li>
-              ))}
-            </ul>
-            <a href="#valuation-form" className="btn-primary mt-7 inline-block !px-7 !py-3 no-underline lg:hidden">
-              Get My Free Home Valuation →
-            </a>
           </div>
 
-          {/* Right: form */}
-          <div className="lg:pt-1">
+          {/* Form — second on mobile, right column on desktop */}
+          <div className="order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pt-1">
             <ValuationForm id="valuation-form" />
           </div>
+
+          {/* Supporting bullets — after the form on mobile */}
+          <ul className="order-3 space-y-2.5 lg:order-none lg:col-start-1 lg:row-start-2 lg:max-w-xl lg:self-start">
+            {['A free, data-backed valuation of your home', 'A listing priced and marketed to draw competing offers', 'Free, no pressure, zero obligation'].map((b) => (
+              <li key={b} className="flex items-start gap-2.5 text-sm text-white/80">
+                <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                {b}
+              </li>
+            ))}
+          </ul>
         </div>
         <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full opacity-90 md:h-32" />
       </section>
@@ -262,12 +267,29 @@ export default function SellPage() {
         {/* ── FAQ ── */}
         <section className="py-14 md:py-16">
           <h2 className="section-title mb-6 text-center">Selling your home: common questions</h2>
-          <div className="space-y-4">
-            {SELL_FAQ.map((qa) => (
-              <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
-                <h3 className="font-heading font-semibold text-sm text-navy mb-1.5">{qa.question}</h3>
-                <p className="text-sm leading-relaxed text-muted">{qa.answer}</p>
-              </div>
+          {/* Accordion: fully expanded this ran 2.3 screens on mobile — the
+              longest block on the page — pushing the final CTA far down. Native
+              <details> keeps every answer in the HTML (still crawlable, and the
+              FAQPage JSON-LD above is unaffected) with no JS. First one open so
+              the section never reads as empty. */}
+          <div className="space-y-3">
+            {SELL_FAQ.map((qa, i) => (
+              <details
+                key={qa.question}
+                open={i === 0}
+                className="group rounded-xl border border-slate-200 bg-white p-5 [&_summary::-webkit-details-marker]:hidden"
+              >
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                  <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+                  <svg
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent transition-transform group-open:rotate-180"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{qa.answer}</p>
+              </details>
             ))}
           </div>
         </section>

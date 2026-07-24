@@ -234,26 +234,26 @@ export default function AnalyticsPage() {
       {/* Key metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Visitors Today</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Visitors Today</p>
           <p className="font-mono text-2xl font-bold text-blue-400">{visitorToday}</p>
-          <p className="text-[10px] text-white/30">page views</p>
+          <p className="text-[10px] text-white/60">page views</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Total Visitors</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Total Visitors</p>
           <p className="font-mono text-2xl font-bold text-white">{visitorTotal}</p>
-          <p className="text-[10px] text-white/30">last 30 days</p>
+          <p className="text-[10px] text-white/60">last 30 days</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Total Leads</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Total Leads</p>
           <p className="font-mono text-2xl font-bold text-accent">{leads.length}</p>
-          <p className="text-[10px] text-white/30">all time</p>
+          <p className="text-[10px] text-white/60">all time</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Conversion Rate</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Conversion Rate</p>
           <p className="font-mono text-2xl font-bold text-green-400">
             {visitorTotal > 0 ? ((leads.length / visitorTotal) * 100).toFixed(1) : '—'}%
           </p>
-          <p className="text-[10px] text-white/30">visitors to leads</p>
+          <p className="text-[10px] text-white/60">visitors to leads</p>
         </div>
       </div>
 
@@ -262,7 +262,7 @@ export default function AnalyticsPage() {
         <div className="bg-[#141B2D] border border-accent/20 rounded-xl p-5">
           <div className="flex items-baseline justify-between mb-1">
             <h2 className="text-sm font-bold text-white">📧 Email Campaign Clicks</h2>
-            <span className="text-[10px] text-white/30">last 30 days</span>
+            <span className="text-[10px] text-white/60">last 30 days</span>
           </div>
           <p className="text-[11px] text-white/40 mb-4">
             Site visits from links in your emails. Per-person opens &amp; clicks are in your Resend dashboard.
@@ -274,9 +274,9 @@ export default function AnalyticsPage() {
                   <p className="text-xs font-semibold text-white">{c.label}</p>
                   <div className="text-right">
                     <span className="font-mono text-lg font-bold text-accent">{c.total.toLocaleString()}</span>
-                    <span className="ml-1 text-[10px] text-white/30">clicks</span>
+                    <span className="ml-1 text-[10px] text-white/60">clicks</span>
                     {c.today > 0 && (
-                      <span className="ml-2 rounded-full bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 text-[9px] font-bold text-green-400">
+                      <span className="ml-2 rounded-full bg-green-500/10 border border-green-500/20 px-1.5 py-0.5 text-[10px] font-bold text-green-400">
                         +{c.today} today
                       </span>
                     )}
@@ -301,7 +301,7 @@ export default function AnalyticsPage() {
         <div className="bg-[#141B2D] border border-green-500/20 rounded-xl p-5">
           <div className="flex items-baseline justify-between mb-1">
             <h2 className="text-sm font-bold text-white">📞 Who Clicked — Call List</h2>
-            <span className="text-[10px] text-white/30">last 30 days</span>
+            <span className="text-[10px] text-white/60">last 30 days</span>
           </div>
           <p className="text-[11px] text-white/40 mb-4">
             Contacts who clicked a link in your emails, hottest first.
@@ -320,7 +320,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono text-sm font-bold text-green-400">{c.clicks}</span>
-                    <span className="text-[10px] text-white/30">click{c.clicks === 1 ? '' : 's'}</span>
+                    <span className="text-[10px] text-white/60">click{c.clicks === 1 ? '' : 's'}</span>
                     {c.phone ? (
                       <a
                         href={`tel:${c.phone}`}
@@ -352,7 +352,7 @@ export default function AnalyticsPage() {
         {needsSetup ? (
           <div className="text-center py-8">
             <p className="text-sm text-white/40 mb-2">Visitor tracking not set up yet</p>
-            <p className="text-xs text-white/20">Create the <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300">page_views</code> table in Supabase to start tracking</p>
+            <p className="text-xs text-white/55">Create the <code className="bg-white/10 px-1.5 py-0.5 rounded text-blue-300">page_views</code> table in Supabase to start tracking</p>
           </div>
         ) : visitorDaily.length > 0 ? (
           <LineChart data={visitorDaily} height={180} />
@@ -377,7 +377,7 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-white/70">{trafficLabel(source)}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-white/30">{pct}%</span>
+                        <span className="text-xs text-white/60">{pct}%</span>
                         <span className="text-sm font-mono font-bold text-white">{count}</span>
                       </div>
                     </div>
@@ -395,7 +395,7 @@ export default function AnalyticsPage() {
               })}
             </div>
           ) : (
-            <p className="text-sm text-white/30 text-center py-6">No traffic source data yet</p>
+            <p className="text-sm text-white/60 text-center py-6">No traffic source data yet</p>
           )}
         </div>
 
@@ -410,7 +410,7 @@ export default function AnalyticsPage() {
                   className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs font-mono text-white/20 w-5 shrink-0">{i + 1}.</span>
+                    <span className="text-xs font-mono text-white/55 w-5 shrink-0">{i + 1}.</span>
                     <span className="text-sm text-white/60 truncate">{page}</span>
                   </div>
                   <span className="text-sm font-mono font-bold text-blue-400 shrink-0 ml-3">{count}</span>
@@ -418,7 +418,7 @@ export default function AnalyticsPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-white/30 text-center py-6">No page data yet</p>
+            <p className="text-sm text-white/60 text-center py-6">No page data yet</p>
           )}
         </div>
       </div>
@@ -435,24 +435,24 @@ export default function AnalyticsPage() {
       {/* Lead metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Contact Rate</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Contact Rate</p>
           <p className="font-mono text-2xl font-bold text-accent">{analytics?.contactedPct || 0}%</p>
-          <p className="text-[10px] text-white/30">of leads contacted</p>
+          <p className="text-[10px] text-white/60">of leads contacted</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Avg Calls/Lead</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Avg Calls/Lead</p>
           <p className="font-mono text-2xl font-bold text-green-400">{analytics?.avgCalls || '0'}</p>
-          <p className="text-[10px] text-white/30">per contacted lead</p>
+          <p className="text-[10px] text-white/60">per contacted lead</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Avg Response</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Avg Response</p>
           <p className="font-mono text-2xl font-bold text-amber-400">{analytics?.avgResponseHrs || '—'}</p>
-          <p className="text-[10px] text-white/30">to first contact</p>
+          <p className="text-[10px] text-white/60">to first contact</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
-          <p className="text-[9px] uppercase text-white/20 mb-1">Lead Sources</p>
+          <p className="text-[10px] uppercase text-white/55 mb-1">Lead Sources</p>
           <p className="font-mono text-2xl font-bold text-white">{analytics ? Object.keys(analytics.bySource).length : 0}</p>
-          <p className="text-[10px] text-white/30">active channels</p>
+          <p className="text-[10px] text-white/60">active channels</p>
         </div>
       </div>
 
@@ -479,8 +479,8 @@ export default function AnalyticsPage() {
               ))}
             </div>
             <div className="flex justify-between mt-2">
-              <span className="text-[9px] text-white/20">30 days ago</span>
-              <span className="text-[9px] text-white/20">Today</span>
+              <span className="text-[10px] text-white/55">30 days ago</span>
+              <span className="text-[10px] text-white/55">Today</span>
             </div>
           </div>
         )}
@@ -499,7 +499,7 @@ export default function AnalyticsPage() {
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-sm text-white/70">{sourceLabel(source)}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-white/30">{pct}%</span>
+                          <span className="text-xs text-white/60">{pct}%</span>
                           <span className="text-sm font-mono font-bold text-white">{count}</span>
                         </div>
                       </div>
@@ -528,7 +528,7 @@ export default function AnalyticsPage() {
                 className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono text-white/20 w-5">{i + 1}.</span>
+                  <span className="text-xs font-mono text-white/55 w-5">{i + 1}.</span>
                   <span className="text-sm text-white/70">{address}</span>
                 </div>
                 <span className="text-sm font-mono font-bold text-accent">{count}</span>

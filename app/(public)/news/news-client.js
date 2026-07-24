@@ -186,7 +186,7 @@ function ArticleCard({ article, featured = false }) {
       {/* Text */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
-          <span className={`${sourceColor} rounded px-1.5 py-px text-[9px] font-bold uppercase tracking-wider text-white`}>
+          <span className={`${sourceColor} rounded px-1.5 py-px text-[10px] font-bold uppercase tracking-wider text-white`}>
             {article.source}
           </span>
           <span className="text-[11px] text-muted">{timeAgo(article.date)}</span>

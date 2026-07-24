@@ -85,7 +85,7 @@ function ContextStat({ label, value, format, icon, delay }) {
     >
       <span className="text-base shrink-0">{icon}</span>
       <div className="min-w-0">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500">
           {label}
         </p>
         <p className="font-mono text-sm font-bold text-navy truncate">
@@ -291,23 +291,23 @@ export function DealScreener({ listings, loading = false }) {
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg Cash Flow</p>
+                <p className="text-[10px] uppercase text-slate-500 font-medium">Avg Cash Flow</p>
                 <p className={`font-mono text-sm font-bold ${metrics.avgCf >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {formatValue(metrics.avgCf, 'cfPlain')}/mo
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg CoC Return</p>
+                <p className="text-[10px] uppercase text-slate-500 font-medium">Avg CoC Return</p>
                 <p className={`font-mono text-sm font-bold ${metrics.avgCoc >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {Number.isFinite(metrics.avgCoc) ? metrics.avgCoc.toFixed(1) + '%' : '—'}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg Score</p>
+                <p className="text-[10px] uppercase text-slate-500 font-medium">Avg Score</p>
                 <p className="font-mono text-sm font-bold text-navy">{Number.isFinite(metrics.avgScore) ? metrics.avgScore.toFixed(1) + '/10' : '—'}</p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-500 font-medium">Legal Suites</p>
+                <p className="text-[10px] uppercase text-slate-500 font-medium">Legal Suites</p>
                 <p className="font-mono text-sm font-bold text-navy">{metrics.suites.toLocaleString()}</p>
               </div>
             </div>

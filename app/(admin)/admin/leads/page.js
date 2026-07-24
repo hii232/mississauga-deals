@@ -65,7 +65,7 @@ function statusBadge(lead) {
     callback: { label: 'Callback', cls: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
     'not-interested': { label: 'Not Interested', cls: 'bg-red-500/10 text-red-300 border-red-500/20' },
     ghosted: { label: 'Ghosted', cls: 'bg-red-500/10 text-red-400 border-red-500/20' },
-    archived: { label: 'Archived', cls: 'bg-white/5 text-white/30 border-white/10' },
+    archived: { label: 'Archived', cls: 'bg-white/5 text-white/60 border-white/10' },
   };
   return map[status] || { label: status, cls: 'bg-white/5 text-white/40 border-white/10' };
 }
@@ -153,13 +153,13 @@ function LogActivityModal({ lead, onClose, onSave, saving }) {
             <h3 className="text-base font-semibold text-white">Log Activity</h3>
             <p className="text-xs text-white/40">{lead.name || lead.email}</p>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white/60 text-xl">×</button>
+          <button onClick={onClose} className="text-white/60 hover:text-white/60 text-xl">×</button>
         </div>
 
         <div className="p-5 space-y-4">
           {/* Type selector */}
           <div>
-            <label className="text-[10px] uppercase text-white/30 font-semibold mb-2 block">Type</label>
+            <label className="text-[10px] uppercase text-white/60 font-semibold mb-2 block">Type</label>
             <div className="flex gap-2">
               {types.map((t) => (
                 <button
@@ -180,7 +180,7 @@ function LogActivityModal({ lead, onClose, onSave, saving }) {
           {/* Outcome selector (not for notes) */}
           {type !== 'note' && (
             <div>
-              <label className="text-[10px] uppercase text-white/30 font-semibold mb-2 block">Outcome</label>
+              <label className="text-[10px] uppercase text-white/60 font-semibold mb-2 block">Outcome</label>
               <div className="grid grid-cols-2 gap-2">
                 {outcomes.map((o) => (
                   <button
@@ -201,7 +201,7 @@ function LogActivityModal({ lead, onClose, onSave, saving }) {
 
           {/* Notes */}
           <div>
-            <label className="text-[10px] uppercase text-white/30 font-semibold mb-2 block">Notes</label>
+            <label className="text-[10px] uppercase text-white/60 font-semibold mb-2 block">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -238,7 +238,7 @@ function ActivityTimeline({ activities }) {
   if (!activities || activities.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-xs text-white/20">No activity logged yet</p>
+        <p className="text-xs text-white/55">No activity logged yet</p>
       </div>
     );
   }
@@ -262,7 +262,7 @@ function ActivityTimeline({ activities }) {
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-xs font-semibold text-white capitalize">{a.type}</span>
               {a.outcome && a.type !== 'note' && (
-                <span className="text-[10px] text-white/30">
+                <span className="text-[10px] text-white/60">
                   {OUTCOME_LABELS[a.outcome] || a.outcome}
                 </span>
               )}
@@ -465,15 +465,15 @@ export default function LeadsCRM() {
           <div className="flex gap-3">
             <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-3 py-1.5 text-center">
               <p className="text-lg font-bold text-green-400">{stats.newThisWeek}</p>
-              <p className="text-[9px] text-green-400/50 uppercase">New</p>
+              <p className="text-[10px] text-green-400/50 uppercase">New</p>
             </div>
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 text-center">
               <p className="text-lg font-bold text-amber-400">{stats.needsFollowUp}</p>
-              <p className="text-[9px] text-amber-400/50 uppercase">Follow Up</p>
+              <p className="text-[10px] text-amber-400/50 uppercase">Follow Up</p>
             </div>
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-1.5 text-center">
               <p className="text-lg font-bold text-red-400">{stats.overdue}</p>
-              <p className="text-[9px] text-red-400/50 uppercase">Overdue</p>
+              <p className="text-[10px] text-red-400/50 uppercase">Overdue</p>
             </div>
           </div>
         )}
@@ -518,7 +518,7 @@ export default function LeadsCRM() {
 
           {/* Search */}
           <div className="relative flex-1 max-w-xs">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/55" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
             </svg>
             <input
@@ -526,7 +526,7 @@ export default function LeadsCRM() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, email, phone..."
-              className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-accent/30"
+              className="w-full bg-white/[0.04] border border-white/[0.06] rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-accent/30"
             />
           </div>
         </div>
@@ -570,14 +570,14 @@ export default function LeadsCRM() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                       <p className="text-sm font-semibold text-white truncate">{lead.name || '—'}</p>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${sourceColor(lead.source)}`}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${sourceColor(lead.source)}`}>
                         {sourceLabel(lead.source)}
                       </span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
                         {badge.label}
                       </span>
                       {lead.access_revoked && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full border bg-red-500/15 text-red-400 border-red-500/25">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full border bg-red-500/15 text-red-400 border-red-500/25">
                           🚫 Revoked
                         </span>
                       )}
@@ -587,7 +587,7 @@ export default function LeadsCRM() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-white/30 truncate">
+                    <p className="text-xs text-white/60 truncate">
                       {lead.email || 'No email'}{lead.phone ? ` · ${lead.phone}` : ''} · {timeAgo(lead.created_at)}
                     </p>
                   </div>
@@ -595,12 +595,12 @@ export default function LeadsCRM() {
                   {/* Stats */}
                   <div className="hidden sm:flex items-center gap-4 shrink-0">
                     <div className="text-center">
-                      <p className="text-[9px] text-white/20 uppercase">Contacts</p>
+                      <p className="text-[10px] text-white/55 uppercase">Contacts</p>
                       <p className="text-sm font-mono font-bold text-white">{lead.call_count || 0}</p>
                     </div>
                     {lead.next_follow_up && lead.status !== 'archived' && (
                       <div className="text-center">
-                        <p className="text-[9px] text-white/20 uppercase">Follow Up</p>
+                        <p className="text-[10px] text-white/55 uppercase">Follow Up</p>
                         <p className={`text-xs font-medium ${
                           daysUntil(lead.next_follow_up) < 0 ? 'text-red-400' :
                           daysUntil(lead.next_follow_up) <= 2 ? 'text-amber-400' : 'text-white/40'
@@ -617,7 +617,7 @@ export default function LeadsCRM() {
 
                   {/* Chevron */}
                   <svg
-                    className={`h-4 w-4 text-white/20 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 text-white/55 transition-transform ${expanded ? 'rotate-180' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -633,15 +633,15 @@ export default function LeadsCRM() {
                     {/* Contact details */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="bg-white/[0.02] rounded-lg p-3">
-                        <p className="text-[9px] uppercase text-white/20 mb-1">Email</p>
+                        <p className="text-[10px] uppercase text-white/55 mb-1">Email</p>
                         <p className="text-sm text-white font-medium truncate">{lead.email || '—'}</p>
                       </div>
                       <div className="bg-white/[0.02] rounded-lg p-3">
-                        <p className="text-[9px] uppercase text-white/20 mb-1">Phone</p>
+                        <p className="text-[10px] uppercase text-white/55 mb-1">Phone</p>
                         <p className="text-sm text-white font-medium">{lead.phone || '—'}</p>
                       </div>
                       <div className="bg-white/[0.02] rounded-lg p-3">
-                        <p className="text-[9px] uppercase text-white/20 mb-1">Signed Up</p>
+                        <p className="text-[10px] uppercase text-white/55 mb-1">Signed Up</p>
                         <p className="text-sm text-white font-medium">{formatDate(lead.created_at)}</p>
                       </div>
                     </div>
@@ -649,7 +649,7 @@ export default function LeadsCRM() {
                     {/* Quiz notes */}
                     {lead.notes && (
                       <div className="bg-white/[0.02] rounded-lg p-3">
-                        <p className="text-[9px] uppercase text-white/20 mb-1">Saved Search / Quiz</p>
+                        <p className="text-[10px] uppercase text-white/55 mb-1">Saved Search / Quiz</p>
                         <p className="text-sm text-white/70 whitespace-pre-wrap">{lead.notes}</p>
                       </div>
                     )}
@@ -657,7 +657,7 @@ export default function LeadsCRM() {
                     {/* Listing interest */}
                     {lead.listing_address && (
                       <div className="bg-accent/[0.04] border border-accent/10 rounded-lg p-3">
-                        <p className="text-[9px] uppercase text-accent/50 mb-1">Property Interest</p>
+                        <p className="text-[10px] uppercase text-accent/50 mb-1">Property Interest</p>
                         <p className="text-sm text-white font-medium">{lead.listing_address}</p>
                         {lead.listing_price && (
                           <p className="text-xs text-white/40">
@@ -672,9 +672,9 @@ export default function LeadsCRM() {
                     {/* Follow-up tracker */}
                     <div className="bg-white/[0.02] rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-[9px] uppercase text-white/20">Contact Progress</p>
+                        <p className="text-[10px] uppercase text-white/55">Contact Progress</p>
                         {lead.next_follow_up && lead.status !== 'archived' && (
-                          <p className="text-[10px] text-white/30">
+                          <p className="text-[10px] text-white/60">
                             Next follow-up: <span className={
                               daysUntil(lead.next_follow_up) < 0 ? 'text-red-400 font-semibold' : 'text-white/50'
                             }>{formatDate(lead.next_follow_up)}</span>
@@ -696,7 +696,7 @@ export default function LeadsCRM() {
                             />
                           ))}
                         </div>
-                        <span className="text-xs text-white/30">
+                        <span className="text-xs text-white/60">
                           {lead.call_count || 0} contacts · {ghostedCount} no-reply
                           {ghostedCount >= 4 && ' · Auto-archived'}
                         </span>
@@ -705,7 +705,7 @@ export default function LeadsCRM() {
 
                     {/* Activity Timeline */}
                     <div className="bg-white/[0.02] rounded-lg p-3">
-                      <p className="text-[9px] uppercase text-white/20 mb-3">Activity Timeline</p>
+                      <p className="text-[10px] uppercase text-white/55 mb-3">Activity Timeline</p>
                       <ActivityTimeline activities={lead.activities || []} />
                     </div>
 
