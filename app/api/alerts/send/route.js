@@ -284,7 +284,7 @@ function buildAlertEmail(listings, name, searches) {
 
               <div style="text-align: center; margin-top: 28px;">
                 <a href="https://www.mississaugainvestor.ca/listings?${UTM}" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
-                  View All ${listings.length > 5 ? '1,800+' : ''} Listings
+                  Browse All Listings
                 </a>
               </div>
             </td>

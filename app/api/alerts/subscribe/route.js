@@ -1,5 +1,81 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+  PROPERTY_TYPES,
+  STRATEGY_CHIPS,
+  SORT_OPTIONS,
+  NEIGHBOURHOODS,
+} from '@/components/listings/filter-utils';
+
+// Sanitize a saved-search filter object into the SAME canonical shape the
+// listings page uses (DEFAULT_FILTERS) so /api/alerts/send can feed it straight
+// into applyFilters. Only non-default, validated values are kept — everything
+// else is dropped. Previously this route whitelisted a stale, unused key shape
+// (minPrice/hood/…) so every saved search stored {} and every subscriber got
+// the global top-N instead of the deals they actually searched for.
+function sanitizeSavedFilters(raw) {
+  const clean = {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return clean;
+
+  if (typeof raw.search === 'string' && raw.search.trim()) {
+    clean.search = raw.search.trim().slice(0, 100);
+  }
+  if (
+    typeof raw.propertyType === 'string' &&
+    raw.propertyType !== 'All' &&
+    PROPERTY_TYPES.includes(raw.propertyType)
+  ) {
+    clean.propertyType = raw.propertyType;
+  }
+  if (Array.isArray(raw.activeStrategies)) {
+    const valid = raw.activeStrategies.filter((k) => STRATEGY_CHIPS.some((c) => c.key === k));
+    if (valid.length) clean.activeStrategies = valid.slice(0, 12);
+  }
+  if (
+    typeof raw.sortKey === 'string' &&
+    raw.sortKey !== 'score' &&
+    SORT_OPTIONS.some((o) => o.key === raw.sortKey)
+  ) {
+    clean.sortKey = raw.sortKey;
+  }
+  const bounded2 = (arr, lo, hi) => {
+    if (!Array.isArray(arr) || arr.length !== 2) return null;
+    let a = Number(arr[0]);
+    let b = Number(arr[1]);
+    a = Number.isFinite(a) ? Math.min(Math.max(a, lo), hi) : lo;
+    b = Number.isFinite(b) ? Math.min(Math.max(b, lo), hi) : hi;
+    if (a > b) [a, b] = [b, a];
+    return [a, b];
+  };
+  const price = bounded2(raw.priceRange, 0, 3000000);
+  if (price && (price[0] > 0 || price[1] < 3000000)) clean.priceRange = price;
+  const dom = bounded2(raw.domRange, 0, 365);
+  if (dom && (dom[0] > 0 || dom[1] < 365)) clean.domRange = dom;
+
+  for (const key of ['beds', 'baths']) {
+    const v = Number(raw[key]);
+    if (Number.isFinite(v) && v > 0) clean[key] = Math.min(Math.floor(v), 10);
+  }
+  const numeric = {
+    minCapRate: [0, 100],
+    minCashFlow: [-100000, 100000],
+    minCashOnCash: [-100, 100],
+    minDealScore: [0, 10],
+  };
+  for (const [key, [min, max]] of Object.entries(numeric)) {
+    if (raw[key] === undefined || raw[key] === null) continue;
+    const v = Number(raw[key]);
+    if (Number.isFinite(v)) clean[key] = Math.min(Math.max(v, min), max);
+  }
+  if (Array.isArray(raw.neighbourhoods)) {
+    const valid = raw.neighbourhoods.filter((n) => NEIGHBOURHOODS.includes(n));
+    if (valid.length) clean.neighbourhoods = valid.slice(0, 24);
+  }
+  for (const key of ['lrtOnly', 'hasBasementSuite', 'isPowerOfSale']) {
+    if (raw[key] === true) clean[key] = true;
+  }
+  return clean;
+}
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -39,16 +115,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
     }
 
-    // Sanitize filters — only allow known keys with safe values
-    const ALLOWED_FILTER_KEYS = ['minPrice', 'maxPrice', 'minBeds', 'maxBeds', 'type', 'hood', 'minScore', 'sort'];
-    const cleanFilters = {};
-    if (filters && typeof filters === 'object' && !Array.isArray(filters)) {
-      for (const key of ALLOWED_FILTER_KEYS) {
-        if (filters[key] !== undefined && filters[key] !== null) {
-          cleanFilters[key] = typeof filters[key] === 'string' ? filters[key].slice(0, 100) : Number(filters[key]) || 0;
-        }
-      }
-    }
+    // Sanitize filters into the canonical listings filter shape (see helper)
+    const cleanFilters = sanitizeSavedFilters(filters);
 
     const cleanEmail = email.trim().toLowerCase();
 
