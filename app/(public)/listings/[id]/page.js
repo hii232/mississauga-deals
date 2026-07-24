@@ -54,6 +54,7 @@ function Slider({ label, value, onChange, min, max, step, suffix = '' }) {
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
+        aria-label={label || 'Adjust value'}
         className="w-full accent-accent"
       />
     </div>
@@ -395,8 +396,7 @@ function BRRRTab({ listing, initialARV }) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm text-muted">Refinance LTV</label>
-          <Slider label="" value={refinanceLTV} onChange={setRefinanceLTV} min={50} max={80} step={5} suffix="%" />
+          <Slider label="Refinance LTV" value={refinanceLTV} onChange={setRefinanceLTV} min={50} max={80} step={5} suffix="%" />
         </div>
       </div>
 

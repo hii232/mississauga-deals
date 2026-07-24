@@ -1,18 +1,27 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 // ── Floating Contact Button (site-wide) ──
 export function FloatingContactButton() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  // Listing-detail pages render a full-width sticky "Book a Viewing" bar at the
+  // bottom on mobile (lg:hidden). Lift the FAB (and its panel) above that bar on
+  // those pages so the two conversion CTAs don't overlap; leave the FAB at its
+  // normal spot everywhere else.
+  const hasStickyBar = !!pathname && pathname.startsWith('/listings/') && pathname !== '/listings';
+  const fabBottom = hasStickyBar ? 'bottom-24 lg:bottom-6' : 'bottom-6';
+  const panelBottom = hasStickyBar ? 'bottom-40 lg:bottom-24' : 'bottom-24';
 
   return (
     <>
       {/* Floating Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-all hover:bg-accent-dark hover:scale-105 active:scale-95"
+        className={`fixed ${fabBottom} right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-all hover:bg-accent-dark hover:scale-105 active:scale-95`}
         aria-label="Contact Hamza"
       >
         {open ? (
@@ -28,7 +37,7 @@ export function FloatingContactButton() {
 
       {/* Contact Panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 w-72 rounded-xl bg-white border border-slate-200 shadow-2xl overflow-hidden animate-slideUp">
+        <div className={`fixed ${panelBottom} right-6 z-50 w-72 rounded-xl bg-white border border-slate-200 shadow-2xl overflow-hidden animate-slideUp`}>
           {/* Header */}
           <div className="bg-navy px-5 py-4">
             <h3 className="font-heading font-semibold text-white text-sm">

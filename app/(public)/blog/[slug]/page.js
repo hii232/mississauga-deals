@@ -155,11 +155,19 @@ export default async function BlogPostPage({ params }) {
               </div>
             </div>
 
+            {/* Fixed aspect box (matches the 1200x630 generated covers) +
+                object-cover so the browser reserves the full image area before
+                load — the LCP cover no longer shifts the whole article down when
+                it arrives (was an unsized w-full img => large CLS on the top-
+                traffic page type). */}
             <img
               src={blogCoverUrl(post)}
               alt={post.title}
+              width={1200}
+              height={630}
               fetchPriority="high"
-              className="w-full rounded-xl mb-8 shadow-md"
+              decoding="async"
+              className="w-full aspect-[1200/630] object-cover rounded-xl mb-8 shadow-md"
             />
 
             <MarkdownRenderer content={post.content} />
