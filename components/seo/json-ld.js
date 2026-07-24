@@ -1,4 +1,7 @@
-'use client';
+// These components only emit a <script type="application/ld+json"> tag — no
+// hooks, no interactivity — so they render fine as server components. Without
+// 'use client' the JSON-LD still lands in the SSR HTML (unchanged for SEO) but
+// stops shipping this module into every page's client bundle.
 
 // ── Person Schema — Hamza Nouman identity for Google Knowledge Panel ──
 export function PersonJsonLd() {
@@ -113,13 +116,12 @@ export function OrganizationJsonLd() {
       closes: '21:00',
     },
     priceRange: '$$',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '5.0',
-      reviewCount: '28',
-      bestRating: '5',
-      worstRating: '1',
-    },
+    // NOTE: no aggregateRating here. This LocalBusiness/RealEstateAgent schema
+    // renders on EVERY page via the root layout — listings, blog, tools, legal —
+    // where those reviews aren't shown. A self-serving rating on pages that
+    // don't display the underlying reviews is exactly the pattern Google's
+    // rich-results policy prohibits, and risks the whole markup being discarded
+    // or a manual action. A rating belongs only on a page that shows the reviews.
     parentOrganization: {
       '@type': 'RealEstateAgent',
       name: 'Cityscape Real Estate Ltd., Brokerage',
