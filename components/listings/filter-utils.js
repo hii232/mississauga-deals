@@ -138,8 +138,11 @@ export function deserializeFilters(searchParams) {
   if (dmin) f.domRange = [Number(dmin) || 0, f.domRange[1]];
   const dmax = searchParams.get('dmax');
   if (dmax) f.domRange = [f.domRange[0], Number(dmax) || 365];
-  const hoods = searchParams.get('hoods');
-  if (hoods) f.neighbourhoods = hoods.split(',');
+  // Accept both `hoods` (canonical, comma-separated) and a singular `hood`
+  // (safety net for any older/external link) so a neighbourhood CTA always
+  // filters instead of dumping the visitor on the full unfiltered list.
+  const hoods = searchParams.get('hoods') || searchParams.get('hood');
+  if (hoods) f.neighbourhoods = hoods.split(',').map((h) => h.trim()).filter(Boolean);
   if (searchParams.get('lrt') === '1') f.lrtOnly = true;
   if (searchParams.get('suite') === '1') f.hasBasementSuite = true;
   if (searchParams.get('pos') === '1') f.isPowerOfSale = true;

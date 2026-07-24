@@ -241,7 +241,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
 
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3 mb-10">
-        <Link href={`/listings?hood=${encodeURIComponent(name)}`} className="btn-primary !px-6 !py-3 text-center no-underline">
+        <Link href={`/listings?hoods=${encodeURIComponent(name)}`} className="btn-primary !px-6 !py-3 text-center no-underline">
           View Live Listings in {name} →
         </Link>
         <Link href="/book-call" className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-navy hover:border-navy/30 transition text-center no-underline">

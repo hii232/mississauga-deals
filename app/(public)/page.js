@@ -585,10 +585,15 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
 export default async function HomePage() {
   const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
 
-  // Live listing count for the hero, rounded down to the hundred so it never overstates
+  // Live listing count for the hero — always feed-driven, never a hardcoded
+  // figure. ≥500: round DOWN to the hundred as "N+" (never overstates). <500:
+  // show the exact real count. 0 / feed down: null, so the hero simply omits the
+  // number instead of fabricating "2,000+" (which was ~5× the real inventory).
   const heroCount = topDeals.totalCount >= 500
     ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
-    : '2,000+';
+    : topDeals.totalCount > 0
+      ? topDeals.totalCount.toLocaleString()
+      : null;
 
   const heroDeal = topDeals.deals[0] || null;
 
@@ -622,7 +627,7 @@ export default async function HomePage() {
                 <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Property Finder</span>
               </h1>
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-                {heroCount} Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
+                {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
               <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
                 <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
@@ -637,7 +642,7 @@ export default async function HomePage() {
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
                     key={hood}
-                    href={`/listings?hood=${encodeURIComponent(hood)}`}
+                    href={`/listings?hoods=${encodeURIComponent(hood)}`}
                     className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
                   >
                     {hood}
@@ -645,7 +650,7 @@ export default async function HomePage() {
                 ))}
               </div>
 
-              <HeroButtons />
+              <HeroButtons count={heroCount} />
 
               <div className="mt-6">
                 <TrustChips />

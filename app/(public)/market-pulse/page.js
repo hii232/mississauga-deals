@@ -297,7 +297,7 @@ export default function MarketPulsePage() {
                 <div className="flex items-center gap-2">
                   <span>{data.emoji}</span>
                   <Link
-                    href={`/listings?hood=${encodeURIComponent(name)}`}
+                    href={`/listings?hoods=${encodeURIComponent(name)}`}
                     className="text-sm font-medium text-navy hover:text-accent no-underline"
                   >
                     {name}
@@ -316,7 +316,7 @@ export default function MarketPulsePage() {
               {warmHoods.map(([name]) => (
                 <Link
                   key={name}
-                  href={`/listings?hood=${encodeURIComponent(name)}`}
+                  href={`/listings?hoods=${encodeURIComponent(name)}`}
                   className="text-[11px] text-muted hover:text-accent bg-cloud rounded-full px-2.5 py-1 no-underline"
                 >
                   {name}
@@ -330,7 +330,7 @@ export default function MarketPulsePage() {
               {coolHoods.map(([name]) => (
                 <Link
                   key={name}
-                  href={`/listings?hood=${encodeURIComponent(name)}`}
+                  href={`/listings?hoods=${encodeURIComponent(name)}`}
                   className="text-[11px] text-muted hover:text-accent bg-cloud rounded-full px-2.5 py-1 no-underline"
                 >
                   {name}
