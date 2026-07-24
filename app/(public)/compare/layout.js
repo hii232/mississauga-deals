@@ -9,6 +9,11 @@ export const metadata = {
     description: 'Side-by-side investment comparison: cash flow, cap rate, deal score, and more.',
     url: 'https://www.mississaugainvestor.ca/compare',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Compare Investment Properties — MississaugaInvestor.ca',
+    description: 'Side-by-side investment comparison: cash flow, cap rate, deal score, and more.',
+  },
 };
 
 export default function CompareLayout({ children }) {

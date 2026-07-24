@@ -16,6 +16,12 @@ export const metadata = {
       'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',
     url: 'https://www.mississaugainvestor.ca/recent-sales',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales`,
+    description:
+      'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',
+  },
 };
 
 export default function RecentSalesPage() {
