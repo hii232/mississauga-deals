@@ -1,3 +1,5 @@
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+
 export const metadata = {
   title: 'Deal Alerts — Get Notified of New Mississauga Investment Deals',
   description:
@@ -12,5 +14,15 @@ export const metadata = {
 };
 
 export default function AlertsLayout({ children }) {
-  return children;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Deal Alerts', url: 'https://www.mississaugainvestor.ca/alerts' },
+        ]}
+      />
+      {children}
+    </>
+  );
 }

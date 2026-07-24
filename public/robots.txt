@@ -1,31 +1,19 @@
+# MississaugaInvestor.ca — Hamza Nouman, Cityscape Real Estate Ltd.
+#
+# One group for all crawlers. Per the robots.txt spec a crawler obeys only its
+# most specific matching group — earlier bot-specific Googlebot/Bingbot groups
+# were silently CANCELLING these rules for exactly the two bots that matter.
+#
+# User pages (/profile, /saved, /recent) and auth pages (/login, /signup) are
+# excluded via `robots: noindex` metadata instead of a crawl block: Google can
+# only see a noindex directive on pages it is allowed to crawl.
+
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
 Disallow: /admin.html
 Disallow: /_next/
-Disallow: /profile/
-Disallow: /saved/
-Disallow: /recent/
-Disallow: /login
-Disallow: /signup
-
-User-agent: Googlebot
-Allow: /
-Allow: /about
-Allow: /listings
-Allow: /blog
-Allow: /faq
-Allow: /neighbourhoods
-Disallow: /api/
-Disallow: /admin/
-
-User-agent: Bingbot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
 Sitemap: https://www.mississaugainvestor.ca/image-sitemap.xml
-
-# MississaugaInvestor.ca — Hamza Nouman, Cityscape Real Estate Ltd.

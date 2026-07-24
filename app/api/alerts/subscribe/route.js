@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeSavedSearchFilters } from '@/lib/alerts/sanitize-filters';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -39,16 +40,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
     }
 
-    // Sanitize filters — only allow known keys with safe values
-    const ALLOWED_FILTER_KEYS = ['minPrice', 'maxPrice', 'minBeds', 'maxBeds', 'type', 'hood', 'minScore', 'sort'];
-    const cleanFilters = {};
-    if (filters && typeof filters === 'object' && !Array.isArray(filters)) {
-      for (const key of ALLOWED_FILTER_KEYS) {
-        if (filters[key] !== undefined && filters[key] !== null) {
-          cleanFilters[key] = typeof filters[key] === 'string' ? filters[key].slice(0, 100) : Number(filters[key]) || 0;
-        }
-      }
-    }
+    // Sanitize into the CANONICAL client/applyFilters filter shape — the same
+    // shape the Save-Search button sends and the daily cron consumes. (The old
+    // allow-list here was a disjoint legacy format, so every saved search
+    // stored ~empty filters and alerts matched everything.) Legacy simple keys
+    // (minPrice/maxPrice/minBeds/type/hood/minScore) are mapped in for
+    // backward compatibility.
+    const cleanFilters = sanitizeSavedSearchFilters(filters);
 
     const cleanEmail = email.trim().toLowerCase();
 

@@ -170,7 +170,7 @@ function HeroDealCard({ deal, photo }) {
       <div className="relative h-40 overflow-hidden bg-navy/10">
         {photo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={deal.address} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img src={photo} alt={deal.address} fetchPriority="high" decoding="async" width={300} height={160} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-navy to-accent/40">
             <svg viewBox="0 0 24 24" className="h-10 w-10 text-white/40" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z" /></svg>
@@ -585,10 +585,18 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
 export default async function HomePage() {
   const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
 
-  // Live listing count for the hero, rounded down to the hundred so it never overstates
-  const heroCount = topDeals.totalCount >= 500
-    ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
-    : '2,000+';
+  // Live listing count for the hero, straight from the active listing feed.
+  // Rounded down to the hundred for large counts so it never overstates; the
+  // exact number for smaller counts; and null when the feed returns nothing —
+  // in which case the hero omits the number rather than fabricate one (the old
+  // code fell back to a hardcoded "2,000+", which overstated the real ~few-hundred
+  // Mississauga inventory whenever totalCount was < 500 or the feed was down).
+  const heroCount =
+    topDeals.totalCount >= 500
+      ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
+      : topDeals.totalCount > 0
+        ? topDeals.totalCount.toLocaleString()
+        : null;
 
   const heroDeal = topDeals.deals[0] || null;
 
@@ -622,7 +630,7 @@ export default async function HomePage() {
                 <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Property Finder</span>
               </h1>
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-                {heroCount} Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
+                {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
               <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
                 <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
@@ -645,7 +653,7 @@ export default async function HomePage() {
                 ))}
               </div>
 
-              <HeroButtons />
+              <HeroButtons count={heroCount} />
 
               <div className="mt-6">
                 <TrustChips />

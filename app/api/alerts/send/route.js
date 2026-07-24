@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
+import { poolForSearch } from '@/lib/alerts/sanitize-filters';
+import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 
 const supabase =
@@ -63,6 +65,29 @@ export async function POST(request) {
     // /api/listings returns { listings, page, ... } — processListings needs the array
     const allListings = processListings(rawListings.listings || rawListings);
 
+    // 2b. GTA pool — only fetched when some saved search is scoped outside
+    // Mississauga (filters.city set by the save-search flow on /gta pages).
+    // A GTA feed failure must not kill Mississauga alerts: those searches just
+    // match nothing this run, and the error is logged for diagnosis.
+    let gtaListings = [];
+    const needsGta = searches.some(
+      (s) => s.filters && s.filters.city && s.filters.city !== 'Mississauga'
+    );
+    if (needsGta) {
+      try {
+        const gtaRes = await fetch(`${SITE_URL}/api/listings-gta`);
+        const gtaCtype = gtaRes.headers.get('content-type') || '';
+        if (gtaRes.ok && gtaCtype.includes('application/json')) {
+          const rawGta = await gtaRes.json();
+          gtaListings = processListings(rawGta.listings || rawGta);
+        } else {
+          console.error(`Alerts: GTA listings fetch failed (HTTP ${gtaRes.status}, content-type: ${gtaCtype || 'none'})`);
+        }
+      } catch (err) {
+        console.error('Alerts: GTA listings fetch error', err);
+      }
+    }
+
     // 3. Group searches by email (one email per user)
     const byEmail = {};
     for (const search of searches) {
@@ -82,8 +107,13 @@ export async function POST(request) {
         // Merge saved filters with defaults
         const filters = { ...DEFAULT_FILTERS, ...search.filters };
 
+        // Match against the search's own region: Mississauga feed by default
+        // (incl. legacy rows with no city), GTA feed for GTA-scoped searches
+        // (whole-GTA sentinel or filtered to the saved city).
+        const pool = poolForSearch(search.filters, allListings, gtaListings);
+
         // Apply filters to get matching listings
-        const matched = applyFilters(allListings, filters);
+        const matched = applyFilters(pool, filters);
 
         // Only include "new" listings (DOM <= 3 or first alert)
         const isFirstAlert = !search.last_sent_at;
@@ -123,6 +153,12 @@ export async function POST(request) {
           to: email,
           subject: alertSubject(listings),
           html: emailHtml,
+          // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
+          // rules for a daily list send. Missing it depresses inbox placement.
+          headers: {
+            'List-Unsubscribe': `<${unsubscribeUrl(email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
         }),
       });
 
@@ -172,6 +208,14 @@ function esc(s) {
   ));
 }
 
+// Price for the email row: $1M+ as "$X.XXM" (was "$1050K"), and empty when the
+// price is missing (was "$0K" because price is guarded to 0 upstream).
+function fmtPrice(p) {
+  if (!Number.isFinite(p) || p <= 0) return '';
+  if (p >= 1000000) return '$' + (p / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  return '$' + Math.round(p / 1000) + 'K';
+}
+
 const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 
 /**
@@ -205,7 +249,7 @@ function buildAlertEmail(listings, name, searches) {
                 </div>
               </td>
               <td style="text-align: right; vertical-align: top;">
-                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">$${(price / 1000).toFixed(0)}K</div>
+                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">${fmtPrice(price)}</div>
                 <div style="display: inline-block; background: ${scoreBg}; color: white; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-top: 4px;">
                   ${score == null ? '—' : score.toFixed(1)}
                 </div>
@@ -248,6 +292,11 @@ function buildAlertEmail(listings, name, searches) {
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin: 0; padding: 0; background: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- Preheader: the inbox preview snippet. Hidden in the body but shown by the
+       client next to the subject — prime open-rate real estate. -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F8FAFC;opacity:0;">
+    ${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search — cash flow, cap rate &amp; deal score on each.
+  </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background: #F8FAFC; padding: 32px 16px;">
     <tr>
       <td align="center">
@@ -284,7 +333,7 @@ function buildAlertEmail(listings, name, searches) {
 
               <div style="text-align: center; margin-top: 28px;">
                 <a href="https://www.mississaugainvestor.ca/listings?${UTM}" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
-                  View All ${listings.length > 5 ? '1,800+' : ''} Listings
+                  Browse All Listings
                 </a>
               </div>
             </td>
@@ -296,6 +345,7 @@ function buildAlertEmail(listings, name, searches) {
               <div style="color: #64748B; font-size: 12px; line-height: 1.6;">
                 Hamza Nouman, Sales Representative<br>
                 Cityscape Real Estate Ltd., Brokerage<br>
+                885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5<br>
                 647-609-1289 · hamza@nouman.ca
               </div>
               <div style="margin-top: 16px;">

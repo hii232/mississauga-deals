@@ -63,6 +63,16 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
         </div>
 
+        {/* Freshness cue — honest "New" from real days-on-market. Only 1–7 days:
+            dom=0 is the missing-data fallback (process-listings), so excluding it
+            means the badge never false-positives on a listing of unknown age. */}
+        {listing.dom >= 1 && listing.dom <= 7 && (
+          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/90" aria-hidden="true" />
+            New
+          </div>
+        )}
+
         {/* Tags row */}
         <div className="absolute bottom-3 left-3 flex gap-1.5">
           {listing.basementTier === 'legal' && (

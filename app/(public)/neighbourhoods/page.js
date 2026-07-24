@@ -130,7 +130,7 @@ export default function NeighbourhoodsPage() {
                   <h3 className="font-heading text-lg font-bold text-white drop-shadow-sm">{name}</h3>
                   <div className="flex-shrink-0 rounded-xl bg-white/95 px-3 py-1.5 text-center shadow-md">
                     <p className="text-lg font-extrabold leading-none text-accent">{rentYield != null ? `${rentYield}%` : '—'}</p>
-                    <p className="text-[8px] font-bold uppercase tracking-wide text-muted">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
                       Rent Yield{isLive && <span className="ml-0.5 text-emerald-600">·Live</span>}
                     </p>
                   </div>
@@ -141,21 +141,21 @@ export default function NeighbourhoodsPage() {
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">Avg Price</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Avg Price</p>
                   <p className="text-sm font-bold text-navy">{fmtK(avgPrice)}</p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">YoY Change*</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">YoY Change*</p>
                   <p className={`text-sm font-bold ${data.priceYoY >= 4 ? 'text-success' : data.priceYoY >= 2.5 ? 'text-gold-dark' : 'text-muted'}`}>
                     +{data.priceYoY}%
                   </p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">Avg DOM</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Avg DOM</p>
                   <p className="text-sm font-bold text-navy">{avgDOM != null ? `${avgDOM} days` : '—'}</p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
-                  <p className="text-[10px] font-medium uppercase text-slate-400">Inventory*</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Inventory*</p>
                   <p className={`text-sm font-bold ${data.inventory === 'Low' ? 'text-red-500' : data.inventory === 'Medium' ? 'text-gold-dark' : 'text-muted'}`}>
                     {data.inventory}
                   </p>
@@ -164,7 +164,7 @@ export default function NeighbourhoodsPage() {
 
               {/* Hamza's Note */}
               <div className="mb-4">
-                <p className="text-[11px] font-medium text-slate-400 uppercase mb-1">Hamza&apos;s Take</p>
+                <p className="text-[11px] font-medium text-slate-500 uppercase mb-1">Hamza&apos;s Take</p>
                 <p className="text-xs text-navy/70 leading-relaxed italic">
                   &ldquo;{data.note}&rdquo;
                 </p>
@@ -220,11 +220,11 @@ export default function NeighbourhoodsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400">Address</th>
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">City</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400">Sold Price</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400">vs List</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400 hidden md:table-cell">Date</th>
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">City</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold Price</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden md:table-cell">Date</th>
                 </tr>
               </thead>
               <tbody>

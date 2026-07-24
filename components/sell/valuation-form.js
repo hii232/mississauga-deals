@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState } from 'react';
 
@@ -75,6 +76,7 @@ export function ValuationForm({ id }) {
       });
       if (!res.ok) throw new Error('Failed to submit');
       setSuccess(true);
+      trackConversion('lead_submit', { source: 'seller-valuation' });
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {

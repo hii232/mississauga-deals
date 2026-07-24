@@ -1,8 +1,9 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useRef, useEffect } from 'react';
 
-export function SaveSearchButton({ filters }) {
+export function SaveSearchButton({ filters, city }) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -58,6 +59,8 @@ export function SaveSearchButton({ filters }) {
         hasBasementSuite: filters.hasBasementSuite || false,
         isPowerOfSale: filters.isPowerOfSale || false,
         sortKey: filters.sortKey || 'score',
+        // Region scope — which feed/city the daily cron matches this search against
+        city: city || 'Mississauga',
       };
 
       const res = await fetch('/api/alerts/subscribe', {
@@ -74,6 +77,7 @@ export function SaveSearchButton({ filters }) {
       if (!res.ok) throw new Error(data.error || 'Failed to save');
 
       setSuccess(true);
+      trackConversion('alert_create', { source: 'save-search', city: city || 'Mississauga' });
       localStorage.setItem('user_email', email.trim().toLowerCase());
       if (name) localStorage.setItem('user_name', name.trim());
       localStorage.setItem('user_registered', 'true');
@@ -97,6 +101,8 @@ export function SaveSearchButton({ filters }) {
     if (filters.beds) parts.push(`${filters.beds}+ beds`);
     if (filters.activeStrategies?.length > 0) parts.push(filters.activeStrategies.join(', '));
     if (filters.neighbourhoods?.length > 0) parts.push(filters.neighbourhoods.slice(0, 2).join(', '));
+    const scope = city && city !== 'Mississauga' ? (city === 'GTA' ? 'All GTA' : city) : '';
+    if (scope) parts.unshift(scope);
     return parts.length > 0 ? parts.join(' · ') : 'All listings';
   };
 

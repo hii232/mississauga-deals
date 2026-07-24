@@ -116,6 +116,51 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch listings', err);
   }
 
+  // ── GTA listing pages (Toronto + other cities) ──
+  // Same /listings/{id} detail route, but the main /api/listings feed is
+  // Mississauga-only, so without this the GTA listing detail pages aren't in
+  // the sitemap and Google can't discover them (they win address queries).
+  // Bounded to a few pages + its own try/catch so it can never break the map.
+  let gtaListingPages = [];
+  try {
+    const baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : 'https://www.mississaugainvestor.ca';
+
+    const res = await fetch(`${baseUrl}/api/listings-gta?limit=200&page=1`, {
+      next: { revalidate: 3600 },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const all = [...(data.listings || [])];
+      const totalPages = data.pages || 1;
+      if (totalPages > 1) {
+        const promises = [];
+        for (let p = 2; p <= Math.min(totalPages, 5); p++) {
+          promises.push(
+            fetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`, {
+              next: { revalidate: 3600 },
+            }).then((r) => (r.ok ? r.json() : { listings: [] }))
+          );
+        }
+        (await Promise.all(promises)).forEach((d) => all.push(...(d.listings || [])));
+      }
+
+      gtaListingPages = all
+        .filter((l) => l.id)
+        .map((l) => ({
+          url: `${BASE}/listings/${l.id}`,
+          lastModified: now,
+          changeFrequency: 'daily',
+          priority: 0.55,
+        }));
+    }
+  } catch (err) {
+    console.error('Sitemap: failed to fetch GTA listings', err);
+  }
+
   // ── Blog posts ──
   let blogPages = [];
   try {
@@ -137,5 +182,5 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch blog posts', err);
   }
 
-  return [...staticPages, ...gtaCityPages, ...hoodGuidePages, ...listingPages, ...blogPages];
+  return [...staticPages, ...gtaCityPages, ...hoodGuidePages, ...listingPages, ...gtaListingPages, ...blogPages];
 }

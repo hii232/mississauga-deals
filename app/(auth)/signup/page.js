@@ -53,7 +53,7 @@ export default function SignupPage() {
     }
 
     if (!isValidPhone(form.phone)) {
-      setError('Please enter a valid phone number (e.g. 647-555-1234).');
+      setError('Please enter a valid phone number (e.g. 647-361-1234).');
       return;
     }
 
@@ -82,6 +82,15 @@ export default function SignupPage() {
       });
 
       const data = await res.json();
+      // The server can reject a signup (400 for a fake/invalid phone, 429 when
+      // rate-limited). Without this guard the client marked the visitor
+      // "registered" and redirected anyway — silently losing the highest-value
+      // lead (name + email + phone + CASL consent). Surface the real error.
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        setLoading(false);
+        return;
+      }
       if (data.existing) {
         setError('This email is already registered. Please log in instead.');
         setLoading(false);
@@ -209,7 +218,7 @@ export default function SignupPage() {
               }
               updateField('phone', formatted);
             }}
-            placeholder="(647) 555-1234"
+            placeholder="(647) 361-1234"
             autoComplete="tel"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />

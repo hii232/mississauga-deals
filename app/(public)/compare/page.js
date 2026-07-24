@@ -6,6 +6,7 @@ import { processListings } from '@/lib/listings/process-listings';
 import { fmtK, fmtNum, fmtCurrency } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { PageHero } from '@/components/layout/page-hero';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const HERO = {
   eyebrow: 'Side-by-side analysis',
@@ -325,6 +326,10 @@ export default function ComparePage() {
           )}
         </div>
       )}
+
+      {/* Inline lead capture — comparing listings is high buying intent, but the
+          page had no capture path. */}
+      <InlineCTA variant="alerts" className="mt-12" />
       </div>
     </>
   );

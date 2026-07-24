@@ -1,5 +1,6 @@
 import { RecentSalesClient } from './recent-sales-client';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const YEAR = new Date().getFullYear();
 
@@ -27,6 +28,11 @@ export default function RecentSalesPage() {
         ]}
       />
       <RecentSalesClient />
+      {/* This page had no lead capture — a high-intent surface (investors
+          checking what actually sold). Add an inline email capture at the foot. */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-14">
+        <InlineCTA variant="newsletter" />
+      </div>
     </>
   );
 }

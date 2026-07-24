@@ -78,6 +78,19 @@ export default function Footer() {
               <li>Cooksville · City Centre</li>
               <li>Meadowvale · Malton</li>
             </ul>
+            {/* GTA-wide coverage — Mississauga stays the focus above, but the
+                platform now scores listings across the whole GTA. */}
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">Across the GTA</p>
+            <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
+              {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton'].map((c) => (
+                <li key={c}>
+                  <Link href={`/gta?city=${encodeURIComponent(c)}`} className="text-white/50 hover:text-white no-underline transition-colors">{c}</Link>
+                </li>
+              ))}
+              <li>
+                <Link href="/gta" className="text-accent hover:text-accent/80 no-underline transition-colors">All GTA &rarr;</Link>
+              </li>
+            </ul>
           </div>
 
           {/* Compliance */}

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -152,6 +153,7 @@ export default function RentVsBuyMississaugaPage() {
 
         <RelatedGuides current="/rent-vs-buy-mississauga" />
       </div>
+      <StickyMobileCTA href="/mortgage-calculator" label="Run Your Numbers — Free" />
     </>
   );
 }

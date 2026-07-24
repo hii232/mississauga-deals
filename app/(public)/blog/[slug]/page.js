@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -155,11 +156,19 @@ export default async function BlogPostPage({ params }) {
               </div>
             </div>
 
+            {/* Fixed aspect box (matches the 1200×630 generated covers) +
+                object-cover: the browser reserves the full image area before
+                load, so the LCP image causes zero layout shift — previously the
+                unsized w-full img pushed the whole article down when it loaded.
+                Unsplash covers (variable landscape aspects) crop consistently. */}
             <img
               src={blogCoverUrl(post)}
               alt={post.title}
+              width={1200}
+              height={630}
               fetchPriority="high"
-              className="w-full rounded-xl mb-8 shadow-md"
+              decoding="async"
+              className="w-full aspect-[1200/630] object-cover rounded-xl mb-8 shadow-md"
             />
 
             <MarkdownRenderer content={post.content} />
@@ -257,6 +266,7 @@ export default async function BlogPostPage({ params }) {
           </aside>
         </div>
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }
