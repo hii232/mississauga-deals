@@ -64,17 +64,17 @@ function HomeDealCard({ deal, photo, isGated }) {
         {/* Investor tags */}
         <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex flex-wrap gap-1">
           {(deal.basementTier === 'legal' || deal.basementTier === 'potential') && (
-            <span className="rounded-full bg-success/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-success/90 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
               Suite
             </span>
           )}
           {deal.priceDrop > 0 && (
-            <span className="rounded-full bg-amber-500/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-amber-500/90 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
               Reduced
             </span>
           )}
           {deal.dom >= 45 && (
-            <span className="rounded-full bg-gold/90 px-1.5 sm:px-2 py-0.5 text-[8px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-gold/90 px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase text-white backdrop-blur-sm">
               Motivated
             </span>
           )}
@@ -85,7 +85,7 @@ function HomeDealCard({ deal, photo, isGated }) {
         <p className="text-[10px] sm:text-xs text-muted truncate">{deal.neighbourhood || deal.city}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <p className="text-base sm:text-lg font-bold text-navy">{fmtK(deal.price)}</p>
-          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[8px] sm:text-[10px] font-medium text-navy/70">
+          <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-navy/80">
             {deal.subType || deal.type}
           </span>
         </div>
@@ -96,32 +96,32 @@ function HomeDealCard({ deal, photo, isGated }) {
           {isGated ? (
             <>
               <div>
-                <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                <p className="text-[10px] sm:text-[11px] font-medium uppercase text-slate-500">CAP</p>
                 <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
               </div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-medium text-slate-400">Cash Flow/mo</p>
+                <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">Cash Flow/mo</p>
                 <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
               </div>
               <div>
-                <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">DOM</p>
+                <p className="text-[10px] sm:text-[11px] font-medium uppercase text-slate-500">DOM</p>
                 <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
               </div>
             </>
           ) : (
             <>
               <div>
-                <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                <p className="text-[10px] sm:text-[11px] font-medium uppercase text-slate-500">CAP</p>
                 <p className="text-[11px] sm:text-xs font-bold text-navy">{pct1(deal.capRate)}</p>
               </div>
               <div>
-                <p className="text-[9px] sm:text-[10px] font-medium text-slate-400">Cash Flow/mo</p>
-                <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-400' : cf >= 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                <p className="text-[10px] sm:text-[11px] font-medium text-slate-500">Cash Flow/mo</p>
+                <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-500' : cf >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                   {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
                 </p>
               </div>
               <div>
-                <p className="text-[8px] sm:text-[10px] font-medium uppercase text-slate-400">DOM</p>
+                <p className="text-[10px] sm:text-[11px] font-medium uppercase text-slate-500">DOM</p>
                 <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
               </div>
             </>

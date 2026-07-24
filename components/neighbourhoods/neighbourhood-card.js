@@ -61,7 +61,7 @@ export function NeighbourhoodCard({ name, data, avgPrice, avgDOM, rentYield, isL
           {yieldPct != null && (
             <div className="flex-shrink-0 rounded-xl bg-white/95 px-3 py-1.5 text-center shadow-md backdrop-blur">
               <p className="text-lg font-extrabold leading-none text-accent">{yieldPct}%</p>
-              <p className="text-[8px] font-bold uppercase tracking-wide text-muted">Rent Yield</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted">Rent Yield</p>
             </div>
           )}
         </div>
@@ -72,17 +72,17 @@ export function NeighbourhoodCard({ name, data, avgPrice, avgDOM, rentYield, isL
         <div className="grid grid-cols-3 gap-2 text-center">
           <div className="rounded-lg bg-cloud p-2">
             <p className="text-xs font-bold text-navy">{fmtK(price)}</p>
-            <p className="text-[9px] text-muted">Avg Price</p>
+            <p className="text-[10px] text-muted">Avg Price</p>
           </div>
           <div className="rounded-lg bg-cloud p-2">
-            <p className={`text-xs font-bold ${yoy != null && yoy >= 0 ? 'text-success' : 'text-red-500'}`}>
+            <p className={`text-xs font-bold ${yoy != null && yoy >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
               {yoy == null ? '—' : `${yoy >= 0 ? '+' : ''}${yoy}%`}
             </p>
-            <p className="text-[9px] text-muted">YoY</p>
+            <p className="text-[10px] text-muted">YoY</p>
           </div>
           <div className="rounded-lg bg-cloud p-2">
             <p className="text-xs font-bold text-navy">{typeof dom === 'number' ? `${dom}d` : '—'}</p>
-            <p className="text-[9px] text-muted">Avg DOM</p>
+            <p className="text-[10px] text-muted">Avg DOM</p>
           </div>
         </div>
 

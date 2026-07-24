@@ -150,37 +150,37 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         <div className="relative">
           <div className="grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center">
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-400">DOM</p>
+              <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
               <p className="text-sm font-bold text-navy">{listing.dom}</p>
             </div>
             {isGated ? (
               <>
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
                   <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
                   <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-medium text-slate-400">Cash Flow/mo</p>
+                  <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
                   <p className="text-sm font-bold text-slate-300">🔒</p>
                 </div>
               </>
             ) : (
               <>
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-400">CAP</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
                   <p className="text-sm font-bold text-navy">{pct1(listing.capRate)}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-400">CoC</p>
+                  <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
                   <p className="text-sm font-bold text-navy">{pct1(listing.cashOnCash)}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-medium text-slate-400" title="Cash Flow per Month">Cash Flow/mo</p>
-                  <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-500' : listing.cashFlow === 0 ? 'text-blue-500' : 'text-slate-400'}`}>
+                  <p className="text-[10px] font-medium text-slate-500" title="Cash Flow per Month">Cash Flow/mo</p>
+                  <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-600' : listing.cashFlow === 0 ? 'text-blue-600' : 'text-red-500'}`}>
                     {fmtNum(listing.cashFlow)}
                   </p>
                 </div>

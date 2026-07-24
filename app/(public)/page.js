@@ -396,7 +396,7 @@ function AgentProfile() {
                 <p className="text-[11px] text-muted">Neighbourhoods</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-500">5.0 ★</p>
+                <p className="text-2xl font-bold text-emerald-600">5.0 ★</p>
                 <p className="text-[11px] text-muted">Google Rating</p>
               </div>
             </div>
@@ -513,11 +513,11 @@ function CTASection() {
             <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">
               Get Free Access
             </Link>
-            <Link href="/pre-construction" className="text-sm text-white/50 hover:text-white/80 transition no-underline">
+            <Link href="/pre-construction" className="text-sm text-white/70 hover:text-white transition no-underline">
               Interested in pre-construction? Get VIP access &rarr;
             </Link>
           </div>
-          <p className="text-white/30 text-[10px] mt-6 max-w-md mx-auto">
+          <p className="text-white/60 text-[11px] mt-6 max-w-md mx-auto">
             Commission rebate applied as credit on closing. Buyer clients of Hamza Nouman, Cityscape Real Estate Ltd., Brokerage. Terms apply.
           </p>
         </div>
@@ -612,7 +612,7 @@ export default async function HomePage() {
                   <>
                     <span className="inline-block h-2 w-2 rounded-full bg-success animate-pulse" />
                     <span className="text-success text-xs font-medium">Live Data</span>
-                    <span className="text-white/50 text-xs">Updated every 24 hours</span>
+                    <span className="text-white/70 text-xs">Updated every 24 hours</span>
                   </>
                 ) : (
                   <>
@@ -638,7 +638,7 @@ export default async function HomePage() {
 
               {/* Popular Neighbourhoods */}
               <div className="flex flex-wrap items-center gap-2 mb-6">
-                <span className="text-white/40 text-xs">Popular:</span>
+                <span className="text-white/70 text-xs">Popular:</span>
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
                     key={hood}
