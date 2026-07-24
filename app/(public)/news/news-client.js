@@ -114,7 +114,7 @@ function ArticleCard({ article, featured = false }) {
           {hasImage ? (
             <img
               src={article.image}
-              alt=""
+              alt={article.title}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               loading="lazy"
               onError={() => setImgError(true)}
@@ -176,7 +176,7 @@ function ArticleCard({ article, featured = false }) {
         <div className="flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden bg-slate-100">
           <img
             src={article.image}
-            alt=""
+            alt={article.title}
             className="h-full w-full object-cover"
             loading="lazy"
             onError={() => setImgError(true)}

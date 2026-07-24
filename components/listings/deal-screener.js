@@ -49,8 +49,10 @@ function OpportunityStat({ label, value, format, subtitle, color, delay }) {
   const displayVal = formatValue(animatedVal, format);
 
   const colorMap = {
-    green: { border: 'border-l-emerald-500', text: 'text-emerald-500' },
-    amber: { border: 'border-l-amber-500', text: 'text-amber-500' },
+    // Left border stays the brighter accent (decorative); the value text uses the
+    // darker shade so the headline number itself clears WCAG AA on white.
+    green: { border: 'border-l-emerald-500', text: 'text-emerald-600' },
+    amber: { border: 'border-l-amber-500', text: 'text-amber-600' },
     neutral: { border: 'border-l-slate-300', text: 'text-navy' },
   };
   const c = colorMap[color] || colorMap.neutral;
@@ -62,13 +64,13 @@ function OpportunityStat({ label, value, format, subtitle, color, delay }) {
     >
       {/* Colored left border */}
       <div className={`border-l-[3px] ${c.border} h-full px-3 py-2.5`}>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-400 mb-0.5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500 mb-0.5">
           {label}
         </p>
         <p className={`font-mono text-xl font-bold tracking-tight ${c.text}`}>
           {displayVal}
         </p>
-        <p className="text-[10px] text-slate-400">{subtitle}</p>
+        <p className="text-[10px] text-slate-500">{subtitle}</p>
       </div>
     </div>
   );
@@ -83,7 +85,7 @@ function ContextStat({ label, value, format, icon, delay }) {
     >
       <span className="text-base shrink-0">{icon}</span>
       <div className="min-w-0">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-400">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.05em] text-slate-500">
           {label}
         </p>
         <p className="font-mono text-sm font-bold text-navy truncate">
@@ -284,28 +286,28 @@ export function DealScreener({ listings, loading = false }) {
         {/* PORTFOLIO ANALYTICS — Collapsible, shows avg CF and avg CoC (the negative numbers) */}
         {showPortfolio && (
           <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-3 space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               Portfolio Analytics — Full Dataset Averages
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-medium">Avg Cash Flow</p>
-                <p className={`font-mono text-sm font-bold ${metrics.avgCf >= 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg Cash Flow</p>
+                <p className={`font-mono text-sm font-bold ${metrics.avgCf >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {formatValue(metrics.avgCf, 'cfPlain')}/mo
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-medium">Avg CoC Return</p>
-                <p className={`font-mono text-sm font-bold ${metrics.avgCoc >= 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg CoC Return</p>
+                <p className={`font-mono text-sm font-bold ${metrics.avgCoc >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {Number.isFinite(metrics.avgCoc) ? metrics.avgCoc.toFixed(1) + '%' : '—'}
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-medium">Avg Score</p>
+                <p className="text-[9px] uppercase text-slate-500 font-medium">Avg Score</p>
                 <p className="font-mono text-sm font-bold text-navy">{Number.isFinite(metrics.avgScore) ? metrics.avgScore.toFixed(1) + '/10' : '—'}</p>
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase text-slate-400 font-medium">Legal Suites</p>
+                <p className="text-[9px] uppercase text-slate-500 font-medium">Legal Suites</p>
                 <p className="font-mono text-sm font-bold text-navy">{metrics.suites.toLocaleString()}</p>
               </div>
             </div>
@@ -313,7 +315,7 @@ export function DealScreener({ listings, loading = false }) {
         )}
 
         {/* Disclaimer */}
-        <p className="text-[10px] text-slate-400 leading-relaxed">
+        <p className="text-[10px] text-slate-500 leading-relaxed">
           Scores measure estimated investment return potential only — not property quality or desirability.
           A low score does not mean the property is undesirable.{' '}
           <Link href="/score-methodology" className="text-accent hover:underline no-underline">

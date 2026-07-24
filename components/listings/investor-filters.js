@@ -152,7 +152,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
       {/* Popular neighbourhood pills */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wide">Popular:</span>
+        <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Popular:</span>
         {POPULAR_HOODS.map((hood) => (
           <button
             key={hood}
@@ -335,7 +335,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
             <div className="space-y-5 p-4 pb-28">
               {/* Section: Search */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Search</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Search</h3>
                 <div className="relative">
                   <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -352,7 +352,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Neighbourhoods */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Neighbourhoods</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Neighbourhoods</h3>
                 <div className="flex flex-wrap gap-2">
                   {POPULAR_HOODS.map((hood) => (
                     <button
@@ -372,7 +372,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Property Type */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Property Type</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Property Type</h3>
                 <div className="flex flex-wrap gap-2">
                   {PROPERTY_TYPES.map((pt) => (
                     <button
@@ -392,7 +392,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Price & Rooms */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Price Range</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Price Range</h3>
                 <div className="flex flex-wrap gap-2">
                   {PRICE_PRESETS.map((preset) => {
                     const isActive = filters.priceRange[0] === preset.range[0] && filters.priceRange[1] === preset.range[1];
@@ -452,7 +452,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Strategy */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Strategy</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Strategy</h3>
                 <div className="flex flex-wrap gap-2">
                   {STRATEGY_CHIPS.map((chip) => (
                     <button
@@ -476,7 +476,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
               {/* Section: Advanced */}
               <div className="space-y-2">
-                <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Advanced Filters</h3>
+                <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Advanced Filters</h3>
                 <InvestorFiltersAdvanced filters={filters} updateFilter={updateFilter} />
               </div>
             </div>
@@ -548,7 +548,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
       {/* ── Active Filter Tags ── */}
       {activeFilterTags.length > 0 && (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
-          <span className="text-[11px] font-medium text-slate-400 uppercase">Filters:</span>
+          <span className="text-[11px] font-medium text-slate-500 uppercase">Filters:</span>
           {activeFilterTags.map((tag, i) => (
             <span
               key={i}

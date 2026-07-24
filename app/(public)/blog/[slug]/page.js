@@ -212,7 +212,7 @@ export default async function BlogPostPage({ params }) {
                       href={`/blog/${r.slug}`}
                       className="rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition no-underline group"
                     >
-                      <img src={blogCoverUrl(r)} alt="" loading="lazy" className="w-full h-28 object-cover" />
+                      <img src={blogCoverUrl(r)} alt={r.title} loading="lazy" className="w-full h-28 object-cover" />
                       <div className="p-3">
                         <span className="text-[10px] font-bold text-accent uppercase">{r.category}</span>
                         <p className="text-sm font-semibold text-navy leading-snug mt-1 group-hover:text-accent transition-colors">

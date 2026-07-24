@@ -59,15 +59,15 @@ function TopPickCard({ listing, photo }) {
         <p className="text-base font-bold text-navy">{fmtK(listing.price)}</p>
         <div className="mt-1.5 grid grid-cols-3 gap-0.5 text-center rounded-md bg-cloud p-1.5">
           <div className="min-w-0">
-            <p className="text-[9px] font-medium uppercase text-slate-400">CAP</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
             <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.capRate)}</p>
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] font-medium uppercase text-slate-400">CF/mo</p>
-            <p className="text-[11px] font-bold text-emerald-500 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500">CF/mo</p>
+            <p className="text-[11px] font-bold text-emerald-600 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
           </div>
           <div className="min-w-0">
-            <p className="text-[9px] font-medium uppercase text-slate-400">CoC</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
             <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.cashOnCash)}</p>
           </div>
         </div>

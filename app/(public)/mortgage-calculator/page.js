@@ -2,6 +2,7 @@
 
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { CityscapePanorama } from '@/components/art/cityscape';
+import InlineCTA from '@/components/ui/inline-cta';
 
 // Answers mirror exactly what the calculator implements — keep in sync with calc logic
 const CALC_FAQ = [
@@ -358,6 +359,12 @@ export default function MortgageCalculatorPage() {
           </Link>
         </p>
       </section>
+
+      {/* Lead capture — running mortgage/cash-flow numbers is high buying
+          intent, but this tool page had no email-capture path. */}
+      <div className="max-w-3xl mx-auto px-4 pb-14">
+        <InlineCTA variant="newsletter" />
+      </div>
     </>
   );
 }

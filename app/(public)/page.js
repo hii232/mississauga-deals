@@ -147,11 +147,11 @@ function HeroDealCard({ deal, photo }) {
         <div className="mt-4 grid grid-cols-2 gap-2 text-center">
           <div className="rounded-lg bg-cloud p-2">
             <p className="text-sm font-bold text-navy">{fmtK(hood.avgPrice)}</p>
-            <p className="text-[9px] text-muted">Avg price</p>
+            <p className="text-[10px] text-muted">Avg price</p>
           </div>
           <div className="rounded-lg bg-cloud p-2">
             <p className="text-sm font-bold text-navy">{hood.avgDOM} days</p>
-            <p className="text-[9px] text-muted">Avg DOM</p>
+            <p className="text-[10px] text-muted">Avg DOM</p>
           </div>
         </div>
         <Link href="/neighbourhoods" className="mt-4 block rounded-lg bg-navy px-4 py-2.5 text-center text-xs font-bold text-white no-underline transition hover:bg-navy/90">
@@ -460,8 +460,11 @@ function GoogleReviews() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* 6 reviews stacked ran ~2.4 screens on mobile. Show 3 on phones
+              (enough proof, no scroll fatigue), all 6 from md up where they sit
+              in a 3-col grid and cost only two rows. */}
           {GOOGLE_REVIEWS.slice(0, 6).map((r, idx) => (
-            <figure key={r.name} className="card relative p-6 transition-shadow hover:shadow-lg">
+            <figure key={r.name} className={`card relative p-6 transition-shadow hover:shadow-lg${idx >= 3 ? ' hidden md:block' : ''}`}>
               <svg viewBox="0 0 24 24" className="absolute right-5 top-5 h-7 w-7 text-accent/10" fill="currentColor" aria-hidden="true">
                 <path d="M9.6 4C6 6 3.6 9.2 3.6 13.4c0 3.4 2 6.6 5.5 6.6 2.6 0 4.5-2 4.5-4.4 0-2.5-1.8-4.2-4.1-4.2-.4 0-.9 0-1 .1.3-2.3 2.3-4.6 4.4-5.7L9.6 4zm10.3 0c-3.6 2-6 5.2-6 9.4 0 3.4 2 6.6 5.5 6.6 2.6 0 4.6-2 4.6-4.4 0-2.5-1.9-4.2-4.2-4.2-.4 0-.8 0-1 .1.3-2.3 2.3-4.6 4.4-5.7L19.9 4z" />
               </svg>
@@ -555,16 +558,20 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
         <p className="section-subtitle mx-auto">Avg price, days-on-market &amp; yield are live from active Mississauga listings; the trend and year-over-year are Hamza&apos;s outlook.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }) => (
-          <NeighbourhoodCard
-            key={name}
-            name={name}
-            data={data}
-            avgPrice={avgPrice}
-            avgDOM={avgDOM}
-            rentYield={rentYield}
-            isLive={isLive}
-          />
+        {/* 4 cards stacked ran 2.2 screens on mobile — the longest block on the
+            page. Show the top 2 on phones (the "Explore all 24" link sits right
+            below); all 4 from sm up, where they cost one or two grid rows. */}
+        {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => (
+          <div key={name} className={idx >= 2 ? 'hidden sm:block' : undefined}>
+            <NeighbourhoodCard
+              name={name}
+              data={data}
+              avgPrice={avgPrice}
+              avgDOM={avgDOM}
+              rentYield={rentYield}
+              isLive={isLive}
+            />
+          </div>
         ))}
       </div>
       <p className="text-center text-[11px] text-muted mt-6">
@@ -733,68 +740,58 @@ export default async function HomePage() {
 
       {/* GTA coverage band — Mississauga is home base, but the platform covers the whole GTA.
           Light-themed to pair with the navy seller band below (buyer/light + seller/dark). */}
-      <section className="max-w-7xl mx-auto px-4 pt-6">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-cloud via-white to-cloud p-8 md:p-12">
-          <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-14 w-full" tone="#1B2A4A" opacity={0.06} />
-          <div className="relative z-10 flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
-            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-4xl">🌆</div>
-            <div className="flex-1">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Now across the whole GTA</span>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-navy md:text-3xl">
-                Investing beyond Mississauga? We cover the entire GTA.
+      {/* Secondary audiences — GTA investors and sellers. Previously two full-width
+          bands (2.4 screens of promo on mobile, back-to-back with the mortgage
+          offer above). Condensed to a compact two-up so the page reaches How It
+          Works / neighbourhoods / proof far sooner. Same two destinations. */}
+      <section className="max-w-7xl mx-auto px-4 pt-6 pb-12">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* GTA coverage */}
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-cloud via-white to-cloud p-6">
+            <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-10 w-full" tone="#1B2A4A" opacity={0.06} />
+            <div className="relative z-10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-accent">Now across the whole GTA</span>
+              <h2 className="mt-1.5 font-heading text-xl font-bold text-navy">
+                Investing beyond Mississauga?
               </h2>
-              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-muted md:text-base">
-                Every listing scored for cash flow, cap rate, and deal score — now across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                Every listing scored for cash flow and cap rate — across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
               </p>
-              <div className="flex flex-wrap justify-center gap-2 md:justify-start">
-                {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton', 'Burlington', 'Milton'].map((c) => (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton'].map((c) => (
                   <Link
                     key={c}
                     href={`/gta?city=${encodeURIComponent(c)}`}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
+                    className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
                   >
                     {c}
                   </Link>
                 ))}
               </div>
-            </div>
-            <div className="flex-shrink-0">
-              <Link href="/gta" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
+              <Link href="/gta" className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-accent no-underline hover:text-accent-dark">
                 Browse all GTA deals &rarr;
               </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* Seller offer band — captures homeowners who land on the homepage */}
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#16223D] via-navy to-[#25355C] p-8 md:p-12">
-          <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full" tone="#0A1122" opacity={0.5} />
-          <div className="relative z-10 flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
-            <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white/10 text-4xl">🔑</div>
-            <div className="flex-1">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-gold">For Mississauga homeowners</span>
-              </div>
-              <h2 className="mb-2 font-heading text-2xl font-bold text-white md:text-3xl">
-                Thinking of selling? Find out what your home is worth.
+          {/* Seller valuation */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#16223D] via-navy to-[#25355C] p-6">
+            <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" tone="#0A1122" opacity={0.5} />
+            <div className="relative z-10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gold">For Mississauga homeowners</span>
+              <h2 className="mt-1.5 font-heading text-xl font-bold text-white">
+                Thinking of selling?
               </h2>
-              <p className="mb-4 max-w-2xl text-sm leading-relaxed text-white/70 md:text-base">
-                Get a free, data-backed home valuation and a plan to sell for the most — precise pricing, professional
-                marketing, and hard negotiation from an agent who knows exactly what today&apos;s buyers pay for. No obligation.
+              <p className="mt-1.5 text-sm leading-relaxed text-white/70">
+                Get a free, data-backed valuation and a plan to sell for the most — priced with real market data, zero obligation.
               </p>
-              <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/60 md:justify-start">
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/60">
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free valuation</span>
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Priced with data</span>
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Zero obligation</span>
               </div>
-            </div>
-            <div className="flex-shrink-0">
-              <Link href="/sell" className="btn-primary !px-6 !py-3 no-underline whitespace-nowrap">
-                Get My Free Valuation &rarr;
+              <Link href="/sell" className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#8AB6FF] no-underline hover:text-white">
+                Get my free valuation &rarr;
               </Link>
             </div>
           </div>
