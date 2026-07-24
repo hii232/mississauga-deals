@@ -11,9 +11,12 @@ import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
+// Cards shown before the "show all" reveal (3 full rows on the lg 3-col grid).
+const INITIAL_COUNT = 9;
 
 export default function NeighbourhoodsPage() {
   const [filter, setFilter] = useState('All');
+  const [showAll, setShowAll] = useState(false);
   const [recentSales, setRecentSales] = useState([]);
   const [hoodStats, setHoodStats] = useState({});
 
@@ -101,9 +104,12 @@ export default function NeighbourhoodsPage() {
         ))}
       </div>
 
-      {/* Cards Grid */}
+      {/* Cards Grid — all 24 stacked ran 18 screens on mobile. Show the first 9
+          and reveal the rest on tap. The extras are CSS-hidden, NOT unmounted,
+          so every neighbourhood stays in the HTML for crawlers and the page's
+          ItemList schema still matches what's rendered. */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }) => {
+        {filtered.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => {
           const trendColor =
             data.trend === 'hot'
               ? 'bg-red-50 text-red-600 border-red-100'
@@ -112,8 +118,9 @@ export default function NeighbourhoodsPage() {
               : 'bg-blue-50 text-blue-600 border-blue-100';
 
           const photo = neighbourhoodPhoto(name);
+          const collapsed = !showAll && idx >= INITIAL_COUNT;
           return (
-            <div key={name} className="card group p-0 overflow-hidden hover:shadow-lg transition-shadow">
+            <div key={name} className={`card group p-0 overflow-hidden hover:shadow-lg transition-shadow${collapsed ? ' hidden' : ''}`}>
               {/* Image / scene header */}
               <div className="relative h-40 overflow-hidden">
                 {photo ? (
@@ -191,6 +198,21 @@ export default function NeighbourhoodsPage() {
         })}
       </div>
 
+      {!showAll && filtered.length > INITIAL_COUNT && (
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-accent transition-colors hover:border-accent/40 hover:bg-accent/5"
+          >
+            Show all {filtered.length} neighbourhoods
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       <p className="mt-6 text-[11px] text-muted">
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY &amp; inventory</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
@@ -201,7 +223,7 @@ export default function NeighbourhoodsPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="font-heading font-semibold text-lg text-navy">Recent Sales Across Mississauga</h2>
-              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-success">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
                 <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
                 Live
               </span>
