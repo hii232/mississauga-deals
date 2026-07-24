@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
@@ -167,8 +168,11 @@ export default function FAQPage() {
           );
         })}
 
+        {/* Email capture — converts researchers not ready to reach out directly */}
+        <InlineCTA variant="newsletter" className="mt-12" />
+
         {/* CTA */}
-        <div className="mt-16 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
+        <div className="mt-8 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
           <h3 className="font-heading text-xl font-bold text-white mb-2">Still have questions?</h3>
           <p className="text-white/60 text-sm mb-6">
             Hamza is happy to chat about your investment goals — no pressure, no obligation.
