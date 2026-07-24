@@ -59,7 +59,7 @@ const SELL_FAQ = [
   {
     question: 'How do you sell my home for the most?',
     answer:
-      'It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score over 1,800 Mississauga listings, markets your home professionally on the open market (MLS plus targeted exposure), and — as an investment-focused agent — knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.',
+      'It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score every active Mississauga investment listing, markets your home professionally on the open market (MLS plus targeted exposure), and — as an investment-focused agent — knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.',
   },
   {
     question: 'What makes your approach different from other agents?',
@@ -69,7 +69,7 @@ const SELL_FAQ = [
   {
     question: 'How do you decide what to list my home for?',
     answer:
-      'Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score over 1,800 Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.',
+      'Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score every active Mississauga investment listing. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.',
   },
   {
     question: 'What does it cost to sell a home in Ontario?',
@@ -97,7 +97,7 @@ const DIFFERENTIATORS = [
   {
     icon: '📊',
     title: 'Priced with data, not guesswork',
-    body: 'The same analytics engine that scores 1,800+ Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.',
+    body: 'The same analytics engine that scores every active Mississauga investment listing prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.',
   },
   {
     icon: '🛠️',

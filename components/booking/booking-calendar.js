@@ -87,7 +87,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
       return;
     }
     if (!form.name.trim()) { setError('Name is required.'); return; }
-    if (!form.email.includes('@')) { setError('Valid email is required.'); return; }
+    if (!/\S+@\S+\.\S+/.test(form.email)) { setError('Please enter a valid email.'); return; }
 
     setSubmitting(true);
     setError('');

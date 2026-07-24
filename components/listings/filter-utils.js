@@ -43,7 +43,7 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Dupl
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
   { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
-  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate above 4% — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
+  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate 5%+ — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
   { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
   { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
   { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
