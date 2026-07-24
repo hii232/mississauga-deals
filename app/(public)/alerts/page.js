@@ -55,7 +55,36 @@ export default function AlertsPage() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/lead', {
+      // Create the actual saved search — this is what the daily alert cron
+      // matches against. (Previously the form only logged a lead + wrote to
+      // localStorage, so the promised alerts could never fire.) Filters go in
+      // the canonical client format the cron's applyFilters consumes;
+      // 'cashflow'/'brrr' map to their strategy chips, other strategies have
+      // no listing-level filter and simply don't constrain matches.
+      const strategyMap = { cashflow: 'cf', brrr: 'brrr' };
+      const res = await fetch('/api/alerts/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          filters: {
+            ...(form.maxPrice ? { priceRange: [0, Number(form.maxPrice)] } : {}),
+            ...(form.minBeds ? { beds: Number(form.minBeds) } : {}),
+            ...(form.neighbourhood ? { neighbourhoods: [form.neighbourhood] } : {}),
+            ...(strategyMap[form.strategy] ? { activeStrategies: [strategyMap[form.strategy]] } : {}),
+          },
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Failed to submit');
+      }
+
+      // Lead capture with the human-readable criteria — fire-and-forget (the
+      // subscribe route also captures a lead; /api/lead dedupes by email).
+      fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,12 +93,7 @@ export default function AlertsPage() {
           source: 'deal-alert',
           notes: `Max Price: ${form.maxPrice || 'Any'}, Min Beds: ${form.minBeds || 'Any'}, Strategy: ${form.strategy || 'Any'}, Neighbourhood: ${form.neighbourhood || 'Any'}`,
         }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => null);
-        throw new Error(data?.error || 'Failed to submit');
-      }
+      }).catch(() => {});
 
       // Save alert locally
       const alert = {
