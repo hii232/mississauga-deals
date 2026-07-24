@@ -184,8 +184,8 @@ function MortgageTab({ listing }) {
       maintenancePct, vacancyPct, managementPct,
       monthlyCondoFee: listing.condoFee || 0,
     });
-    const closing = getClosingCosts(listing.price, downPct);
-    const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct);
+    const closing = getClosingCosts(listing.price, downPct, listing.city);
+    const cocReturn = calculateCashOnCash(cf.cashFlow * 12, listing.price, downPct, listing.city);
     const breakEven = breakEvenRent(listing.price, {
       downPct, rate, amortYears: amort,
       annualPropertyTax: listing.annualPropertyTax || null,
@@ -271,6 +271,9 @@ function MortgageTab({ listing }) {
         <div className="space-y-2">
           <BreakdownRow label="Down Payment" value={calc.downPayment} annual />
           <BreakdownRow label="Ontario Land Transfer Tax" value={calc.ltt} annual />
+          {calc.mltt > 0 && (
+            <BreakdownRow label="Toronto Municipal LTT" value={calc.mltt} annual />
+          )}
           <BreakdownRow label="Legal & Title Insurance" value={calc.legalAndTitle} annual />
           <BreakdownRow label="Inspection & Misc" value={calc.inspectionMisc} annual />
           <div className="border-t border-slate-300 pt-2">
@@ -307,7 +310,7 @@ function CapRateTab({ listing }) {
         monthlyInsurance: insurance, maintenancePct, vacancyPct, managementPct,
         monthlyCondoFee: listing.condoFee || 0,
       }).cashFlow * 12,
-      listing.price, 20
+      listing.price, 20, listing.city
     );
     return { ...noiResult, capRate, grm, cashOnCash: cocReturn };
   }, [listing.price, listing.estimatedRent, listing.annualPropertyTax, listing.neighbourhood, insurance, maintenancePct, vacancyPct, managementPct]);
