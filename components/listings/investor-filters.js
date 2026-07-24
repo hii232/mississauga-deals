@@ -65,7 +65,7 @@ function Tooltip({ text, children }) {
 const DEFAULT_POPULAR_HOODS = ['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton', 'Clarkson'];
 
 // ── Main Filter Component ──
-export function InvestorFilters({ filters, setFilters, resultCount, totalCount, popularHoods }) {
+export function InvestorFilters({ filters, setFilters, resultCount, totalCount, popularHoods, searchCity }) {
   const POPULAR_HOODS = popularHoods || DEFAULT_POPULAR_HOODS;
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -541,7 +541,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
             ))}
           </select>
 
-          <SaveSearchButton filters={filters} />
+          <SaveSearchButton filters={filters} city={searchCity} />
         </div>
       </div>
 

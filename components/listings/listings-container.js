@@ -171,6 +171,9 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
 
   // Read city from URL (set by GTA mega-menu). Backend filters to that city when present.
   const cityParam = searchParams.get('city') || '';
+  // Region scope for saved searches: a specific city on /gta?city=X, the
+  // whole-GTA sentinel on the /gta hub, else the Mississauga flagship feed.
+  const searchCity = cityParam || (apiEndpoint.includes('gta') ? 'GTA' : 'Mississauga');
 
   // Sync filters to URL (so back button restores exact filter state).
   // Preserve ?city=X so filter edits on a city-scoped page don't wipe the scope.
@@ -397,7 +400,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
 
       {/* Investor Filters */}
-      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} />
+      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} searchCity={searchCity} />
 
       {/* Signup prompt — show when not registered */}
       {!isRegistered && filtered.length > 0 && (

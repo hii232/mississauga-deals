@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
+import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -62,6 +63,29 @@ export async function POST(request) {
     // /api/listings returns { listings, page, ... } — processListings needs the array
     const allListings = processListings(rawListings.listings || rawListings);
 
+    // 2b. GTA pool — only fetched when some saved search is scoped outside
+    // Mississauga (filters.city set by the save-search flow on /gta pages).
+    // A GTA feed failure must not kill Mississauga alerts: those searches just
+    // match nothing this run, and the error is logged for diagnosis.
+    let gtaListings = [];
+    const needsGta = searches.some(
+      (s) => s.filters && s.filters.city && s.filters.city !== 'Mississauga'
+    );
+    if (needsGta) {
+      try {
+        const gtaRes = await fetch(`${SITE_URL}/api/listings-gta`);
+        const gtaCtype = gtaRes.headers.get('content-type') || '';
+        if (gtaRes.ok && gtaCtype.includes('application/json')) {
+          const rawGta = await gtaRes.json();
+          gtaListings = processListings(rawGta.listings || rawGta);
+        } else {
+          console.error(`Alerts: GTA listings fetch failed (HTTP ${gtaRes.status}, content-type: ${gtaCtype || 'none'})`);
+        }
+      } catch (err) {
+        console.error('Alerts: GTA listings fetch error', err);
+      }
+    }
+
     // 3. Group searches by email (one email per user)
     const byEmail = {};
     for (const search of searches) {
@@ -81,8 +105,13 @@ export async function POST(request) {
         // Merge saved filters with defaults
         const filters = { ...DEFAULT_FILTERS, ...search.filters };
 
+        // Match against the search's own region: Mississauga feed by default
+        // (incl. legacy rows with no city), GTA feed for GTA-scoped searches
+        // (whole-GTA sentinel or filtered to the saved city).
+        const pool = poolForSearch(search.filters, allListings, gtaListings);
+
         // Apply filters to get matching listings
-        const matched = applyFilters(allListings, filters);
+        const matched = applyFilters(pool, filters);
 
         // Only include "new" listings (DOM <= 3 or first alert)
         const isFirstAlert = !search.last_sent_at;
