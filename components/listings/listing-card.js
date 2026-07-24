@@ -222,7 +222,11 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           <div className="mt-2 space-y-0.5">
             <div className="flex items-center justify-between text-xs text-slate-500">
               <span>Rent est: {fmtK(listing.estimatedRent * 12).replace('/mo', '')}/yr</span>
-              <span>Mortgage: {fmtK(listing.monthlyExpenses * 12).replace('/mo', '')}/yr</span>
+              {/* monthlyExpenses is ALL-IN carrying cost (mortgage + tax +
+                  insurance + maintenance + condo fee + vacancy + mgmt), not the
+                  mortgage alone — label it honestly. Rent-vs-total-cost is the
+                  useful at-a-glance cash-flow signal. */}
+              <span title="Estimated all-in carrying cost: mortgage, tax, insurance, maintenance, condo fee, vacancy & management">Costs est: {fmtK(listing.monthlyExpenses * 12).replace('/mo', '')}/yr</span>
             </div>
             {listing.unitCount >= 2 && (
               <p className="text-[10px] text-accent font-medium">
