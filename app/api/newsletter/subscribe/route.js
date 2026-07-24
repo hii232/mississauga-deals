@@ -8,6 +8,7 @@ async function sendWelcomeEmail(email) {
   if (!process.env.RESEND_API_KEY) return;
   const SERIF = "Georgia,'Times New Roman',serif";
   const html = `
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F5F2EC;opacity:0;">You're in — your first Mississauga Market Weekly lands Monday: top-scored deals, cap rates &amp; cash flow. Here's what to expect.</div>
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#F5F2EC" style="background:#F5F2EC;padding:32px 0;"><tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;"><tr><td style="padding:0 40px;">
   <div style="border-top:3px solid #0F2A4A;border-bottom:1px solid #0F2A4A;height:2px;margin-bottom:22px;"></div>
