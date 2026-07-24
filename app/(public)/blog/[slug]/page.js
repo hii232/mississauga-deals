@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -257,6 +258,7 @@ export default async function BlogPostPage({ params }) {
           </aside>
         </div>
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }
