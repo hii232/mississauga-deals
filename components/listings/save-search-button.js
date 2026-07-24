@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useRef, useEffect } from 'react';
 
@@ -76,6 +77,7 @@ export function SaveSearchButton({ filters, city }) {
       if (!res.ok) throw new Error(data.error || 'Failed to save');
 
       setSuccess(true);
+      trackConversion('alert_create', { source: 'save-search', city: city || 'Mississauga' });
       localStorage.setItem('user_email', email.trim().toLowerCase());
       if (name) localStorage.setItem('user_name', name.trim());
       localStorage.setItem('user_registered', 'true');

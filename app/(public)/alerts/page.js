@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useEffect } from 'react';
 import { HOOD_DATA } from '@/lib/constants';
@@ -107,6 +108,7 @@ export default function AlertsPage() {
       setSavedAlerts(updated);
 
       setSuccess(true);
+      trackConversion('alert_create', { source: 'alerts-page' });
       setForm({ name: form.name, email: form.email, maxPrice: '', minBeds: '', strategy: '', neighbourhood: '' });
     } catch (err) {
       setError(err?.message && err.message !== 'Failed to submit' ? err.message : 'Something went wrong. Please try again.');

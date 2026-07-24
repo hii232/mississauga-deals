@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -91,6 +92,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
 
       const data = await res.json();
       localStorage.setItem('user_registered', 'true');
+      trackConversion('signup', { source: 'gate-complete' });
       localStorage.setItem('user_name', `${firstName} ${lastName}`);
       localStorage.setItem('user_email', email);
       localStorage.setItem('user_phone', phone);
@@ -124,6 +126,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       }),
     }).catch(() => {});
     localStorage.setItem('user_registered', 'true');
+    trackConversion('signup', { source: 'gate-email-only' });
     localStorage.setItem('user_email', email);
     if (onSuccess) onSuccess();
     if (onClose) onClose();

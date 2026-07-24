@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackConversion } from '@/lib/track-conversion';
 import Link from 'next/link';
 
 /**
@@ -80,6 +81,7 @@ function InlineCapture({ v }) {
         throw new Error(data?.error || 'Something went wrong. Please try again.');
       }
       setStatus('done');
+      trackConversion('newsletter_subscribe', { source: v.source });
       setMessage("You're in! Check your inbox to confirm.");
     } catch (err) {
       setStatus('error');

@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useEffect, useRef } from 'react';
 import { trackExitIntent, trackLead } from '@/lib/utils/analytics';
@@ -107,6 +108,7 @@ export default function ExitIntentPopup() {
       if (!res.ok) throw new Error('Failed to subscribe');
 
       setSuccess(true);
+      trackConversion('newsletter_subscribe', { source: 'exit-intent' });
       trackExitIntent('converted');
       trackLead('exit-intent', email);
       localStorage.setItem('user_registered', 'true');

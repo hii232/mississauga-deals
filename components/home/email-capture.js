@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackConversion } from '@/lib/track-conversion';
 import { GOOGLE_REVIEWS } from '@/lib/constants';
 
 // One real, investor-relevant Google review, shown as proof right at the capture
@@ -35,6 +36,7 @@ export function EmailCapture() {
       const data = await res.json();
       if (res.ok && data.ok) {
         setStatus('success');
+        trackConversion('newsletter_subscribe', { source: 'homepage' });
         setMessage(data.message);
       } else {
         setStatus('error');

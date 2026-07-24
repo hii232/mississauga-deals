@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -116,7 +117,8 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
           fetchSlots(toDateStr(selectedDate));
         }
       } else {
-        setConfirmed({
+        trackConversion('booking_create', { source: 'book-call' });
+      setConfirmed({
           date: selectedDate.toLocaleDateString('en-CA', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
           }),

@@ -1,4 +1,5 @@
 'use client';
+import { trackConversion } from '@/lib/track-conversion';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -76,6 +77,7 @@ export default function QuizPage() {
 
       localStorage.setItem('user_registered', 'true');
       localStorage.setItem('quiz_result', key);
+      trackConversion('lead_submit', { source: 'quiz' });
       if (email) localStorage.setItem('user_email', email);
       if (name) localStorage.setItem('user_name', name);
 
