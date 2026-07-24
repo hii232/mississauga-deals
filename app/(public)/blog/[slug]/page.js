@@ -20,7 +20,7 @@ export async function generateMetadata({ params }) {
 
   const { data: post } = await supabase
     .from('blog_posts')
-    .select('title, excerpt, cover_image_url, slug')
+    .select('title, excerpt, cover_image_url, slug, created_at, updated_at')
     .eq('slug', params.slug)
     .eq('published', true)
     .single();
@@ -35,6 +35,11 @@ export async function generateMetadata({ params }) {
       description: post.excerpt,
       url: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
       type: 'article',
+      // Article freshness + authorship signals for social unfurls and search —
+      // mirrors the authoritative dates/author already in the Article JSON-LD.
+      publishedTime: post.created_at || undefined,
+      modifiedTime: post.updated_at || post.created_at || undefined,
+      authors: ['Hamza Nouman'],
       images: [{ url: blogCoverUrl(post, true) }],
     },
     twitter: {
