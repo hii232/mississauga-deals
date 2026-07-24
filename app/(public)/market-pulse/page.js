@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
+import InlineCTA from '@/components/ui/inline-cta';
 
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
@@ -136,23 +137,23 @@ export default function MarketPulsePage() {
           count: showing "0 on market" reads as broken data */}
       <div className={`grid grid-cols-2 ${marketMetrics.activeCount > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-10`}>
         <div className="card p-5 text-center">
-          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Avg DOM</p>
+          <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg DOM</p>
           <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.avgDOM}</p>
           <p className="text-xs text-muted">days on market</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Sale-to-List</p>
+          <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Sale-to-List</p>
           <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.salesToList}%</p>
           <p className="text-xs text-muted">average ratio</p>
         </div>
         <div className="card p-5 text-center">
-          <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Inventory</p>
+          <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Inventory</p>
           <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.monthsOfInventory}</p>
           <p className="text-xs text-muted">months supply</p>
         </div>
         {marketMetrics.activeCount > 0 && (
           <div className="card p-5 text-center">
-            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Active Listings</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Active Listings</p>
             <p className="font-heading font-bold text-2xl text-navy">{marketMetrics.activeCount.toLocaleString()}</p>
             <p className="text-xs text-muted">on market</p>
           </div>
@@ -211,6 +212,11 @@ export default function MarketPulsePage() {
         </div>
       </div>
 
+      {/* Inline lead capture — market-pulse is a high-intent research page but
+          only offered a link CTA at the very bottom; give engaged readers a
+          one-tap way to convert mid-scroll without leaving the page. */}
+      <InlineCTA variant="newsletter" className="mb-10" />
+
       {/* Recent Sales Activity */}
       {recentSales.length > 0 && (
         <div className="card p-6 mb-10">
@@ -233,15 +239,15 @@ export default function MarketPulsePage() {
           {salesStats && (
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-400">Avg Sold</p>
+                <p className="text-[10px] font-medium uppercase text-slate-500">Avg Sold</p>
                 <p className="text-sm font-bold text-navy">{fmtK(salesStats.avgSoldPrice)}</p>
               </div>
               <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-400">Avg DOM</p>
+                <p className="text-[10px] font-medium uppercase text-slate-500">Avg DOM</p>
                 <p className="text-sm font-bold text-navy">{salesStats.avgDOM}d</p>
               </div>
               <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-400">Negotiation</p>
+                <p className="text-[10px] font-medium uppercase text-slate-500">Negotiation</p>
                 <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-success' : 'text-red-500'}`}>
                   {salesStats.avgNegotiationGap > 0 ? '+' : ''}{salesStats.avgNegotiationGap}%
                 </p>
@@ -254,11 +260,11 @@ export default function MarketPulsePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-400">Address</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400">Sold</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400">vs List</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">DOM</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-400 hidden sm:table-cell">Date</th>
+                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
+                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">DOM</th>
+                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -311,7 +317,7 @@ export default function MarketPulsePage() {
             ))}
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100">
-            <h3 className="text-xs font-semibold uppercase text-slate-400 mb-2">Warm</h3>
+            <h3 className="text-xs font-semibold uppercase text-slate-500 mb-2">Warm</h3>
             <div className="flex flex-wrap gap-2">
               {warmHoods.map(([name]) => (
                 <Link
@@ -325,7 +331,7 @@ export default function MarketPulsePage() {
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-slate-100">
-            <h3 className="text-xs font-semibold uppercase text-slate-400 mb-2">Cool</h3>
+            <h3 className="text-xs font-semibold uppercase text-slate-500 mb-2">Cool</h3>
             <div className="flex flex-wrap gap-2">
               {coolHoods.map(([name]) => (
                 <Link
