@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 import { poolForSearch } from '@/lib/alerts/sanitize-filters';
+import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -147,6 +148,12 @@ export async function POST(request) {
           to: email,
           subject: alertSubject(listings),
           html: emailHtml,
+          // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
+          // rules for a daily list send. Missing it depresses inbox placement.
+          headers: {
+            'List-Unsubscribe': `<${unsubscribeUrl(email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
         }),
       });
 
@@ -196,6 +203,14 @@ function esc(s) {
   ));
 }
 
+// Price for the email row: $1M+ as "$X.XXM" (was "$1050K"), and empty when the
+// price is missing (was "$0K" because price is guarded to 0 upstream).
+function fmtPrice(p) {
+  if (!Number.isFinite(p) || p <= 0) return '';
+  if (p >= 1000000) return '$' + (p / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
+  return '$' + Math.round(p / 1000) + 'K';
+}
+
 const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 
 /**
@@ -229,7 +244,7 @@ function buildAlertEmail(listings, name, searches) {
                 </div>
               </td>
               <td style="text-align: right; vertical-align: top;">
-                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">$${(price / 1000).toFixed(0)}K</div>
+                <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">${fmtPrice(price)}</div>
                 <div style="display: inline-block; background: ${scoreBg}; color: white; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-top: 4px;">
                   ${score == null ? '—' : score.toFixed(1)}
                 </div>
@@ -272,6 +287,11 @@ function buildAlertEmail(listings, name, searches) {
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin: 0; padding: 0; background: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- Preheader: the inbox preview snippet. Hidden in the body but shown by the
+       client next to the subject — prime open-rate real estate. -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F8FAFC;opacity:0;">
+    ${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search — cash flow, cap rate &amp; deal score on each.
+  </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background: #F8FAFC; padding: 32px 16px;">
     <tr>
       <td align="center">
@@ -308,7 +328,7 @@ function buildAlertEmail(listings, name, searches) {
 
               <div style="text-align: center; margin-top: 28px;">
                 <a href="https://www.mississaugainvestor.ca/listings?${UTM}" style="display: inline-block; background: #2563EB; color: white; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none;">
-                  View All ${listings.length > 5 ? '1,800+' : ''} Listings
+                  Browse All Listings
                 </a>
               </div>
             </td>
@@ -320,6 +340,7 @@ function buildAlertEmail(listings, name, searches) {
               <div style="color: #64748B; font-size: 12px; line-height: 1.6;">
                 Hamza Nouman, Sales Representative<br>
                 Cityscape Real Estate Ltd., Brokerage<br>
+                885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5<br>
                 647-609-1289 · hamza@nouman.ca
               </div>
               <div style="margin-top: 16px;">
