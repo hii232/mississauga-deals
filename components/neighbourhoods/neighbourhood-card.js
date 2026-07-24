@@ -87,7 +87,7 @@ export function NeighbourhoodCard({ name, data, avgPrice, avgDOM, rentYield, isL
         </div>
 
         {isLive && (
-          <p className="mt-2 flex items-center justify-center gap-1 text-[9px] font-medium text-emerald-600">
+          <p className="mt-2 flex items-center justify-center gap-1 text-[10px] font-medium text-emerald-600">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Live from active listings
           </p>
         )}
