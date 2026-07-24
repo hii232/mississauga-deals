@@ -122,6 +122,11 @@ function buildEmailHTML(stats, date, extras = {}) {
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background:${PAPER};">
+<!-- Preheader: the inbox preview snippet shown next to the subject. Hidden in
+     the body but prime open-rate real estate that was previously wasted. -->
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${PAPER};opacity:0;">
+  This week&rsquo;s top cash-flowing Mississauga deals, scored &mdash; plus live market stats inside.
+</div>
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="${PAPER}" style="background:${PAPER};padding:32px 0;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
