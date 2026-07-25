@@ -1,4 +1,4 @@
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 
 const YEAR = new Date().getFullYear();
 
@@ -62,9 +62,47 @@ const datasetSchema = {
   isAccessibleForFree: true,
   inLanguage: 'en-CA',
 };
+// Market questions the stats tiles above answer with a number but never
+// explain. Deliberately DEFINITIONAL, never figures: the page's own numbers
+// change monthly with each TRREB Market Watch, so baking any into copy (or
+// into schema, which Google may show long after a refresh) is exactly how the
+// hardcoded-stat problem came back last time. Thresholds quoted are the
+// standard TRREB/CREA market-balance bands, not our interpretation, and the
+// answers point the reader at the live tiles rather than restating them.
+// Distinct from the /faq and /listings question sets so no two pages compete
+// for the same rich result.
+const MARKET_FAQ = [
+  {
+    question: 'What does months of inventory mean in real estate?',
+    answer:
+      "Months of inventory is how long it would take to sell every active listing at the current pace of sales, so it is the cleanest single read on supply and demand. Under about four months favours sellers, roughly four to six months is balanced, and above six months favours buyers. The current Mississauga figure is shown in the Inventory tile on this page, sourced from TRREB's monthly Market Watch.",
+  },
+  {
+    question: 'Is Mississauga a buyer’s market or a seller’s market right now?',
+    answer:
+      'Read it from two numbers on this page rather than a headline. The sales-to-new-listings ratio is the standard measure: below roughly 40% is a buyer’s market, about 40–60% is balanced, and above 60% is a seller’s market. Pair it with months of inventory and the sale-to-list ratio — when homes sell below asking and inventory is climbing, buyers hold the leverage regardless of what any single month’s average price did.',
+  },
+  {
+    question: 'What is the difference between average and median sale price?',
+    answer:
+      'The average is the sum of all sale prices divided by the number of sales, so a handful of luxury sales can pull it well above what a typical home traded for. The median is the middle sale — half sold for more, half for less — which makes it the more honest read on the typical home. Both are shown on this page precisely because the gap between them tells you how skewed the month was.',
+  },
+  {
+    question: 'What does the sale-to-list ratio tell an investor?',
+    answer:
+      'It is the sale price as a percentage of the asking price, averaged across sales. Above 100% means homes are generally selling over asking (competitive bidding), while below 100% means sellers are accepting less than they asked. For an investor it sets the realistic negotiation expectation before writing an offer, and a falling ratio is usually the earliest sign a market is cooling — it moves before average prices do.',
+  },
+  {
+    question: 'Where does this Mississauga market data come from?',
+    answer:
+      'Two sources, labelled separately on the page rather than blended into one number. Days on market and active listing counts come from live MLS data through the PropTx/AMPRE feed and update continuously. Sold prices, sales volume, months of inventory, sale-to-list ratio and year-over-year changes come from the Toronto Regional Real Estate Board’s monthly Market Watch report, and the month they represent is stated on the page so a monthly snapshot is never read as today’s figure.',
+  },
+];
+
 export default function Layout({ children }) {
   return (
     <>
+      <FAQJsonLd items={MARKET_FAQ} />
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -73,6 +111,37 @@ export default function Layout({ children }) {
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }} />
       {children}
+      {/* Rendered here, in the server layout, alongside the schema it mirrors —
+          the page itself is a client component, and keeping question text in
+          two files is how visible copy and markup drift apart. */}
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <h2 className="font-heading text-xl font-bold text-navy">
+          Understanding these Mississauga market numbers
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {MARKET_FAQ.map((qa) => (
+            <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{qa.answer}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-slate-500">
+          Put these numbers to work:{' '}
+          <a href="/listings" className="font-medium text-accent no-underline hover:text-accent-dark">
+            browse scored Mississauga listings
+          </a>
+          ,{' '}
+          <a href="/mortgage-calculator" className="font-medium text-accent no-underline hover:text-accent-dark">
+            model a purchase in the calculator
+          </a>
+          , or compare areas in the{' '}
+          <a href="/neighbourhoods" className="font-medium text-accent no-underline hover:text-accent-dark">
+            neighbourhood guides
+          </a>
+          .
+        </p>
+      </section>
     </>
   );
 }
