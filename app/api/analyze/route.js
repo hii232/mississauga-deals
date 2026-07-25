@@ -2,6 +2,24 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { buildAnalysisPrompt, getPromptHash } from '@/lib/analysis-prompt';
 
+// The analysis prompt is grounded in the same live market data the rest of the
+// site publishes, so an analysis can never quote figures the market pages have
+// already moved past. Returns null on any failure — the prompt then omits the
+// market block entirely rather than reciting stale numbers.
+async function fetchMarketStats(request) {
+  try {
+    const host = request.headers.get('host') || 'www.mississaugainvestor.ca';
+    const proto = host.includes('localhost') ? 'http' : 'https';
+    const res = await fetch(`${proto}://${host}/api/market-stats`, {
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 // Supabase admin client for server-side cache operations
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,7 +40,8 @@ export async function POST(request) {
   let finalSystem, finalMessages;
 
   if (useEnhanced) {
-    const analysis = buildAnalysisPrompt(listing);
+    const marketStats = await fetchMarketStats(request);
+    const analysis = buildAnalysisPrompt(listing, marketStats);
     finalSystem = analysis.system;
     finalMessages = [{ role: 'user', content: analysis.user }];
   } else {
@@ -30,9 +49,11 @@ export async function POST(request) {
     finalMessages = messages || [{ role: 'user', content: prompt || '' }];
   }
 
-  // Check cache (only for enhanced/listing-based requests)
+  // Check cache (only for enhanced/listing-based requests). The hash covers the
+  // fully-rendered system prompt, so when the market data refreshes every
+  // cached analysis is invalidated automatically.
   const supabase = getSupabase();
-  const promptHash = getPromptHash();
+  const promptHash = getPromptHash(finalSystem);
 
   if (supabase && listingId && !force) {
     try {

@@ -100,7 +100,7 @@ export function EmailCapture() {
               &ldquo;{FEATURED_REVIEW.text.length > 132 ? FEATURED_REVIEW.text.slice(0, 130).trimEnd() + '…' : FEATURED_REVIEW.text}&rdquo;
             </blockquote>
             <figcaption className="mt-2 text-[11px] font-semibold text-navy/70">
-              &mdash; {FEATURED_REVIEW.name} · Verified Google review · 5.0 on Google (28 reviews)
+              &mdash; {FEATURED_REVIEW.name} · Verified Google review
             </figcaption>
           </figure>
         )}

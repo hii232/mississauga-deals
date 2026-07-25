@@ -20,6 +20,20 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Live Google rating via the server route (the Places key never reaches the
+  // browser). Null keeps the rating tile hidden rather than asserting 5.0.
+  const [googleRating, setGoogleRating] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/google-rating')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d?.configured && d.rating) setGoogleRating(d);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // Reset when opened
   useEffect(() => {
@@ -198,11 +212,15 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                   <p className="text-sm font-bold text-navy">4,000+</p>
                   <p className="text-[10px] text-slate-500">Listings Scored</p>
                 </div>
-                <div className="h-6 w-px bg-slate-200"></div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-navy">5.0 ★</p>
-                  <p className="text-[10px] text-slate-500">Google Rating</p>
-                </div>
+                {googleRating && (
+                  <>
+                    <div className="h-6 w-px bg-slate-200"></div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-navy">{googleRating.rating.toFixed(1)} ★</p>
+                      <p className="text-[10px] text-slate-500">Google Rating</p>
+                    </div>
+                  </>
+                )}
                 <div className="h-6 w-px bg-slate-200"></div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-navy">Free</p>

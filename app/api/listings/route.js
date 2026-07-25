@@ -202,6 +202,10 @@ export async function GET(request) {
         lat: l.Latitude,
         lng: l.Longitude,
         sqft: l.LivingArea || l.BuildingAreaTotal || 0,
+        // Real per-listing feed timestamp. Selected from AMPRE but previously
+        // dropped during mapping, so the sitemap had no genuine lastmod to use
+        // and fell back to "now" for every listing.
+        modificationTimestamp: l.ModificationTimestamp || null,
         originalPrice: l.OriginalListPrice || price,
         priceDrop: drop,
         priceReduction: drop,

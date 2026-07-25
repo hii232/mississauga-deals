@@ -286,6 +286,23 @@ export default function Header({ savedCount = 0 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
+  // Live Google rating. This is a client component, so it goes through the API
+  // route rather than the Places key ever reaching the browser. Stays null —
+  // and the trust chip stays hidden — unless Google returns a real rating.
+  const [googleRating, setGoogleRating] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/google-rating')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled && d?.configured && d.rating) {
+          setGoogleRating({ rating: d.rating, reviewCount: d.reviewCount });
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -351,15 +368,17 @@ export default function Header({ savedCount = 0 }) {
             </span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
-            <span className="text-amber-400 font-semibold flex items-center gap-1">
-              <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 1l2.39 6.13H19l-5.3 4.1L15.78 18 10 14.27 4.22 18l2.08-6.77L1 7.13h6.61z" />
-              </svg>
-              5.0
-              <span className="text-white/50 font-normal hidden sm:inline">
-                (28 reviews)
+            {googleRating && (
+              <span className="text-amber-400 font-semibold flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 1l2.39 6.13H19l-5.3 4.1L15.78 18 10 14.27 4.22 18l2.08-6.77L1 7.13h6.61z" />
+                </svg>
+                {googleRating.rating.toFixed(1)}
+                <span className="text-white/50 font-normal hidden sm:inline">
+                  ({googleRating.reviewCount} review{googleRating.reviewCount === 1 ? '' : 's'})
+                </span>
               </span>
-            </span>
+            )}
             <a
               href="tel:+16476091289"
               className="text-white hover:text-accent font-semibold no-underline flex items-center gap-1 transition-colors"

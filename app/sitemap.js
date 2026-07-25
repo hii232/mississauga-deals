@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { HOOD_DATA } from '@/lib/constants';
+import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { CITY_COPY } from '@/app/(public)/gta/page';
 
 // Regenerate sitemap every 6 hours
@@ -12,8 +12,42 @@ const supabase =
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
+// Pages whose content is genuinely regenerated from a live feed, so "changed
+// recently" is a true statement about them. Everything else is editorial
+// content that does NOT change when the sitemap regenerates.
+const FEED_DRIVEN = new Set([
+  `${BASE}/`,
+  `${BASE}/listings`,
+  `${BASE}/gta`,
+  `${BASE}/recent-sales`,
+  `${BASE}/news`,
+  `${BASE}/blog`,
+  `${BASE}/pre-construction/projects`,
+]);
+
+// Turn "April 2026" into an ISO date so curated content can carry its real
+// as-of date instead of pretending to have changed minutes ago.
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june',
+  'july', 'august', 'september', 'october', 'november', 'december'];
+
+function monthStringToISO(monthYear) {
+  if (typeof monthYear !== 'string') return null;
+  // Parse explicitly. `new Date('not-a-month 1 UTC')` does NOT return Invalid
+  // Date — V8 coerces it to the year 2001 — so a typo in the constant would
+  // have silently published a 25-year-old lastmod on all 24 guide pages.
+  const m = monthYear.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
+  if (!m) return null;
+  const monthIdx = MONTHS.indexOf(m[1].toLowerCase());
+  if (monthIdx === -1) return null;
+  const year = Number(m[2]);
+  if (!Number.isFinite(year) || year < 2000 || year > 2100) return null;
+  // End of that month — the latest point the stated content was true.
+  return new Date(Date.UTC(year, monthIdx + 1, 0)).toISOString();
+}
+
 export default async function sitemap() {
   const now = new Date().toISOString();
+  const hoodAsOf = monthStringToISO(HOOD_OUTLOOK_AS_OF);
 
   // ── Static pages ──
   const staticPages = [
@@ -45,12 +79,21 @@ export default async function sitemap() {
     { url: `${BASE}/compare`, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
     { url: `${BASE}/terms`, changeFrequency: 'yearly', priority: 0.2 },
-  ].map((p) => ({ ...p, lastModified: now }));
+    // lastmod is only stamped where it is TRUE. This sitemap regenerates every
+    // 6 hours and used to stamp `now` on all ~80 static URLs, telling Google
+    // that every guide, legal page and landing page changed twice a day. Google
+    // treats a consistently unreliable lastmod as a reason to IGNORE lastmod for
+    // the whole site — which would throw away the accurate per-listing and
+    // per-post dates below, the ones that actually matter for recrawl. Omitting
+    // it is explicitly fine; lying is not.
+  ].map((p) => (FEED_DRIVEN.has(p.url) ? { ...p, lastModified: now } : p));
 
   // ── Neighbourhood investment guides ──
+  // Curated guides: dated by the outlook they publish (HOOD_OUTLOOK_AS_OF),
+  // not by when the sitemap happened to rebuild.
   const hoodGuidePages = Object.keys(HOOD_DATA).map((name) => ({
     url: `${BASE}/neighbourhoods/${name.toLowerCase().replace(/\s+/g, '-')}`,
-    lastModified: now,
+    ...(hoodAsOf ? { lastModified: hoodAsOf } : {}),
     changeFrequency: 'weekly',
     priority: 0.75,
   }));
@@ -107,7 +150,10 @@ export default async function sitemap() {
         .filter((l) => l.ListingKey || l.id)
         .map((l) => ({
           url: `${BASE}/listings/${l.ListingKey || l.id}`,
-          lastModified: l.ModificationTimestamp || now,
+          // Real MLS modification timestamp, or nothing — never a fake stamp.
+          ...(l.modificationTimestamp || l.ModificationTimestamp
+            ? { lastModified: l.modificationTimestamp || l.ModificationTimestamp }
+            : {}),
           changeFrequency: 'daily',
           priority: 0.6,
         }));
@@ -172,7 +218,7 @@ export default async function sitemap() {
       if (posts) {
         blogPages = posts.map((p) => ({
           url: `${BASE}/blog/${p.slug}`,
-          lastModified: p.updated_at || now,
+          ...(p.updated_at || p.created_at ? { lastModified: p.updated_at || p.created_at } : {}),
           changeFrequency: 'weekly',
           priority: 0.7,
         }));

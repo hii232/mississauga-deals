@@ -10,6 +10,46 @@ import { scoreColorHex } from '@/lib/deal-score';
 const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '—');
 const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() : '—');
 
+/**
+ * The rent every metric on the card is derived from, stated plainly.
+ *
+ * A 6.9% cap rate on a 7-bed Malton detached looks like fantasy until you can
+ * see it assumes ~$3,900 for the main unit plus ~$2,000 for a legal basement —
+ * a normal Malton structure, not per-bedroom rooming-house math. Showing the
+ * split is the difference between a number an investor can audit and one they
+ * dismiss. Renders nothing if we have no rent, rather than inventing one.
+ */
+function RentAssumption({ listing }) {
+  const rent = Number(listing.estimatedRent);
+  if (!Number.isFinite(rent) || rent <= 0) return null;
+
+  const money = (n) => '$' + Math.round(n).toLocaleString();
+  const basement = Number(listing.basementIncome) || 0;
+  const base = Number(listing.baseRent) || 0;
+  const units = Array.isArray(listing.unitBreakdown) ? listing.unitBreakdown : null;
+
+  // How the total was built, when we know. Multi-unit and suite properties are
+  // exactly the listings whose totals look implausible without the breakdown.
+  let breakdown = null;
+  if (units && units.length > 1) {
+    breakdown = `${units.length} units`;
+  } else if (basement > 0 && base > 0) {
+    breakdown = `${money(base)} main + ${money(basement)} ${listing.basementTier === 'legal' ? 'legal ' : ''}suite`;
+  }
+
+  return (
+    <div className="mb-3 rounded-lg border border-accent/15 bg-accent/[0.04] px-2.5 py-1.5">
+      <p className="text-[11px] leading-tight text-navy">
+        <span className="font-semibold">Est. rent {money(rent)}/mo</span>
+        {breakdown && <span className="text-slate-500"> · {breakdown}</span>}
+      </p>
+      <p className="text-[10px] leading-tight text-slate-500">
+        Every figure below assumes this rent
+      </p>
+    </div>
+  );
+}
+
 export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick }) {
   const [saved, setSaved] = useState(false);
 
@@ -148,13 +188,20 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         </div>
 
         {/* Bed/bath/type */}
-        <div className="mb-3 flex items-center gap-3 text-xs text-slate-500">
+        <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
           <span>{listing.beds} bed</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span>{listing.baths} bath</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span className="capitalize">{listing.type}</span>
         </div>
+
+        {/* The rent assumption every metric below is derived from. Hidden, a
+            6.9% cap on a 7-bed detached reads as marketing math; shown with its
+            main-unit + basement split, it's a claim an investor can check. This
+            is never gated — the assumption must be auditable even before signup,
+            or the numbers aren't credible in the first place. */}
+        <RentAssumption listing={listing} />
 
         {/* Metrics row */}
         <div className="relative">

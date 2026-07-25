@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
+import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroButtons } from '@/components/home/hero-buttons';
 import { EmailCapture } from '@/components/home/email-capture';
@@ -36,17 +37,22 @@ async function fetchLiveStats() {
     if (!res.ok) return null;
     const data = await res.json();
 
-    const count = data.activeCount || 0;
-    const avgDom = data.mississaugaAvgLDOM || data.avgDOM || 28;
-    const avgPrice = data.avgPrice || 970000;
+    // Every value stays null when the API doesn't supply it. The old defaults
+    // (28 days, $970K, 97.2%) were a frozen February snapshot that rendered as
+    // though it were live — StatsBar now omits any tile it has no real number
+    // for, so a gap is visible instead of a plausible-looking stale figure.
+    const count = data.activeCount || null;
+    const avgDom = data.mississaugaAvgLDOM || data.avgDOM || null;
+    const avgPrice = data.avgPrice || null;
     const salesToList = data.mississaugaAvgSPLP
       ? data.mississaugaAvgSPLP + '%'
       : data.salesToListRatio
         ? (data.salesToListRatio * 100).toFixed(1) + '%'
-        : '97.2%';
-    const avgSoldPrice = data.avgPrices?.all?.soldAvg || data.avgPrice || 970000;
+        : null;
+    const avgSoldPrice = data.avgPrices?.all?.soldAvg || data.avgPrice || null;
 
     const fmtPrice = (p) => {
+      if (!p || p <= 0) return null;
       if (p >= 1000000) return '$' + (p / 1000000).toFixed(2) + 'M';
       return '$' + Math.round(p / 1000) + 'K';
     };
@@ -201,12 +207,16 @@ function HeroDealCard({ deal, photo }) {
   );
 }
 
-function TrustChips() {
+function TrustChips({ googleRating }) {
   const chips = [
-    {
-      label: '5.0 on Google · 28 reviews',
-      icon: <span className="text-gold">★</span>,
-    },
+    // Only claim a Google rating when Google actually gave us one — the chip
+    // disappears rather than asserting a number nobody verified.
+    ...(googleRating
+      ? [{
+          label: googleRatingLabel(googleRating),
+          icon: <span className="text-gold">★</span>,
+        }]
+      : []),
     {
       label: 'Licensed by RECO',
       icon: (
@@ -254,20 +264,35 @@ function StatIcon({ name }) {
 }
 
 function StatsBar({ liveStats }) {
-  const s = liveStats || { count: '200+', avgDom: 28, priceLabel: '$970K', salesToList: '97.2%', avgSoldPrice: '$964K', monthsOfInventory: 5.2 };
+  // No hardcoded fallback numbers. This used to fall back to a frozen
+  // {$970K, $964K, 5.2mo, 28 days} snapshot, so any hiccup in the stats API
+  // silently redisplayed months-old figures under a "Live MLS data" chip —
+  // indistinguishable from working. A stat we can't source is now simply
+  // omitted, and if none are available the whole band disappears rather than
+  // presenting stale numbers as current.
+  const s = liveStats || {};
   const stats = [
-    { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: 'bars' },
-    { label: 'Sale-to-List', value: s.salesToList, icon: 'star' },
-    { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: 'calendar' },
-    { label: 'Avg. Price', value: s.priceLabel, icon: 'dollar' },
-    { label: 'Avg. Sold', value: s.avgSoldPrice || '$964K', icon: 'check' },
-    ...(s.monthsOfInventory ? [{ label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: 'box' }] : []),
-  ];
+    s.count ? { label: 'Active Listings', value: s.count?.toLocaleString?.() || s.count, icon: 'bars' } : null,
+    s.salesToList ? { label: 'Sale-to-List', value: s.salesToList, icon: 'star' } : null,
+    Number.isFinite(s.avgDom) ? { label: 'Avg. DOM', value: `${s.avgDom} days`, icon: 'calendar' } : null,
+    s.priceLabel ? { label: 'Avg. Price', value: s.priceLabel, icon: 'dollar' } : null,
+    s.avgSoldPrice ? { label: 'Avg. Sold', value: s.avgSoldPrice, icon: 'check' } : null,
+    s.monthsOfInventory ? { label: 'Inventory', value: `${s.monthsOfInventory} mo`, icon: 'box' } : null,
+  ].filter(Boolean);
+
+  if (stats.length === 0) return null;
+
+  // Column count tracks the number of real stats so a partial set stays
+  // balanced instead of leaving a ragged gap in a fixed 6-column grid.
+  const lgCols = stats.length >= 6 ? 'lg:grid-cols-6'
+    : stats.length === 5 ? 'lg:grid-cols-5'
+    : stats.length === 4 ? 'lg:grid-cols-4'
+    : 'lg:grid-cols-3';
 
   return (
     <div className="border-y border-gray-100 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className={`grid grid-cols-2 md:grid-cols-3 ${lgCols} gap-4`}>
           {stats.map((st) => (
             <div key={st.label} className="flex items-center gap-3 justify-center lg:justify-start">
               <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
@@ -336,7 +361,7 @@ function HowItWorks() {
 // ─────────────────────────────────────────────
 //   AGENT PROFILE
 // ─────────────────────────────────────────────
-function AgentProfile() {
+function AgentProfile({ googleRating }) {
   return (
     <section className="relative overflow-hidden bg-cloud py-16">
       <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
@@ -374,9 +399,11 @@ function AgentProfile() {
               <span className="inline-flex items-center rounded-full border border-navy/15 bg-white px-3 py-1 text-[11px] font-bold text-navy">
                 TRREB Member
               </span>
-              <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-bold text-gold-dark">
-                ★ 5.0 Google Rating
-              </span>
+              {googleRating && (
+                <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-bold text-gold-dark">
+                  ★ {googleRating.rating.toFixed(1)} Google Rating
+                </span>
+              )}
             </div>
 
             <p className="text-sm text-navy/80 leading-relaxed mb-4">
@@ -395,10 +422,12 @@ function AgentProfile() {
                 <p className="text-2xl font-bold text-navy">24</p>
                 <p className="text-[11px] text-muted">Neighbourhoods</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-500">5.0 ★</p>
-                <p className="text-[11px] text-muted">Google Rating</p>
-              </div>
+              {googleRating && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-emerald-600">{googleRating.rating.toFixed(1)} ★</p>
+                  <p className="text-[11px] text-muted">Google Rating</p>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
@@ -446,7 +475,7 @@ const AVATAR_HUES = [
   'bg-violet-100 text-violet-600',
 ];
 
-function GoogleReviews() {
+function GoogleReviews({ googleRating }) {
   return (
     <section className="bg-white py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -456,7 +485,9 @@ function GoogleReviews() {
             {[1, 2, 3, 4, 5].map((s) => (
               <span key={s} className="text-gold text-xl">★</span>
             ))}
-            <span className="text-sm text-muted ml-2">5.0 on Google (28 reviews)</span>
+            {googleRating && (
+              <span className="text-sm text-muted ml-2">{googleRatingLabel(googleRating)}</span>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -590,7 +621,14 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
 //   HOMEPAGE
 // ─────────────────────────────────────────────
 export default async function HomePage() {
-  const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
+  // Google rating is fetched alongside the other data. It returns null when the
+  // Places API is not configured or the call fails, and every consumer hides the
+  // claim in that case rather than falling back to a hardcoded number.
+  const [liveStats, topDeals, googleRating] = await Promise.all([
+    fetchLiveStats(),
+    fetchTopDeals(),
+    fetchGoogleRating(),
+  ]);
 
   // Live listing count for the hero, straight from the active listing feed.
   // Rounded down to the hundred for large counts so it never overstates; the
@@ -663,7 +701,7 @@ export default async function HomePage() {
               <HeroButtons count={heroCount} />
 
               <div className="mt-6">
-                <TrustChips />
+                <TrustChips googleRating={googleRating} />
               </div>
             </div>
 
@@ -804,8 +842,8 @@ export default async function HomePage() {
       <NeighbourhoodPreview hoodStats={topDeals.hoodStats} />
 
       {/* Testimonials before About Hamza */}
-      <GoogleReviews />
-      <AgentProfile />
+      <GoogleReviews googleRating={googleRating} />
+      <AgentProfile googleRating={googleRating} />
       <CTASection />
     </>
   );

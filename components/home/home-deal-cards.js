@@ -19,14 +19,19 @@ export function HomeDealCards({ deals, photoMap }) {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-8">
-      {deals.map((deal) => {
+      {deals.map((deal, i) => {
         const photo = typeof photoMap[deal.id] === 'string' ? photoMap[deal.id] : photoMap[deal.id]?.[0] || null;
+        // The #1 deal is the same property the hero card shows with its cap
+        // rate and cash flow fully visible. Locking it here meant asking a
+        // visitor to sign up to see numbers they had just read one scroll
+        // earlier — which reads as broken, not as a gate. It stays open as the
+        // deliberate free sample; everything after it is gated.
         return (
           <HomeDealCard
             key={deal.id}
             deal={deal}
             photo={photo}
-            isGated={!isAuthenticated}
+            isGated={!isAuthenticated && i > 0}
           />
         );
       })}

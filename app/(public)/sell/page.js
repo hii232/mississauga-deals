@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { fetchGoogleRating, googleRatingShort } from '@/lib/google-rating';
 import { GOOGLE_REVIEWS } from '@/lib/constants';
 import { ValuationForm } from '@/components/sell/valuation-form';
 
@@ -131,7 +132,9 @@ const STEPS = [
 
 const chip = 'inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur-sm';
 
-export default function SellPage() {
+export default async function SellPage() {
+  // Live from Google; null hides every rating claim on the page.
+  const googleRating = await fetchGoogleRating();
   const reviews = GOOGLE_REVIEWS.slice(0, 3);
 
   return (
@@ -168,7 +171,7 @@ export default function SellPage() {
               today’s buyers pay for.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <span className={chip}>★ 5.0 on Google</span>
+              {googleRating && <span className={chip}>★ {googleRatingShort(googleRating)}</span>}
               <span className={chip}>RECO Licensed</span>
               <span className={chip}>Cityscape Real Estate</span>
             </div>
@@ -242,7 +245,9 @@ export default function SellPage() {
             <div className="mb-2 flex items-center justify-center gap-0.5 text-gold" aria-hidden="true">
               {Array.from({ length: 5 }).map((_, i) => <span key={i} className="text-lg">★</span>)}
             </div>
-            <h2 className="section-title mb-2">Clients trust Hamza — 5.0 on Google</h2>
+            <h2 className="section-title mb-2">
+              Clients trust Hamza{googleRating ? ` — ${googleRatingShort(googleRating)}` : ""}
+            </h2>
             <p className="section-subtitle mx-auto">Honest advice, done properly. Here’s what people say after working with him.</p>
           </div>
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
