@@ -104,12 +104,40 @@ export async function POST(request) {
       byEmail[search.email].searches.push(search);
     }
 
+    // 3b. Repeat-send guard: the DOM<=3 freshness window keeps a listing
+    // eligible for up to 4 consecutive daily sends, so without this a
+    // subscriber sees the same "new" property four days running. Load what
+    // each recipient was already sent in the last 7 days (ample — nothing
+    // stays DOM<=3 longer than 4). If the table doesn't exist yet (migration
+    // not run) or the query fails, the set stays empty and behavior is
+    // exactly the pre-guard behavior — never block the send over dedupe.
+    const alreadySent = new Map(); // email -> Set(listing_id)
+    try {
+      const lookback = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: sentRows, error: sentErr } = await supabase
+        .from('alert_sent_listings')
+        .select('email, listing_id')
+        .in('email', Object.keys(byEmail))
+        .gte('sent_at', lookback);
+      if (sentErr) throw sentErr;
+      for (const row of sentRows || []) {
+        if (!alreadySent.has(row.email)) alreadySent.set(row.email, new Set());
+        alreadySent.get(row.email).add(row.listing_id);
+      }
+    } catch (err) {
+      console.error(
+        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) — sending without dedupe:',
+        err?.message || err
+      );
+    }
+
     let sentCount = 0;
     const failures = [];
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
       const allMatches = new Map(); // dedup by listing ID
+      const sentToUser = alreadySent.get(email) || new Set();
 
       for (const search of userData.searches) {
         // Merge saved filters with defaults
@@ -123,11 +151,15 @@ export async function POST(request) {
         // Apply filters to get matching listings
         const matched = applyFilters(pool, filters);
 
-        // Only include "new" listings (DOM <= 3 or first alert)
+        // Only include "new" listings (DOM <= 3 or first alert), and never a
+        // listing this recipient already received in the last 7 days — the
+        // first-alert path is filtered too, so a second saved search doesn't
+        // re-deliver properties an earlier alert already showed.
         const isFirstAlert = !search.last_sent_at;
+        const unseen = matched.filter((l) => !sentToUser.has(String(l.id)));
         const fresh = isFirstAlert
-          ? matched.slice(0, 10) // First alert: top 10 matches
-          : matched.filter((l) => l.dom <= 3).slice(0, 10); // Daily: only new (DOM 0-3)
+          ? unseen.slice(0, 10) // First alert: top 10 matches
+          : unseen.filter((l) => l.dom <= 3).slice(0, 10); // Daily: only new (DOM 0-3)
 
         for (const listing of fresh) {
           if (!allMatches.has(listing.id)) {
@@ -178,6 +210,23 @@ export async function POST(request) {
           .from('saved_searches')
           .update({ last_sent_at: new Date().toISOString() })
           .in('id', ids);
+        // Record what this email contained so tomorrow's run won't repeat it.
+        // Recorded ONLY after Resend accepts — a rejected send stays eligible.
+        // upsert (not insert) so a listing re-alerted after the 7-day window
+        // refreshes its sent_at instead of failing the primary key.
+        try {
+          const { error: recordErr } = await supabase.from('alert_sent_listings').upsert(
+            listings.map((l) => ({
+              email,
+              listing_id: String(l.id),
+              sent_at: new Date().toISOString(),
+            })),
+            { onConflict: 'email,listing_id' }
+          );
+          if (recordErr) throw recordErr;
+        } catch (err) {
+          console.error(`Alerts: could not record sent listings for ${email}:`, err?.message || err);
+        }
       } else {
         // A rejected send used to be swallowed silently — the run just reported
         // "sent: 0" with no reason, so a misconfigured sender (unverified domain
@@ -198,6 +247,16 @@ export async function POST(request) {
           '422 usually means RESEND_FROM_EMAIL is not a valid verified sender.'
       );
     }
+
+    // Housekeeping: guard rows older than double the lookback window are dead
+    // weight — clear them so the table stays a few thousand rows, not months
+    // of history. Best-effort; a failure (incl. missing table) changes nothing.
+    try {
+      await supabase
+        .from('alert_sent_listings')
+        .delete()
+        .lt('sent_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
+    } catch {}
 
     return NextResponse.json({
       message: `Sent ${sentCount} alert emails${failures.length ? `, ${failures.length} rejected` : ''}`,
