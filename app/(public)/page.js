@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
+import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroButtons } from '@/components/home/hero-buttons';
 import { EmailCapture } from '@/components/home/email-capture';
@@ -201,12 +202,16 @@ function HeroDealCard({ deal, photo }) {
   );
 }
 
-function TrustChips() {
+function TrustChips({ googleRating }) {
   const chips = [
-    {
-      label: '5.0 on Google · 28 reviews',
-      icon: <span className="text-gold">★</span>,
-    },
+    // Only claim a Google rating when Google actually gave us one — the chip
+    // disappears rather than asserting a number nobody verified.
+    ...(googleRating
+      ? [{
+          label: googleRatingLabel(googleRating),
+          icon: <span className="text-gold">★</span>,
+        }]
+      : []),
     {
       label: 'Licensed by RECO',
       icon: (
@@ -336,7 +341,7 @@ function HowItWorks() {
 // ─────────────────────────────────────────────
 //   AGENT PROFILE
 // ─────────────────────────────────────────────
-function AgentProfile() {
+function AgentProfile({ googleRating }) {
   return (
     <section className="relative overflow-hidden bg-cloud py-16">
       <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
@@ -374,9 +379,11 @@ function AgentProfile() {
               <span className="inline-flex items-center rounded-full border border-navy/15 bg-white px-3 py-1 text-[11px] font-bold text-navy">
                 TRREB Member
               </span>
-              <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-bold text-gold-dark">
-                ★ 5.0 Google Rating
-              </span>
+              {googleRating && (
+                <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-3 py-1 text-[11px] font-bold text-gold-dark">
+                  ★ {googleRating.rating.toFixed(1)} Google Rating
+                </span>
+              )}
             </div>
 
             <p className="text-sm text-navy/80 leading-relaxed mb-4">
@@ -395,10 +402,12 @@ function AgentProfile() {
                 <p className="text-2xl font-bold text-navy">24</p>
                 <p className="text-[11px] text-muted">Neighbourhoods</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-500">5.0 ★</p>
-                <p className="text-[11px] text-muted">Google Rating</p>
-              </div>
+              {googleRating && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-emerald-600">{googleRating.rating.toFixed(1)} ★</p>
+                  <p className="text-[11px] text-muted">Google Rating</p>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
@@ -446,7 +455,7 @@ const AVATAR_HUES = [
   'bg-violet-100 text-violet-600',
 ];
 
-function GoogleReviews() {
+function GoogleReviews({ googleRating }) {
   return (
     <section className="bg-white py-16">
       <div className="max-w-7xl mx-auto px-4">
@@ -456,7 +465,9 @@ function GoogleReviews() {
             {[1, 2, 3, 4, 5].map((s) => (
               <span key={s} className="text-gold text-xl">★</span>
             ))}
-            <span className="text-sm text-muted ml-2">5.0 on Google (28 reviews)</span>
+            {googleRating && (
+              <span className="text-sm text-muted ml-2">{googleRatingLabel(googleRating)}</span>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -590,7 +601,14 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
 //   HOMEPAGE
 // ─────────────────────────────────────────────
 export default async function HomePage() {
-  const [liveStats, topDeals] = await Promise.all([fetchLiveStats(), fetchTopDeals()]);
+  // Google rating is fetched alongside the other data. It returns null when the
+  // Places API is not configured or the call fails, and every consumer hides the
+  // claim in that case rather than falling back to a hardcoded number.
+  const [liveStats, topDeals, googleRating] = await Promise.all([
+    fetchLiveStats(),
+    fetchTopDeals(),
+    fetchGoogleRating(),
+  ]);
 
   // Live listing count for the hero, straight from the active listing feed.
   // Rounded down to the hundred for large counts so it never overstates; the
@@ -663,7 +681,7 @@ export default async function HomePage() {
               <HeroButtons count={heroCount} />
 
               <div className="mt-6">
-                <TrustChips />
+                <TrustChips googleRating={googleRating} />
               </div>
             </div>
 
@@ -804,8 +822,8 @@ export default async function HomePage() {
       <NeighbourhoodPreview hoodStats={topDeals.hoodStats} />
 
       {/* Testimonials before About Hamza */}
-      <GoogleReviews />
-      <AgentProfile />
+      <GoogleReviews googleRating={googleRating} />
+      <AgentProfile googleRating={googleRating} />
       <CTASection />
     </>
   );

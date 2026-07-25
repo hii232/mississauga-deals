@@ -1,6 +1,7 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
 import Link from 'next/link';
 import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { fetchGoogleRating } from '@/lib/google-rating';
 
 export const metadata = {
   title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
@@ -50,7 +51,9 @@ export const metadata = {
   },
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  // Live from Google; null hides every rating claim on the page.
+  const googleRating = await fetchGoogleRating();
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.mississaugainvestor.ca' },
     { name: 'About Hamza Nouman', url: 'https://www.mississaugainvestor.ca/about' },
@@ -123,10 +126,14 @@ export default function AboutPage() {
               <p className="text-2xl font-bold text-navy">24</p>
               <p className="text-xs text-muted">Neighbourhoods Covered</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold text-emerald-500">5.0 &#9733;</p>
-              <p className="text-xs text-muted">Google Rating (28 Reviews)</p>
-            </div>
+            {googleRating && (
+              <div>
+                <p className="text-2xl font-bold text-emerald-600">{googleRating.rating.toFixed(1)} &#9733;</p>
+                <p className="text-xs text-muted">
+                  Google Rating ({googleRating.reviewCount} Review{googleRating.reviewCount === 1 ? '' : 's'})
+                </p>
+              </div>
+            )}
             <div>
               <p className="text-2xl font-bold text-navy">Since 2020</p>
               <p className="text-xs text-muted">Licensed REALTOR&reg;</p>

@@ -7,6 +7,7 @@ import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
+import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 
 export const revalidate = 60;
 
@@ -93,6 +94,7 @@ export default async function BlogPostPage({ params }) {
   });
 
   const related = await fetchRelatedPosts(post.slug, post.category);
+  const googleRating = await fetchGoogleRating();
 
   return (
     <>
@@ -155,8 +157,14 @@ export default async function BlogPostPage({ params }) {
                 <p className="text-[11px] text-muted">REALTOR® · Investment Property Specialist · Cityscape Real Estate Ltd.</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] text-muted">Licensed by RECO</span>
-                  <span className="text-[10px] text-gold">★★★★★ 5.0</span>
-                  <span className="text-[10px] text-muted">· 28 Google Reviews</span>
+                  {googleRating && (
+                    <>
+                      <span className="text-[10px] text-gold">★★★★★ {googleRating.rating.toFixed(1)}</span>
+                      <span className="text-[10px] text-muted">
+                        · {googleRating.reviewCount} Google Review{googleRating.reviewCount === 1 ? '' : 's'}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -203,7 +211,9 @@ export default async function BlogPostPage({ params }) {
                   📞 647-609-1289
                 </a>
               </div>
-              <p className="text-white/60 text-[10px] mt-3">★★★★★ 5.0 on Google · 28 Reviews</p>
+              {googleRating && (
+                <p className="text-white/60 text-[10px] mt-3">★★★★★ {googleRatingLabel(googleRating)}</p>
+              )}
             </div>
 
             {/* Related Posts */}

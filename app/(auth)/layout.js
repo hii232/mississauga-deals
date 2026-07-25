@@ -1,4 +1,5 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
+import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 
 export const metadata = {
   title: 'Sign In',
@@ -11,9 +12,13 @@ const BENEFITS = [
   'Deal alerts the moment a matching property hits the market',
 ];
 
-const TRUST = ['5.0 on Google · 28 reviews', 'Licensed by RECO', 'Live MLS data · PropTx'];
+// Base trust chips. The Google rating is prepended at render time only when
+// Google actually returns one — never hardcoded.
+const TRUST = ['Licensed by RECO', 'Live MLS data · PropTx'];
 
-export default function AuthLayout({ children }) {
+export default async function AuthLayout({ children }) {
+  const googleRating = await fetchGoogleRating();
+  const trust = googleRating ? [googleRatingLabel(googleRating), ...TRUST] : TRUST;
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
       {/* Brand panel — desktop only; gives conversion context beside the form */}
@@ -56,7 +61,7 @@ export default function AuthLayout({ children }) {
           </ul>
 
           <div className="mt-8 flex flex-wrap gap-2">
-            {TRUST.map((t) => (
+            {trust.map((t) => (
               <span
                 key={t}
                 className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/85"
