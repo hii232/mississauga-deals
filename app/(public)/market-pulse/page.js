@@ -6,6 +6,7 @@ import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
@@ -386,6 +387,9 @@ export default function MarketPulsePage() {
         </Link>
       </div>
     </div>
+    {/* Persistent mobile action — long data page; scrollers may never reach the
+        end CTA. Low-friction email capture complements the /quiz strategy CTA. */}
+    <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }
