@@ -2,13 +2,24 @@ import Link from 'next/link';
 
 // The investor-guide hub. Each landing page shows the others so a reader who
 // finishes one has a next step on-site instead of a dead end. Also consumed by
-// the /guides index page.
+// the /guides index page (cards + ItemList schema both derive from this array).
+//
+// Includes the pillar blog posts: they publish with zero internal links from
+// the static site, and links from established pages are how the cluster passes
+// authority to them. RelatedGuides takes the FIRST `limit` non-current entries,
+// so the order below is deliberately interleaved static/pillar — every landing
+// page surfaces a mix instead of only whichever type sits at the top.
 export const GUIDES = [
   { href: '/cash-flow-positive-properties-ontario', title: 'Cash-Flow-Positive Properties', blurb: 'What it actually takes to clear positive cash flow at today’s rates.' },
+  { href: '/blog/best-cash-flow-neighbourhoods-mississauga-2026', title: 'Best Cash Flow Neighbourhoods (2026)', blurb: 'Where the rent-to-price math works right now — and the trade each area asks.' },
   { href: '/rent-vs-buy-mississauga', title: 'Rent vs Buy in Mississauga', blurb: 'When buying beats renting — and how to find your break-even.' },
+  { href: '/blog/seven-bedroom-rooming-house-math-mississauga', title: 'The 7-Bedroom Cash Flow Math', blurb: 'Why big-bedroom cap rates look impossible — and the one question that decides them.' },
   { href: '/townhouse-vs-condo-investment', title: 'Townhouse vs Condo', blurb: 'Fees, land, appreciation and cash flow, compared side by side.' },
+  { href: '/blog/malton-investment-guide-2026', title: 'Malton Investment Guide 2026', blurb: 'The highest yields in Mississauga, and exactly what that trade costs you.' },
   { href: '/hurontario-lrt-real-estate', title: 'Hurontario LRT & Real Estate', blurb: 'How the Hazel McCallion Line reshapes the corridor for investors.' },
+  { href: '/blog/cooksville-hurontario-lrt-corridor-investing', title: 'Cooksville & the LRT Corridor', blurb: 'What transit actually changes for rents, values, and timing.' },
   { href: '/rental-property-insurance-mississauga', title: 'Rental Property Insurance', blurb: 'What landlord insurance covers and what drives the cost.' },
+  { href: '/blog/hst-rebate-for-investors-explained-ontario', title: 'HST Rebate for Investors', blurb: 'The 2026 rebate is huge — and investors claim a different one than end-users.' },
 ];
 
 /**
