@@ -177,6 +177,71 @@ async function fetchTrendingHeadlines() {
   }
 }
 
+// ── Live market data, straight from the site's own /api/market-stats ──
+// The prompt used to hardcode anchors ("5-year fixed around 4.5–5%") that had
+// drifted badly from what the site itself publishes (6.09%), so every post
+// shipped a wrong rate. Pulling the real endpoint means a post can never
+// contradict the numbers a reader sees elsewhere on the site.
+async function fetchMarketData() {
+  try {
+    const baseUrl =
+      process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000'
+        : 'https://www.mississaugainvestor.ca';
+    const res = await fetch(`${baseUrl}/api/market-stats`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// Format the live figures for the prompt. Every field is guarded — a missing
+// value is simply omitted rather than printed as "undefined", and if the whole
+// fetch failed we say nothing about rates at all instead of asserting a stale
+// number. Silence beats a wrong figure.
+function buildMarketBlock(s) {
+  if (!s) return '';
+  const money = (n) => (n > 0 ? '$' + Math.round(n).toLocaleString() : null);
+  const pct = (n) => (typeof n === 'number' && isFinite(n) ? n + '%' : null);
+  const lines = [];
+
+  const board = s.tRREBMonth ? ` (TRREB Market Watch, ${s.tRREBMonth} — the latest monthly board data, NOT today's live figure)` : '';
+  const avg = money(s.mississaugaAvgPrice);
+  const med = money(s.mississaugaMedianPrice);
+  if (avg) lines.push(`- Mississauga average sale price: ${avg}${med ? `, median ${med}` : ''}${board}`);
+  if (s.mississaugaAvgLDOM) lines.push(`- Average days on market: ${s.mississaugaAvgLDOM}`);
+  if (s.mississaugaAvgSPLP) lines.push(`- Sale-to-list ratio: ${s.mississaugaAvgSPLP}%`);
+  if (s.mississaugaMonthsOfInventory) lines.push(`- Months of inventory: ${s.mississaugaMonthsOfInventory}${s.marketType ? ` (${s.marketType})` : ''}`);
+
+  const r = s.rates || {};
+  const rateBits = [
+    r.fixed5yr ? `5-year fixed ${pct(r.fixed5yr)}` : null,
+    r.fixed3yr ? `3-year fixed ${pct(r.fixed3yr)}` : null,
+    r.variable ? `variable ${pct(r.variable)}` : null,
+    r.stressTest ? `stress-test qualifying rate ${pct(r.stressTest)}` : null,
+  ].filter(Boolean);
+  if (rateBits.length) lines.push(`- Mortgage rates: ${rateBits.join(', ')}`);
+
+  const e = s.economic || {};
+  const econBits = [
+    e.bocRate ? `Bank of Canada policy rate ${pct(e.bocRate)}` : null,
+    e.primeRate ? `prime ${pct(e.primeRate)}` : null,
+    e.inflation ? `inflation ${pct(e.inflation)}` : null,
+  ].filter(Boolean);
+  if (econBits.length) lines.push(`- ${econBits.join(', ')}`);
+
+  const rent = s.rental || {};
+  const rentBits = [
+    rent.avg1Bed ? `1-bed ${money(rent.avg1Bed)}` : null,
+    rent.avg2Bed ? `2-bed ${money(rent.avg2Bed)}` : null,
+    rent.avg3Bed ? `3-bed ${money(rent.avg3Bed)}` : null,
+  ].filter(Boolean);
+  if (rentBits.length) lines.push(`- Average asking rents: ${rentBits.join(', ')}`);
+
+  return lines.length ? `\n## Current market figures (the site's own published data — use these)\n${lines.join('\n')}\n` : '';
+}
+
 // ── Real platform data the model can cite (from lib/constants.js) ──
 function buildDataBlock() {
   const rows = Object.entries(HOOD_DATA)
@@ -193,7 +258,7 @@ const BLOG_POST_SCHEMA = {
   properties: {
     title: { type: 'string', description: '50-70 characters, includes "Mississauga", written for search and curiosity' },
     excerpt: { type: 'string', description: 'Max 180 characters. A hook, not a summary.' },
-    content: { type: 'string', description: 'The full blog post in Markdown, 900-1300 words' },
+    content: { type: 'string', description: 'The full blog post in Markdown, 1300-1800 words' },
     category: {
       type: 'string',
       enum: ['Market News', 'Market Analysis', 'Neighbourhood Guide', 'Strategy', 'Guide', 'Beginner Guide'],
@@ -206,7 +271,7 @@ const BLOG_POST_SCHEMA = {
 };
 
 // ── Generate blog post with Claude Fable 5 ──
-async function generateBlogPost({ headlines, topic, existingTitles }) {
+async function generateBlogPost({ headlines, topic, existingTitles, marketStats }) {
   // timeout under the 120s function cap so failures surface cleanly; 1 retry max
   const anthropic = new Anthropic({
     apiKey: process.env.ANTHROPIC_API_KEY,
@@ -244,7 +309,11 @@ Hard rule: if a news story was already covered by ANY recent post above — even
 ## Real platform data you may cite
 Current neighbourhood figures from MississaugaInvestor.ca's own dataset:
 ${buildDataBlock()}
-Other anchors: Mississauga average sale price is roughly $970K; 5-year fixed mortgages are around 4.5–5%; 1-bed rents run about $2,000–2,500 depending on the area.
+${buildMarketBlock(marketStats)}
+Accuracy rules — these matter more than style:
+- The figures above are what the site itself publishes. Never state a number that contradicts them (especially mortgage rates — quote the rate given, not a remembered one).
+- Monthly board figures are labelled with their report month. If you cite one, say which month it's from; never present it as today's number.
+- If you don't have a real figure for something, write around it or use an openly framed approximation ("roughly", "in the low $X00Ks"). Never invent a precise statistic, a percentage, or a source.
 
 ## Voice
 Write like Hamza actually talks to a client over coffee: direct, plain words, short paragraphs, contractions, a little opinionated. Take a position and defend it with numbers. One concrete, personal observation (something I tell clients, something I noticed at showings this month) is worth more than three statistics. It should read like a person who walks these streets every week — not a content mill.
@@ -253,7 +322,9 @@ Avoid AI-writing tells: no "in today's fast-paced market", "navigating the lands
 
 ## Requirements
 - Title: 50–70 characters, includes "Mississauga", include ${currentYear} if it fits naturally.
-- Content: 900–1300 words of Markdown with ## and ### headings. Ground the story in Mississauga specifics — at least two neighbourhoods with concrete numbers from the data above. Where you don't have a real figure, use clearly framed approximations ("roughly", "around") rather than inventing precise statistics. Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section and a soft pointer to the deal scores on MississaugaInvestor.ca.
+- Content: 1300–1800 words of Markdown with ## and ### headings. Go deep enough to actually answer the question a reader searched for — a thin post that restates the headline is worse than no post. Ground the story in Mississauga specifics: at least three neighbourhoods with concrete numbers from the data above, and at least one worked example an investor can follow (a real purchase price, the rent it supports, and what that leaves per month).
+- Use ONE Markdown table where a genuine side-by-side comparison helps (neighbourhoods, property types, rate scenarios) — GitHub-flavoured pipe tables render properly on the site. Keep it to 3–5 rows and 3–4 columns so it stays readable on a phone. Don't force a table into a post that doesn't need one.
+- Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section — three or four specific, actionable takeaways, not a summary — and a soft pointer to the deal scores on MississaugaInvestor.ca.
 - Internal links: weave in 2–3 Markdown links where they genuinely help the reader, using ONLY these exact relative paths — [current listings](/listings), [mortgage calculator](/mortgage-calculator), [market data](/market-pulse), [recent sold prices](/recent-sales), [deal alerts](/alerts), or a neighbourhood guide as /neighbourhoods/<name-in-lowercase-with-hyphens> for a neighbourhood you discuss. Never invent any other URL, and never use absolute URLs for internal links.
 - This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.`;
 
@@ -428,14 +499,18 @@ export async function GET(request) {
 
     const existingTitles = (existingPosts || []).map((p) => p.title);
 
-    // Trending-first: pull real headlines from the site's own RSS aggregator
-    const headlines = await fetchTrendingHeadlines();
+    // Trending-first: pull real headlines from the site's own RSS aggregator,
+    // plus the live market figures so the post can't contradict the site.
+    const [headlines, marketStats] = await Promise.all([
+      fetchTrendingHeadlines(),
+      fetchMarketData(),
+    ]);
 
     // Fall back to the evergreen topic rotation only if the feeds are down
     const topic = headlines.length > 0 ? null : pickTopic(existingTitles);
 
     // Generate the blog post
-    const post = await generateBlogPost({ headlines, topic, existingTitles });
+    const post = await generateBlogPost({ headlines, topic, existingTitles, marketStats });
 
     // Validate
     if (!post.title || !post.content) {
