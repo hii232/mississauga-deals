@@ -76,35 +76,59 @@ async function fetchLiveListingStats(baseUrl) {
 
     const count = raw.length;
 
+    // FIELD NAMES: /api/listings returns MAPPED listings (price, dom, type,
+    // subType) — not the raw MLS names (ListPrice, DaysOnMarket, PropertyType).
+    // This code read the raw names, so every filter below matched NOTHING and
+    // each "live" stat silently fell through to its fallback: avg DOM served a
+    // hardcoded 28, avg price served the TRREB monthly figure, and every
+    // per-type bucket came back with count 0. The site labelled all of it "Live
+    // MLS data". Raw names are kept as a secondary read so this keeps working
+    // if a caller ever passes unmapped feed rows.
+    const priceOf = (l) => Number(l.price ?? l.ListPrice) || 0;
+    const domOf = (l) => {
+      const d = l.dom ?? l.daysOnMarket ?? l.DaysOnMarket;
+      return Number.isFinite(Number(d)) ? Number(d) : null;
+    };
+    const typeOf = (l) => `${l.type ?? l.PropertyType ?? ''} ${l.subType ?? l.PropertySubType ?? ''}`;
+
     // Compute avg DOM from active listings
-    const withDom = raw.filter((l) => l.DaysOnMarket != null);
+    const withDom = raw.filter((l) => domOf(l) != null);
     const avgDOM = withDom.length > 0
-      ? Math.round(withDom.reduce((s, l) => s + (l.DaysOnMarket || 0), 0) / withDom.length)
+      ? Math.round(withDom.reduce((s, l) => s + domOf(l), 0) / withDom.length)
       : 28;
 
     // Compute avg price; fall back to the latest transcribed TRREB average
     // rather than a frozen round number that drifts stale.
-    const withPrice = raw.filter((l) => (l.ListPrice || 0) > 0);
+    const withPrice = raw.filter((l) => priceOf(l) > 0);
     const avgPrice = withPrice.length > 0
-      ? Math.round(withPrice.reduce((s, l) => s + l.ListPrice, 0) / withPrice.length)
+      ? Math.round(withPrice.reduce((s, l) => s + priceOf(l), 0) / withPrice.length)
       : mississaugaMonthly[mississaugaMonthly.length - 1].avgPrice;
 
-    // Compute avg prices by type
-    const typeMap = {
-      detached: ['Detached', 'Single Family Residence'],
-      semiDetached: ['Semi-Detached'],
-      townhouse: ['Att/Row/Twnhouse', 'Row/Townhouse', 'Townhouse'],
-      condo: ['Condo Apt', 'Condo Townhouse', 'Condominium'],
-    };
+    // Classify each listing into exactly ONE bucket, most specific first.
+    // Order matters: "Semi-Detached" contains the substring "Detached", and
+    // "Condo Townhouse" contains "Townhouse" — the previous independent
+    // substring filters double-counted semis as detached and condo-towns as
+    // freehold towns, inflating both averages.
+    function classify(l) {
+      const t = typeOf(l).toLowerCase();
+      if (t.includes('semi')) return 'semiDetached';
+      if (t.includes('condo') || t.includes('apartment')) return 'condo';
+      if (t.includes('town') || t.includes('row')) return 'townhouse';
+      if (t.includes('detached') || t.includes('single family')) return 'detached';
+      return null;
+    }
+
+    const buckets = { detached: [], semiDetached: [], townhouse: [], condo: [] };
+    for (const l of withPrice) {
+      const key = classify(l);
+      if (key) buckets[key].push(l);
+    }
 
     const avgPrices = {};
-    for (const [key, types] of Object.entries(typeMap)) {
-      const matches = withPrice.filter((l) =>
-        types.some((t) => (l.PropertyType || '').includes(t) || (l.PropertySubType || '').includes(t))
-      );
+    for (const [key, matches] of Object.entries(buckets)) {
       if (matches.length > 0) {
         avgPrices[key] = {
-          avg: Math.round(matches.reduce((s, l) => s + l.ListPrice, 0) / matches.length),
+          avg: Math.round(matches.reduce((s, l) => s + priceOf(l), 0) / matches.length),
           count: matches.length,
           label: key === 'semiDetached' ? 'Semi-Detached' : key.charAt(0).toUpperCase() + key.slice(1),
         };
