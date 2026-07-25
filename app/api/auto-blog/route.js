@@ -4,6 +4,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { fetchAllFeeds } from '@/lib/news/fetch-feeds';
 import { HOOD_DATA } from '@/lib/constants';
 import { SEED_POSTS } from '@/lib/blog/seed-posts';
+import { sanitizeBlogText, postNeedsSanitizing } from '@/lib/blog/sanitize-content';
 
 export const maxDuration = 120; // Allow up to 2 minutes for AI generation
 export const dynamic = 'force-dynamic';
@@ -354,7 +355,8 @@ Avoid AI-writing tells: no "in today's fast-paced market", "navigating the lands
 - Use ONE Markdown table where a genuine side-by-side comparison helps (neighbourhoods, property types, rate scenarios) — GitHub-flavoured pipe tables render properly on the site. Keep it to 3–5 rows and 3–4 columns so it stays readable on a phone. Don't force a table into a post that doesn't need one.
 - Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section — three or four specific, actionable takeaways, not a summary — and a soft pointer to the deal scores on MississaugaInvestor.ca.
 - Internal links: weave in 2–3 Markdown links where they genuinely help the reader, using ONLY these exact relative paths — [current listings](/listings), [mortgage calculator](/mortgage-calculator), [market data](/market-pulse), [recent sold prices](/recent-sales), [deal alerts](/alerts), or a neighbourhood guide as /neighbourhoods/<name-in-lowercase-with-hyphens> for a neighbourhood you discuss. Never invent any other URL, and never use absolute URLs for internal links.
-- This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.`;
+- This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.
+- Brokerage: Hamza is with Cityscape Real Estate Ltd., Brokerage. NEVER name any other brokerage, past or present — misattributing a registrant's brokerage is a RECO compliance violation.`;
 
   const response = await anthropic.beta.messages.create({
     model: 'claude-fable-5',
@@ -526,6 +528,31 @@ export async function GET(request) {
       .order('created_at', { ascending: false });
 
     const existingTitles = (existingPosts || []).map((p) => p.title);
+
+    // ── Permanent cleanup of stored content defects ──
+    // Render-time sanitizing already hides these, but the DATA should be clean:
+    // older posts name Hamza's previous brokerage in their author bios (a RECO
+    // compliance problem on indexed pages) and some carry U+FFFD em-dashes.
+    // Rewrite any dirty row in place. Idempotent — clean rows never match.
+    try {
+      const { data: fullPosts } = await supabase
+        .from('blog_posts')
+        .select('id, slug, title, excerpt, content');
+      const dirty = (fullPosts || []).filter(postNeedsSanitizing);
+      for (const p of dirty) {
+        await supabase
+          .from('blog_posts')
+          .update({
+            title: sanitizeBlogText(p.title),
+            excerpt: sanitizeBlogText(p.excerpt),
+            content: sanitizeBlogText(p.content),
+          })
+          .eq('id', p.id);
+      }
+      if (dirty.length) console.log(`Sanitized ${dirty.length} stored posts:`, dirty.map((p) => p.slug).join(', '));
+    } catch (e) {
+      console.error('Stored-post sanitize pass failed:', e.message);
+    }
 
     // ── Self-publish the hand-written pillar posts ──
     // The cron is the one caller that always runs with real credentials, so the

@@ -4,6 +4,7 @@ import { CityscapePanorama } from '@/components/art/cityscape';
 import { createClient } from '@supabase/supabase-js';
 import InlineCTA from '@/components/ui/inline-cta';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { sanitizePost } from '@/lib/blog/sanitize-content';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -32,7 +33,9 @@ export default async function BlogPage() {
       .select('*')
       .eq('published', true)
       .order('created_at', { ascending: false });
-    posts = data || [];
+    // Sanitize stored defects (old brokerage name, U+FFFD em-dashes) before
+    // titles/excerpts render or enter the ItemList schema.
+    posts = (data || []).map(sanitizePost);
   }
 
   // ItemList of published articles — helps search engines understand the blog

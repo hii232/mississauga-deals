@@ -6,6 +6,7 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
+import { sanitizePost, sanitizeBlogText } from '@/lib/blog/sanitize-content';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 
@@ -19,7 +20,7 @@ const supabase =
 export async function generateMetadata({ params }) {
   if (!supabase) return { title: 'Blog' };
 
-  const { data: post } = await supabase
+  let { data: post } = await supabase
     .from('blog_posts')
     .select('title, excerpt, cover_image_url, slug, created_at, updated_at')
     .eq('slug', params.slug)
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }) {
     .single();
 
   if (!post) return { title: 'Post Not Found' };
+  post = sanitizePost(post);
 
   return {
     title: post.title,
@@ -73,20 +75,23 @@ async function fetchRelatedPosts(currentSlug, category) {
     .neq('slug', currentSlug)
     .order('created_at', { ascending: false })
     .limit(3);
-  return data || [];
+  return (data || []).map((r) => ({ ...r, title: sanitizeBlogText(r.title) }));
 }
 
 export default async function BlogPostPage({ params }) {
   if (!supabase) return notFound();
 
-  const { data: post, error } = await supabase
+  const { data: rawPost, error } = await supabase
     .from('blog_posts')
     .select('*')
     .eq('slug', params.slug)
     .eq('published', true)
     .single();
 
-  if (error || !post) return notFound();
+  if (error || !rawPost) return notFound();
+  // Older stored posts carry a since-corrected brokerage name (RECO issue) and
+  // U+FFFD em-dashes; sanitize before anything renders or enters JSON-LD.
+  const post = sanitizePost(rawPost);
 
   const readTime = Math.max(1, Math.ceil((post.content || '').split(/\s+/).length / 200));
   const dateStr = new Date(post.created_at).toLocaleDateString('en-CA', {
