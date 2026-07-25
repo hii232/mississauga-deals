@@ -4,6 +4,7 @@ import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
+import { sanitizePost } from '@/lib/blog/sanitize-content';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -492,7 +493,7 @@ async function prepareSendData(request, supabase) {
       .eq('published', true)
       .order('created_at', { ascending: false })
       .limit(1);
-    latestPost = posts?.[0] || null;
+    latestPost = posts?.[0] ? sanitizePost(posts[0]) : null;
   } catch {
     // blog block is optional
   }

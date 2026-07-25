@@ -199,6 +199,16 @@ function HeroDealCard({ deal, photo }) {
           </span>
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">{deal.dom} DOM</span>
         </div>
+        {/* The rent behind those numbers. This card is the first metric an
+            investor sees on the site — an unexplained 6.9% cap here is exactly
+            what reads as marketing math. */}
+        {deal.estimatedRent > 0 && (
+          <p className="mt-1.5 text-[10px] text-slate-500">
+            Assumes ${Math.round(deal.estimatedRent).toLocaleString()}/mo rent
+            {deal.basementIncome > 0 ? ' incl. basement suite' : ''}
+            {deal.unitCount >= 2 ? ` across ${deal.unitCount} units` : ''}
+          </p>
+        )}
       </div>
       <div className="border-t border-slate-100 bg-cloud px-4 py-2 text-center text-[11px] font-bold text-accent">
         Today&apos;s top-scored deal &rarr;
