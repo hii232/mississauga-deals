@@ -39,6 +39,7 @@ export default function AdminDashboard() {
   const [leads, setLeads] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [marketFreshness, setMarketFreshness] = useState(null);
 
   useEffect(() => {
     if (!adminKey) return;
@@ -51,6 +52,19 @@ export default function AdminDashboard() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [adminKey]);
+
+  // TRREB figures are transcribed by hand from a monthly PDF, so they go stale
+  // silently. Surface it here the moment they're overdue.
+  useEffect(() => {
+    fetch('/api/market-stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.tRREBIsStale) {
+          setMarketFreshness({ months: d.tRREBMonthsBehind, month: d.tRREBMonth });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   if (loading) {
     return (
@@ -76,6 +90,27 @@ export default function AdminDashboard() {
         <h1 className="font-heading text-xl font-bold text-white">Dashboard</h1>
         <p className="text-sm text-white/40">Lead management overview</p>
       </div>
+
+      {/* Stale market data — these numbers feed the site, the emails and the blog */}
+      {marketFreshness && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <p className="text-sm font-semibold text-amber-300">Need new market data</p>
+          <p className="mt-1 text-sm text-amber-200/80">
+            TRREB Market Watch figures are {marketFreshness.months} months behind
+            {marketFreshness.month ? ` (currently ${marketFreshness.month})` : ''}. These numbers
+            feed the market pages, the weekly email and every blog post — send Claude the latest
+            Market Watch PDF to refresh them.
+          </p>
+          <a
+            href="https://trreb.ca/market-data/market-watch/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block text-sm font-semibold text-amber-300 underline"
+          >
+            Get the latest Market Watch →
+          </a>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">

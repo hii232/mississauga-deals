@@ -294,7 +294,7 @@ function buildAlertEmail(listings, name, searches) {
                 <table cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #475569; margin-right: 8px;">
-                      CAP ${cap == null ? '—' : cap + '%'}
+                      CAP ${cap == null ? '—' : cap.toFixed(1) + '%'}
                     </td>
                     <td width="8"></td>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#10B981' : '#EF4444'}; font-weight: 600;">

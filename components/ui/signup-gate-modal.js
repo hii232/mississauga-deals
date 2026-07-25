@@ -268,7 +268,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                     required
                     className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
-                  <p className="mt-1 text-[11px] text-slate-400">We&apos;ll text you top deals before they hit the site</p>
+                  <p className="mt-1 text-[11px] text-slate-500">We&apos;ll text you top deals before they hit the site</p>
                 </div>
 
                 <button
@@ -283,7 +283,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
               <button
                 type="button"
                 onClick={handleSkipStep2}
-                className="mt-2 w-full py-2 text-center text-xs text-slate-400 hover:text-slate-600 transition"
+                className="mt-2 w-full py-2 text-center text-xs text-slate-500 hover:text-slate-700 transition"
               >
                 Skip for now — I&apos;ll complete later
               </button>

@@ -8,9 +8,27 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
 import { NeighbourhoodScene } from '@/components/art/neighbourhood-scene';
 import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
+const BASE = 'https://www.mississaugainvestor.ca';
+
+// ItemList of every ranked neighbourhood so search engines read /neighbourhoods
+// as the collection page it is (each entry points to its own guide). Built from
+// the static HOOD_DATA — the same 24 that render — so the markup always matches
+// the page (extras are CSS-hidden, never unmounted). Mirrors /guides and /blog.
+const neighbourhoodListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Best Neighbourhoods to Invest in Mississauga',
+  itemListElement: Object.keys(HOOD_DATA).map((name, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name,
+    url: `${BASE}/neighbourhoods/${slugify(name)}`,
+  })),
+};
 // Cards shown before the "show all" reveal (3 full rows on the lg 3-col grid).
 const INITIAL_COUNT = 9;
 
@@ -57,6 +75,13 @@ export default function NeighbourhoodsPage() {
 
   return (
     <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(neighbourhoodListSchema) }} />
+    <BreadcrumbJsonLd
+      items={[
+        { name: 'Home', url: `${BASE}/` },
+        { name: 'Neighbourhoods', url: `${BASE}/neighbourhoods` },
+      ]}
+    />
     <PageHero
       compact
       eyebrow="24 neighbourhoods, ranked"

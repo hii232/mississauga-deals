@@ -98,7 +98,7 @@ export function FloatingContactButton() {
 
           {/* Footer */}
           <div className="px-5 py-3 bg-cloud/50 border-t border-slate-100">
-            <p className="text-[10px] text-slate-400 text-center">
+            <p className="text-[10px] text-slate-500 text-center">
               Cityscape Real Estate Ltd. · Licensed by RECO
             </p>
           </div>

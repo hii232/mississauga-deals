@@ -29,6 +29,16 @@ The site exists to **generate investor leads and convert them**. In priority ord
 - Mobile-first: the site gets most traffic at ~375px width. Check small screens for any UI change.
 - SEO matters commercially: keep metadata, structured data, sitemap, and internal links correct on public pages.
 
+## Market data (TRREB) — refresh process
+
+The monthly sold/volume/YoY figures in `app/api/market-stats/route.js` are **transcribed by hand** from TRREB's Market Watch PDF. TRREB publishes no API or feed, so nothing refreshes them automatically — they once sat five months stale while the market pages, weekly newsletter and every auto-generated blog post quoted them as current.
+
+- TRREB releases each month's report in the first few days of the following month (June 2026 → released 3 Jul 2026): https://trreb.ca/market-data/market-watch/
+- To refresh: Hamza uploads the PDF; extract with `pypdf` in a venv (`extraction_mode='layout'` — the default mode scrambles columns). Mississauga rows are on page 3 (all types) and the per-type pages (7 detached, 9 semi, 11 Att/Row/Townhouse, 13 condo townhouse, 15 condo apartment); GTA summary and economic indicators are on page 1.
+- Update `tRREBMonth` **and** `tRREBAsOf` together, plus the `disclaimer` string.
+- `tRREBFreshness()` derives `tRREBMonthsBehind` / `tRREBIsStale` / `tRREBRefreshNote` from `tRREBAsOf`. Stale = 2+ months behind (a one-month lag is normal). The admin dashboard shows a "Need new market data" banner when stale, and a monthly Routine pings Hamza on the 5th.
+- **Never estimate, scrape or interpolate these numbers.** If a figure isn't in the report, omit it or leave it clearly labelled as approximate. Market Watch publishes no per-municipality YoY — the per-type `yoy` values are GTA-wide and must stay labelled as such.
+
 ## Verification
 
 - `npm run build` must pass before any commit. There is no test suite; the build is the gate.

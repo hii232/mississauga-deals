@@ -106,7 +106,7 @@ function ArticleCard({ article, featured = false }) {
       <a
         href={article.link}
         target="_blank"
-        rel="noopener noreferrer"
+        rel="noopener noreferrer nofollow"
         className="group block card overflow-hidden no-underline"
       >
         {/* Image */}
@@ -168,7 +168,7 @@ function ArticleCard({ article, featured = false }) {
     <a
       href={article.link}
       target="_blank"
-      rel="noopener noreferrer"
+      rel="noopener noreferrer nofollow"
       className="group flex gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all no-underline"
     >
       {/* Thumbnail */}

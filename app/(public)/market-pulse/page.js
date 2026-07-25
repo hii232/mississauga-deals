@@ -6,6 +6,7 @@ import { HOOD_DATA } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
@@ -53,14 +54,17 @@ export default function MarketPulsePage() {
     condo: apiPrices?.condo?.avg || apiPrices?.condo || Math.round(avgDetached * 0.48),
   };
 
+  // Fallbacks (used only if /api/market-stats is unreachable) mirror TRREB June
+  // 2026 (MW2606) — keep in sync with app/api/market-stats/route.js when a new
+  // Market Watch lands, or these go quietly stale the way the Feb ones did.
   const marketMetrics = {
     avgDOM: stats?.mississaugaAvgLDOM || stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
-    salesToList: stats?.mississaugaAvgSPLP || (stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 96),
-    monthsOfInventory: stats?.mississaugaMonthsOfInventory || 5.2,
+    salesToList: stats?.mississaugaAvgSPLP || (stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 97),
+    monthsOfInventory: stats?.mississaugaMonthsOfInventory || 4.9,
     activeCount: stats?.activeCount || 0,
-    snlr: stats?.mississaugaSNLR || 32.4,
-    mississaugaSales: stats?.mississaugaSales || 345,
-    mississaugaNewListings: stats?.mississaugaNewListings || 940,
+    snlr: stats?.mississaugaSNLR || 35.1,
+    mississaugaSales: stats?.mississaugaSales || 567,
+    mississaugaNewListings: stats?.mississaugaNewListings || 1632,
   };
 
   const priceTypes = [
@@ -72,12 +76,16 @@ export default function MarketPulsePage() {
 
   const maxPrice = Math.max(...priceTypes.map((p) => p.value));
 
-  // Mortgage rates — TRREB Feb 2026 page 1
+  // Mortgage rates — live from the API; fallbacks mirror TRREB June 2026 (MW2606).
+  // The fixed rates are Bank of Canada POSTED rates, which run well above the
+  // discounted rate a borrower is actually quoted. They were previously listed
+  // bare next to a variable contract rate, which read as though a 5-year fixed
+  // genuinely costs 1.6 points more than variable. Labelled explicitly now.
   const ratesData = stats?.rates;
   const rates = [
-    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.84%' },
-    { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%' },
-    { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%' },
+    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.49%', posted: true },
+    { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%', posted: true },
+    { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%', posted: true },
     { term: 'Variable', rate: ratesData?.variable ? `${ratesData.variable}%` : '4.45%' },
     { term: 'BoC Rate', rate: stats?.economic?.bocRate ? `${stats.economic.bocRate}%` : '2.3%' },
   ];
@@ -352,7 +360,7 @@ export default function MarketPulsePage() {
             Current Mortgage Rates
           </h2>
           <p className="text-xs text-muted mb-4">
-            Approximate rates from major Canadian lenders. Rates change frequently — verify with your mortgage broker.
+            Bank of Canada benchmark rates, published monthly via TRREB. Rates change frequently — verify with your mortgage broker.
           </p>
           <div className="space-y-0">
             {rates.map((r, i) => (
@@ -360,14 +368,26 @@ export default function MarketPulsePage() {
                 key={r.term}
                 className={`flex items-center justify-between py-3 ${i < rates.length - 1 ? 'border-b border-slate-50' : ''}`}
               >
-                <span className="text-sm text-navy">{r.term}</span>
+                <span className="text-sm text-navy">
+                  {r.term}
+                  {r.posted && (
+                    <span className="ml-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                      posted
+                    </span>
+                  )}
+                </span>
                 <span className="text-sm font-bold text-navy">{r.rate}</span>
               </div>
             ))}
           </div>
           <div className="mt-5 rounded-lg bg-cloud p-4">
             <p className="text-xs text-muted leading-relaxed">
-              Rates shown are for reference only. Actual rates depend on credit score, down payment, property type, and lender. Always consult a licensed mortgage broker for accurate quotes.
+              <strong className="text-navy">Posted rates are not the rate you&apos;ll be offered.</strong>{' '}
+              They&apos;re the Bank of Canada benchmark; discounted rates from a broker are typically
+              well below them, which is why our cash-flow numbers assume roughly{' '}
+              {ratesData?.contractRateAssumption ? `${ratesData.contractRateAssumption}%` : '4.9%'}{' '}
+              on a 5-year fixed. Your actual rate depends on credit, down payment, property type and lender —
+              always get a quote from a licensed mortgage broker.
             </p>
           </div>
         </div>
@@ -386,6 +406,9 @@ export default function MarketPulsePage() {
         </Link>
       </div>
     </div>
+    {/* Persistent mobile action — long data page; scrollers may never reach the
+        end CTA. Low-friction email capture complements the /quiz strategy CTA. */}
+    <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }
