@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
+import { SidebarEmailCapture } from '@/components/blog/sidebar-email-capture';
 import InlineCTA from '@/components/ui/inline-cta';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
@@ -252,6 +253,11 @@ export default async function BlogPostPage({ params }) {
           {/* Sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
+              {/* Email capture FIRST — the only ask that matches a cold
+                  organic reader's temperature. Quiz/call/booking below are
+                  higher-commitment steps. */}
+              <SidebarEmailCapture />
+
               {/* Quiz CTA */}
               <div className="bg-navy rounded-xl p-5">
                 <p className="font-heading font-bold text-white text-sm mb-1">Find deals matched to you</p>
@@ -274,7 +280,7 @@ export default async function BlogPostPage({ params }) {
 
               {/* First Month Offer */}
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
-                <span className="text-[10px] font-bold text-emerald-500">EXCLUSIVE OFFER</span>
+                <span className="text-[10px] font-bold text-emerald-600">EXCLUSIVE OFFER</span>
                 <p className="text-sm font-semibold text-navy mt-1 leading-snug">
                   Close with Hamza — First Month&apos;s Mortgage On Us
                 </p>
