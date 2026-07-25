@@ -63,6 +63,21 @@ const TREND_COLOR = {
   cool: 'bg-blue-50 text-blue-600 border-blue-100',
 };
 
+// Pillar posts that cover specific neighbourhoods in depth. Keys must match
+// HOOD_DATA names exactly. Every hood page also links the city-wide ranking.
+const HOOD_PILLAR_POSTS = {
+  'Malton': [
+    { href: '/blog/malton-investment-guide-2026', title: 'Malton Investment Guide 2026' },
+    { href: '/blog/seven-bedroom-rooming-house-math-mississauga', title: 'The 7-Bedroom Cash Flow Math: Real or Fantasy?' },
+  ],
+  'Cooksville': [
+    { href: '/blog/cooksville-hurontario-lrt-corridor-investing', title: 'Cooksville and the Hurontario LRT' },
+  ],
+  'Hurontario': [
+    { href: '/blog/cooksville-hurontario-lrt-corridor-investing', title: 'Cooksville and the Hurontario LRT' },
+  ],
+};
+
 export default async function NeighbourhoodGuidePage({ params }) {
   const name = SLUG_TO_HOOD[params.slug];
   if (!name) notFound();
@@ -259,6 +274,24 @@ export default async function NeighbourhoodGuidePage({ params }) {
             <p className="text-sm text-navy/75 leading-relaxed">{f.answer}</p>
           </div>
         ))}
+      </div>
+
+      {/* Deep-dive reading — pillar posts covering this hood specifically,
+          plus the ranking that puts it in context. Internal links from these
+          established pages are how the cluster passes authority to the posts,
+          and they give a reader a next step that's ON topic. */}
+      <div className="mb-10 rounded-xl border border-accent/15 bg-accent/[0.04] p-5">
+        <h2 className="font-heading font-semibold text-lg text-navy mb-3">Go deeper on the numbers</h2>
+        <div className="space-y-2">
+          {(HOOD_PILLAR_POSTS[name] || []).map((post) => (
+            <Link key={post.href} href={post.href} className="block text-sm font-semibold text-accent no-underline hover:underline">
+              {post.title} →
+            </Link>
+          ))}
+          <Link href="/blog/best-cash-flow-neighbourhoods-mississauga-2026" className="block text-sm font-semibold text-accent no-underline hover:underline">
+            How {name} compares: Best Cash Flow Neighbourhoods in Mississauga (2026) →
+          </Link>
+        </div>
       </div>
 
       {/* Related */}
