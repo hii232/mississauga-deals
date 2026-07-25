@@ -84,6 +84,10 @@ function buildEmailHTML(stats, date, extras = {}) {
       : null;
   const inventory = s.mississaugaMonthsOfInventory || null;
 
+  // The by-type sold prices come from TRREB's monthly Market Watch, not this
+  // week's live feed. Surface the report month so the email never passes a
+  // months-old board figure off as a live weekly number.
+  const trrebMonth = s.tRREBMonth || null;
   const prices = s.avgPrices || {};
   const priceTiles = [
     { label: 'Detached', value: prices.detached?.avg || prices.detached?.soldAvg },
@@ -162,6 +166,7 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
 
   ${priceTiles.length > 0 ? `${hairline()}
   ${kicker('Average Prices &middot; By Property Type')}
+  ${trrebMonth ? `<div style="font-family:${SERIF};font-size:11px;color:${MUTED};margin:-8px 0 10px;letter-spacing:0.3px;">Sold prices &middot; TRREB Market Watch, ${esc(trrebMonth)} (latest monthly board data)</div>` : ''}
   <table width="100%" cellpadding="0" cellspacing="0">
     ${priceTiles.map((t, i) => `<tr>
       <td style="font-family:${SERIF};font-size:13px;color:${MUTED};padding:9px 0;letter-spacing:0.5px;${i < priceTiles.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${t.label}</td>
