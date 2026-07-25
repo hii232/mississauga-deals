@@ -7,6 +7,14 @@ import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 
+// The full-pool fetch (13 upstream page requests) plus per-subscriber matching
+// and SEQUENTIAL Resend sends will not reliably fit Vercel's default function
+// window. The old page-1-only version squeaked under it; the fixed pool must
+// not die at the timeout wall and silently send to only the first subscribers.
+// Newsletter uses 60s for one batch send; alerts do N sends, so give headroom.
+export const maxDuration = 120;
+export const dynamic = 'force-dynamic';
+
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
