@@ -164,7 +164,7 @@ export default function AlertsPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
-                Email <span className="text-red-400">*</span>
+                Email <span className="text-red-600" aria-hidden="true">*</span>
               </label>
               <input
                 id="email"
