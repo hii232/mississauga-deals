@@ -42,11 +42,15 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
   }
 
-  // Phone is mandatory for registration signups
-  if (source === 'registration') {
-    if (!phone) {
-      return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
-    }
+  // Phone is OPTIONAL on registration signups (it used to be mandatory, which
+  // hard-blocked the site's #1 conversion path — the homepage hero CTA lands
+  // on /signup — over the single most-abandoned field in any signup form).
+  // It is still validated WHENEVER it is supplied, so a typo'd or obviously
+  // fake number can never reach Hamza as a dead contact; it just no longer
+  // costs the entire lead. The client form asks for it prominently and the
+  // signup-gate's email-only fallback can now use the normal registration
+  // path instead of routing around this check.
+  if (source === 'registration' && phone) {
     const digits = phone.replace(/\D/g, '');
     // Must be 10 digits or 11 starting with 1 (Canadian format)
     if (!(digits.length === 10 || (digits.length === 11 && digits.startsWith('1')))) {
