@@ -104,7 +104,11 @@ export function EmailCapture() {
             </figcaption>
           </figure>
         )}
-        <p className="text-[11px] text-navy/40 mt-4">
+        {/* Risk-reversal line, directly under the primary capture. It was
+            navy/40 at 11px — measured 2.28:1 on this band, well under WCAG AA
+            (4.5:1), so the one reassurance that answers "will you spam me?"
+            was the least readable text on the page. navy/70 measures 5.1:1. */}
+        <p className="text-xs text-navy/70 mt-4">
           Free weekly email. No spam, unsubscribe anytime.
         </p>
       </div>
