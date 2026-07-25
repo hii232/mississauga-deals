@@ -2,27 +2,26 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+// Leaflet's stylesheet ships with the npm package we already depend on, so it
+// is bundled and served same-origin. It used to be injected at runtime as a
+// <link> to unpkg.com: the map's appearance then depended on a third-party CDN
+// being reachable and fast (an ad blocker, a corporate proxy or an unpkg blip
+// left the map rendering unstyled), it cost a fresh DNS + TLS handshake to an
+// un-preconnected origin exactly when the user switched to map view, it was an
+// unconsented third-party request on a site that is otherwise careful about
+// PIPEDA, and the hardcoded 1.9.4 in that URL could silently drift from the
+// ^1.9.4 resolved for the JS. Bundling removes all four problems, and this
+// component is dynamically imported so the CSS still isn't paid for by
+// visitors who never open the map.
+import 'leaflet/dist/leaflet.css';
 import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
-
-// Leaflet CSS is imported once globally via useEffect
-let leafletLoaded = false;
 
 export function ListingMap({ listings, photoMap }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef(null);
   const [selectedListing, setSelectedListing] = useState(null);
-
-  // Load Leaflet CSS once
-  useEffect(() => {
-    if (leafletLoaded) return;
-    leafletLoaded = true;
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-  }, []);
 
   // Initialize map
   useEffect(() => {
