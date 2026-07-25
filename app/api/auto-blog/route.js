@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 import { fetchAllFeeds } from '@/lib/news/fetch-feeds';
 import { HOOD_DATA } from '@/lib/constants';
+import { SEED_POSTS } from '@/lib/blog/seed-posts';
 
 export const maxDuration = 120; // Allow up to 2 minutes for AI generation
 export const dynamic = 'force-dynamic';
@@ -525,6 +526,44 @@ export async function GET(request) {
       .order('created_at', { ascending: false });
 
     const existingTitles = (existingPosts || []).map((p) => p.title);
+
+    // ── Self-publish the hand-written pillar posts ──
+    // The cron is the one caller that always runs with real credentials, so the
+    // seed posts publish themselves on the next daily run instead of waiting on
+    // someone to hit the admin route. Idempotent: existing slugs are skipped,
+    // so after the first run this block is a no-op forever.
+    const existingSlugSet = new Set((existingPosts || []).map((p) => p.slug));
+    const missingSeeds = SEED_POSTS.filter((p) => !existingSlugSet.has(p.slug));
+    if (missingSeeds.length > 0) {
+      const { data: seeded, error: seedErr } = await supabase
+        .from('blog_posts')
+        .insert(missingSeeds.map((p) => ({
+          title: p.title,
+          slug: p.slug,
+          excerpt: p.excerpt,
+          content: p.content,
+          category: p.category,
+          cover_image_url: null, // branded generated cover
+          published: true,
+        })))
+        .select('slug');
+
+      if (!seedErr && seeded?.length) {
+        // Ping for the batch, then stop for today — five pillar posts landing
+        // at once IS the day's publishing. The AI post resumes tomorrow, which
+        // also avoids generating a near-duplicate of a topic just seeded.
+        const indexResults = await pingSearchEngines(seeded[0].slug);
+        return NextResponse.json({
+          success: true,
+          seeded: seeded.map((s) => s.slug),
+          skippedGeneration: 'Seed posts published this run; AI generation resumes next run.',
+          indexing: indexResults,
+        });
+      }
+      // Seed insert failed — log and continue to normal generation rather than
+      // losing the day's post over it.
+      if (seedErr) console.error('Seed publish failed:', seedErr.message);
+    }
 
     // Trending-first: pull real headlines from the site's own RSS aggregator,
     // plus the live market figures so the post can't contradict the site.
