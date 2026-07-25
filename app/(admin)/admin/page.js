@@ -40,6 +40,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [marketFreshness, setMarketFreshness] = useState(null);
+  const [ratingFreshness, setRatingFreshness] = useState(null);
 
   useEffect(() => {
     if (!adminKey) return;
@@ -62,6 +63,17 @@ export default function AdminDashboard() {
         if (d?.tRREBIsStale) {
           setMarketFreshness({ months: d.tRREBMonthsBehind, month: d.tRREBMonth });
         }
+      })
+      .catch(() => {});
+  }, []);
+
+  // The Google rating is hand-entered too (no Places API key), so it gets the
+  // same treatment: visible when it's overdue for a re-check.
+  useEffect(() => {
+    fetch('/api/google-rating')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.freshness?.refreshNote) setRatingFreshness(d.freshness);
       })
       .catch(() => {});
   }, []);
@@ -90,6 +102,22 @@ export default function AdminDashboard() {
         <h1 className="font-heading text-xl font-bold text-white">Dashboard</h1>
         <p className="text-sm text-white/40">Lead management overview</p>
       </div>
+
+      {/* Google rating overdue for a re-check (hand-entered, no Places API key) */}
+      {ratingFreshness && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <p className="text-sm font-semibold text-amber-300">Re-check the Google rating</p>
+          <p className="mt-1 text-sm text-amber-200/80">{ratingFreshness.refreshNote}</p>
+          <a
+            href="https://business.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block text-sm font-semibold text-amber-300 underline"
+          >
+            Open Google Business Profile &rarr;
+          </a>
+        </div>
+      )}
 
       {/* Stale market data — these numbers feed the site, the emails and the blog */}
       {marketFreshness && (
