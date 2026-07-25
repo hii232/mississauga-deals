@@ -195,7 +195,7 @@ function HeroDealCard({ deal, photo }) {
         <p className="mt-0.5 text-xs text-muted">{deal.beds} bed · {deal.baths} bath · {deal.type}</p>
         <div className="mt-3 flex gap-2">
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">CAP {deal.capRate}%</span>
-          <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+          <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
             {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
           </span>
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">{deal.dom} DOM</span>

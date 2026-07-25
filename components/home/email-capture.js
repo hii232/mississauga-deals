@@ -91,7 +91,7 @@ export function EmailCapture() {
           </button>
         </form>
         {status === 'error' && (
-          <p role="alert" className="text-xs text-red-500 mt-3">{message}</p>
+          <p role="alert" className="text-xs text-red-600 mt-3">{message}</p>
         )}
         {FEATURED_REVIEW && (
           <figure className="mx-auto mt-6 max-w-sm">

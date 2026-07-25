@@ -179,7 +179,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             <p className="text-[10px] text-slate-500">
               Est. value: <span className="font-semibold">{fmtK(listing.estimatedValue)}</span>
               {listing.evDiffPct !== 0 && (
-                <span className={listing.evDiffPct < 0 ? 'text-emerald-600' : 'text-red-500'}>
+                <span className={listing.evDiffPct < 0 ? 'text-emerald-700' : 'text-red-600'}>
                   {' '}({listing.evDiffPct > 0 ? '+' : ''}{listing.evDiffPct}%)
                 </span>
               )}
@@ -287,7 +287,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               </p>
             )}
             {listing.basementIncome > 0 && !listing.unitCount && (
-              <p className="text-[10px] text-success font-medium">
+              <p className="text-[11px] text-emerald-700 font-medium">
                 Incl. +${money(listing.basementIncome)}/mo basement income
               </p>
             )}

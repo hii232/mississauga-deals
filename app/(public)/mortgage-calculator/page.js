@@ -167,7 +167,7 @@ export default function MortgageCalculatorPage() {
   }, [price, downPct, rate, amort, rent, propertyTax, insurance, maintenance, vacancy, management]);
 
   const cashFlowColor =
-    calc.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-500';
+    calc.monthlyCashFlow >= 0 ? 'text-emerald-700' : 'text-red-600';
 
   return (
     <>
