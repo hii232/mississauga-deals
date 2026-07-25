@@ -16,6 +16,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Market Pulse — Mississauga Real Estate Market Stats',
     description: 'Mississauga home prices, sales, days on market and mortgage rates — TRREB data explained for investors.',
+    images: ['/opengraph-image'],
   },
 };
 

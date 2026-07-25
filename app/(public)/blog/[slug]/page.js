@@ -50,6 +50,10 @@ export async function generateMetadata({ params }) {
       card: 'summary_large_image',
       title: post.title,
       description: post.excerpt,
+      // Page-level `twitter` replaces the root layout's whole twitter object,
+      // so without this the card had no explicit image and leaned on X's
+      // og-fallback. Use the post's own branded cover.
+      images: [blogCoverUrl(post, true)],
     },
     alternates: {
       canonical: `https://www.mississaugainvestor.ca/blog/${post.slug}`,

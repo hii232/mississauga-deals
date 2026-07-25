@@ -57,7 +57,12 @@ export function generateMetadata({ searchParams }) {
         url: `https://www.mississaugainvestor.ca${canonical}`,
         images: ['/opengraph-image'],
       },
-      twitter: { card: 'summary_large_image', title: copy.h1, description: copy.sub },
+      twitter: {
+        card: 'summary_large_image',
+        title: copy.h1,
+        description: copy.sub,
+        images: ['/opengraph-image'],
+      },
     };
   }
   return {

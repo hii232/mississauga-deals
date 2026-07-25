@@ -21,6 +21,7 @@ export const metadata = {
     title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales`,
     description:
       'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',
+    images: ['/opengraph-image'],
   },
 };
 
