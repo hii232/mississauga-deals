@@ -5,6 +5,7 @@ import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-util
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { sanitizePost } from '@/lib/blog/sanitize-content';
+import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -314,21 +315,13 @@ const SITE_URL =
     : 'https://www.mississaugainvestor.ca';
 
 // ── Fetch scored listings once for the whole send ──
+// ALL pages, not page 1. The "top 10 cash-flow deals" used to be selected from
+// the first 200 rows of ~2,500 actives — the top of an 8% sample, so the
+// market's actual best deals mostly never reached subscribers.
 async function fetchScoredListings() {
   try {
-    const res = await fetch(`${SITE_URL}/api/listings?limit=200&page=1`, { cache: 'no-store' });
-    if (!res.ok) {
-      console.error(`Newsletter: listings fetch failed (HTTP ${res.status})`);
-      return [];
-    }
-    const ctype = res.headers.get('content-type') || '';
-    if (!ctype.includes('application/json')) {
-      console.error(`Newsletter: listings fetch returned non-JSON (content-type: ${ctype || 'none'})`);
-      return [];
-    }
-    const json = await res.json();
-    const raw = json.listings || (Array.isArray(json) ? json : []);
-    return processListings(raw).sort((a, b) => b.hamzaScore - a.hamzaScore);
+    const { listings } = await fetchAllListings(SITE_URL, '/api/listings');
+    return processListings(listings).sort((a, b) => b.hamzaScore - a.hamzaScore);
   } catch (err) {
     console.error('Newsletter: listings fetch error', err);
     return [];

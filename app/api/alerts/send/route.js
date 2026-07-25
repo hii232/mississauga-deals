@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
+import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
 import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
@@ -61,18 +62,12 @@ export async function POST(request) {
       return NextResponse.json({ message: 'No active searches', sent: 0 });
     }
 
-    // 2. Fetch current listings from our own API (absolute public URL — see SITE_URL note)
-    const listingsRes = await fetch(`${SITE_URL}/api/listings`);
-    if (!listingsRes.ok) throw new Error(`Failed to fetch listings (HTTP ${listingsRes.status})`);
-    // Guard against a non-JSON body (e.g. an HTML auth/redirect page) so a bad
-    // upstream response gives a clear error instead of a cryptic JSON.parse crash.
-    const ctype = listingsRes.headers.get('content-type') || '';
-    if (!ctype.includes('application/json')) {
-      throw new Error(`Listings API returned non-JSON (content-type: ${ctype || 'none'})`);
-    }
-    const rawListings = await listingsRes.json();
-    // /api/listings returns { listings, page, ... } — processListings needs the array
-    const allListings = processListings(rawListings.listings || rawListings);
+    // 2. Fetch current listings — ALL pages. This route used to fetch page 1
+    // only (200 rows), so every saved search was matched against ~8% of the
+    // active inventory and alerts silently under-delivered. fetchAllListings
+    // keeps the same loud-failure and non-JSON guards.
+    const rawListings = await fetchAllListings(SITE_URL, '/api/listings');
+    const allListings = processListings(rawListings.listings);
 
     // 2b. GTA pool — only fetched when some saved search is scoped outside
     // Mississauga (filters.city set by the save-search flow on /gta pages).
@@ -84,14 +79,9 @@ export async function POST(request) {
     );
     if (needsGta) {
       try {
-        const gtaRes = await fetch(`${SITE_URL}/api/listings-gta`);
-        const gtaCtype = gtaRes.headers.get('content-type') || '';
-        if (gtaRes.ok && gtaCtype.includes('application/json')) {
-          const rawGta = await gtaRes.json();
-          gtaListings = processListings(rawGta.listings || rawGta);
-        } else {
-          console.error(`Alerts: GTA listings fetch failed (HTTP ${gtaRes.status}, content-type: ${gtaCtype || 'none'})`);
-        }
+        // Full GTA pool too — same page-1-only bug applied here.
+        const rawGta = await fetchAllListings(SITE_URL, '/api/listings-gta');
+        gtaListings = processListings(rawGta.listings);
       } catch (err) {
         console.error('Alerts: GTA listings fetch error', err);
       }
