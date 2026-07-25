@@ -309,6 +309,29 @@ function fmtPrice(p) {
 
 const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 
+// The rent every cash-flow figure in the email assumes. The site's listing
+// cards state this on every card (an investor's critique: a cash-flow number
+// with an unstated rent assumption is not credible), but the emails shipped
+// the figures bare — so the channel that reaches subscribers directly was the
+// one place the assumption stayed hidden. Reads the SAME fields the card's
+// RentAssumption component reads, so the two can never disagree; returns ''
+// when rent is missing rather than inventing one.
+function rentAssumptionLine(l) {
+  const rent = Number(l.estimatedRent);
+  if (!Number.isFinite(rent) || rent <= 0) return '';
+  const money = (n) => '$' + Math.round(n).toLocaleString();
+  const basement = Number(l.basementIncome) || 0;
+  const base = Number(l.baseRent) || 0;
+  const units = Array.isArray(l.unitBreakdown) ? l.unitBreakdown : null;
+  let breakdown = '';
+  if (units && units.length > 1) {
+    breakdown = ` · across ${units.length} units`;
+  } else if (basement > 0 && base > 0) {
+    breakdown = ` · ${money(base)} main + ${money(basement)} ${l.basementTier === 'legal' ? 'legal ' : ''}suite`;
+  }
+  return `Assumes ${money(rent)}/mo rent${breakdown}`;
+}
+
 /**
  * Build HTML email template for deal alerts
  */
@@ -325,6 +348,7 @@ function buildAlertEmail(listings, name, searches) {
         const cf = Number.isFinite(l.cashFlow) ? l.cashFlow : null;
         const price = Number.isFinite(l.price) ? l.price : 0;
         const dom = Number.isFinite(l.dom) ? l.dom : null;
+        const rentAssumption = rentAssumptionLine(l);
         const scoreBg = score == null ? '#94A3B8' : score >= 8 ? '#10B981' : score >= 6.5 ? '#2563EB' : '#F59E0B';
         return `
       <tr>
@@ -338,6 +362,7 @@ function buildAlertEmail(listings, name, searches) {
                 <div style="color: #64748B; font-size: 13px; margin-top: 4px;">
                   ${l.beds || 0} bed · ${l.baths || 0} bath · ${esc(l.type || 'Residential')}${l.subType ? ' · ' + esc(l.subType) : ''}
                 </div>
+                ${rentAssumption ? `<div style="color: #475569; font-size: 12px; margin-top: 4px;">${esc(rentAssumption)}</div>` : ''}
               </td>
               <td style="text-align: right; vertical-align: top;">
                 <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">${fmtPrice(price)}</div>
