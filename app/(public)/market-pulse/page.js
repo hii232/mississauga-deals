@@ -76,12 +76,16 @@ export default function MarketPulsePage() {
 
   const maxPrice = Math.max(...priceTypes.map((p) => p.value));
 
-  // Mortgage rates — live from the API; fallbacks mirror TRREB June 2026 (MW2606)
+  // Mortgage rates — live from the API; fallbacks mirror TRREB June 2026 (MW2606).
+  // The fixed rates are Bank of Canada POSTED rates, which run well above the
+  // discounted rate a borrower is actually quoted. They were previously listed
+  // bare next to a variable contract rate, which read as though a 5-year fixed
+  // genuinely costs 1.6 points more than variable. Labelled explicitly now.
   const ratesData = stats?.rates;
   const rates = [
-    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.49%' },
-    { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%' },
-    { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%' },
+    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.49%', posted: true },
+    { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%', posted: true },
+    { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%', posted: true },
     { term: 'Variable', rate: ratesData?.variable ? `${ratesData.variable}%` : '4.45%' },
     { term: 'BoC Rate', rate: stats?.economic?.bocRate ? `${stats.economic.bocRate}%` : '2.3%' },
   ];
@@ -356,7 +360,7 @@ export default function MarketPulsePage() {
             Current Mortgage Rates
           </h2>
           <p className="text-xs text-muted mb-4">
-            Approximate rates from major Canadian lenders. Rates change frequently — verify with your mortgage broker.
+            Bank of Canada benchmark rates, published monthly via TRREB. Rates change frequently — verify with your mortgage broker.
           </p>
           <div className="space-y-0">
             {rates.map((r, i) => (
@@ -364,14 +368,26 @@ export default function MarketPulsePage() {
                 key={r.term}
                 className={`flex items-center justify-between py-3 ${i < rates.length - 1 ? 'border-b border-slate-50' : ''}`}
               >
-                <span className="text-sm text-navy">{r.term}</span>
+                <span className="text-sm text-navy">
+                  {r.term}
+                  {r.posted && (
+                    <span className="ml-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-500">
+                      posted
+                    </span>
+                  )}
+                </span>
                 <span className="text-sm font-bold text-navy">{r.rate}</span>
               </div>
             ))}
           </div>
           <div className="mt-5 rounded-lg bg-cloud p-4">
             <p className="text-xs text-muted leading-relaxed">
-              Rates shown are for reference only. Actual rates depend on credit score, down payment, property type, and lender. Always consult a licensed mortgage broker for accurate quotes.
+              <strong className="text-navy">Posted rates are not the rate you&apos;ll be offered.</strong>{' '}
+              They&apos;re the Bank of Canada benchmark; discounted rates from a broker are typically
+              well below them, which is why our cash-flow numbers assume roughly{' '}
+              {ratesData?.contractRateAssumption ? `${ratesData.contractRateAssumption}%` : '4.9%'}{' '}
+              on a 5-year fixed. Your actual rate depends on credit, down payment, property type and lender —
+              always get a quote from a licensed mortgage broker.
             </p>
           </div>
         </div>

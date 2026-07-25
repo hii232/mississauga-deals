@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 export const dynamic = 'force-dynamic';
 
@@ -272,13 +273,29 @@ export async function GET() {
       primeRate: 4.5,              // June 2026
     },
     rates: {
-      // variable is NOT published in Market Watch — TRREB lists posted 1/3/5-year
-      // fixed only. Kept as a separate broker-sourced estimate.
+      // IMPORTANT: the fixed rates TRREB reprints are the Bank of Canada
+      // CONVENTIONAL MORTGAGE series — i.e. POSTED rates. Posted rates run well
+      // above the discounted contract rates a borrower is actually quoted (with
+      // prime at 4.5%, nobody is signing a 6.09% five-year fixed). Never present
+      // these as "the rate you'll get" — label them posted wherever they render.
+      posted: true,
+      // variable is NOT published in Market Watch — kept as a broker-sourced
+      // estimate of a real contract rate, which is why it sits below the posted
+      // fixed rates rather than above them.
       variable: 4.45,
-      fixed1yr: 5.49,              // TRREB MW2606, June 2026
-      fixed3yr: 6.05,
-      fixed5yr: 6.09,
-      stressTest: 8.09,            // fixed5yr + 2%
+      fixed1yr: 5.49,              // TRREB MW2606, June 2026 (posted)
+      fixed3yr: 6.05,              // (posted)
+      fixed5yr: 6.09,              // (posted)
+      // The contract rate the site's cash-flow engine actually underwrites at.
+      // Exposed so pages can show posted vs. assumed side by side instead of
+      // silently disagreeing with each other.
+      contractRateAssumption: DEFAULT_ASSUMPTIONS.annualInterestRate,
+      // Federal stress test = greater of CONTRACT rate + 2% or 5.25%. It keys off
+      // the contract rate, not the posted rate. This was hardcoded to 8.09
+      // (posted 6.09 + 2) — about 1.2 points too harsh — and that number was fed
+      // verbatim to every AI listing analysis and every generated blog post,
+      // making qualifying look harder than it is.
+      stressTest: +Math.max(DEFAULT_ASSUMPTIONS.annualInterestRate + 2, 5.25).toFixed(2),
     },
     rental: {
       avg1Bed: 2100,

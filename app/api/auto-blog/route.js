@@ -215,13 +215,27 @@ function buildMarketBlock(s) {
   if (s.mississaugaMonthsOfInventory) lines.push(`- Months of inventory: ${s.mississaugaMonthsOfInventory}${s.marketType ? ` (${s.marketType})` : ''}`);
 
   const r = s.rates || {};
-  const rateBits = [
+  // Posted vs contract matters: the Bank of Canada figures TRREB reprints are
+  // POSTED rates, well above what a borrower is actually quoted. A post that
+  // tells an investor they'll pay the posted rate is simply wrong.
+  const postedBits = [
     r.fixed5yr ? `5-year fixed ${pct(r.fixed5yr)}` : null,
     r.fixed3yr ? `3-year fixed ${pct(r.fixed3yr)}` : null,
-    r.variable ? `variable ${pct(r.variable)}` : null,
-    r.stressTest ? `stress-test qualifying rate ${pct(r.stressTest)}` : null,
+    r.fixed1yr ? `1-year fixed ${pct(r.fixed1yr)}` : null,
   ].filter(Boolean);
-  if (rateBits.length) lines.push(`- Mortgage rates: ${rateBits.join(', ')}`);
+  if (postedBits.length) {
+    lines.push(`- POSTED mortgage rates (Bank of Canada, via TRREB — NOT the rate a borrower is quoted): ${postedBits.join(', ')}`);
+  }
+  const contractBits = [
+    r.contractRateAssumption ? `~${pct(r.contractRateAssumption)} 5-year fixed` : null,
+    r.variable ? `~${pct(r.variable)} variable` : null,
+  ].filter(Boolean);
+  if (contractBits.length) {
+    lines.push(`- Realistic CONTRACT rates (what our cash-flow numbers assume): ${contractBits.join(', ')}`);
+  }
+  if (r.stressTest) {
+    lines.push(`- Stress-test qualifying rate: ${pct(r.stressTest)} (greater of contract rate + 2% or 5.25%)`);
+  }
 
   const e = s.economic || {};
   const econBits = [
