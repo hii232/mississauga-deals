@@ -4,39 +4,112 @@ import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS).
 // Exported so the sitemap can list every indexable /gta?city= page.
 export const CITY_COPY = {
-  'Toronto': { h1: 'Toronto Investment Properties', sub: 'Active listings across Toronto, Etobicoke, North York, Scarborough, East York & York' },
-  'Brampton': { h1: 'Brampton Investment Properties', sub: 'Active Brampton listings — cash flow, cap rate, and deal score analysis' },
-  'Caledon': { h1: 'Caledon Investment Properties', sub: 'Active Caledon listings — scored and analyzed' },
-  'Oakville': { h1: 'Oakville Investment Properties', sub: 'Active Oakville listings — scored and analyzed' },
-  'Burlington': { h1: 'Burlington Investment Properties', sub: 'Active Burlington listings — scored and analyzed' },
-  'Milton': { h1: 'Milton Investment Properties', sub: 'Active Milton listings — scored and analyzed' },
-  'Halton Hills': { h1: 'Halton Hills Investment Properties', sub: 'Active Halton Hills listings — scored and analyzed' },
-  'Georgetown': { h1: 'Georgetown Investment Properties', sub: 'Active Georgetown listings — scored and analyzed' },
-  'Vaughan': { h1: 'Vaughan Investment Properties', sub: 'Active Vaughan listings — scored and analyzed' },
-  'Richmond Hill': { h1: 'Richmond Hill Investment Properties', sub: 'Active Richmond Hill listings — scored and analyzed' },
-  'Markham': { h1: 'Markham Investment Properties', sub: 'Active Markham listings — scored and analyzed' },
-  'Aurora': { h1: 'Aurora Investment Properties', sub: 'Active Aurora listings — scored and analyzed' },
-  'Newmarket': { h1: 'Newmarket Investment Properties', sub: 'Active Newmarket listings — scored and analyzed' },
-  'King': { h1: 'King Investment Properties', sub: 'Active King listings — scored and analyzed' },
-  'Pickering': { h1: 'Pickering Investment Properties', sub: 'Active Pickering listings — scored and analyzed' },
-  'Ajax': { h1: 'Ajax Investment Properties', sub: 'Active Ajax listings — scored and analyzed' },
-  'Whitby': { h1: 'Whitby Investment Properties', sub: 'Active Whitby listings — scored and analyzed' },
-  'Oshawa': { h1: 'Oshawa Investment Properties', sub: 'Active Oshawa listings — scored and analyzed' },
-  'Clarington': { h1: 'Clarington Investment Properties', sub: 'Active Clarington listings — scored and analyzed' },
-  'Etobicoke': { h1: 'Etobicoke Investment Properties', sub: 'Active Etobicoke listings — scored and analyzed' },
-  'North York': { h1: 'North York Investment Properties', sub: 'Active North York listings — scored and analyzed' },
-  'Scarborough': { h1: 'Scarborough Investment Properties', sub: 'Active Scarborough listings — scored and analyzed' },
-  'East York': { h1: 'East York Investment Properties', sub: 'Active East York listings — scored and analyzed' },
-  'York': { h1: 'York Investment Properties', sub: 'Active York listings — scored and analyzed' },
-  'Hamilton': { h1: 'Hamilton Investment Properties', sub: 'Active Hamilton listings — scored and analyzed' },
-  'Stoney Creek': { h1: 'Stoney Creek Investment Properties', sub: 'Active Stoney Creek listings — scored and analyzed' },
-  'Dundas': { h1: 'Dundas Investment Properties', sub: 'Active Dundas listings — scored and analyzed' },
-  'Ancaster': { h1: 'Ancaster Investment Properties', sub: 'Active Ancaster listings — scored and analyzed' },
+  'Toronto': { h1: 'Toronto Investment Properties', sub: 'Active listings across Toronto, Etobicoke, North York, Scarborough, East York & York', region: 'City of Toronto' },
+  'Brampton': { h1: 'Brampton Investment Properties', sub: 'Active Brampton listings — cash flow, cap rate, and deal score analysis', region: 'Peel Region' },
+  'Caledon': { h1: 'Caledon Investment Properties', sub: 'Active Caledon listings — scored and analyzed', region: 'Peel Region' },
+  'Oakville': { h1: 'Oakville Investment Properties', sub: 'Active Oakville listings — scored and analyzed', region: 'Halton Region' },
+  'Burlington': { h1: 'Burlington Investment Properties', sub: 'Active Burlington listings — scored and analyzed', region: 'Halton Region' },
+  'Milton': { h1: 'Milton Investment Properties', sub: 'Active Milton listings — scored and analyzed', region: 'Halton Region' },
+  'Halton Hills': { h1: 'Halton Hills Investment Properties', sub: 'Active Halton Hills listings — scored and analyzed', region: 'Halton Region' },
+  'Georgetown': { h1: 'Georgetown Investment Properties', sub: 'Active Georgetown listings — scored and analyzed', region: 'Halton Region' },
+  'Vaughan': { h1: 'Vaughan Investment Properties', sub: 'Active Vaughan listings — scored and analyzed', region: 'York Region' },
+  'Richmond Hill': { h1: 'Richmond Hill Investment Properties', sub: 'Active Richmond Hill listings — scored and analyzed', region: 'York Region' },
+  'Markham': { h1: 'Markham Investment Properties', sub: 'Active Markham listings — scored and analyzed', region: 'York Region' },
+  'Aurora': { h1: 'Aurora Investment Properties', sub: 'Active Aurora listings — scored and analyzed', region: 'York Region' },
+  'Newmarket': { h1: 'Newmarket Investment Properties', sub: 'Active Newmarket listings — scored and analyzed', region: 'York Region' },
+  'King': { h1: 'King Investment Properties', sub: 'Active King listings — scored and analyzed', region: 'York Region' },
+  'Pickering': { h1: 'Pickering Investment Properties', sub: 'Active Pickering listings — scored and analyzed', region: 'Durham Region' },
+  'Ajax': { h1: 'Ajax Investment Properties', sub: 'Active Ajax listings — scored and analyzed', region: 'Durham Region' },
+  'Whitby': { h1: 'Whitby Investment Properties', sub: 'Active Whitby listings — scored and analyzed', region: 'Durham Region' },
+  'Oshawa': { h1: 'Oshawa Investment Properties', sub: 'Active Oshawa listings — scored and analyzed', region: 'Durham Region' },
+  'Clarington': { h1: 'Clarington Investment Properties', sub: 'Active Clarington listings — scored and analyzed', region: 'Durham Region' },
+  'Etobicoke': { h1: 'Etobicoke Investment Properties', sub: 'Active Etobicoke listings — scored and analyzed', region: 'City of Toronto' },
+  'North York': { h1: 'North York Investment Properties', sub: 'Active North York listings — scored and analyzed', region: 'City of Toronto' },
+  'Scarborough': { h1: 'Scarborough Investment Properties', sub: 'Active Scarborough listings — scored and analyzed', region: 'City of Toronto' },
+  'East York': { h1: 'East York Investment Properties', sub: 'Active East York listings — scored and analyzed', region: 'City of Toronto' },
+  'York': { h1: 'York Investment Properties', sub: 'Active York listings — scored and analyzed', region: 'City of Toronto' },
+  'Hamilton': { h1: 'Hamilton Investment Properties', sub: 'Active Hamilton listings — scored and analyzed', region: 'City of Hamilton' },
+  'Stoney Creek': { h1: 'Stoney Creek Investment Properties', sub: 'Active Stoney Creek listings — scored and analyzed', region: 'City of Hamilton' },
+  'Dundas': { h1: 'Dundas Investment Properties', sub: 'Active Dundas listings — scored and analyzed', region: 'City of Hamilton' },
+  'Ancaster': { h1: 'Ancaster Investment Properties', sub: 'Active Ancaster listings — scored and analyzed', region: 'City of Hamilton' },
 };
+
+// Server-rendered, genuinely per-city content for the 28 indexable
+// /gta?city= pages. Before this, everything below each page's h1 + one-line
+// subtitle was byte-identical across all 28 (the listings themselves are
+// client-fetched, so a crawler saw only skeletons) — 28 near-duplicate thin
+// pages, which is why they sit unranked despite unique titles.
+//
+// Every figure here is READ from the same constants the cash-flow engine uses,
+// never restated by hand, so this copy can't drift from the numbers on the
+// cards. The tax rate prints only when the municipality has its own researched
+// rate — a city on the generic fallback shows no rate rather than a fake one.
+function CityInvestorNotes({ city, copy }) {
+  const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
+  const siblings = Object.keys(CITY_COPY).filter(
+    (c) => c !== city && CITY_COPY[c].region === copy.region
+  );
+
+  return (
+    <section className="mt-10 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+      <h2 className="font-heading text-lg font-bold text-navy">Investing in {city}</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
+        {city} is part of {copy.region}.{' '}
+        {rate ? (
+          <>
+            Cash flow, cap rate and deal score here are costed with {city}&rsquo;s{' '}
+            <strong className="font-semibold text-navy">{(rate * 100).toFixed(2)}%</strong> property tax rate whenever a
+            listing doesn&rsquo;t report its own tax figure — municipal tax varies widely across the GTA, and it is a real
+            monthly cost most listing sites leave out entirely.
+          </>
+        ) : (
+          <>
+            Every listing here is scored with the same cash-flow, cap-rate and deal-score model used across the site,
+            including property tax, insurance and maintenance as monthly costs.
+          </>
+        )}{' '}
+        Rents are estimated per city, so a {city} listing is not scored on Mississauga rent assumptions.
+      </p>
+
+      {siblings.length > 0 && (
+        <p className="mt-4 text-sm text-muted">
+          <span className="text-slate-400">More in {copy.region}:</span>{' '}
+          {siblings.map((c, i) => (
+            <span key={c}>
+              {i > 0 && <span className="text-slate-300"> · </span>}
+              <Link
+                href={`/gta?city=${encodeURIComponent(c)}`}
+                className="font-medium text-accent no-underline hover:text-accent-dark"
+              >
+                {c}
+              </Link>
+            </span>
+          ))}
+        </p>
+      )}
+
+      <p className="mt-3 text-sm text-muted">
+        <span className="text-slate-400">Also useful:</span>{' '}
+        <Link href="/listings" className="font-medium text-accent no-underline hover:text-accent-dark">
+          Mississauga investment properties
+        </Link>
+        <span className="text-slate-300"> · </span>
+        <Link href="/market-pulse" className="font-medium text-accent no-underline hover:text-accent-dark">
+          GTA market data
+        </Link>
+        <span className="text-slate-300"> · </span>
+        <Link href="/mortgage-calculator" className="font-medium text-accent no-underline hover:text-accent-dark">
+          Income property mortgage calculator
+        </Link>
+      </p>
+    </section>
+  );
+}
 
 export function generateMetadata({ searchParams }) {
   const city = (searchParams?.city || '').trim();
@@ -199,6 +272,7 @@ export default function GtaListingsPage({ searchParams }) {
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
           />
         </Suspense>
+        {copy && <CityInvestorNotes city={city} copy={copy} />}
       </div>
     </main>
   );
