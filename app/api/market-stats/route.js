@@ -31,6 +31,19 @@ export function tRREBFreshness(asOf, now = new Date()) {
   };
 }
 
+// ── Mississauga monthly history — TRREB Market Watch ─────
+// One row per published report, transcribed from the PDF (page 3, Mississauga
+// row). Nothing here is interpolated, smoothed or estimated: if a month has no
+// report on hand it is simply absent. Add older months by sending the matching
+// Market Watch PDF — see the refresh process in CLAUDE.md.
+const mississaugaMonthly = [
+  { month: 'Feb 2026', report: 'MW2602', sales: 345, avgPrice: 963747,  medianPrice: 850000, newListings: 940,  activeListings: 1748, snlr: 32.4, monthsInventory: 5.2, spLp: 96, ldom: 36 },
+  { month: 'Mar 2026', report: 'MW2603', sales: 452, avgPrice: 966615,  medianPrice: 860000, newListings: 1322, activeListings: 1933, snlr: 32.7, monthsInventory: 5.2, spLp: 97, ldom: 36 },
+  { month: 'Apr 2026', report: 'MW2604', sales: 516, avgPrice: 980653,  medianPrice: 900000, newListings: 1517, activeListings: 2277, snlr: 33.2, monthsInventory: 5.1, spLp: 97, ldom: 31 },
+  { month: 'May 2026', report: 'MW2605', sales: 568, avgPrice: 971047,  medianPrice: 896500, newListings: 1582, activeListings: 2465, snlr: 34.4, monthsInventory: 5.0, spLp: 97, ldom: 30 },
+  { month: 'Jun 2026', report: 'MW2606', sales: 567, avgPrice: 1014120, medianPrice: 880000, newListings: 1632, activeListings: 2589, snlr: 35.1, monthsInventory: 4.9, spLp: 97, ldom: 29 },
+];
+
 // ── Fetch live stats from internal APIs ──────────────────
 async function fetchLiveListingStats(baseUrl) {
   try {
@@ -68,11 +81,12 @@ async function fetchLiveListingStats(baseUrl) {
       ? Math.round(withDom.reduce((s, l) => s + (l.DaysOnMarket || 0), 0) / withDom.length)
       : 28;
 
-    // Compute avg price
+    // Compute avg price; fall back to the latest transcribed TRREB average
+    // rather than a frozen round number that drifts stale.
     const withPrice = raw.filter((l) => (l.ListPrice || 0) > 0);
     const avgPrice = withPrice.length > 0
       ? Math.round(withPrice.reduce((s, l) => s + l.ListPrice, 0) / withPrice.length)
-      : 970000;
+      : mississaugaMonthly[mississaugaMonthly.length - 1].avgPrice;
 
     // Compute avg prices by type
     const typeMap = {
@@ -193,7 +207,7 @@ export async function GET() {
     region: 'Mississauga',
     activeCount: liveListings?.activeCount || 0,
     avgDOM: liveListings?.avgDOM || 28,
-    avgPrice: liveListings?.avgPrice || 970000,
+    avgPrice: liveListings?.avgPrice || tRREBSold.all.avgPrice,
     avgPrices,
     salesToListRatio,
     avgSoldPrice: soldStats?.avgSoldPrice || 0,
@@ -289,39 +303,15 @@ export async function GET() {
       condoTown:    { sales: 91,  avgPrice: 726749,  spLp: 98,  ldom: 31 },
       condoApt:     { sales: 142, avgPrice: 525333,  spLp: 97,  ldom: 40 },
     },
-    priceTrend: [
-      { month: 'Apr 2025', avg: 1025000 },
-      { month: 'May 2025', avg: 1035000 },
-      { month: 'Jun 2025', avg: 1020000 },
-      { month: 'Jul 2025', avg: 1010000 },
-      { month: 'Aug 2025', avg: 995000 },
-      { month: 'Sep 2025', avg: 985000 },
-      { month: 'Oct 2025', avg: 975000 },
-      { month: 'Nov 2025', avg: 960000 },
-      { month: 'Dec 2025', avg: 955000 },
-      { month: 'Jan 2026', avg: 965000 },
-      { month: 'Feb 2026', avg: 963747 },
-      { month: 'Jun 2026', avg: 1014120 },
-    ],
-    salesTrend: [
-      { month: 'Apr 2025', sales: 820 },
-      { month: 'May 2025', sales: 890 },
-      { month: 'Jun 2025', sales: 910 },
-      { month: 'Jul 2025', sales: 780 },
-      { month: 'Aug 2025', sales: 720 },
-      { month: 'Sep 2025', sales: 750 },
-      { month: 'Oct 2025', sales: 680 },
-      { month: 'Nov 2025', sales: 620 },
-      { month: 'Dec 2025', sales: 480 },
-      { month: 'Jan 2026', sales: 380 },
-      { month: 'Feb 2026', sales: 345 },
-      { month: 'Jun 2026', sales: 567 },
-    ],
-    // NOTE: the two series above jump Feb 2026 → Jun 2026 because only those
-    // months' Market Watch reports have been transcribed. Mar/Apr/May 2026 are
-    // genuinely missing rather than estimated — add them if those PDFs turn up.
-    // The pre-2026 points are round numbers carried over from the original build
-    // and should be treated as approximate until sourced.
+    // Full monthly history, every row transcribed from a published TRREB Market
+    // Watch report (the `report` field names the source issue). The previous
+    // series ran back to Apr 2025 on round invented numbers — those are gone
+    // rather than left to be charted as if they were real. Extend backwards by
+    // sending older Market Watch PDFs; never interpolate a missing month.
+    mississaugaMonthly,
+    // Derived views kept for any consumer expecting the old shape.
+    priceTrend: mississaugaMonthly.map((m) => ({ month: m.month, avg: m.avgPrice })),
+    salesTrend: mississaugaMonthly.map((m) => ({ month: m.month, sales: m.sales })),
     disclaimer: 'Active listing statistics computed from live MLS data. Sold statistics from TRREB Market Watch June 2026 (MW2606). Deemed reliable but not guaranteed.',
   };
 

@@ -611,10 +611,13 @@ export async function GET(request) {
       ];
       const html = buildEmailHTML(
         {
-          avgPrice: 985000, avgDOM: 31, salesToListRatio: 0.96, mississaugaMonthsOfInventory: 5.2,
+          // Sample figures mirror TRREB June 2026 (MW2606) so the preview looks
+          // like a real issue and exercises the TRREB as-of caption.
+          avgPrice: 1014120, avgDOM: 29, salesToListRatio: 0.97, mississaugaMonthsOfInventory: 4.9,
+          tRREBMonth: 'June 2026',
           avgPrices: {
-            detached: { avg: 1460000 }, semiDetached: { avg: 921000 },
-            townhouse: { avg: 840000 }, condo: { avg: 664000 },
+            detached: { avg: 1482130 }, semiDetached: { avg: 908389 },
+            townhouse: { avg: 883038 }, condo: { avg: 525333 },
           },
           economic: { bocRate: 2.3 },
           rates: { variable: 4.45, fixed5yr: 6.09 },

@@ -239,7 +239,20 @@ function buildMarketBlock(s) {
   ].filter(Boolean);
   if (rentBits.length) lines.push(`- Average asking rents: ${rentBits.join(', ')}`);
 
-  return lines.length ? `\n## Current market figures (the site's own published data — use these)\n${lines.join('\n')}\n` : '';
+  // Month-by-month history beats a single snapshot: it lets the post describe
+  // where the market is actually heading instead of just where it stands.
+  const hist = Array.isArray(s.mississaugaMonthly) ? s.mississaugaMonthly : [];
+  const trend = hist.length >= 2
+    ? `\n### Mississauga month by month (TRREB Market Watch, each row a published report)\n` +
+      hist.map((m) =>
+        `- ${m.month}: ${m.sales} sales, avg ${money(m.avgPrice)}, median ${money(m.medianPrice)}, ${m.activeListings} active, ${m.monthsInventory} months inventory, ${m.ldom} days on market`
+      ).join('\n') +
+      `\nUse this to describe the actual direction of travel — cite the specific months you're comparing. Don't extrapolate past the last row or invent months that aren't listed.\n`
+    : '';
+
+  return lines.length
+    ? `\n## Current market figures (the site's own published data — use these)\n${lines.join('\n')}\n${trend}`
+    : '';
 }
 
 // ── Real platform data the model can cite (from lib/constants.js) ──

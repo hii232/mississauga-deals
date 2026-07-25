@@ -54,14 +54,17 @@ export default function MarketPulsePage() {
     condo: apiPrices?.condo?.avg || apiPrices?.condo || Math.round(avgDetached * 0.48),
   };
 
+  // Fallbacks (used only if /api/market-stats is unreachable) mirror TRREB June
+  // 2026 (MW2606) — keep in sync with app/api/market-stats/route.js when a new
+  // Market Watch lands, or these go quietly stale the way the Feb ones did.
   const marketMetrics = {
     avgDOM: stats?.mississaugaAvgLDOM || stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
-    salesToList: stats?.mississaugaAvgSPLP || (stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 96),
-    monthsOfInventory: stats?.mississaugaMonthsOfInventory || 5.2,
+    salesToList: stats?.mississaugaAvgSPLP || (stats?.salesToListRatio ? (stats.salesToListRatio * 100).toFixed(1) : 97),
+    monthsOfInventory: stats?.mississaugaMonthsOfInventory || 4.9,
     activeCount: stats?.activeCount || 0,
-    snlr: stats?.mississaugaSNLR || 32.4,
-    mississaugaSales: stats?.mississaugaSales || 345,
-    mississaugaNewListings: stats?.mississaugaNewListings || 940,
+    snlr: stats?.mississaugaSNLR || 35.1,
+    mississaugaSales: stats?.mississaugaSales || 567,
+    mississaugaNewListings: stats?.mississaugaNewListings || 1632,
   };
 
   const priceTypes = [
@@ -73,10 +76,10 @@ export default function MarketPulsePage() {
 
   const maxPrice = Math.max(...priceTypes.map((p) => p.value));
 
-  // Mortgage rates — TRREB Feb 2026 page 1
+  // Mortgage rates — live from the API; fallbacks mirror TRREB June 2026 (MW2606)
   const ratesData = stats?.rates;
   const rates = [
-    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.84%' },
+    { term: '1-Year Fixed', rate: ratesData?.fixed1yr ? `${ratesData.fixed1yr}%` : '5.49%' },
     { term: '3-Year Fixed', rate: ratesData?.fixed3yr ? `${ratesData.fixed3yr}%` : '6.05%' },
     { term: '5-Year Fixed', rate: ratesData?.fixed5yr ? `${ratesData.fixed5yr}%` : '6.09%' },
     { term: 'Variable', rate: ratesData?.variable ? `${ratesData.variable}%` : '4.45%' },
