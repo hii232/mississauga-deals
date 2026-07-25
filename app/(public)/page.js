@@ -12,6 +12,7 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
@@ -855,6 +856,12 @@ export default async function HomePage() {
       <GoogleReviews googleRating={googleRating} />
       <AgentProfile googleRating={googleRating} />
       <CTASection />
+
+      {/* Mobile sticky capture — the hero CTA scrolls away in the first swipe
+          on a long page; this keeps one always-reachable primary action.
+          /alerts (name+email capture) works for logged-in and logged-out
+          visitors alike, unlike the auth-state-dependent hero button. */}
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }
