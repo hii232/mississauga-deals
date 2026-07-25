@@ -609,24 +609,12 @@ export async function GET(request) {
         { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
         { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
       ];
+      // Preview uses the REAL live stats, not a hardcoded sample. A preview
+      // built on frozen numbers is worthless for checking the thing that
+      // actually matters — that the figures subscribers receive are current.
+      const previewStats = await fetchMarketStats();
       const html = buildEmailHTML(
-        {
-          // Sample figures mirror TRREB June 2026 (MW2606) so the preview looks
-          // like a real issue and exercises the TRREB as-of caption.
-          avgPrice: 1014120, avgDOM: 29, salesToListRatio: 0.97, mississaugaMonthsOfInventory: 4.9,
-          tRREBMonth: 'June 2026',
-          avgPrices: {
-            detached: { avg: 1482130 }, semiDetached: { avg: 908389 },
-            townhouse: { avg: 883038 }, condo: { avg: 525333 },
-          },
-          economic: { bocRate: 2.3 },
-          rates: { variable: 4.45, fixed5yr: 6.09 },
-          hotNeighbourhoods: [
-            { name: 'Cooksville', avgPrice: 750000 },
-            { name: 'Square One / City Centre', avgPrice: 620000 },
-            { name: 'Port Credit', avgPrice: 1250000 },
-          ],
-        },
+        previewStats || {},
         new Date(),
         {
           greetingName: 'Sam',
