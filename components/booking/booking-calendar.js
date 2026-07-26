@@ -191,9 +191,19 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h3 className="font-heading font-semibold text-lg text-navy">
+            {/* Deliberately NOT a heading. This is a date-picker control label
+                sitting between the prev/next buttons, not a section of the
+                document — as an h3 it was the first heading after /book-call's
+                h1, so the page outline read h1 -> "July 2026". Promoting it to
+                h2 would fix the skip by putting a month name in the outline,
+                which is worse. aria-live announces the change when the visitor
+                pages between months, which a static h3 never did. */}
+            <div
+              aria-live="polite"
+              className="font-heading font-semibold text-lg text-navy"
+            >
               {currentMonth.toLocaleDateString('en-CA', { month: 'long', year: 'numeric' })}
-            </h3>
+            </div>
             <button
               onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
               disabled={!canGoForward}
