@@ -7,6 +7,7 @@ import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
+import { requireCronOrAdmin } from '@/lib/api-auth';
 
 // The full-pool fetch (13 upstream page requests) plus per-subscriber matching
 // and SEQUENTIAL Resend sends will not reliably fit Vercel's default function
@@ -40,12 +41,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  // Verify cron secret (Vercel sends this automatically for cron jobs)
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Cron-or-admin, failing CLOSED. The old guard was skipped entirely when
+  // CRON_SECRET was unset, which left the highest-consequence endpoint on the
+  // site — a mass send to every subscriber — open to anyone who knew the URL.
+  const denied = requireCronOrAdmin(request);
+  if (denied) return denied;
 
   try {
     if (!supabase) {

@@ -7,17 +7,17 @@ import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { sanitizePost } from '@/lib/blog/sanitize-content';
 import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
+import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 // ── Auth ──
+// Fails CLOSED via lib/api-auth. The previous version compared against
+// `Bearer ${process.env.CRON_SECRET}`, so an unset secret made the literal
+// header "Bearer undefined" a valid credential.
 function isAuthorized(request) {
-  const cronSecret = request.headers.get('authorization');
-  if (cronSecret === `Bearer ${process.env.CRON_SECRET}`) return true;
-  const adminKey = request.headers.get('x-admin-key');
-  if (adminKey && adminKey === process.env.ADMIN_SECRET) return true;
-  return false;
+  return isCronAuthorized(request) || isAdminAuthorized(request);
 }
 
 // ── Supabase ──
@@ -498,7 +498,12 @@ function weekKey(date) {
 }
 
 function approvalToken(wk) {
-  if (!process.env.CRON_SECRET) return 'dev';
+  // Returns null — NOT a guessable constant — when there is no secret to sign
+  // with. This used to return the literal 'dev', so on any deployment missing
+  // CRON_SECRET, `?approve=1&t=dev` mailed the whole subscriber list. Callers
+  // treat null as "approval is unavailable"; a null can never equal a
+  // submitted token, so the compare below denies rather than admits.
+  if (!process.env.CRON_SECRET) return null;
   return createHmac('sha256', process.env.CRON_SECRET).update(`weekly-approve-${wk}`).digest('hex').slice(0, 20);
 }
 
@@ -655,7 +660,10 @@ export async function GET(request) {
     // button). Token-authed; renders a confirm form, sends NOTHING itself.
     if (searchParams.get('approve') === '1') {
       const wk = weekKey(new Date());
-      if (searchParams.get('t') !== approvalToken(wk)) {
+      // `tok` is null when CRON_SECRET is absent, and an absent ?t is also null
+      // — comparing them alone would pass. Require a real token explicitly.
+      const tok = approvalToken(wk);
+      if (!tok || searchParams.get('t') !== tok) {
         return new Response(
           htmlPage('Link expired', '<h1>This approval link has expired</h1><p>Approval links are valid for the week of the draft. Wait for the next Monday draft, or trigger one from the admin.</p>'),
           { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
@@ -734,7 +742,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
     const wk = weekKey(new Date());
-    if (searchParams.get('t') !== approvalToken(wk)) {
+    const tok = approvalToken(wk);
+    if (!tok || searchParams.get('t') !== tok) {
       return new Response(htmlPage('Link expired', '<h1>This approval link has expired</h1><p>Wait for the next Monday draft.</p>'), {
         status: 400,
         headers: { 'Content-Type': 'text/html; charset=utf-8' },
