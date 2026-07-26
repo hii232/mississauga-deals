@@ -11,6 +11,7 @@ import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { SkylineStrip } from '@/components/art/cityscape';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { InlineEmailCapture } from '@/components/ui/inline-email-capture';
+import { ProofRow } from '@/components/ui/proof-row';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
 import { HOOD_DATA } from '@/lib/constants';
@@ -48,6 +49,7 @@ function AuthGate({ children, isAuthenticated, title, valueLine, source, onUnloc
           onCaptured={onUnlock}
         />
       </div>
+      <ProofRow className="mt-5 border-t border-slate-100 pt-4" />
     </div>
   );
 }
