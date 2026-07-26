@@ -11,6 +11,48 @@ const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
  * Query AMPRE for recently leased properties to estimate rent from real comps.
  * Returns median lease price and individual comps.
  */
+// A lease of a BASEMENT or an UPPER half is not a comp for what a whole
+// property rents for, but the feed returns all of them together and the
+// median was computed over the mix. Measured against production 2026-07-26:
+// Cooksville (L5A) detached returned a $3,200 median while the whole-house
+// leases inside that same result were $4,200 / $4,400 / $5,750 / $6,500 —
+// dragged down by a "Lower Unit" at $1,900 and a "BSMT" at $1,700. The site
+// compares this median against estimateRent(), which is a WHOLE-property
+// figure (basement income is added separately), so the mix made the
+// comparison meaningless in both directions.
+//
+// MLS encodes the unit in the address rather than a field, so it is parsed
+// from there. Matching is on word boundaries: "Main" must not fire on
+// "Main Street", and "Lower" must not fire on "Lower Base Line" (a real
+// Mississauga road).
+const PARTIAL_UNIT = /\b(bsmt|basement|lower level|lower unit|upper unit|upper level|main floor|second floor|ground floor|1st floor|2nd floor|unit\s*[a-z0-9]+|ste\.?\s*\d|apt\.?\s*\d|#\s*\d)\b/i;
+const BARE_LEVEL = /\b(bsmt|basement|upper|lower|main)\s*$/i;
+
+function classifyUnit(address) {
+  const a = (address || '').trim();
+  if (!a) return 'unknown';
+  // A bare trailing level word ("... Drive Bsmt", "... Avenue N Upper") is the
+  // most common form, but it has to be tested against the STREET segment only:
+  // the full string continues ", Mississauga, ON L4T 1P3", so anchoring to the
+  // end of the whole address never matches. Splitting on the first comma also
+  // keeps the trap cases safe — "88 Upper Middle Road" and "5100 Lower Base
+  // Line" end in Road/Line, so the level word is not in final position.
+  const street = a.split(',')[0].trim();
+  if (PARTIAL_UNIT.test(a) || BARE_LEVEL.test(street)) return 'partial';
+  return 'whole';
+}
+
+// Prefer whole-property comps; fall back to everything if too few to be
+// meaningful, and say which happened so no caller has to guess.
+function wholeUnitMedian(comps) {
+  const wholeOnly = comps.filter(c => c.unitType === 'whole');
+  if (wholeOnly.length >= 3) {
+    return { median: getMedian(wholeOnly.map(c => c.leasePrice)), count: wholeOnly.length, whole: true };
+  }
+  return { median: getMedian(comps.map(c => c.leasePrice)), count: comps.length, whole: false };
+}
+
+
 export async function GET(request) {
   if (!TOK) {
     return NextResponse.json({ comps: [], median: 0, source: 'unavailable' });
@@ -33,26 +75,28 @@ export async function GET(request) {
     const leaseComps = await fetchLeaseComps(city, type, beds, 12, 1, fsa);
 
     if (leaseComps.length >= 3) {
-      const median = getMedian(leaseComps.map(c => c.leasePrice));
+      const { median, count, whole } = wholeUnitMedian(leaseComps);
       return NextResponse.json({
         comps: leaseComps.slice(0, 10),
         median,
-        count: leaseComps.length,
+        count,
+        wholeUnitOnly: whole,
         source: 'lease_comps',
-        label: `Based on ${leaseComps.length} similar leases ${fsa ? 'in this area' : 'across ' + city} in the last 12 months`,
+        label: `Based on ${count} ${whole ? 'whole-property ' : ''}leases ${fsa ? 'in this area' : 'across ' + city} in the last 12 months`,
       });
     }
 
     // Try wider search (18 months, +/- 2 beds)
     const widerComps = await fetchLeaseComps(city, type, beds, 18, 2);
     if (widerComps.length >= 3) {
-      const median = getMedian(widerComps.map(c => c.leasePrice));
+      const { median, count, whole } = wholeUnitMedian(widerComps);
       return NextResponse.json({
         comps: widerComps.slice(0, 10),
         median,
-        count: widerComps.length,
+        count,
+        wholeUnitOnly: whole,
         source: 'lease_comps_wide',
-        label: `Based on ${widerComps.length} similar leases in wider area (last 18 months)`,
+        label: `Based on ${count} ${whole ? 'whole-property ' : ''}leases in wider area (last 18 months)`,
       });
     }
 
@@ -140,6 +184,7 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1, fsa 
   return items.map(l => ({
     id: l.ListingKey,
     address: l.UnparsedAddress || 'Address withheld',
+    unitType: classifyUnit(l.UnparsedAddress),
     fsa: (l.PostalCode || '').slice(0, 3),
     beds: l.BedroomsTotal || 0,
     baths: l.BathroomsTotalInteger || 0,
@@ -192,6 +237,7 @@ async function fetchActiveRentals(city, type, beds) {
   return items.map(l => ({
     id: l.ListingKey,
     address: l.UnparsedAddress || 'Address withheld',
+    unitType: classifyUnit(l.UnparsedAddress),
     fsa: (l.PostalCode || '').slice(0, 3),
     beds: l.BedroomsTotal || 0,
     baths: l.BathroomsTotalInteger || 0,

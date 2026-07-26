@@ -2,8 +2,18 @@ export default function ListingsLoading() {
   return (
     <main className="min-h-screen bg-cloud">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* NOT an <h1>, and not different wording from the real page.
+            This skeleton streams ahead of the server-rendered page, so both
+            ended up in the HTML a crawler receives: /listings was serving TWO
+            h1s, and the FIRST one — the one that carries the most weight — was
+            this placeholder's "Mississauga Investment Properties" rather than
+            the exact-match "Investment Properties for Sale in Mississauga"
+            the page targets. A loading placeholder is not the page heading,
+            so it is a plain div carrying the same text as the real h1. */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-navy">Mississauga Investment Properties</h1>
+          <div className="text-3xl font-bold text-navy" aria-hidden="true">
+            Investment Properties for Sale in Mississauga
+          </div>
           <p className="mt-1 text-sm text-slate-500">All active listings scored and analyzed</p>
         </div>
 
