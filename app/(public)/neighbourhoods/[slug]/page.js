@@ -115,7 +115,16 @@ export default async function NeighbourhoodGuidePage({ params }) {
     },
     {
       question: `What is the average home price in ${name}, Mississauga?`,
-      answer: `The average price in ${name} is approximately ${fmtK(avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`,
+      // The price and the YoY come from DIFFERENT sources: avgPrice is the
+      // live average ASKING price of active listings when the feed has a
+      // sample, while priceYoY is Hamza's curated outlook on SOLD prices. The
+      // old sentence welded them together — "$804K, up 1.8% year over year" —
+      // which reads as one measurement and is why the homepage card and this
+      // page could show different averages for the same neighbourhood with no
+      // explanation. Each figure is now attributed to what it actually is.
+      answer: isLive
+        ? `Active listings in ${name} are currently asking ${fmtK(avgPrice)} on average, from live MLS data. That is an asking-price average and moves with what happens to be on the market; TRREB's sold figures for Mississauga are on the market-pulse page. Hamza's outlook for ${name}, last reviewed ${HOOD_OUTLOOK_AS_OF}, has prices ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`
+        : `The average price in ${name} is approximately ${fmtK(avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year, from Hamza's neighbourhood outlook last reviewed ${HOOD_OUTLOOK_AS_OF}.`,
     },
     {
       question: `How much rent can an investment property in ${name} earn?`,
