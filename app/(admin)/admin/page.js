@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [marketFreshness, setMarketFreshness] = useState(null);
   const [ratingFreshness, setRatingFreshness] = useState(null);
+  const [emailHealth, setEmailHealth] = useState(null);
 
   useEffect(() => {
     if (!adminKey) return;
@@ -77,6 +78,16 @@ export default function AdminDashboard() {
       })
       .catch(() => {});
   }, []);
+
+  // "Are the daily alert emails actually going out?" had no answer inside the
+  // product — it needed the Vercel cron log or the Resend dashboard.
+  useEffect(() => {
+    if (!adminKey) return;
+    fetch('/api/admin/email-health', { headers: { 'x-admin-key': adminKey } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d) setEmailHealth(d); })
+      .catch(() => {});
+  }, [adminKey]);
 
   if (loading) {
     return (
@@ -139,6 +150,10 @@ export default function AdminDashboard() {
           </a>
         </div>
       )}
+
+      {/* Email delivery — the retention engine. Silent failure here is the
+          worst kind: the site looks fine and nobody hears from us. */}
+      <EmailHealthPanel health={emailHealth} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -394,6 +409,57 @@ function ImportSubscribers() {
           Import failed{result?.error ? `: ${result.error}` : ''}. Check that the file is a CSV with an email column.
         </div>
       )}
+    </div>
+  );
+}
+
+// Reads /api/admin/email-health. Every figure shown is evidence the app itself
+// wrote — alert_sent_listings rows are recorded only after Resend accepts —
+// so this is delivery history, not a guess about it.
+function EmailHealthPanel({ health }) {
+  if (!health) return null;
+
+  const tone = {
+    ok: { box: 'border-green-500/25 bg-green-500/10', head: 'text-green-300', body: 'text-green-200/80', dot: 'bg-green-400' },
+    idle: { box: 'border-slate-500/25 bg-slate-500/10', head: 'text-slate-200', body: 'text-slate-300/80', dot: 'bg-slate-400' },
+    warn: { box: 'border-amber-500/30 bg-amber-500/10', head: 'text-amber-300', body: 'text-amber-200/80', dot: 'bg-amber-400' },
+    critical: { box: 'border-red-500/30 bg-red-500/10', head: 'text-red-300', body: 'text-red-200/80', dot: 'bg-red-400' },
+    unknown: { box: 'border-slate-500/25 bg-slate-500/10', head: 'text-slate-200', body: 'text-slate-300/80', dot: 'bg-slate-400' },
+  }[health.status] || {};
+
+  const a = health.alerts;
+  const fmt = (d) => (d ? new Date(d).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+
+  return (
+    <div className={`rounded-xl border p-4 ${tone.box}`}>
+      <div className="flex items-center gap-2">
+        <span className={`inline-block h-2 w-2 rounded-full ${tone.dot}`} />
+        <p className={`text-sm font-semibold ${tone.head}`}>Email delivery</p>
+      </div>
+      <p className={`mt-1 text-sm ${tone.body}`}>{health.note}</p>
+
+      {a && (
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ['Delivered (24h)', a.deliveriesLast24h ?? '—'],
+            ['Delivered (7d)', a.deliveriesLast7d ?? '—'],
+            ['Alert subscribers', a.subscribers ?? '—'],
+            ['Last delivery', fmt(a.lastSentAt)],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <p className="text-sm font-bold text-white">{value}</p>
+              <p className="text-[10px] uppercase tracking-wide text-white/45">{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="mt-3 text-[11px] leading-relaxed text-white/45">
+        Sender: {health.config.fromAddress || 'default'}
+        {health.config.resendConfigured ? '' : ' · RESEND_API_KEY missing'}
+        {health.newsletter?.lastSentAt ? ` · Last weekly newsletter ${fmt(health.newsletter.lastSentAt)}` : ''}
+        {' · '}Counts are individual listings delivered, recorded only once Resend accepts the send.
+      </p>
     </div>
   );
 }
