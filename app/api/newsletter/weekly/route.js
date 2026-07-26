@@ -193,7 +193,10 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
       <td style="font-family:${SERIF};font-size:14px;color:${INK};padding:9px 0;${i < hoods.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${esc(h.name || h.neighbourhood)}</td>
       <td align="right" style="font-family:${SERIF};font-size:15px;color:${INK};padding:9px 0;${i < hoods.length - 1 ? `border-bottom:1px solid ${HAIR};` : ''}">${fmtPrice(h.avgPrice || h.avg_price)}</td>
     </tr>`).join('')}
-  </table>` : ''}
+  </table>
+  ${s.hotNeighbourhoodsAsOf ? `<p style="font-family:${SERIF};font-size:11px;color:${MUTED};margin:8px 0 0;line-height:1.5;">
+    Neighbourhood averages from our ${esc(s.hotNeighbourhoodsAsOf)} outlook &mdash; the same figures the neighbourhood guides on the site use.
+  </p>` : ''}` : ''}
 
   ${extras.blogHtml || ''}
 
