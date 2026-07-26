@@ -73,20 +73,34 @@ function HomeDealCard({ deal, photo, isGated }) {
             New
           </div>
         )}
-        {/* Investor tags */}
+        {/* Investor tags.
+            These carry real investor information — a legal suite, a price cut,
+            a stale listing — so they have to be legible, and measured at 375px
+            they were not: white on bg-success/90 is 2.4:1 and white on
+            amber-500/90 or gold/90 is 2.1:1, against the 4.5:1 AA needs for
+            10px text. An earlier sweep skipped these as "chips over a photo,
+            meaningless to measure", but that was the wrong call — the chip
+            carries its OWN background, so the photo barely shows through and
+            the ratio is real.
+            Now fully opaque (a translucent chip over an arbitrary photo has
+            unpredictable contrast; opaque guarantees it whatever the picture)
+            and darkened: emerald-700 = 5.5:1, amber-700 = 5.0:1. Note the
+            brand's own gold-dark still fails at 3.2:1, so it is not an option
+            here; `gold` and `amber-500` are the same hex today, so mapping
+            both to amber-700 keeps them as alike as they already were. */}
         <div className="absolute bottom-1.5 left-1.5 sm:bottom-2 sm:left-2 flex flex-wrap gap-1">
           {(deal.basementTier === 'legal' || deal.basementTier === 'potential') && (
-            <span className="rounded-full bg-success/90 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-emerald-700 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Suite
             </span>
           )}
           {deal.priceDrop > 0 && (
-            <span className="rounded-full bg-amber-500/90 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-amber-700 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Reduced
             </span>
           )}
           {deal.dom >= 45 && (
-            <span className="rounded-full bg-gold/90 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-amber-700 px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Motivated
             </span>
           )}
