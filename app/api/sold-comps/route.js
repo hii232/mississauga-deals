@@ -61,7 +61,17 @@ export async function GET(request) {
       if (type) {
         const typeLower = type.toLowerCase();
         const typeMap = {
-          'detached': "(PropertyType eq 'Residential' or PropertyType eq 'Residential Freehold')",
+          // Was PropertyType eq 'Residential'/'Residential Freehold' — that field is
+          // a broad TRREB category shared by semi-detached, townhouse, duplex,
+          // triplex and multiplex too (same defect just fixed in
+          // /api/estimated-value), so a "Detached" query — including the public
+          // /recent-sales type filter, not just the gated listing-detail comps —
+          // pulled in cheaper non-detached sold prices as "similar" comps,
+          // skewing Avg Sold Price, Avg Negotiation and the buyer-leverage signal
+          // for the site's most common property type. PropertySubType is the
+          // field that actually distinguishes them (matches /api/rental-comps'
+          // exact-eq pattern).
+          'detached': "PropertySubType eq 'Detached'",
           'semi-detached': "contains(PropertySubType, 'Semi')",
           'semi': "contains(PropertySubType, 'Semi')",
           'townhouse': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",
