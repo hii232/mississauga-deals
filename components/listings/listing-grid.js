@@ -255,7 +255,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
         </nav>
       )}
 
-      <p className="py-4 text-center text-xs text-slate-400">
+      <p className="py-4 text-center text-xs text-slate-500">
         Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, listings.length)} of {listings.length} properties
       </p>
 

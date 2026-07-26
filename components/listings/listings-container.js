@@ -64,7 +64,7 @@ function TopPickCard({ listing, photo }) {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CF/mo</p>
-            <p className="text-[11px] font-bold text-emerald-600 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
+            <p className="text-[11px] font-bold text-emerald-700 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
@@ -99,7 +99,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
         <div className="flex items-center gap-2">
           <span className="text-base">🏆</span>
           <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Top Picks</h3>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
+          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
             Best Cash Flowing Deals
           </span>
         </div>

@@ -126,11 +126,11 @@ export default async function ListingsPage() {
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
           <p className="mt-1.5 text-sm text-slate-500">
-            <span className="text-slate-400">Investor guides:</span>{' '}
+            <span className="text-slate-500">Investor guides:</span>{' '}
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">
               Cash-flow-positive properties
             </Link>
-            <span className="text-slate-300"> · </span>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">
               Townhouse vs condo
             </Link>
