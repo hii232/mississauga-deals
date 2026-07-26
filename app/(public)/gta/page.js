@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { headers } from 'next/headers';
+import { processListings } from '@/lib/listings/process-listings';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -152,13 +154,45 @@ export function generateMetadata({ searchParams }) {
   };
 }
 
-// GTA page loads instantly with skeletons, then fetches client-side.
-// This avoids SSR timeout from querying 30+ cities via AMPRE API.
-// When ?city=X is present, the ListingsContainer forwards it to /api/listings-gta,
-// which filters the AMPRE query to that city only.
-export default function GtaListingsPage({ searchParams }) {
+// Server-side inventory fetch, with the timeout that made this page
+// client-only in the first place handled explicitly rather than avoided.
+//
+// The original note was right that the WHOLE-GTA query (30+ cities) can be
+// slow. So: the fetch is capped by AbortSignal.timeout and any failure — slow
+// feed, upstream error, abort — returns [] and hands rendering back to
+// ListingsContainer's own client fetch, which is exactly today's behaviour.
+// The server render can therefore never hang the page; the upside is that when
+// the feed answers in time (the normal case, and always for the single-city
+// pages that carry the SEO value) a crawler receives real listings instead of
+// an empty shell.
+//
+// The per-city pages get the longer budget because they are the indexable ones
+// and query a single city; the hub gets a short one because it is the heavy
+// query and is not where the ranking value sits.
+async function fetchGtaListings(city) {
+  const timeoutMs = city ? 8000 : 4000;
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
+    const origin = `${isLocal ? 'http' : 'https'}://${host}`;
+    const qs = city ? `&city=${encodeURIComponent(city)}` : '';
+    const res = await fetch(`${origin}/api/listings-gta?limit=200&page=1${qs}`, {
+      next: { revalidate: 600 },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return processListings(data.listings || []);
+  } catch {
+    return []; // client fetch takes over — same as before this change
+  }
+}
+
+export default async function GtaListingsPage({ searchParams }) {
   const city = (searchParams?.city || '').trim();
   const copy = CITY_COPY[city];
+  const initialListings = await fetchGtaListings(city);
 
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
   const sub = copy
@@ -267,7 +301,7 @@ export default function GtaListingsPage({ searchParams }) {
         </div>
         <Suspense>
           <ListingsContainer
-            initialListings={[]}
+            initialListings={initialListings}
             apiEndpoint="/api/listings-gta"
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
           />
