@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
+import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
+
+// Which neighbourhoods to feature, and WHY — the editorial part. The `hood` key
+// is the HOOD_DATA lookup; `name` is the display label, which differs for
+// Square One / City Centre. No prices here on purpose: see hotNeighbourhoods.
+const HOT_NEIGHBOURHOODS = [
+  { name: 'Cooksville', hood: 'Cooksville', reason: 'LRT corridor + most affordable' },
+  { name: 'Square One / City Centre', hood: 'City Centre', reason: 'Urban density + transit hub' },
+  { name: 'Port Credit', hood: 'Port Credit', reason: 'Waterfront premium + GO Transit' },
+  { name: 'Clarkson', hood: 'Clarkson', reason: 'Highest cap rates + GO station' },
+  { name: 'Churchill Meadows', hood: 'Churchill Meadows', reason: 'New builds + family demand' },
+];
 
 // ── TRREB data freshness ─────────────────────────────────
 // The monthly TRREB figures in this file are transcribed by hand from the Market
@@ -340,13 +352,25 @@ export async function GET() {
       avg3Bed: 3200,
       rentalYoyChange: -3.2,
     },
-    hotNeighbourhoods: [
-      { name: 'Cooksville', reason: 'LRT corridor + most affordable', avgPrice: 750000 },
-      { name: 'Square One / City Centre', reason: 'Urban density + transit hub', avgPrice: 620000 },
-      { name: 'Port Credit', reason: 'Waterfront premium + GO Transit', avgPrice: 1250000 },
-      { name: 'Clarkson', reason: 'Highest cap rates + GO station', avgPrice: 1050000 },
-      { name: 'Churchill Meadows', reason: 'New builds + family demand', avgPrice: 1100000 },
-    ],
+    // Prices come from HOOD_DATA, not from a second hardcoded copy. They used
+    // to be typed here as well, and the two had drifted: Churchill Meadows was
+    // $1,100,000 here against $843,000 in HOOD_DATA — a 30% gap on the same
+    // figure. That matters because these rows are emailed: the weekly
+    // newsletter renders them under "Where Prices Are Moving", so a subscriber
+    // was told $1.1M and then landed on a neighbourhood guide saying $843K.
+    // Port Credit, Clarkson, Cooksville and City Centre were all out too, by
+    // 2.6-4.8%. Only the editorial `reason` copy is authored here now; every
+    // number is read from the one constant the guides, the /neighbourhoods
+    // index and the homepage cards already share, so they cannot diverge again.
+    hotNeighbourhoods: HOT_NEIGHBOURHOODS.map((h) => ({
+      name: h.name,
+      reason: h.reason,
+      avgPrice: HOOD_DATA[h.hood]?.avgPrice ?? null,
+    })).filter((h) => h.avgPrice > 0),
+    // The curated outlook these prices belong to, so anything rendering them
+    // can say what they are rather than implying they are this month's live
+    // average. The newsletter states it under the table.
+    hotNeighbourhoodsAsOf: HOOD_OUTLOOK_AS_OF,
     // Mississauga sales by home type — TRREB MW2606 (June 2026), the per-type
     // pages. The count key is `sales`, NOT a month name: baking "feb2026" into
     // the key is part of why nobody noticed this data had gone stale.

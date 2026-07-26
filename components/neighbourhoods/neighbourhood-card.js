@@ -5,8 +5,13 @@ import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
 
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
+// Measured at 375px: this badge is 10px text, so it needs 4.5:1. `warm` and
+// `cool` already pass comfortably (8.7:1 and 6.8:1) because they put NAVY on a
+// light chip — the pattern that works. The two that used WHITE did not:
+// red-500 was 3.8:1 and the slate-400 fallback 2.6:1. red-600 takes hot to
+// 4.8:1; the fallback switches to the navy-on-light pattern at 9.8:1.
 const TREND_BADGE = {
-  hot: 'bg-red-500 text-white',
+  hot: 'bg-red-600 text-white',
   warm: 'bg-amber-400 text-navy',
   cool: 'bg-sky-400 text-navy',
 };
@@ -24,7 +29,7 @@ export function NeighbourhoodCard({ name, data, avgPrice, avgDOM, rentYield, isL
   const dom = typeof avgDOM === 'number' ? avgDOM : data.avgDOM;
   const yieldPct = typeof rentYield === 'number' ? rentYield : (typeof data.rentYield === 'number' ? data.rentYield : null);
   const yoy = typeof data.priceYoY === 'number' ? data.priceYoY : null;
-  const badge = TREND_BADGE[data.trend] || 'bg-slate-400 text-white';
+  const badge = TREND_BADGE[data.trend] || 'bg-slate-300 text-navy';
 
   return (
     <Link
