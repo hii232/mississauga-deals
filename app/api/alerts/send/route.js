@@ -350,7 +350,9 @@ function buildAlertEmail(listings, name, searches) {
         const price = Number.isFinite(l.price) ? l.price : 0;
         const dom = Number.isFinite(l.dom) ? l.dom : null;
         const rentAssumption = rentAssumptionLine(l);
-        const scoreBg = score == null ? '#94A3B8' : score >= 8 ? '#10B981' : score >= 6.5 ? '#2563EB' : '#F59E0B';
+        // #047857 (not #10B981) and #B45309 (not #F59E0B): the badge prints
+        // white on this colour, and the brighter tokens leave it at ~2.4:1.
+        const scoreBg = score == null ? '#64748B' : score >= 8 ? '#047857' : score >= 6.5 ? '#2563EB' : '#B45309';
         return `
       <tr>
         <td style="padding: 16px 0; border-bottom: 1px solid #E2E8F0;">
@@ -380,7 +382,7 @@ function buildAlertEmail(listings, name, searches) {
                       CAP ${cap == null ? '—' : cap.toFixed(1) + '%'}
                     </td>
                     <td width="8"></td>
-                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#10B981' : '#EF4444'}; font-weight: 600;">
+                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#047857' : '#DC2626'}; font-weight: 600;">
                       PCF ${cf == null ? '—' : cf >= 0 ? `+$${cf.toLocaleString()}/mo` : `−$${Math.abs(cf).toLocaleString()}/mo`}
                     </td>
                     <td width="8"></td>
@@ -421,11 +423,17 @@ function buildAlertEmail(listings, name, searches) {
 
           <!-- Header -->
           <tr>
-            <td style="background: #1B2A4A; border-radius: 16px 16px 0 0; padding: 32px 32px 24px; text-align: center;">
-              <div style="font-size: 22px; font-weight: 700; color: white; margin-bottom: 8px;">
-                MississaugaInvestor<span style="color: #2563EB;">.ca</span>
+            <!-- Masthead on the site's "dusk" identity. bgcolor + a background
+                 shorthand carry the solid navy for Outlook and anything that
+                 ignores gradients, so the fallback is the exact previous look
+                 rather than a white box. The ".ca" was accent #2563EB on navy
+                 = 2.75:1 (the same on-navy failure fixed in the site footer);
+                 #8AB6FF is the established on-navy blue at 6.9:1. -->
+            <td bgcolor="#1B2A4A" style="background: #1B2A4A; background: linear-gradient(135deg, #16223D 0%, #1B2A4A 55%, #25355C 100%); border-radius: 16px 16px 0 0; padding: 32px 32px 24px; text-align: center;">
+              <div style="font-size: 22px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">
+                MississaugaInvestor<span style="color: #8AB6FF;">.ca</span>
               </div>
-              <div style="color: #94A3B8; font-size: 14px;">Daily Deal Alerts</div>
+              <div style="color: #F59E0B; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Daily Deal Alerts</div>
             </td>
           </tr>
 
