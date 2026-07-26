@@ -2,6 +2,17 @@ export const metadata = {
   title: 'Terms of Service',
   description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
   alternates: { canonical: '/terms' },
+  // Own openGraph block. Without one this page inherited the ROOT's,
+  // whose url is the homepage — so every share of this URL showed
+  // homepage branding and pointed crawlers at '/'. Next REPLACES the
+  // openGraph object rather than merging it, so the image has to be
+  // restated here or the card ships without one.
+  openGraph: {
+    title: 'Terms of Service',
+    description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
+    url: 'https://www.mississaugainvestor.ca/terms',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function TermsPage() {

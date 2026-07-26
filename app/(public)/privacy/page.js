@@ -2,6 +2,17 @@ export const metadata = {
   title: 'Privacy Policy',
   description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
   alternates: { canonical: '/privacy' },
+  // Own openGraph block. Without one this page inherited the ROOT's,
+  // whose url is the homepage — so every share of this URL showed
+  // homepage branding and pointed crawlers at '/'. Next REPLACES the
+  // openGraph object rather than merging it, so the image has to be
+  // restated here or the card ships without one.
+  openGraph: {
+    title: 'Privacy Policy',
+    description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
+    url: 'https://www.mississaugainvestor.ca/privacy',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function PrivacyPage() {

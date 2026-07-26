@@ -10,6 +10,8 @@ import { processListings } from '@/lib/listings/process-listings';
 import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { SkylineStrip } from '@/components/art/cityscape';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
+import { InlineEmailCapture } from '@/components/ui/inline-email-capture';
+import { ProofRow } from '@/components/ui/proof-row';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
 import { HOOD_DATA } from '@/lib/constants';
@@ -17,22 +19,37 @@ import { HOOD_DATA } from '@/lib/constants';
 // ──────────────────────────────────────────
 //  Auth Gate Overlay
 // ──────────────────────────────────────────
-function AuthGate({ children, isAuthenticated, signupHref = '/signup' }) {
+// A REAL gate. This used to render `children` behind a CSS blur, so every
+// gated figure — sold comps, cap rate, BRRR — was sitting in the DOM in plain
+// text for anyone who opened DevTools or disabled CSS. It captured no email
+// from those visitors and put VOW-restricted sold data in an unauthenticated
+// browser. The gated subtree is now simply not rendered, which also means its
+// components never mount and never fire their fetches.
+//
+// The unlock is the email itself, taken inline: asking for it here and sending
+// the visitor to /signup would repeat the exact friction removed from the hero.
+function AuthGate({ children, isAuthenticated, title, valueLine, source, onUnlock }) {
   if (isAuthenticated) return children;
   return (
-    <div className="relative">
-      <div className="pointer-events-none select-none blur-sm">{children}</div>
-      <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/80 backdrop-blur-sm">
-        <p className="mb-1 text-base font-semibold text-navy">Full Investment Analysis</p>
-        <p className="mb-3 text-xs text-muted text-center max-w-xs">Mortgage payment, cash-on-cash return, cap rate, BRRR projections &amp; sold comps</p>
-        <Link
-          href={signupHref}
-          className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white transition hover:bg-accent-dark"
-        >
-          Sign Up Free — 10 Seconds
-        </Link>
-        <p className="mt-2 text-[10px] text-muted">Free forever. No credit card.</p>
+    <div className="mx-auto max-w-md py-6 text-center">
+      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-accent/10">
+        <svg className="h-5 w-5 text-accent" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+        </svg>
       </div>
+      <p className="mb-1 text-base font-bold text-navy">{title}</p>
+      <p className="mx-auto mb-4 max-w-xs text-xs text-muted">{valueLine}</p>
+      <div className="text-left">
+        <InlineEmailCapture
+          id={`gate-email-${source}`}
+          source={source}
+          tone="light"
+          buttonLabel="Unlock — Free"
+          note="Free forever. No credit card. Unsubscribe anytime."
+          onCaptured={onUnlock}
+        />
+      </div>
+      <ProofRow className="mt-5 border-t border-slate-100 pt-4" />
     </div>
   );
 }
@@ -1092,7 +1109,7 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
 // ──────────────────────────────────────────
 const TABS = [
   { key: 'overview', label: 'Overview', gated: false },
-  { key: 'estimate', label: 'Est. Value', gated: false },
+  { key: 'estimate', label: 'Est. Value', gated: true },
   { key: 'comps', label: 'Sold Comps', gated: true },
   { key: 'history', label: 'Price History', gated: false },
   { key: 'mortgage', label: 'Mortgage', gated: true },
@@ -1303,9 +1320,11 @@ export default function PropertyDetailClient({ initialListing = null }) {
     }
   }, [listing]);
 
-  // Fetch estimated value once listing is loaded
+  // Fetch estimated value once listing is loaded — but only for a visitor who
+  // has actually unlocked it. Fetching it while gated would put the very figure
+  // being gated into the browser anyway.
   useEffect(() => {
-    if (!listing) return;
+    if (!listing || !isAuthenticated) return;
     setEvLoading(true);
     const qs = new URLSearchParams({
       city: listing.city || 'Mississauga',
@@ -1321,7 +1340,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
       .then((data) => { if (data) setEstimatedValue(data); })
       .catch(() => {})
       .finally(() => setEvLoading(false));
-  }, [listing]);
+  }, [listing, isAuthenticated]);
 
   if (loading) {
     return <DetailSkeleton />;
@@ -1342,6 +1361,8 @@ export default function PropertyDetailClient({ initialListing = null }) {
 
   const scoreColor = scoreColorHex(listing.hamzaScore);
   const isGated = !isAuthenticated;
+  // Reveal the gated tab in place once the email lands — no reload, no bounce.
+  const unlock = () => setIsAuthenticated(true);
 
   // Carry the property through to the booking + signup forms so the lead
   // notification tells Hamza exactly which listing the visitor was viewing.
@@ -1581,6 +1602,14 @@ export default function PropertyDetailClient({ initialListing = null }) {
                     : 'text-muted hover:bg-slate-50 hover:text-navy'
                 }`}
               >
+                {/* Say which tabs need the email up front. `gated` was already
+                    declared on TABS but nothing rendered it, so the lock was a
+                    surprise you only met after clicking. */}
+                {tab.gated && isGated && (
+                  <svg aria-hidden="true" className="mr-1 inline-block h-3 w-3 -translate-y-px" fill="none" viewBox="0 0 24 24" strokeWidth="2.2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  </svg>
+                )}
                 {tab.label}
               </button>
             ))}
@@ -1590,10 +1619,24 @@ export default function PropertyDetailClient({ initialListing = null }) {
           <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
             {activeTab === 'overview' && <OverviewTab listing={listing} />}
             {activeTab === 'estimate' && (
-              <EstimatedValueTab listing={listing} estimatedValue={estimatedValue} evLoading={evLoading} />
+              <AuthGate
+                isAuthenticated={!isGated}
+                onUnlock={unlock}
+                source="Listing — Estimated Value"
+                title="What is this property really worth?"
+                valueLine="An independent estimate from comparable sales nearby, with the range and the comps it was built from."
+              >
+                <EstimatedValueTab listing={listing} estimatedValue={estimatedValue} evLoading={evLoading} />
+              </AuthGate>
             )}
             {activeTab === 'comps' && (
-              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
+              <AuthGate
+                isAuthenticated={!isGated}
+                onUnlock={unlock}
+                source="Listing — Sold Comps"
+                title="See what nearby homes actually sold for"
+                valueLine="Real sold prices, dates and distances for comparable properties — the numbers that tell you whether this one is priced right."
+              >
                 <SoldCompsTab
                   listing={listing}
                   onUseAsARV={(price) => {
@@ -1605,17 +1648,35 @@ export default function PropertyDetailClient({ initialListing = null }) {
             )}
             {activeTab === 'history' && <PriceHistoryTab listing={listing} />}
             {activeTab === 'mortgage' && (
-              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
+              <AuthGate
+                isAuthenticated={!isGated}
+                onUnlock={unlock}
+                source="Listing — Mortgage"
+                title="Your monthly payment on this property"
+                valueLine="Full mortgage breakdown at today's rates — payment, principal vs interest, CMHC insurance and land transfer tax."
+              >
                 <MortgageTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'caprate' && (
-              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
+              <AuthGate
+                isAuthenticated={!isGated}
+                onUnlock={unlock}
+                source="Listing — Cap Rate"
+                title="Does this property actually cash flow?"
+                valueLine="Cap rate, net operating income, cash-on-cash return and monthly cash flow — with every assumption adjustable."
+              >
                 <CapRateTab listing={listing} />
               </AuthGate>
             )}
             {activeTab === 'brrr' && (
-              <AuthGate isAuthenticated={!isGated} signupHref={signupHref}>
+              <AuthGate
+                isAuthenticated={!isGated}
+                onUnlock={unlock}
+                source="Listing — BRRR"
+                title="Run the BRRR numbers on this property"
+                valueLine="Buy, renovate, rent, refinance — see the capital left in the deal and the return after refinancing."
+              >
                 <BRRRTab listing={listing} initialARV={arvFromComps} />
               </AuthGate>
             )}

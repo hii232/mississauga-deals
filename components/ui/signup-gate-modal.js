@@ -4,6 +4,7 @@ import { trackConversion } from '@/lib/track-conversion';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { ProofRow } from '@/components/ui/proof-row';
 
 /**
  * Two-step inline signup modal.
@@ -24,9 +25,6 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  // Live Google rating via the server route (the Places key never reaches the
-  // browser). Null keeps the rating tile hidden rather than asserting 5.0.
-  const [googleRating, setGoogleRating] = useState(null);
   // Rendered through a portal (see the return): z-[9999] alone is not enough,
   // because z-index is resolved WITHIN the nearest stacking context. Mounted
   // inside the homepage hero — whose wrapper is `relative z-10` — the whole
@@ -34,17 +32,6 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   // unclickable. document.body has no such parent.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch('/api/google-rating')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (!cancelled && d?.configured && d.rating) setGoogleRating(d);
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
 
   // Reset when opened
   useEffect(() => {
@@ -239,26 +226,13 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 Free forever. No credit card. No spam.
               </p>
 
-              {/* Social proof */}
-              <div className="mt-4 flex items-center justify-center gap-4 border-t border-slate-100 pt-4">
-                <div className="text-center">
-                  <p className="text-sm font-bold text-navy">4,000+</p>
-                  <p className="text-[10px] text-slate-500">Listings Scored</p>
-                </div>
-                {googleRating && (
-                  <>
-                    <div className="h-6 w-px bg-slate-200"></div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-navy">{googleRating.rating.toFixed(1)} ★</p>
-                      <p className="text-[10px] text-slate-500">Google Rating</p>
-                    </div>
-                  </>
-                )}
-                <div className="h-6 w-px bg-slate-200"></div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-navy">Free</p>
-                  <p className="text-[10px] text-slate-500">No Catch</p>
-                </div>
+              {/* Social proof. This hardcoded "4,000+ Listings Scored", which
+                  contradicted the site-wide PLATFORM_STATS figure ("1,800+") by
+                  more than double — on the one surface where a visitor is
+                  deciding whether to trust us with an email. ProofRow sources
+                  every number live and drops any it cannot source. */}
+              <div className="mt-4 border-t border-slate-100 pt-4">
+                <ProofRow />
               </div>
             </div>
           </>
