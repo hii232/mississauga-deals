@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
+// A real list is hundreds of rows: a chunked existence lookup, batched
+// backfill updates and chunked inserts. The default window is too tight.
+export const maxDuration = 60;
 
 // Bulk-import newsletter subscribers (e.g. a MailerLite export) into `leads`,
 // which is the weekly-newsletter recipient list. Admin-gated.
@@ -169,31 +172,63 @@ export async function POST(request) {
     // that carries numbers fills it in. This is the whole point of re-importing
     // an export after the ESP has collected phone numbers: the contacts are
     // already here, only their phones are missing.
-    const { data: existing } = await supabase
-      .from('leads')
-      .select('id, email, name, phone')
-      .in('email', valid.map((v) => v.email));
-    const existingRows = existing || [];
+    // Look the existing rows up in CHUNKS. PostgREST takes `in` filters as a
+    // query string, and one `.in()` carrying every address of a real list (477
+    // emails is ~12KB) runs past the server's URL limit — the lookup fails, the
+    // whole list looks new, and the insert then collides with rows that were
+    // already there. Chunked, the query is always small.
+    const existingRows = [];
+    const emails = valid.map((v) => v.email);
+    for (let i = 0; i < emails.length; i += 100) {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, email, name, phone')
+        .in('email', emails.slice(i, i + 100));
+      if (error) {
+        return NextResponse.json(
+          { error: `Could not read existing contacts: ${error.message}` },
+          { status: 500 }
+        );
+      }
+      existingRows.push(...(data || []));
+    }
     const existingSet = new Set(existingRows.map((e) => e.email));
     const toInsert = valid.filter((v) => !existingSet.has(v.email));
 
     const byEmail = new Map(valid.map((v) => [v.email, v]));
     let phonesBackfilled = 0;
     let namesBackfilled = 0;
+
+    // Only the rows that actually need a change, so a re-upload of an already
+    // complete list costs zero writes.
+    const patches = [];
     for (const row of existingRows) {
       const incoming = byEmail.get(row.email);
       if (!incoming) continue;
       const patch = {};
       if (incoming.phone && !row.phone) patch.phone = incoming.phone;
       if (incoming.name && !row.name) patch.name = incoming.name;
-      if (!Object.keys(patch).length) continue;
-      const { error } = await supabase.from('leads').update(patch).eq('id', row.id);
-      if (error) {
-        console.error('Newsletter import: backfill failed for a row:', error.message);
-        continue;
+      if (Object.keys(patch).length) patches.push({ id: row.id, patch });
+    }
+
+    // Batched rather than one-at-a-time: 258 sequential round trips would run
+    // past the function timeout on a list this size and leave the import
+    // half-applied.
+    for (let i = 0; i < patches.length; i += 25) {
+      const batch = patches.slice(i, i + 25);
+      const results = await Promise.all(
+        batch.map(({ id, patch }) =>
+          supabase.from('leads').update(patch).eq('id', id).then(({ error }) => ({ error, patch }))
+        )
+      );
+      for (const { error, patch } of results) {
+        if (error) {
+          console.error('Newsletter import: backfill failed for a row:', error.message);
+          continue;
+        }
+        if (patch.phone) phonesBackfilled++;
+        if (patch.name) namesBackfilled++;
       }
-      if (patch.phone) phonesBackfilled++;
-      if (patch.name) namesBackfilled++;
     }
 
     // Insert in chunks
