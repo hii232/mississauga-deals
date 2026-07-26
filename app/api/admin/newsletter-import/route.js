@@ -22,8 +22,22 @@ function isAuthorized(request) {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Minimal CSV parsing with quoted-field support — enough for ESP exports
-function parseCsvLine(line) {
+// ESP exports are not reliably comma-separated — MailerLite's subscriber export
+// is TAB-separated. Splitting on commas alone turned every row into a single
+// field, so the email column was never found and a real 477-row export imported
+// exactly zero contacts while reporting "No contacts found in payload".
+// Detect the delimiter from the header row instead of assuming.
+function detectDelimiter(headerLine) {
+  const counts = [
+    ['\t', (headerLine.match(/\t/g) || []).length],
+    [',', (headerLine.match(/,/g) || []).length],
+    [';', (headerLine.match(/;/g) || []).length],
+  ].sort((a, b) => b[1] - a[1]);
+  return counts[0][1] > 0 ? counts[0][0] : ',';
+}
+
+// Minimal delimited parsing with quoted-field support — enough for ESP exports
+function parseCsvLine(line, delim = ',') {
   const out = [];
   let cur = '';
   let inQuotes = false;
@@ -34,17 +48,31 @@ function parseCsvLine(line) {
       else if (ch === '"') inQuotes = false;
       else cur += ch;
     } else if (ch === '"') inQuotes = true;
-    else if (ch === ',') { out.push(cur); cur = ''; }
+    else if (ch === delim) { out.push(cur); cur = ''; }
     else cur += ch;
   }
   out.push(cur);
   return out;
 }
 
+// Normalize a phone to (XXX) XXX-XXXX, or null when it isn't a real NA number.
+// Exports carry all sorts: "416-555-0123", "(416) 555-0123", "4165550123",
+// "14165550123", "p:+14165550123". Same fake-number rules as /api/lead so an
+// import can't seed the database with contacts that can never be called.
+function normalizePhone(raw) {
+  let d = String(raw || '').replace(/\D/g, '');
+  if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+  if (d.length !== 10) return null;
+  if (/^(\d)\1{9}$/.test(d)) return null;             // all the same digit
+  if (d.slice(0, 3) === '555' || d.slice(3, 6) === '555') return null;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
+
 function contactsFromCsv(text) {
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length < 2) return [];
-  const header = parseCsvLine(lines[0]).map((h) => h.toLowerCase().trim());
+  const delim = detectDelimiter(lines[0]);
+  const header = parseCsvLine(lines[0], delim).map((h) => h.toLowerCase().trim());
   // Find the email column by name (email / e-mail / email address / subscriber /
   // contact), then fall back to whichever column actually holds an email in the
   // first data row — so exports that label it "Subscriber" (MailerLite) or
@@ -53,20 +81,39 @@ function contactsFromCsv(text) {
     (h) => h.includes('email') || h.includes('e-mail') || h === 'subscriber' || h === 'contact'
   );
   if (emailIdx === -1) {
-    const firstRow = parseCsvLine(lines[1]);
+    const firstRow = parseCsvLine(lines[1], delim);
     emailIdx = firstRow.findIndex((v) => EMAIL_RE.test((v || '').trim()));
   }
   if (emailIdx === -1) return [];
   const nameIdx = header.findIndex((h) => h === 'name' || h.includes('first name') || h === 'first_name' || h === 'fields.name');
   const lastIdx = header.findIndex((h) => h.includes('last name') || h === 'last_name');
 
+  // Every column that could hold a phone, in preference order: the primary
+  // "phone" first, then extras like "other phone #" / "work phone #" / "mobile".
+  // Exports routinely leave the main column blank but fill a secondary one, so
+  // taking only the first would throw away real numbers.
+  const phoneIdxs = header
+    .map((h, i) => ({ h, i }))
+    .filter(({ h }) => h.includes('phone') || h.includes('mobile') || h.includes('cell'))
+    .sort((a, b) => {
+      const rank = (h) => (h === 'phone' ? 0 : h.includes('mobile') || h.includes('cell') ? 1 : 2);
+      return rank(a.h) - rank(b.h);
+    })
+    .map(({ i }) => i);
+
   return lines.slice(1).map((line) => {
-    const cols = parseCsvLine(line);
+    const cols = parseCsvLine(line, delim);
     const first = nameIdx >= 0 ? (cols[nameIdx] || '').trim() : '';
     const last = lastIdx >= 0 ? (cols[lastIdx] || '').trim() : '';
+    let phone = null;
+    for (const i of phoneIdxs) {
+      phone = normalizePhone(cols[i]);
+      if (phone) break;
+    }
     return {
       email: (cols[emailIdx] || '').trim(),
       name: [first, last].filter(Boolean).join(' '),
+      phone,
     };
   });
 }
@@ -110,25 +157,56 @@ export async function POST(request) {
       if (!EMAIL_RE.test(email)) { invalid++; continue; }
       if (seen.has(email)) continue;
       seen.add(email);
-      valid.push({ email, name: String(c.name || '').trim().slice(0, 120) });
+      valid.push({
+        email,
+        name: String(c.name || '').trim().slice(0, 120),
+        phone: normalizePhone(c.phone),
+      });
     }
 
-    // Skip emails already in leads (never overwrite an existing lead or
-    // resurrect an unsubscribed one)
+    // Existing leads are never overwritten and an unsubscribe is never
+    // resurrected — but a blank phone is a GAP, not a decision, so a re-upload
+    // that carries numbers fills it in. This is the whole point of re-importing
+    // an export after the ESP has collected phone numbers: the contacts are
+    // already here, only their phones are missing.
     const { data: existing } = await supabase
       .from('leads')
-      .select('email')
+      .select('id, email, name, phone')
       .in('email', valid.map((v) => v.email));
-    const existingSet = new Set((existing || []).map((e) => e.email));
+    const existingRows = existing || [];
+    const existingSet = new Set(existingRows.map((e) => e.email));
     const toInsert = valid.filter((v) => !existingSet.has(v.email));
+
+    const byEmail = new Map(valid.map((v) => [v.email, v]));
+    let phonesBackfilled = 0;
+    let namesBackfilled = 0;
+    for (const row of existingRows) {
+      const incoming = byEmail.get(row.email);
+      if (!incoming) continue;
+      const patch = {};
+      if (incoming.phone && !row.phone) patch.phone = incoming.phone;
+      if (incoming.name && !row.name) patch.name = incoming.name;
+      if (!Object.keys(patch).length) continue;
+      const { error } = await supabase.from('leads').update(patch).eq('id', row.id);
+      if (error) {
+        console.error('Newsletter import: backfill failed for a row:', error.message);
+        continue;
+      }
+      if (patch.phone) phonesBackfilled++;
+      if (patch.name) namesBackfilled++;
+    }
 
     // Insert in chunks
     let imported = 0;
+    let phonesImported = 0;
     for (let i = 0; i < toInsert.length; i += 200) {
-      const chunk = toInsert.slice(i, i + 200).map((v) => ({
+      const slice = toInsert.slice(i, i + 200);
+      const chunk = slice.map((v) => ({
         email: v.email,
         name: v.name,
-        phone: '',
+        // Was hardcoded to '' — every phone number in every export uploaded
+        // through this route was silently discarded.
+        phone: v.phone || '',
         source: 'mailerlite-import',
         notes: 'Imported from MailerLite list',
       }));
@@ -140,11 +218,16 @@ export async function POST(request) {
         );
       }
       imported += chunk.length;
+      phonesImported += slice.filter((v) => v.phone).length;
     }
 
     return NextResponse.json({
       ok: true,
       imported,
+      phonesImported,
+      phonesBackfilled,
+      namesBackfilled,
+      withPhone: valid.filter((v) => v.phone).length,
       skippedExisting: existingSet.size,
       invalid,
       totalNowEligible: imported + existingSet.size,

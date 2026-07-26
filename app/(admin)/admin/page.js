@@ -379,8 +379,10 @@ function ImportSubscribers() {
     <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-5">
       <h2 className="text-sm font-bold text-white">📥 Import Subscribers</h2>
       <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
-        Upload a CSV export (MailerLite, Mailchimp, etc.) to add contacts to your database.
-        Emails already in your database — and anyone unsubscribed — are skipped automatically, so it&rsquo;s safe to re-upload.
+        Upload a CSV or tab-separated export (MailerLite, Mailchimp, etc.) to add contacts to your database.
+        Phone numbers are imported too, and re-uploading fills in phones and names missing from contacts you
+        already have. Existing contacts are never overwritten and unsubscribes are never resurrected, so it&rsquo;s
+        safe to re-upload.
       </p>
       <div className="mt-3 flex items-center gap-3">
         <label className={`inline-flex items-center rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-dark ${status === 'uploading' || !adminKey ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
@@ -398,8 +400,11 @@ function ImportSubscribers() {
 
       {status === 'done' && (
         <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-xs leading-relaxed text-green-300">
-          ✅ Imported <span className="font-semibold">{result.imported}</span> new contact{result.imported === 1 ? '' : 's'}.
-          {result.skippedExisting ? ` ${result.skippedExisting} already in your database (skipped).` : ''}
+          ✅ Imported <span className="font-semibold">{result.imported}</span> new contact{result.imported === 1 ? '' : 's'}
+          {result.phonesImported ? <> (<span className="font-semibold">{result.phonesImported}</span> with a phone number)</> : ''}.
+          {result.phonesBackfilled ? ` Added phone numbers to ${result.phonesBackfilled} contact${result.phonesBackfilled === 1 ? '' : 's'} you already had.` : ''}
+          {result.namesBackfilled ? ` Filled in ${result.namesBackfilled} missing name${result.namesBackfilled === 1 ? '' : 's'}.` : ''}
+          {result.skippedExisting ? ` ${result.skippedExisting} already in your database.` : ''}
           {result.invalid ? ` ${result.invalid} row${result.invalid === 1 ? '' : 's'} had no valid email.` : ''}
           {typeof result.totalNowEligible === 'number' ? ` Your database now has ${result.totalNowEligible.toLocaleString()} eligible contacts.` : ''}
         </div>
