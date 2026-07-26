@@ -50,7 +50,15 @@ async function fetchLiveStats() {
       : data.salesToListRatio
         ? (data.salesToListRatio * 100).toFixed(1) + '%'
         : null;
-    const avgSoldPrice = data.avgPrices?.all?.soldAvg || data.avgPrice || null;
+    // WRONG NUMBER FIXED: this fell back to `data.avgPrice` — the average of
+    // ACTIVE LIST prices — and then labelled it "Avg. Sold". Whenever the sold
+    // figure was unavailable the stats bar printed the list average twice under
+    // two different labels, which is why Avg Price and Avg Sold both read
+    // $1.01M while the same bar claimed a 97% sale-to-list ratio: those three
+    // numbers cannot all be true at once. A sold average now comes only from
+    // real sold data; when there is none the tile is omitted, matching the
+    // omit-never-fake rule the rest of this bar already follows.
+    const avgSoldPrice = data.avgPrices?.all?.soldAvg || null;
 
     const fmtPrice = (p) => {
       if (!p || p <= 0) return null;
