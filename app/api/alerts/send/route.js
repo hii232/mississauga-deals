@@ -6,6 +6,7 @@ import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-util
 import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 // The full-pool fetch (13 upstream page requests) plus per-subscriber matching
 // and SEQUENTIAL Resend sends will not reliably fit Vercel's default function
@@ -445,6 +446,8 @@ function buildAlertEmail(listings, name, searches) {
               <!-- Metric legend — explains the CAP vs PCF question every investor asks -->
               <div style="margin-top: 18px; padding: 12px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #64748B; font-size: 12px; line-height: 1.55;">
                 <strong style="color: #475569;">CAP</strong> is the yield before financing (all-cash). <strong style="color: #475569;">PCF</strong> is your monthly cash flow after the mortgage. A positive CAP with a small negative PCF is normal at today&rsquo;s rates &mdash; most of that gap is principal you keep as equity.
+                <br /><br />
+                Every figure assumes ${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down at ${DEFAULT_ASSUMPTIONS.annualInterestRate}% over ${DEFAULT_ASSUMPTIONS.amortizationYears} years, plus property tax, insurance, maintenance and vacancy. <a href="https://www.mississaugainvestor.ca/score-methodology?${UTM}" style="color: #2563EB;">See the full methodology</a> or change any assumption on a listing page.
               </div>
 
               <div style="text-align: center; margin-top: 28px;">

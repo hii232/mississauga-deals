@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
@@ -126,16 +127,21 @@ export default function ScoreMethodologyPage() {
           <div className="mt-4 overflow-hidden rounded-lg border border-gray-100">
             <table className="w-full text-xs">
               <tbody>
+                {/* Read from DEFAULT_ASSUMPTIONS, never retyped. These were
+                    hardcoded strings, so changing the engine would have left
+                    this page quietly describing the wrong model — the exact
+                    "a wrong number is the worst bug" failure, on the page whose
+                    whole job is disclosing the model. */}
                 {[
-                  ['Down payment', '20% (investment-property minimum)'],
-                  ['Mortgage rate', '4.89% — 5-year fixed, Canadian semi-annual compounding'],
-                  ['Amortization', '25 years'],
+                  ['Down payment', `${DEFAULT_ASSUMPTIONS.downPaymentPercent}% (investment-property minimum)`],
+                  ['Mortgage rate', `${DEFAULT_ASSUMPTIONS.annualInterestRate}% — 5-year fixed, Canadian semi-annual compounding`],
+                  ['Amortization', `${DEFAULT_ASSUMPTIONS.amortizationYears} years`],
                   ['Property tax', 'Actual listed tax when available; otherwise the municipal residential rate (e.g., Mississauga ~0.84% of price)'],
-                  ['Insurance', '$225/month'],
-                  ['Maintenance reserve', 'Greater of 8% of rent or 1% of property value per year'],
-                  ['Vacancy allowance', '5% of gross rent'],
-                  ['Property management', '0% (assumes self-managed)'],
-                  ['Closing costs (in cash-on-cash)', 'Ontario land transfer tax + $3,000 legal/title/misc'],
+                  ['Insurance', `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month`],
+                  ['Maintenance reserve', `Greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or 1% of property value per year`],
+                  ['Vacancy allowance', `${DEFAULT_ASSUMPTIONS.vacancyPercent}% of gross rent`],
+                  ['Property management', `${DEFAULT_ASSUMPTIONS.managementPercent}% (assumes self-managed)`],
+                  ['Closing costs (in cash-on-cash)', 'Land transfer tax + $3,000 legal/title/misc. Toronto and its amalgamated districts also pay the municipal land transfer tax, which is included for those listings.'],
                 ].map(([k, v]) => (
                   <tr key={k} className="border-b border-gray-50 last:border-0">
                     <td className="bg-cloud px-4 py-2.5 font-semibold text-navy w-52 align-top">{k}</td>

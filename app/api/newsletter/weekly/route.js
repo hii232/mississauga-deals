@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
@@ -430,8 +431,15 @@ function buildDealsHTML(deals, personalized) {
     ${i < rest.length - 1 ? `<div style="border-top:1px solid ${HAIR};margin-top:18px;"></div>` : ''}`;
   }).join('');
 
+  // The financing basis behind every CAP/cash-flow figure above. The site
+  // discloses it on /score-methodology; without it here a subscriber cannot
+  // tell whether "+$312/mo" assumes 20% down or 35%. Built from
+  // DEFAULT_ASSUMPTIONS so it can never drift from the engine.
+  const basis = `<div style="font-family:${SERIF};font-size:10px;font-style:italic;color:${MUTED};margin-top:16px;line-height:1.6;">Figures assume ${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down at ${DEFAULT_ASSUMPTIONS.annualInterestRate}% over ${DEFAULT_ASSUMPTIONS.amortizationYears} years, plus property tax, insurance, maintenance and vacancy. <a href="https://www.mississaugainvestor.ca/score-methodology?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="color:${INK};">Full methodology &#8594;</a></div>`;
+
   return `${heroHtml}
-  ${rest.length ? `${hairline()}${kicker('Also on the Market')}${rows}` : ''}`;
+  ${rest.length ? `${hairline()}${kicker('Also on the Market')}${rows}` : ''}
+  ${basis}`;
 }
 
 // ── Latest blog post block ──
