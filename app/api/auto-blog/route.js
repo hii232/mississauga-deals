@@ -84,7 +84,17 @@ const TOPIC_TEMPLATES = [
     category: 'Guide',
     angles: [
       'complete guide to buying your first investment property in Mississauga',
-      'understanding cash flow analysis for Mississauga rentals',
+      // 'understanding cash flow analysis for Mississauga rentals' removed —
+      // it and Strategy's "how to analyze a rental property deal in under 5
+      // minutes" are the same topic in different words. The dedup check below
+      // compares a candidate angle against PUBLISHED TITLES, and the two ended
+      // up published as different enough phrasing ("...Cash Flow Analysis...
+      // Investor Guide" vs "The 5-Minute...Rental Property Analysis System")
+      // that the check missed it — both posts are real, live, and splitting
+      // the same search intent (GSC: pos 5.90/82 impr and pos 5.81/62 impr).
+      // Removing the redundant angle from the source closes this for good,
+      // since no title-similarity heuristic can be trusted to catch every
+      // rewording the generator produces.
       'mortgage options for investment properties in Ontario',
       'landlord-tenant rules every Mississauga investor must know',
       'how to screen tenants effectively in Ontario',
@@ -108,23 +118,108 @@ const TOPIC_TEMPLATES = [
   },
 ];
 
+// ── Duplicate-topic detection ──
+//
+// A real GSC export showed this generator publishing near-duplicate posts on
+// the same topic under different wording — e.g. three separate "rent vs buy"
+// posts and three separate "cap rate / cash flow / ROI" posts, none breaking
+// out of the bottom half of page one because they split the same search
+// intent three ways. Root cause: the old check split on whitespace only (a
+// trailing comma or colon stuck to the keyword, e.g. "rate," or "mississauga:",
+// broke every substring match), filtered to words over 4 chars (discarding
+// exactly the short, topic-defining words this domain uses most — "cap",
+// "rent", "buy", "roi"), and compared raw words with no stemming, so
+// "renting"/"rent", "buying"/"buy" and "rates"/"rate" were treated as
+// unrelated. Fixed below with punctuation stripping, a stopword list for
+// terms that appear in nearly every title on this site (so the comparison is
+// driven by what actually distinguishes a topic), and light stemming.
+const TOPIC_STOPWORDS = new Set([
+  'a', 'an', 'the', 'for', 'in', 'of', 'to', 'and', 'or', 'vs', 'is', 'are',
+  'with', 'on', 'at', 'by', 'your', 'you', 'how', 'what', 'why', 'when',
+  'this', 'that', 'it', 'as', 'be', 'do', 'does', 'can', 'will', 'right',
+  'now', 'really', 'need', 'best', 'top', 'every', 'from',
+  'mississauga', 'investment', 'investing', 'invest', 'investor', 'investors',
+  'guide', 'guides', 'property', 'properties', 'real', 'estate', 'ontario',
+  'analysis', 'complete', 'deep', 'dive', 'update', 'market', 'understanding',
+  'explained', 'perspective', 'strategy', 'strategies', 'canada', 'canadian',
+  // Generic enough to falsely link unrelated angles: "impact"/"values" pair up
+  // an interest-rate post with a new-construction post (different economic
+  // drivers, not the same topic); "first"/"time" is an AUDIENCE descriptor
+  // ("first-time investors") shared by many otherwise-unrelated posts, not a
+  // topic signal.
+  'impact', 'values', 'first', 'time',
+]);
+
+// Not a real stemmer — just enough to fold the specific variants this
+// generator actually produces ("renting"/"rent", "buying"/"buy", "rates"/
+// "rate") onto a shared root. The plural strip runs first and only removes a
+// lone trailing 's' (never the whole "es"), so "rates" -> "rate", not "rat".
+function stemWord(word) {
+  let w = word;
+  if (w.length >= 4 && w.endsWith('s') && !w.endsWith('ss')) w = w.slice(0, -1);
+  if (w.length >= 6 && w.endsWith('ing')) w = w.slice(0, -3);
+  if (w.length >= 7 && w.endsWith('ment')) w = w.slice(0, -4);
+  if (w.length >= 7 && w.endsWith('tion')) w = w.slice(0, -4);
+  if (w.length >= 6 && w.endsWith('ive')) w = w.slice(0, -3);
+  if (w.length >= 5 && w.endsWith('ed')) w = w.slice(0, -2);
+  return w;
+}
+
+function topicStems(text) {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/) // strips punctuation the old whitespace-only split kept stuck to words
+    .filter((w) => w.length >= 3 && !TOPIC_STOPWORDS.has(w))
+    .map(stemWord)
+    .filter((w) => !TOPIC_STOPWORDS.has(w) && w.length >= 2);
+}
+
+function sharesTopicWith(angle, otherText, minMatches = 2) {
+  const angleStems = topicStems(angle);
+  const otherStems = new Set(topicStems(otherText));
+  let overlap = 0;
+  for (const s of angleStems) if (otherStems.has(s)) overlap++;
+  return overlap >= minMatches;
+}
+
+// Dedicated, hand-built pages already targeting these exact queries (see
+// IMPROVEMENT_BACKLOG.md section 5a). The evergreen rotation had no awareness
+// of them and picked "insurance considerations for Mississauga rental
+// properties" and "mortgage options for investment properties in Ontario" —
+// producing blog posts that directly compete with /rental-property-insurance
+// -mississauga and /mortgage-calculator for the query each page was built to
+// win (GSC showed the dedicated insurance page at position 55 while a blog
+// post on the same topic sat at position 12 — the page built to win the
+// query was losing to the site's own blog). Each entry's terms are hand-
+// picked to be specific enough that only a genuine collision matches — single
+// generic words like "cash flow" are deliberately left out; they recur across
+// too many unrelated angles to safely gate on alone.
+const RESERVED_PAGE_TOPICS = [
+  { page: '/rental-property-insurance-mississauga', terms: ['insurance'], minMatches: 1 },
+  { page: '/mortgage-calculator', terms: ['mortgage'], minMatches: 1 },
+  { page: '/rent-vs-buy-mississauga', terms: ['rent', 'buy'], minMatches: 2 },
+];
+
+function coversReservedPage(angle) {
+  const angleStems = new Set(topicStems(angle));
+  return RESERVED_PAGE_TOPICS.find((r) => {
+    const matches = r.terms.filter((t) => angleStems.has(stemWord(t))).length;
+    return matches >= r.minMatches;
+  });
+}
+
 // ── Pick a topic that hasn't been covered ──
 function pickTopic(existingTitles) {
-  const existingLower = existingTitles.map((t) => t.toLowerCase());
-
   // Flatten all angles with their categories
   const allTopics = TOPIC_TEMPLATES.flatMap((cat) =>
     cat.angles.map((angle) => ({ category: cat.category, angle }))
   );
 
-  // Filter out topics that seem already covered
+  // Filter out topics that seem already covered, either by a past blog post
+  // or by a dedicated static page built specifically for that query.
   const available = allTopics.filter((topic) => {
-    const keywords = topic.angle.toLowerCase().split(/\s+/).filter((w) => w.length > 4);
-    // Check if any existing title shares too many keywords
-    return !existingLower.some((existing) => {
-      const matches = keywords.filter((kw) => existing.includes(kw));
-      return matches.length >= 3;
-    });
+    if (coversReservedPage(topic.angle)) return false;
+    return !existingTitles.some((existing) => sharesTopicWith(topic.angle, existing));
   });
 
   if (available.length === 0) {
@@ -331,6 +426,9 @@ Recent posts already on the blog:
 ${existingTitles.slice(0, 30).map((t) => `- ${t}`).join('\n')}
 
 Hard rule: if a news story was already covered by ANY recent post above — even from a different angle, even if your take would be better — do not write about that story again. A story counts as covered when the post is about the same underlying event (same rate decision, same policy announcement, same report). Pick the next-most-consequential uncovered story instead. If nothing in the headlines is both consequential and uncovered, ignore the headlines and write a fresh evergreen piece grounded in the neighbourhood data below.
+
+The site also has dedicated pages already built and ranking for these exact queries — writing a blog post that covers the same core question just competes with the site's own page for the same search result, so avoid these as your main topic (a passing mention or internal link to one is fine):
+${RESERVED_PAGE_TOPICS.map((r) => `- ${r.page} — covers: ${r.terms.join(' / ')}`).join('\n')}
 
 ## Real platform data you may cite
 Current neighbourhood figures from MississaugaInvestor.ca's own dataset:
