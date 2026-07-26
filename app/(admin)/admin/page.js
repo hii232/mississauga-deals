@@ -80,14 +80,17 @@ export default function AdminDashboard() {
   }, []);
 
   // "Are the daily alert emails actually going out?" had no answer inside the
-  // product — it needed the Vercel cron log or the Resend dashboard.
-  useEffect(() => {
+  // product — it needed the Vercel cron log or the Resend dashboard. Named so
+  // the "Run send now" button below can re-fetch after triggering a send,
+  // rather than making Hamza reload the page to see whether it worked.
+  function loadEmailHealth() {
     if (!adminKey) return;
     fetch('/api/admin/email-health', { headers: { 'x-admin-key': adminKey } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d) setEmailHealth(d); })
       .catch(() => {});
-  }, [adminKey]);
+  }
+  useEffect(loadEmailHealth, [adminKey]);
 
   if (loading) {
     return (
@@ -153,7 +156,7 @@ export default function AdminDashboard() {
 
       {/* Email delivery — the retention engine. Silent failure here is the
           worst kind: the site looks fine and nobody hears from us. */}
-      <EmailHealthPanel health={emailHealth} />
+      <EmailHealthPanel health={emailHealth} adminKey={adminKey} onRefresh={loadEmailHealth} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -421,7 +424,10 @@ function ImportSubscribers() {
 // Reads /api/admin/email-health. Every figure shown is evidence the app itself
 // wrote — alert_sent_listings rows are recorded only after Resend accepts —
 // so this is delivery history, not a guess about it.
-function EmailHealthPanel({ health }) {
+function EmailHealthPanel({ health, adminKey, onRefresh }) {
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState(null);
+
   if (!health) return null;
 
   const tone = {
@@ -435,11 +441,51 @@ function EmailHealthPanel({ health }) {
   const a = health.alerts;
   const fmt = (d) => (d ? new Date(d).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
+  // "Check the run output at /api/alerts/send" was an instruction to hit a
+  // URL that requires an auth header no browser address bar can attach —
+  // useless without a terminal. This runs the SAME endpoint Vercel Cron calls
+  // (cron-or-admin auth, so the already-signed-in admin session is a valid
+  // credential) and shows the real response, so "why is this red" gets
+  // answered by a tap instead of by guessing.
+  async function runNow() {
+    setRunning(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/alerts/send', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey },
+      });
+      const data = await res.json().catch(() => ({}));
+      // HTTP 200 covers "sent fine" AND "ran, but Resend rejected every send" —
+      // the route reports rejections in the BODY, not the status, so severity
+      // has to come from the counts, not res.ok alone. Without this a fully
+      // rejected run (the exact failure mode this button exists to catch)
+      // painted itself green.
+      const severity = !res.ok ? 'error' : data.failed > 0 ? 'partial' : 'ok';
+      setResult({ severity, status: res.status, data });
+    } catch (err) {
+      setResult({ severity: 'error', status: 0, data: { error: err.message || 'Network error' } });
+    } finally {
+      setRunning(false);
+      onRefresh?.();
+    }
+  }
+
   return (
     <div className={`rounded-xl border p-4 ${tone.box}`}>
-      <div className="flex items-center gap-2">
-        <span className={`inline-block h-2 w-2 rounded-full ${tone.dot}`} />
-        <p className={`text-sm font-semibold ${tone.head}`}>Email delivery</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className={`inline-block h-2 w-2 rounded-full ${tone.dot}`} />
+          <p className={`text-sm font-semibold ${tone.head}`}>Email delivery</p>
+        </div>
+        <button
+          type="button"
+          onClick={runNow}
+          disabled={running || !adminKey}
+          className="shrink-0 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+        >
+          {running ? 'Running…' : 'Run send now'}
+        </button>
       </div>
       <p className={`mt-1 text-sm ${tone.body}`}>{health.note}</p>
 
@@ -462,9 +508,40 @@ function EmailHealthPanel({ health }) {
       <p className="mt-3 text-[11px] leading-relaxed text-white/45">
         Sender: {health.config.fromAddress || 'default'}
         {health.config.resendConfigured ? '' : ' · RESEND_API_KEY missing'}
+        {/* CRON_SECRET is the single most common reason this stays red: without
+            it Vercel Cron's request is refused (fail-closed, on purpose — an
+            unauthenticated mass-send is worse than a missed day) and the daily
+            job never runs at all. Manual runs via "Run send now" work either
+            way, since the admin key authenticates them, but the schedule
+            won't fire unnoticed until this is set. */}
+        {health.config.cronSecretSet ? '' : ' · CRON_SECRET not set — the daily schedule cannot run; set it in Vercel → Settings → Environment Variables'}
         {health.newsletter?.lastSentAt ? ` · Last weekly newsletter ${fmt(health.newsletter.lastSentAt)}` : ''}
         {' · '}Counts are individual listings delivered, recorded only once Resend accepts the send.
       </p>
+
+      {result && (
+        <div className={`mt-3 rounded-lg border p-3 text-xs leading-relaxed ${
+          result.severity === 'ok' ? 'border-green-500/20 bg-green-500/10 text-green-200'
+          : result.severity === 'partial' ? 'border-amber-500/20 bg-amber-500/10 text-amber-200'
+          : 'border-red-500/20 bg-red-500/10 text-red-200'
+        }`}>
+          <p className="font-semibold">
+            {result.severity === 'ok' ? 'Ran successfully'
+              : result.severity === 'partial' ? 'Ran, but Resend rejected sends'
+              : `Failed (HTTP ${result.status})`}
+          </p>
+          <p className="mt-1">
+            {result.data.message || result.data.error || 'No message returned.'}
+          </p>
+          {Array.isArray(result.data.failures) && result.data.failures.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {result.data.failures.map((f, i) => (
+                <li key={i} className="text-red-300/90">{f.email}: {f.reason}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   );
 }
