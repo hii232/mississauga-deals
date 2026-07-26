@@ -59,6 +59,17 @@ export const metadata = {
   description:
     'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
   alternates: { canonical: '/listings' },
+  // Own openGraph block. Without one this page inherited the ROOT's,
+  // whose url is the homepage — so every share of this URL showed
+  // homepage branding and pointed crawlers at '/'. Next REPLACES the
+  // openGraph object rather than merging it, so the image has to be
+  // restated here or the card ships without one.
+  openGraph: {
+    title: 'Investment Properties for Sale in Mississauga',
+    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    url: 'https://www.mississaugainvestor.ca/listings',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Loads instantly with skeletons, then fetches client-side progressively.

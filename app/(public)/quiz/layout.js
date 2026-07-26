@@ -4,6 +4,7 @@ export const metadata = {
   title: { absolute: 'Find Your Investment Strategy — 60-Second Quiz' },
   description: 'A 60-second quiz to find your Mississauga investment strategy — get matched to properties that fit your goals: cash flow, appreciation, or BRRR.',
   openGraph: {
+    url: 'https://www.mississaugainvestor.ca/quiz',
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
     description: 'Discover your ideal Mississauga investment strategy in 60 seconds.',
