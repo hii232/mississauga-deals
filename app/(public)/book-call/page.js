@@ -6,7 +6,11 @@ export const metadata = {
   description: 'Book a free 30-minute call with Hamza Nouman, REALTOR®. Talk Mississauga investment properties, pre-construction and the Ontario HST rebate.',
   alternates: { canonical: '/book-call' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // Branded fallback OG (Next replaces, not merges, the parent openGraph).
+    // Dimensions match /opengraph-image's own `size` export exactly (1200x630
+    // PNG, verified there) — declaring them lets social crawlers reserve the
+    // right preview aspect without fetching the image first.
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Book a Call — Free 30-Min Consultation with Hamza Nouman' }],
     title: 'Book a Call — Free 30-Min Consultation with Hamza Nouman',
     description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
     url: 'https://www.mississaugainvestor.ca/book-call',

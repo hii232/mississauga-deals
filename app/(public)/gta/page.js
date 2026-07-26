@@ -130,7 +130,8 @@ export function generateMetadata({ searchParams }) {
         title: copy.h1,
         description: copy.sub,
         url: `https://www.mississaugainvestor.ca${canonical}`,
-        images: ['/opengraph-image'],
+        // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+        images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: copy.h1 }],
       },
       twitter: {
         card: 'summary_large_image',
@@ -149,7 +150,8 @@ export function generateMetadata({ searchParams }) {
       title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
       description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
       url: 'https://www.mississaugainvestor.ca/gta',
-      images: ['/opengraph-image'],
+      // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More' }],
     },
   };
 }

@@ -18,7 +18,8 @@ export const metadata = {
     title: 'How the Deal Score Works — Methodology & Sources',
     description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
     url: 'https://www.mississaugainvestor.ca/score-methodology',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works — Methodology & Sources' }],
   },
 };
 

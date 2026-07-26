@@ -4,7 +4,8 @@ export const metadata = {
     'All 24 Mississauga neighbourhoods ranked for investors by rent yield, price trend and days on market — Clarkson, Cooksville, Malton, Port Credit and more.',
   alternates: { canonical: '/neighbourhoods' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Best Neighbourhoods to Invest in Mississauga (2026)' }],
     title: 'Best Neighbourhoods to Invest in Mississauga (2026)',
     description:
       'Mississauga neighbourhoods ranked for real estate investment — rent yields, average prices, cap rates, and market temperature.',

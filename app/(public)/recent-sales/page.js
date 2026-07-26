@@ -46,7 +46,8 @@ export const metadata = {
     `What homes actually sold for in Mississauga in ${YEAR}: real sold prices, days on market and list-vs-sold gaps, updated from MLS. Know it before you offer.`,
   alternates: { canonical: '/recent-sales' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Sold Prices ${YEAR} — Recent Home Sales` }],
     title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales`,
     description:
       'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',

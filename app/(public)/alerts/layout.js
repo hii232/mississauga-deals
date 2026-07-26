@@ -6,7 +6,8 @@ export const metadata = {
     'Free deal alerts: get emailed when a new Mississauga investment property matches your budget, strategy and neighbourhood. Unsubscribe in one click.',
   alternates: { canonical: '/alerts' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Deal Alerts — MississaugaInvestor.ca' }],
     title: 'Deal Alerts — MississaugaInvestor.ca',
     description: 'Get notified when new Mississauga investment deals match your criteria.',
     url: 'https://www.mississaugainvestor.ca/alerts',

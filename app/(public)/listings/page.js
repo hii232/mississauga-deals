@@ -68,7 +68,8 @@ export const metadata = {
     title: 'Investment Properties for Sale in Mississauga',
     description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
     url: 'https://www.mississaugainvestor.ca/listings',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Properties for Sale in Mississauga' }],
   },
 };
 

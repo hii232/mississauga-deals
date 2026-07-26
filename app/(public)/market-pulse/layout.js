@@ -7,7 +7,8 @@ export const metadata = {
   description: `Mississauga housing market ${YEAR}: average prices by type, sale-to-list ratio, days on market and inventory — live MLS data plus TRREB Market Watch.`,
   alternates: { canonical: '/market-pulse' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Market Pulse — Mississauga Real Estate Market Stats' }],
     title: 'Market Pulse — Mississauga Real Estate Market Stats',
     description: 'Live Mississauga market data with TRREB stats, prices, DOM, and mortgage rates by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/market-pulse',

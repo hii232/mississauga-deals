@@ -14,7 +14,8 @@ export const metadata = {
     title: TITLE,
     description: DESCRIPTION,
     url: 'https://www.mississaugainvestor.ca/news',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: TITLE }],
   },
   twitter: {
     card: 'summary_large_image',

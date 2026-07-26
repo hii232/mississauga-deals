@@ -22,7 +22,8 @@ export const metadata = {
   ],
   alternates: { canonical: '/sell' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Sell Your Home in Mississauga — Sell for Top Dollar' }],
     title: 'Sell Your Home in Mississauga — Sell for Top Dollar',
     description: 'A free, data-backed home valuation and a full-service plan to net you the most — precise pricing, professional marketing, and expert negotiation.',
     url: `${BASE}/sell`,

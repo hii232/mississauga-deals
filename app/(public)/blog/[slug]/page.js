@@ -44,7 +44,16 @@ export async function generateMetadata({ params }) {
       publishedTime: post.created_at || undefined,
       modifiedTime: post.updated_at || post.created_at || undefined,
       authors: ['Hamza Nouman'],
-      images: [{ url: blogCoverUrl(post, true) }],
+      // og:image:width/height only when the cover is our OWN generated one
+      // (/api/blog-cover, verified 1200x630 in app/api/blog-cover/route.js) —
+      // a post with a real cover_image_url (an imported photo) has genuinely
+      // unknown dimensions, and guessing them would be exactly the fabricated
+      // number this codebase's honesty rules exist to prevent.
+      images: [
+        post.cover_image_url
+          ? { url: blogCoverUrl(post, true) }
+          : { url: blogCoverUrl(post, true), width: 1200, height: 630, alt: post.title },
+      ],
     },
     twitter: {
       card: 'summary_large_image',

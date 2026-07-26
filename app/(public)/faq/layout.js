@@ -17,7 +17,8 @@ export const metadata = {
     canonical: '/faq',
   },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman' }],
     title: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman',
     description: 'Common questions about Mississauga real estate investing answered by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/faq',
