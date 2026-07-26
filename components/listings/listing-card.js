@@ -130,25 +130,38 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Tags row */}
+        {/* Tags row. Every badge here was translucent (/90) white-on-colour over
+            a photo — the same class of failure fixed on this card's "Cash
+            Flowing" badge and the homepage's investor tags. Measured all four:
+            `success` is the SAME hex as emerald-500 (#10B981, confirmed in
+            tailwind.config.js) so "Legal Suite" had the identical 2.39:1
+            failure already fixed elsewhere under a different token name —
+            moved to opaque emerald-700 (5.48:1) to match. "Suite Potential"
+            and "LRT" (bg-accent/90, #2563EB) measured 4.46:1, a near-miss just
+            under AA — dropping the /90 alone is enough: opaque accent is
+            5.17:1. "Fin. Basement" (bg-slate-500/90) measured 4.04:1; opaque
+            slate-500 is 4.76:1, also enough without darkening. All four are
+            fully opaque now, matching the established reasoning: a translucent
+            chip over an arbitrary listing photo has unpredictable contrast and
+            the opacity was buying nothing. */}
         <div className="absolute bottom-3 left-3 flex gap-1.5">
           {listing.basementTier === 'legal' && (
-            <span className="rounded-full bg-success/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Legal Suite
             </span>
           )}
           {listing.basementTier === 'potential' && (
-            <span className="rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Suite Potential
             </span>
           )}
           {listing.basementTier === 'finished' && (
-            <span className="rounded-full bg-slate-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-slate-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Fin. Basement
             </span>
           )}
           {listing.lrtAccess && (
-            <span className="rounded-full bg-accent/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               LRT
             </span>
           )}
