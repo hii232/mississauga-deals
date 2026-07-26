@@ -22,7 +22,13 @@
  * Reads flagged rows as: model materially above market = cap rates and cash
  * flow across that neighbourhood are overstated.
  */
-import { HOOD_RENTS, HOOD_DATA } from '../lib/constants.js';
+import { HOOD_RENTS, HOOD_DATA, FSA_TO_HOOD } from '../lib/constants.js';
+
+// hood -> first FSA that maps to it (several hoods span more than one)
+const FSA_FOR_HOOD = {};
+for (const [fsa, hood] of Object.entries(FSA_TO_HOOD)) {
+  if (!FSA_FOR_HOOD[hood]) FSA_FOR_HOOD[hood] = fsa;
+}
 
 const BASE = process.argv[2] || 'https://www.mississaugainvestor.ca';
 const BEDS = [2, 3, 4];
@@ -34,8 +40,11 @@ for (const [hood, table] of Object.entries(HOOD_RENTS)) {
   for (const beds of BEDS) {
     const modelled = table[beds];
     if (!modelled) continue;
-    const url = `${BASE}/api/rental-comps?city=Mississauga&beds=${beds}` +
-      (geo ? `&lat=${geo.lat}&lng=${geo.lng}` : '');
+    // FSA scopes the comps to the actual neighbourhood — lat/lng were never
+    // used by the lease query, so without this every row compared against the
+    // same city-wide median and the check was meaningless.
+    const fsa = FSA_FOR_HOOD[hood];
+    const url = `${BASE}/api/rental-comps?city=Mississauga&beds=${beds}` + (fsa ? `&fsa=${fsa}` : '');
     let median = 0, n = 0, source = 'error';
     try {
       const res = await fetch(url);
