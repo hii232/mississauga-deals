@@ -20,6 +20,7 @@ export const GUIDES = [
   { href: '/blog/cooksville-hurontario-lrt-corridor-investing', title: 'Cooksville & the LRT Corridor', blurb: 'What transit actually changes for rents, values, and timing.' },
   { href: '/rental-property-insurance-mississauga', title: 'Rental Property Insurance', blurb: 'What landlord insurance covers and what drives the cost.' },
   { href: '/blog/hst-rebate-for-investors-explained-ontario', title: 'HST Rebate for Investors', blurb: 'The 2026 rebate is huge — and investors claim a different one than end-users.' },
+  { href: '/mississauga-vs-brampton-vs-hamilton', title: 'Mississauga vs Brampton vs Hamilton', blurb: 'Property tax, land transfer tax and rental demand compared across three GTA cities.' },
 ];
 
 /**
