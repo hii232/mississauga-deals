@@ -267,6 +267,32 @@ export default function NeighbourhoodsPage() {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY &amp; inventory</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
+      {/* Visible FAQ — renders the SAME NEIGHBOURHOODS_FAQ array as the FAQPage
+          schema above. Google requires FAQ structured data to be visible on the
+          page; the schema was previously declared with none of it on screen,
+          which forfeits rich-result eligibility and risks a structured-data
+          manual action. Sharing one array means they can never drift. */}
+      <section className="mt-12">
+        <h2 className="section-title mb-6">Investing in Mississauga: common questions</h2>
+        <div className="space-y-3">
+          {NEIGHBOURHOODS_FAQ.map((qa, i) => (
+            <details
+              key={qa.question}
+              open={i === 0}
+              className="group rounded-xl border border-slate-200 bg-white p-5 [&_summary::-webkit-details-marker]:hidden"
+            >
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+                <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{qa.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* Recent Sales Activity */}
       {recentSales.length > 0 && (
         <div className="mt-10 card p-6">
