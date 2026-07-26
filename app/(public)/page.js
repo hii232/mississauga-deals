@@ -72,6 +72,11 @@ async function fetchLiveStats() {
       priceLabel: fmtPrice(avgPrice),
       salesToList,
       avgSoldPrice: fmtPrice(avgSoldPrice),
+      // Passed through only so the stats bar can attribute "Avg. Sold" to its
+      // real source in the caption below — it is TRREB's monthly Market Watch
+      // figure, not a live number, and must say so rather than sit next to a
+      // live "Avg. Price" tile implying both are equally current.
+      tRREBMonth: data.tRREBMonth || null,
       monthsOfInventory: data.mississaugaMonthsOfInventory || null,
     };
   } catch {
@@ -334,6 +339,25 @@ function StatsBar({ liveStats }) {
     : stats.length === 4 ? 'lg:grid-cols-4'
     : 'lg:grid-cols-3';
 
+  // "Avg. Price" and "Avg. Sold" are both genuinely real (the fallback bug
+  // that once made them print the SAME figure under two labels was removed
+  // earlier this week), but they are NOT two equally-live numbers: Avg. Price
+  // is today's active asking prices, while Avg. Sold is TRREB's Market Watch
+  // monthly sold average — a curated figure that lags by design, the same as
+  // every other TRREB stat on this site. Sitting them side by side with no
+  // attribution risks exactly two things this codebase treats as equally
+  // serious: (1) the Malton $804K-vs-$618K confusion already fixed on the
+  // neighbourhood guides — two correct numbers, insufficiently distinguished
+  // — and (2) presenting a monthly TRREB figure as if it were live, which is
+  // the specific dishonesty the tRREBMonth/tRREBAsOf freshness system exists
+  // to prevent everywhere else on the site. Only rendered when both tiles are
+  // present AND the month is known — an unattributed "Avg. Sold" is exactly
+  // the ambiguity being fixed, so this never states the TRREB source without
+  // being able to name which month it is.
+  const showPriceSoldNote = s.tRREBMonth
+    && stats.some((st) => st.label === 'Avg. Price')
+    && stats.some((st) => st.label === 'Avg. Sold');
+
   return (
     <div className="border-y border-gray-100 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -350,6 +374,12 @@ function StatsBar({ liveStats }) {
             </div>
           ))}
         </div>
+        {showPriceSoldNote && (
+          <p className="mt-3 text-center text-xs text-slate-500 lg:text-left">
+            <span className="font-medium text-slate-500">Avg. Price</span> is today&apos;s active asking prices;{' '}
+            <span className="font-medium text-slate-500">Avg. Sold</span> is TRREB&apos;s {s.tRREBMonth} Market Watch average — the gap reflects the mix of what&apos;s currently listed, not a discount either figure is wrong about.
+          </p>
+        )}
       </div>
     </div>
   );
