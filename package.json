@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/compliance-check.mjs && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "compliance": "node scripts/compliance-check.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

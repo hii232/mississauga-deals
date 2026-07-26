@@ -1,4 +1,5 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
+import { PLATFORM_STATS } from '@/lib/constants';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 
 export const metadata = {
@@ -8,7 +9,7 @@ export const metadata = {
 
 const BENEFITS = [
   'Free Hamza Score, cap rate & cash-flow analysis on every listing',
-  'Instant access to 1,800+ live MLS listings across the GTA',
+  `Instant access to ${PLATFORM_STATS.propertiesAnalyzed} analyzed MLS listings across the GTA`,
   'Deal alerts the moment a matching property hits the market',
 ];
 

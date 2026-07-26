@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
+import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
@@ -16,7 +16,7 @@ import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
   alternates: {
     canonical: '/',
   },
@@ -426,7 +426,7 @@ function AgentProfile({ googleRating }) {
 
             <div className="flex flex-wrap gap-6 justify-center md:justify-start mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-navy">2,000+</p>
+                <p className="text-2xl font-bold text-navy">{PLATFORM_STATS.propertiesAnalyzed}</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
               </div>
               <div className="text-center">

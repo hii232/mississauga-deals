@@ -210,34 +210,34 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
               <p className="text-sm font-bold text-navy">{listing.dom}</p>
             </div>
+            {/* CAP is never gated — see home-deal-cards: the same property's cap
+                rate is printed elsewhere on the site, so locking it here showed
+                two answers for one property. Cash-on-cash and monthly cash flow
+                (the financed, assumption-heavy numbers) stay behind the gate. */}
+            <div>
+              <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
+              <p className="text-sm font-bold text-navy">{pct1(listing.capRate)}</p>
+            </div>
             {isGated ? (
               <>
                 <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
-                  <p className="text-sm font-bold text-slate-300">🔒</p>
-                </div>
-                <div>
                   <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
-                  <p className="text-sm font-bold text-slate-300">🔒</p>
+                  <p className="text-sm font-bold text-accent">Free</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
-                  <p className="text-sm font-bold text-slate-300">🔒</p>
+                  <p className="text-sm font-bold text-accent">Free</p>
                 </div>
               </>
             ) : (
               <>
-                <div>
-                  <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
-                  <p className="text-sm font-bold text-navy">{pct1(listing.capRate)}</p>
-                </div>
                 <div>
                   <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
                   <p className="text-sm font-bold text-navy">{pct1(listing.cashOnCash)}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-slate-500" title="Cash Flow per Month">Cash Flow/mo</p>
-                  <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-600' : listing.cashFlow === 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                  <p className={`text-sm font-bold ${listing.cashFlow > 0 ? 'text-emerald-700' : listing.cashFlow === 0 ? 'text-blue-600' : 'text-red-600'}`}>
                     {fmtNum(listing.cashFlow)}
                   </p>
                 </div>
@@ -252,7 +252,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignupClick?.(); }}
                 className="text-[11px] font-medium text-accent hover:text-accent/80 cursor-pointer bg-transparent border-none"
               >
-                See cash flow, cap rate &amp; mortgage — free, 10 sec →
+                See cash flow &amp; cash-on-cash — free, 10 sec →
               </button>
             </div>
           )}

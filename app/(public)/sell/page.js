@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating, googleRatingShort } from '@/lib/google-rating';
-import { GOOGLE_REVIEWS } from '@/lib/constants';
+import { GOOGLE_REVIEWS, PLATFORM_STATS } from '@/lib/constants';
 import { ValuationForm } from '@/components/sell/valuation-form';
 
 const BASE = 'https://www.mississaugainvestor.ca';
@@ -98,7 +98,7 @@ const DIFFERENTIATORS = [
   {
     icon: '📊',
     title: 'Priced with data, not guesswork',
-    body: 'The same analytics engine that scores 1,800+ Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.',
+    body: `The same analytics engine that has scored ${PLATFORM_STATS.propertiesAnalyzed} Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.`,
   },
   {
     icon: '🛠️',
