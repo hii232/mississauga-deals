@@ -47,13 +47,24 @@ export async function POST(request) {
   const denied = requireCronOrAdmin(request);
   if (denied) return denied;
 
+  // Dry run: runs the IDENTICAL matching logic (same feed, same filters, same
+  // repeat-send guard) so the report is a faithful predictor of a real send,
+  // but never calls Resend and never writes to saved_searches or
+  // alert_sent_listings. This exists so "does the alert pipeline actually
+  // work" can be answered from the admin dashboard without risking a real
+  // email reaching a real subscriber — Vercel Cron never sets this (it always
+  // GETs with no query string), so the daily schedule is untouched.
+  const dryRun = new URL(request.url).searchParams.get('dryRun') === '1';
+
   try {
     if (!supabase) {
       return NextResponse.json({ error: 'Alerts are temporarily unavailable' }, { status: 503 });
     }
     // Fail loudly if the sender isn't configured at all. Without this the run
-    // would look "successful" (sent: 0) while every send was doomed.
-    if (!process.env.RESEND_API_KEY) {
+    // would look "successful" (sent: 0) while every send was doomed. Skipped
+    // in dry-run mode — the whole point is answering "does matching work" even
+    // when Resend itself isn't configured yet.
+    if (!dryRun && !process.env.RESEND_API_KEY) {
       console.error('Alerts: RESEND_API_KEY is not set — no alert email can be sent.');
       return NextResponse.json(
         { error: 'Email sending is not configured (RESEND_API_KEY missing)', sent: 0 },
@@ -68,7 +79,11 @@ export async function POST(request) {
 
     if (searchErr) throw searchErr;
     if (!searches || searches.length === 0) {
-      return NextResponse.json({ message: 'No active searches', sent: 0 });
+      return NextResponse.json(
+        dryRun
+          ? { dryRun: true, message: 'No active saved searches — a real run would send 0 emails.', recipients: 0, wouldSend: 0, preview: [] }
+          : { message: 'No active searches', sent: 0 }
+      );
     }
 
     // 2. Fetch current listings — ALL pages. This route used to fetch page 1
@@ -134,6 +149,7 @@ export async function POST(request) {
 
     let sentCount = 0;
     const failures = [];
+    const preview = []; // dry-run only: what WOULD have gone out, and to whom
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
@@ -175,6 +191,25 @@ export async function POST(request) {
       const listings = Array.from(allMatches.values())
         .sort((a, b) => b.hamzaScore - a.hamzaScore)
         .slice(0, 15); // Cap at 15 listings per email
+
+      // Dry run stops HERE — after the exact same matching pipeline a real
+      // send would use, before anything is sent or recorded. No Resend call,
+      // no saved_searches update, no alert_sent_listings write: this branch
+      // cannot email anyone or change what tomorrow's real run considers "new".
+      if (dryRun) {
+        preview.push({
+          email,
+          wouldSend: listings.length,
+          subject: alertSubject(listings),
+          listings: listings.slice(0, 5).map((l) => ({
+            id: l.id,
+            address: l.address,
+            price: l.price,
+            score: l.hamzaScore,
+          })),
+        });
+        continue;
+      }
 
       // 5. Send email via Resend (tagRecipient adds per-recipient click
       // identity so the admin "Who Clicked" list can attribute visits)
@@ -247,6 +282,20 @@ export async function POST(request) {
           'A 401 means RESEND_API_KEY is wrong; 403 usually means the sending domain is not verified in Resend; ' +
           '422 usually means RESEND_FROM_EMAIL is not a valid verified sender.'
       );
+    }
+
+    if (dryRun) {
+      // No housekeeping either — a dry run touches nothing but reads.
+      const totalWouldSend = preview.reduce((n, p) => n + p.wouldSend, 0);
+      return NextResponse.json({
+        dryRun: true,
+        message: totalWouldSend > 0
+          ? `Would send ${totalWouldSend} listing${totalWouldSend === 1 ? '' : 's'} across ${preview.length} email${preview.length === 1 ? '' : 's'} — nothing was actually sent.`
+          : `${searches.length} active saved search${searches.length === 1 ? '' : 'es'}, but no subscriber has a new match right now — a real run would send 0 emails.`,
+        recipients: preview.length,
+        wouldSend: totalWouldSend,
+        preview,
+      });
     }
 
     // Housekeeping: guard rows older than double the lookback window are dead

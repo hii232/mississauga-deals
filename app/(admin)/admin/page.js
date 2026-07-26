@@ -443,12 +443,52 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
 
   // "Check the run output at /api/alerts/send" was an instruction to hit a
   // URL that requires an auth header no browser address bar can attach —
-  // useless without a terminal. This runs the SAME endpoint Vercel Cron calls
+  // useless without a terminal. These run the SAME endpoint Vercel Cron calls
   // (cron-or-admin auth, so the already-signed-in admin session is a valid
-  // credential) and shows the real response, so "why is this red" gets
+  // credential) and show the real response, so "why is this red" gets
   // answered by a tap instead of by guessing.
-  async function runNow() {
-    setRunning(true);
+  //
+  // Two separate actions, not one, because the first version of this button
+  // called the live send unconditionally — which is exactly the button Hamza
+  // was right to be wary of tapping: with a real saved search on the account,
+  // "just testing it" could have emailed a real subscriber. Preview runs the
+  // identical matching logic and touches nothing; only the second, explicitly
+  // confirmed action can send anything.
+  async function preview() {
+    setRunning('preview');
+    setResult(null);
+    try {
+      const res = await fetch('/api/alerts/send?dryRun=1', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey },
+      });
+      const data = await res.json().catch(() => ({}));
+      setResult({ severity: res.ok ? 'preview' : 'error', status: res.status, data });
+    } catch (err) {
+      setResult({ severity: 'error', status: 0, data: { error: err.message || 'Network error' } });
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  async function sendForReal() {
+    const n = result?.data?.wouldSend;
+    const who = result?.data?.recipients;
+    // Force a preview first — sending blind, with no idea how many real
+    // inboxes are about to receive mail, is the exact mistake this button
+    // exists to prevent.
+    if (result?.data?.dryRun !== true) {
+      window.alert('Run "Preview (safe)" first so you can see exactly what this would send before sending it for real.');
+      return;
+    }
+    const confirmed = window.confirm(
+      n > 0
+        ? `This will actually email ${n} listing${n === 1 ? '' : 's'} across ${who} real subscriber${who === 1 ? '' : 's'}. This cannot be undone. Send for real?`
+        : 'The preview found nothing to send (0 emails). Run it anyway?'
+    );
+    if (!confirmed) return;
+
+    setRunning('send');
     setResult(null);
     try {
       const res = await fetch('/api/alerts/send', {
@@ -478,14 +518,25 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
           <span className={`inline-block h-2 w-2 rounded-full ${tone.dot}`} />
           <p className={`text-sm font-semibold ${tone.head}`}>Email delivery</p>
         </div>
-        <button
-          type="button"
-          onClick={runNow}
-          disabled={running || !adminKey}
-          className="shrink-0 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
-        >
-          {running ? 'Running…' : 'Run send now'}
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button
+            type="button"
+            onClick={preview}
+            disabled={!!running || !adminKey}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
+          >
+            {running === 'preview' ? 'Checking…' : 'Preview (safe)'}
+          </button>
+          <button
+            type="button"
+            onClick={sendForReal}
+            disabled={!!running || !adminKey}
+            title="Sends real email to real subscribers — run Preview first"
+            className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:opacity-50"
+          >
+            {running === 'send' ? 'Sending…' : 'Send for real'}
+          </button>
+        </div>
       </div>
       <p className={`mt-1 text-sm ${tone.body}`}>{health.note}</p>
 
@@ -521,12 +572,14 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
 
       {result && (
         <div className={`mt-3 rounded-lg border p-3 text-xs leading-relaxed ${
-          result.severity === 'ok' ? 'border-green-500/20 bg-green-500/10 text-green-200'
+          result.severity === 'preview' ? 'border-blue-500/25 bg-blue-500/10 text-blue-200'
+          : result.severity === 'ok' ? 'border-green-500/20 bg-green-500/10 text-green-200'
           : result.severity === 'partial' ? 'border-amber-500/20 bg-amber-500/10 text-amber-200'
           : 'border-red-500/20 bg-red-500/10 text-red-200'
         }`}>
           <p className="font-semibold">
-            {result.severity === 'ok' ? 'Ran successfully'
+            {result.severity === 'preview' ? 'Preview only — no email was sent'
+              : result.severity === 'ok' ? 'Sent for real'
               : result.severity === 'partial' ? 'Ran, but Resend rejected sends'
               : `Failed (HTTP ${result.status})`}
           </p>
@@ -537,6 +590,23 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
             <ul className="mt-2 space-y-1">
               {result.data.failures.map((f, i) => (
                 <li key={i} className="text-red-300/90">{f.email}: {f.reason}</li>
+              ))}
+            </ul>
+          )}
+          {/* Per-recipient breakdown of exactly what a real send would contain —
+              proves the matching pipeline works without anything going out. */}
+          {Array.isArray(result.data.preview) && result.data.preview.length > 0 && (
+            <ul className="mt-2 space-y-2">
+              {result.data.preview.map((p, i) => (
+                <li key={i} className="border-t border-blue-400/15 pt-2 first:border-t-0 first:pt-0">
+                  <p className="font-medium text-blue-100">{p.email} — {p.wouldSend} listing{p.wouldSend === 1 ? '' : 's'}</p>
+                  <p className="text-blue-300/70">&ldquo;{p.subject}&rdquo;</p>
+                  {p.listings?.map((l) => (
+                    <p key={l.id} className="text-blue-300/60">
+                      {l.address} — ${Number(l.price).toLocaleString()} · score {l.score?.toFixed?.(1) ?? l.score}
+                    </p>
+                  ))}
+                </li>
               ))}
             </ul>
           )}
