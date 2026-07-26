@@ -198,7 +198,13 @@ export default async function sitemap() {
         .filter((l) => l.id)
         .map((l) => ({
           url: `${BASE}/listings/${l.id}`,
-          lastModified: now,
+          // Real MLS timestamp or nothing — same rule as the Mississauga
+          // listings above. This branch used to stamp `now` on up to 1,000
+          // URLs every 6 hours, which is the exact unreliable-lastmod signal
+          // the comment on the static pages warns about: Google responds by
+          // distrusting lastmod for the WHOLE site, discarding the accurate
+          // per-listing and per-post dates that actually drive recrawl.
+          ...(l.modificationTimestamp ? { lastModified: l.modificationTimestamp } : {}),
           changeFrequency: 'daily',
           priority: 0.55,
         }));

@@ -8,12 +8,27 @@
 # excluded via `robots: noindex` metadata instead of a crawl block: Google can
 # only see a noindex directive on pages it is allowed to crawl.
 
+# `Disallow: /_next/` on its own blocked every stylesheet, JS chunk and font on
+# the site — they are all served from /_next/static/. Google renders a page to
+# index it, and a crawler that cannot fetch the CSS renders it unstyled, which
+# Google explicitly warns "directly harms how well our algorithms render and
+# index your content". That mattered little while the pages were empty client
+# shells; now that /listings, every listing detail page and the GTA pages are
+# server-rendered, it was throwing away the value of that work on ~2,500 pages.
+#
+# Per the spec Google applies the MOST SPECIFIC matching rule, so the longer
+# `Allow: /_next/static/` beats `Disallow: /_next/` for assets while build
+# internals stay blocked. /_next/image is the image optimizer — allowed so
+# optimized images stay eligible for Google Images as raw <img> tags migrate
+# to next/image.
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /admin/
 Disallow: /admin.html
 Disallow: /_next/
+Allow: /_next/static/
+Allow: /_next/image
 
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
 Sitemap: https://www.mississaugainvestor.ca/image-sitemap.xml

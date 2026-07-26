@@ -242,6 +242,10 @@ export async function GET(request) {
         lat: l.Latitude,
         lng: l.Longitude,
         sqft: l.LivingArea || l.BuildingAreaTotal || 0,
+        // Already selected from AMPRE (all three fallback $selects) but never
+        // returned, so the sitemap had no real date for GTA listings and
+        // stamped "now" on every one. Passthrough only — no logic depends on it.
+        modificationTimestamp: l.ModificationTimestamp || null,
         originalPrice: l.OriginalListPrice || price,
         priceDrop: drop,
         priceReduction: drop,
