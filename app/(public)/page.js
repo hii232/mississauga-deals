@@ -6,7 +6,7 @@ import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 import { HeroSearch } from '@/components/home/hero-search';
-import { HeroButtons } from '@/components/home/hero-buttons';
+import { HeroEmailCapture } from '@/components/home/hero-email-capture';
 import { EmailCapture } from '@/components/home/email-capture';
 import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
@@ -677,7 +677,7 @@ export default async function HomePage() {
     <>
       {/* Hero — dusk skyline with live deal card */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63]">
-        <div className="relative z-10 max-w-7xl mx-auto px-4 pt-16 pb-36 md:pt-24 md:pb-48">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 pt-10 pb-36 sm:pt-16 md:pt-24 md:pb-48">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr,320px]">
             <div className="max-w-2xl">
               {/* Only claim "Live Data" when the market-stats API actually
@@ -705,15 +705,23 @@ export default async function HomePage() {
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
                 {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
-              <div className="inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
+              {/* Claim, not an action — hidden on mobile so it doesn't push the
+                  email capture below the fold. */}
+              <div className="hidden sm:inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
                 <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
               </div>
 
               {/* Search Bar */}
               <HeroSearch />
 
+              {/* Capture first, then the secondary browse paths. On mobile the
+                  "Popular:" chips wrapped to two rows and pushed the email field
+                  underneath the cookie banner — i.e. the primary conversion
+                  action was invisible in the first viewport on the #1 page. */}
+              <HeroEmailCapture count={heroCount} />
+
               {/* Popular Neighbourhoods */}
-              <div className="flex flex-wrap items-center gap-2 mb-6">
+              <div className="mt-5 flex flex-wrap items-center gap-2">
                 <span className="text-white/40 text-xs">Popular:</span>
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
@@ -725,8 +733,6 @@ export default async function HomePage() {
                   </Link>
                 ))}
               </div>
-
-              <HeroButtons count={heroCount} />
 
               <div className="mt-6">
                 <TrustChips googleRating={googleRating} />

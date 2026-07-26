@@ -2,6 +2,7 @@
 import { trackConversion } from '@/lib/track-conversion';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 
 /**
@@ -11,10 +12,13 @@ import { useRouter } from 'next/navigation';
  *
  * Appears as overlay on listings page — user never leaves the page.
  */
-export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'gate' }) {
+// `initialEmail` / `initialStep` let a caller that has ALREADY captured the
+// email (the homepage hero's inline field) open this straight at step 2 instead
+// of asking for the email a second time.
+export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'gate', initialEmail = '', initialStep = 1 }) {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState(initialStep);
+  const [email, setEmail] = useState(initialEmail);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
@@ -23,6 +27,13 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   // Live Google rating via the server route (the Places key never reaches the
   // browser). Null keeps the rating tile hidden rather than asserting 5.0.
   const [googleRating, setGoogleRating] = useState(null);
+  // Rendered through a portal (see the return): z-[9999] alone is not enough,
+  // because z-index is resolved WITHIN the nearest stacking context. Mounted
+  // inside the homepage hero — whose wrapper is `relative z-10` — the whole
+  // modal was painted under the sticky header (z-50), leaving its close button
+  // unclickable. document.body has no such parent.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,13 +49,14 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   // Reset when opened
   useEffect(() => {
     if (open) {
-      setStep(1);
+      setStep(initialStep);
+      if (initialEmail) setEmail(initialEmail);
       setError('');
       setLoading(false);
     }
-  }, [open]);
+  }, [open, initialStep, initialEmail]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
   function formatPhone(val) {
     const digits = val.replace(/\D/g, '').slice(0, 11);
@@ -159,9 +171,24 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     if (onClose) onClose();
   }
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget && step === 1) onClose?.(); }}>
-      <div className="w-full max-w-md animate-scaleUp rounded-2xl bg-white shadow-2xl overflow-hidden">
+  return createPortal(
+    // Step 2 normally traps the visitor (email not yet persisted server-side).
+    // When the caller opened us AT step 2 it has already saved the email, so
+    // dismissing costs nothing and refusing to close would just be hostile.
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget && (step === 1 || initialStep === 2)) onClose?.(); }}>
+      <div className="relative w-full max-w-md animate-scaleUp rounded-2xl bg-white shadow-2xl overflow-hidden">
+        {step === 2 && initialStep === 2 && (
+          <button
+            type="button"
+            onClick={() => onClose?.()}
+            aria-label="Close"
+            className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        )}
 
         {/* ── STEP 1: Email Only ── */}
         {step === 1 && (
@@ -324,6 +351,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

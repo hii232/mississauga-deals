@@ -69,18 +69,33 @@ export async function POST(request) {
   if (supabase) {
     const { data: existing } = await supabase
       .from('leads')
-      .select('id')
+      .select('id, name, phone')
       .eq('email', email.toLowerCase().trim())
       .limit(1)
       .single();
 
     if (existing) {
-      // Email already exists — still allow login, just don't create a duplicate lead
+      // Email already exists — still allow login, just don't create a duplicate lead.
+      // ENRICH rather than discard: the email-first capture paths (homepage hero,
+      // signup gate) save the email on step 1 and the name/phone only arrive on
+      // step 2, as a SECOND request. Without this, that second request hit the
+      // duplicate branch and Hamza kept a nameless, phoneless lead even though
+      // the visitor had typed both. Only ever FILLS BLANKS — a stored value is
+      // never overwritten, so a later partial submission can't erase good data.
+      const fullName = name || [firstName, lastName].filter(Boolean).join(' ') || null;
+      const patch = {};
+      if (fullName && !existing.name) patch.name = fullName;
+      if (phone && !existing.phone) patch.phone = phone;
+      if (Object.keys(patch).length) {
+        const { error: updateError } = await supabase.from('leads').update(patch).eq('id', existing.id);
+        if (updateError) console.error('Lead enrich error:', JSON.stringify(updateError));
+      }
+
       // But still send notification email so Hamza knows about the return visit
       if (process.env.RESEND_API_KEY) {
         sendLeadNotification({ name, email, phone, source: source + ' (returning)', listingId, listingAddress, listingPrice, notes }).catch(() => {});
       }
-      return NextResponse.json({ success: true, existing: true });
+      return NextResponse.json({ success: true, existing: true, enriched: Object.keys(patch) });
     }
 
     const { error: insertError } = await supabase.from('leads').insert({
