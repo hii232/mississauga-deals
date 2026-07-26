@@ -104,7 +104,7 @@ function OverviewTab({ listing }) {
           {facts.map((f) => (
             <div key={f.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
               <p className="text-xs text-muted">{f.label}</p>
-              <p className={`mt-0.5 text-sm font-semibold ${f.label === 'Basement Income' && listing.basementTier === 'legal' ? 'text-success' : f.label === 'Basement Income' && listing.basementTier === 'potential' ? 'text-accent' : 'text-navy'}`}>{f.value}</p>
+              <p className={`mt-0.5 text-sm font-semibold ${f.label === 'Basement Income' && listing.basementTier === 'legal' ? 'text-emerald-700' : f.label === 'Basement Income' && listing.basementTier === 'potential' ? 'text-accent' : 'text-navy'}`}>{f.value}</p>
             </div>
           ))}
         </div>
@@ -553,7 +553,7 @@ function SoldCompsTab({ listing, onUseAsARV }) {
           </div>
           <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
             <p className="text-xs text-muted">Avg Negotiation</p>
-            <p className={`mt-0.5 text-lg font-bold ${stats.avgNegotiationGap <= 0 ? 'text-success' : 'text-danger'}`}>
+            <p className={`mt-0.5 text-lg font-bold ${stats.avgNegotiationGap <= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
               {stats.avgNegotiationGap > 0 ? '+' : ''}{stats.avgNegotiationGap}%
             </p>
           </div>
@@ -603,7 +603,7 @@ function SoldCompsTab({ listing, onUseAsARV }) {
                 <td className="py-2.5 pr-4 text-muted">
                   ${comp.listPrice.toLocaleString()}
                 </td>
-                <td className={`py-2.5 pr-4 font-medium ${comp.priceDelta <= 0 ? 'text-success' : 'text-danger'}`}>
+                <td className={`py-2.5 pr-4 font-medium ${comp.priceDelta <= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                   {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
                 </td>
                 <td className="py-2.5 pr-4 text-muted">{comp.dom}d</td>
@@ -787,7 +787,7 @@ function PriceHistoryTab({ listing }) {
                       {entry.listPrice > 0 && entry.listPrice !== entry.closePrice && (
                         <p className="text-xs text-muted">
                           Listed: ${entry.listPrice.toLocaleString()}
-                          <span className={`ml-1 font-medium ${entry.closePrice <= entry.listPrice ? 'text-success' : 'text-danger'}`}>
+                          <span className={`ml-1 font-medium ${entry.closePrice <= entry.listPrice ? 'text-emerald-700' : 'text-red-600'}`}>
                             ({(((entry.closePrice - entry.listPrice) / entry.listPrice) * 100).toFixed(1)}%)
                           </span>
                         </p>
@@ -821,7 +821,7 @@ function ResultCard({ label, value, positive }) {
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 text-center">
       <p className="text-xs text-muted">{label}</p>
-      <p className={`mt-0.5 text-lg font-bold ${positive === true ? 'text-success' : positive === false ? 'text-danger' : 'text-navy'}`}>
+      <p className={`mt-0.5 text-lg font-bold ${positive === true ? 'text-emerald-700' : positive === false ? 'text-red-600' : 'text-navy'}`}>
         {value}
       </p>
     </div>
@@ -1445,7 +1445,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   >
                     {listing.neighbourhood}
                   </Link>
-                  <span className="text-slate-400"> · Investor guide</span>
+                  <span className="text-slate-500"> · Investor guide</span>
                 </p>
               ) : (
                 <p className="mt-1 text-sm text-muted">{listing.neighbourhood}</p>
