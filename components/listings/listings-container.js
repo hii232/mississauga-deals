@@ -48,8 +48,13 @@ function TopPickCard({ listing, photo }) {
         >
           {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
         </div>
-        {/* CF+ badge */}
-        <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+        {/* CF+ badge. Unconditional here because the parent TopPicks already
+            filters to cashFlow > 0 before rendering this card — every listing
+            in this carousel genuinely qualifies.
+            bg-emerald-500/90 measured 2.39:1 for white text over a light
+            photo — opaque emerald-700 = 5.48:1, same fix as its twin on the
+            main listing-card.js badge. */}
+        <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
           Cash Flowing
         </span>
       </div>

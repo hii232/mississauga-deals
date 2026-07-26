@@ -277,7 +277,11 @@ export default async function BlogPostPage({ params }) {
                 <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
                   📞 647-609-1289
                 </a>
-                <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-600 transition">
+                {/* bg-emerald-500 measured 2.54:1 for white text — the same
+                    AA failure fixed on the homepage badges this morning,
+                    recurring here on a real conversion CTA on the site's
+                    top-traffic page type. emerald-700 = 5.48:1. */}
+                <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-800 transition">
                   📅 Book Free Call
                 </Link>
               </div>

@@ -153,7 +153,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             </span>
           )}
           {listing.cashFlow > 0 && (
-            <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+            // bg-emerald-500/90 composited over a light photo measured 2.39:1
+            // for white text — the same failure fixed on the homepage's
+            // investor-tag badges this morning, recurring here on the primary
+            // /listings grid card. Opaque emerald-700 = 5.48:1, and opaque
+            // avoids the unpredictable contrast a translucent chip has over an
+            // arbitrary photo.
+            <span className="rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
               Cash Flowing
             </span>
           )}
