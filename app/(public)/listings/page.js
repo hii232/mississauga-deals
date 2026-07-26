@@ -1,8 +1,22 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import { processListings } from '@/lib/listings/process-listings';
+
+// SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
+// the listings themselves were fetched client-side, so Googlebot received an
+// empty shell and none of the inventory was indexable. That made the site's
+// highest-value commercial page invisible for the query it targets.
+//
+// ISR: the HTML is built on the server and re-used for 10 minutes, so a
+// crawler always gets a full page without every request hitting the MLS feed.
+// ListingsContainer keeps ALL its interactivity — it takes these rows as
+// initialListings and skips its own fetch when they are present, so filters,
+// sorting, the map and the gate behave exactly as before.
+export const revalidate = 600;
 
 // Buying-side questions for the money page. Deliberately DISTINCT from the
 // /faq set (which covers the product, the deal score and Hamza) so the two
@@ -49,7 +63,36 @@ export const metadata = {
 
 // Loads instantly with skeletons, then fetches client-side progressively.
 // Page 1 (200 listings) appears in ~1-2s, remaining pages load in background.
-export default function ListingsPage() {
+// Server-side fetch of the first page of inventory. Deliberately ONE page
+// (200 rows): enough that the HTML is substantive and the top of the market is
+// indexable, without making the crawler wait on 13 upstream requests. A
+// failure returns [] and the client fetch takes over exactly as it does today,
+// so a feed hiccup degrades to the old behaviour rather than an error page.
+async function fetchInitialListings() {
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    // Local hosts appear as BOTH "localhost:3000" and "127.0.0.1:3000"; matching
+    // only the former built an https:// URL against a plain-http dev server, the
+    // TLS error hit the catch, and the page silently fell back to an empty
+    // server render — which looked exactly like SSR not working at all.
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
+    const proto = isLocal ? 'http' : 'https';
+    const res = await fetch(`${proto}://${host}/api/listings?limit=200&page=1`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return { listings: [], total: 0 };
+    const data = await res.json();
+    const rows = processListings(data.listings || []);
+    return { listings: rows, total: Number(data.total) || rows.length };
+  } catch {
+    return { listings: [], total: 0 };
+  }
+}
+
+export default async function ListingsPage() {
+  const { listings, total } = await fetchInitialListings();
+
   return (
     <main className="min-h-screen bg-cloud">
       <BreadcrumbJsonLd
@@ -92,7 +135,7 @@ export default function ListingsPage() {
         </div>
         <Suspense>
           <ListingsContainer
-            initialListings={[]}
+            initialListings={listings}
             apiEndpoint="/api/listings"
           />
         </Suspense>
