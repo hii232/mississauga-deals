@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { requireCronOrAdmin } from '@/lib/api-auth';
 
 const SITEMAP_URL = 'https://www.mississaugainvestor.ca/sitemap.xml';
 
@@ -12,12 +13,9 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  // Verify cron secret
-  const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // Fails CLOSED — the old guard was skipped when CRON_SECRET was unset.
+  const denied = requireCronOrAdmin(request);
+  if (denied) return denied;
 
   const results = { google: null, bing: null, indexNow: null };
 

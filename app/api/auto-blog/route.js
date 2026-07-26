@@ -5,21 +5,18 @@ import { fetchAllFeeds } from '@/lib/news/fetch-feeds';
 import { HOOD_DATA } from '@/lib/constants';
 import { SEED_POSTS } from '@/lib/blog/seed-posts';
 import { sanitizeBlogText, postNeedsSanitizing } from '@/lib/blog/sanitize-content';
+import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 
 export const maxDuration = 120; // Allow up to 2 minutes for AI generation
 export const dynamic = 'force-dynamic';
 
 // ── Auth: only Vercel cron or admin key ──
+// Delegated to lib/api-auth so this fails CLOSED. The previous version compared
+// the header against `Bearer ${process.env.CRON_SECRET}` directly, so with
+// CRON_SECRET unset the expected value rendered as the literal string
+// "Bearer undefined" — sending exactly that header authenticated you.
 function isAuthorized(request) {
-  // Vercel cron sends this header automatically
-  const cronSecret = request.headers.get('authorization');
-  if (cronSecret === `Bearer ${process.env.CRON_SECRET}`) return true;
-
-  // Manual trigger with admin key
-  const adminKey = request.headers.get('x-admin-key');
-  if (adminKey && adminKey === process.env.ADMIN_SECRET) return true;
-
-  return false;
+  return isCronAuthorized(request) || isAdminAuthorized(request);
 }
 
 // ── Supabase client ──
