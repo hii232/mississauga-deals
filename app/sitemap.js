@@ -7,6 +7,11 @@ export const revalidate = 21600;
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
+// Upstream pages of 200 rows to pull per listing feed. Both feeds use the same
+// budget so neither is arbitrarily favoured; see the GTA branch for why full
+// coverage needs a sitemap index rather than a bigger number here.
+const LISTING_PAGE_BUDGET = 15;
+
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -132,7 +137,7 @@ export default async function sitemap() {
       const allListings = [...listings];
       if (totalPages > 1) {
         const promises = [];
-        for (let p = 2; p <= Math.min(totalPages, 15); p++) {
+        for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
           promises.push(
             fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
               next: { revalidate: 3600 },
@@ -166,7 +171,19 @@ export default async function sitemap() {
   // Same /listings/{id} detail route, but the main /api/listings feed is
   // Mississauga-only, so without this the GTA listing detail pages aren't in
   // the sitemap and Google can't discover them (they win address queries).
-  // Bounded to a few pages + its own try/catch so it can never break the map.
+  //
+  // DELIBERATELY TRUNCATED, and the number matters: the live GTA feed carries
+  // ~24,500 active listings (measured against production 2026-07-26), so this
+  // submits a fraction of them. The page budget now MATCHES the Mississauga
+  // branch above rather than sitting at an arbitrary third of it — the feed is
+  // ordered by ModificationTimestamp desc, so what gets submitted is the most
+  // recently updated, which is the right slice if you can only take one.
+  //
+  // Full coverage is NOT a matter of raising this number: at 200 rows per
+  // request it would take ~123 sequential upstream calls in a single function
+  // invocation, which would time out and leave Google with no sitemap at all.
+  // That needs a sitemap index with child sitemaps (see IMPROVEMENT_BACKLOG),
+  // which also lets each content type carry its own recrawl cadence.
   let gtaListingPages = [];
   try {
     const baseUrl =
@@ -184,7 +201,7 @@ export default async function sitemap() {
       const totalPages = data.pages || 1;
       if (totalPages > 1) {
         const promises = [];
-        for (let p = 2; p <= Math.min(totalPages, 5); p++) {
+        for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
           promises.push(
             fetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`, {
               next: { revalidate: 3600 },
@@ -234,5 +251,28 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch blog posts', err);
   }
 
-  return [...staticPages, ...gtaCityPages, ...hoodGuidePages, ...listingPages, ...gtaListingPages, ...blogPages];
+  const all = [
+    ...staticPages,
+    ...gtaCityPages,
+    ...hoodGuidePages,
+    ...listingPages,
+    ...gtaListingPages,
+    ...blogPages,
+  ];
+
+  // Emit each URL once. The live sitemap was shipping 26 duplicated
+  // /listings/{id} entries (measured 2026-07-26), all from the Mississauga
+  // branch: its pages are fetched in parallel from a feed ordered by
+  // ModificationTimestamp desc, so a listing whose timestamp changes mid-fetch
+  // shifts position and lands on two pages at once. That is inherent to
+  // paginating a live-sorted feed and will recur, so it is fixed here at the
+  // point of output rather than by trying to freeze the pagination.
+  // First occurrence wins, which keeps the higher-priority Mississauga entry
+  // if a URL ever appears in both feeds.
+  const seen = new Set();
+  return all.filter((p) => {
+    if (seen.has(p.url)) return false;
+    seen.add(p.url);
+    return true;
+  });
 }
