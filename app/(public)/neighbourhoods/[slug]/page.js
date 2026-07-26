@@ -35,17 +35,34 @@ export function generateStaticParams() {
   return Object.keys(SLUG_TO_HOOD).map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }) {
+export async function generateMetadata({ params }) {
   const name = SLUG_TO_HOOD[params.slug];
   if (!name) return { title: 'Neighbourhood Not Found' };
   const d = HOOD_DATA[name];
+
+  // Reads the SAME live stats the page body does. This used to build the
+  // description purely from the curated HOOD_DATA figures while the page
+  // rendered live ones, so a search snippet could advertise "$618K" and the
+  // visitor land on "$804K" — the snippet became the wrong number. getHoodStats
+  // is a plain fetch with revalidate, and Next dedupes identical fetches within
+  // a render, so awaiting it here costs no extra upstream call.
+  const live = (await getHoodStats())[name];
+  const avgPrice = live?.avgPrice ?? d.avgPrice;
+  const avgDOM = live?.avgDOM ?? d.avgDOM;
+  const rentYield = live?.rentYield ?? d.rentYield;
 
   // Sized for the SERP: title <= ~60 chars and description <= ~155 so neither
   // is truncated mid-phrase. The brand is dropped from the title via `absolute`
   // (og:siteName already makes Google render it separately) — that reclaims 25
   // characters for the neighbourhood name and the actual query.
+  //
+  // The live branch omits the year-over-year figure on purpose: priceYoY is a
+  // curated SOLD-price outlook, and pairing it with a live ASKING average is
+  // exactly the two-measurements-as-one problem fixed in the FAQ answer.
   const title = `${name} Investment Property Guide (Mississauga)`;
-  const description = `Investing in ${name}: average price ${fmtK(d.avgPrice)} (${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}% YoY), ${d.rentYield}% rent yield, ${d.avgDOM} days on market, plus a sample cash flow.`;
+  const description = live
+    ? `${name} investment guide: active listings asking ${fmtK(avgPrice)} on average, ${rentYield}% rent yield, ${avgDOM} days on market, plus a worked cash-flow example.`
+    : `Investing in ${name}: average price ${fmtK(d.avgPrice)} (${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}% YoY), ${d.rentYield}% rent yield, ${d.avgDOM} days on market, plus a sample cash flow.`;
 
   return {
     title: { absolute: title },
@@ -115,7 +132,16 @@ export default async function NeighbourhoodGuidePage({ params }) {
     },
     {
       question: `What is the average home price in ${name}, Mississauga?`,
-      answer: `The average price in ${name} is approximately ${fmtK(avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`,
+      // The price and the YoY come from DIFFERENT sources: avgPrice is the
+      // live average ASKING price of active listings when the feed has a
+      // sample, while priceYoY is Hamza's curated outlook on SOLD prices. The
+      // old sentence welded them together — "$804K, up 1.8% year over year" —
+      // which reads as one measurement and is why the homepage card and this
+      // page could show different averages for the same neighbourhood with no
+      // explanation. Each figure is now attributed to what it actually is.
+      answer: isLive
+        ? `Active listings in ${name} are currently asking ${fmtK(avgPrice)} on average, from live MLS data. That is an asking-price average and moves with what happens to be on the market; TRREB's sold figures for Mississauga are on the market-pulse page. Hamza's outlook for ${name}, last reviewed ${HOOD_OUTLOOK_AS_OF}, has prices ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year.`
+        : `The average price in ${name} is approximately ${fmtK(avgPrice)}, ${d.priceYoY >= 0 ? 'up' : 'down'} ${Math.abs(d.priceYoY)}% year over year, from Hamza's neighbourhood outlook last reviewed ${HOOD_OUTLOOK_AS_OF}.`,
     },
     {
       question: `How much rent can an investment property in ${name} earn?`,

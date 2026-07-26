@@ -116,9 +116,35 @@ async function fetchTopDeals() {
 
     const processed = processListings(raw);
     const hoodStats = computeHoodStats(processed);
-    const top = processed
-      .sort((a, b) => b.hamzaScore - a.hamzaScore)
-      .slice(0, 4);
+    // Top 4 by score, but no more than TWO from any one neighbourhood and no
+    // more than two of the same bedroom count. Pure score-ranking clustered:
+    // the same handful of large Malton houses score highest on cash flow, so
+    // three of the four homepage deals were 6-7 bedroom houses in one
+    // neighbourhood and the page read as a rooming-house board rather than an
+    // investment platform. This does NOT touch the scoring — every deal shown
+    // is still a genuine top scorer, and if diversity can't be met (thin feed,
+    // one-neighbourhood inventory) it falls back to filling by score so the
+    // section is never short.
+    const ranked = [...processed].sort((a, b) => b.hamzaScore - a.hamzaScore);
+    const perHood = new Map();
+    const perBeds = new Map();
+    const picked = [];
+    for (const l of ranked) {
+      if (picked.length >= 4) break;
+      const hood = l.neighbourhood || l.city || 'unknown';
+      const beds = l.beds || 0;
+      if ((perHood.get(hood) || 0) >= 2) continue;
+      if ((perBeds.get(beds) || 0) >= 2) continue;
+      perHood.set(hood, (perHood.get(hood) || 0) + 1);
+      perBeds.set(beds, (perBeds.get(beds) || 0) + 1);
+      picked.push(l);
+    }
+    // Backfill strictly by score if the diversity rule left us short.
+    for (const l of ranked) {
+      if (picked.length >= 4) break;
+      if (!picked.includes(l)) picked.push(l);
+    }
+    const top = picked;
 
     // Fetch photos for top 4 deals — individual calls (reliable, 100% hit rate)
     let photoMap = {};

@@ -101,8 +101,35 @@ async function fetchInitialListings() {
   }
 }
 
+// ItemList of the inventory actually rendered on this page. This was
+// deliberately deferred back on 2026-07-21 with the note "listings are
+// client-fetched, no server data for an ItemList" — that blocker disappeared
+// when the page became server-rendered, so the money page can finally declare
+// its collection to search engines.
+//
+// Capped at the first 20: an ItemList is a summary, and declaring 200 items
+// bloats the HTML for no ranking benefit. Each entry is a bare position+url
+// pointing at the listing's own page, which carries the full RealEstateListing
+// markup — no prices or metrics are restated here, so this schema can never
+// drift from the numbers on the cards.
+function buildItemList(listings) {
+  if (!listings.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Investment Properties for Sale in Mississauga',
+    numberOfItems: listings.length,
+    itemListElement: listings.slice(0, 20).map((l, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(l.id)}`,
+    })),
+  };
+}
+
 export default async function ListingsPage() {
   const { listings, total } = await fetchInitialListings();
+  const itemList = buildItemList(listings);
 
   return (
     <main className="min-h-screen bg-cloud">
@@ -113,6 +140,12 @@ export default async function ListingsPage() {
         ]}
       />
       <FAQJsonLd items={LISTINGS_FAQ} />
+      {itemList && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
+        />
+      )}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-navy">
@@ -126,11 +159,11 @@ export default async function ListingsPage() {
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
           <p className="mt-1.5 text-sm text-slate-500">
-            <span className="text-slate-400">Investor guides:</span>{' '}
+            <span className="text-slate-500">Investor guides:</span>{' '}
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">
               Cash-flow-positive properties
             </Link>
-            <span className="text-slate-300"> · </span>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">
               Townhouse vs condo
             </Link>

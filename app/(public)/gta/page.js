@@ -80,10 +80,10 @@ function CityInvestorNotes({ city, copy }) {
 
       {siblings.length > 0 && (
         <p className="mt-4 text-sm text-muted">
-          <span className="text-slate-400">More in {copy.region}:</span>{' '}
+          <span className="text-slate-500">More in {copy.region}:</span>{' '}
           {siblings.map((c, i) => (
             <span key={c}>
-              {i > 0 && <span className="text-slate-300"> · </span>}
+              {i > 0 && <span aria-hidden="true" className="text-slate-400"> · </span>}
               <Link
                 href={`/gta?city=${encodeURIComponent(c)}`}
                 className="font-medium text-accent no-underline hover:text-accent-dark"
@@ -96,15 +96,15 @@ function CityInvestorNotes({ city, copy }) {
       )}
 
       <p className="mt-3 text-sm text-muted">
-        <span className="text-slate-400">Also useful:</span>{' '}
+        <span className="text-slate-500">Also useful:</span>{' '}
         <Link href="/listings" className="font-medium text-accent no-underline hover:text-accent-dark">
           Mississauga investment properties
         </Link>
-        <span className="text-slate-300"> · </span>
+        <span aria-hidden="true" className="text-slate-400"> · </span>
         <Link href="/market-pulse" className="font-medium text-accent no-underline hover:text-accent-dark">
           GTA market data
         </Link>
-        <span className="text-slate-300"> · </span>
+        <span aria-hidden="true" className="text-slate-400"> · </span>
         <Link href="/mortgage-calculator" className="font-medium text-accent no-underline hover:text-accent-dark">
           Income property mortgage calculator
         </Link>
@@ -291,11 +291,11 @@ export default async function GtaListingsPage({ searchParams }) {
           {/* Internal links to the investor guides — passes link equity from the
               GTA pages and gives search visitors a useful next step. */}
           <p className="mt-2 text-sm text-slate-500">
-            <span className="text-slate-400">Investor guides:</span>{' '}
+            <span className="text-slate-500">Investor guides:</span>{' '}
             <Link href="/guides" className="font-medium text-accent hover:text-accent-dark no-underline">All guides</Link>
-            <span className="text-slate-300"> · </span>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
-            <span className="text-slate-300"> · </span>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">Townhouse vs condo</Link>
           </p>
         </div>

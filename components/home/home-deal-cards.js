@@ -51,7 +51,7 @@ function HomeDealCard({ deal, photo, isGated }) {
     >
       <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
         {photo ? (
-          <img src={photo} alt={deal.address} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          <img src={photo} alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-8 w-8 sm:h-12 sm:w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

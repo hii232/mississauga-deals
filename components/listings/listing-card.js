@@ -19,6 +19,23 @@ const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() 
  * split is the difference between a number an investor can audit and one they
  * dismiss. Renders nothing if we have no rent, rather than inventing one.
  */
+// Alt text for a listing photo. A bare address tells an image-search crawler
+// (and a screen-reader user) nothing about what the picture shows; these
+// images only entered the HTML when /listings became server-rendered, so
+// they are newly worth describing. Every part is optional — a listing missing
+// beds or type simply yields a shorter sentence, never "undefined".
+function photoAlt(listing) {
+  const bits = [];
+  if (listing.beds) bits.push(`${listing.beds} bed`);
+  if (listing.baths) bits.push(`${listing.baths} bath`);
+  const specs = bits.join(' ');
+  const kind = listing.subType || listing.type || 'property';
+  const where = listing.neighbourhood && listing.neighbourhood !== listing.city
+    ? `${listing.neighbourhood}, ${listing.city || 'Mississauga'}`
+    : (listing.city || 'Mississauga');
+  return `${listing.address} — ${[specs, kind].filter(Boolean).join(' ')} for sale in ${where}`;
+}
+
 function RentAssumption({ listing }) {
   const rent = Number(listing.estimatedRent);
   if (!Number.isFinite(rent) || rent <= 0) return null;
@@ -83,7 +100,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         {photo ? (
           <img
             src={photo}
-            alt={listing.address}
+            alt={photoAlt(listing)}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
