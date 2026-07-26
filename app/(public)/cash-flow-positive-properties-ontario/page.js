@@ -8,8 +8,8 @@ import { RelatedGuides } from '@/components/ui/related-guides';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Cash Flow Positive Properties in Ontario — Mississauga & the GTA (${YEAR})`,
-  description: `How to find cash flow positive properties in Ontario in ${YEAR}: what makes a rental cash-flow positive at today's rates, why it usually takes a suite, multi-unit, or bigger down payment, and how to filter Mississauga listings already scored for positive cash flow.`,
+  title: { absolute: `Cash Flow Positive Properties in Ontario (${YEAR})` },
+  description: `How to find cash-flow-positive properties in Ontario in ${YEAR}: what it takes at today's rates, and a live filtered view of listings that clear.`,
   keywords: [
     'cash flow positive properties ontario',
     'cash flow positive real estate ontario',

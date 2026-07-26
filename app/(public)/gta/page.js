@@ -141,9 +141,9 @@ export function generateMetadata({ searchParams }) {
     };
   }
   return {
-    title: 'GTA Investment Properties | Toronto, Brampton, Vaughan & More',
+    title: { absolute: 'GTA Investment Properties — Scored for Cash Flow' },
     description:
-      'Browse scored investment properties across the Greater Toronto Area. Cash flow analysis, cap rates, and deal scores on thousands of listings in Toronto, Brampton, Vaughan, Oakville, Hamilton and more.',
+      'Investment properties across the GTA — Toronto, Brampton, Vaughan, Oakville and Hamilton — each scored for cash flow, cap rate and deal quality.',
     alternates: { canonical: '/gta' },
     openGraph: {
       title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',

@@ -1,9 +1,9 @@
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: 'Deal Alerts — Get Notified of New Mississauga Investment Deals',
+  title: { absolute: 'Free Mississauga Deal Alerts — New Listings by Email' },
   description:
-    'Set up free deal alerts and get notified when new Mississauga investment properties match your budget, strategy, and neighbourhood. Cash flow, BRRR, and pre-construction alerts by Hamza Nouman.',
+    'Free deal alerts: get emailed when a new Mississauga investment property matches your budget, strategy and neighbourhood. Unsubscribe in one click.',
   alternates: { canonical: '/alerts' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

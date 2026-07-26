@@ -8,9 +8,9 @@ import { ValuationForm } from '@/components/sell/valuation-form';
 const BASE = 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
-  title: 'Sell Your Home in Mississauga — Sell for Top Dollar | Free Valuation',
+  title: { absolute: 'Sell Your Home in Mississauga — Free Valuation' },
   description:
-    'Sell your Mississauga home for the most. Get a free, data-backed home valuation and a full-service plan — precise pricing, professional marketing, and hard negotiation from Hamza Nouman, an agent who knows exactly what today’s buyers pay for. No obligation.',
+    'Sell your Mississauga home for the most: a free, data-backed valuation plus precise pricing, professional marketing and hard negotiation. No obligation.',
   keywords: [
     'sell my house mississauga',
     'sell my home mississauga',

@@ -8,8 +8,8 @@ import { RelatedGuides } from '@/components/ui/related-guides';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Hurontario LRT Real Estate Impact — Mississauga Investor Guide (${YEAR})`,
-  description: `How the Hurontario LRT (Hazel McCallion Line) affects Mississauga real estate: the corridor it serves, why rapid transit tends to support rents and values near stations, and how investors should weigh it in Port Credit, Cooksville and City Centre.`,
+  title: { absolute: `Hurontario LRT Real Estate Impact (${YEAR})` },
+  description: `How the Hurontario LRT affects Mississauga real estate: the corridor it serves, why transit supports rents and values, and what it means for investors.`,
   keywords: [
     'hurontario lrt real estate impact',
     'hurontario lrt real estate',

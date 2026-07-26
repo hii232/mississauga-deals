@@ -41,9 +41,9 @@ const SOLD_FAQ = [
 ];
 
 export const metadata = {
-  title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales & Sold Data`,
+  title: { absolute: `Mississauga Sold Prices ${YEAR} — Recent Home Sales` },
   description:
-    `See what homes actually sold for in Mississauga in ${YEAR}: real sold prices, days on market, and list-vs-sold negotiation gaps, updated from MLS data. Know the real market before you offer.`,
+    `What homes actually sold for in Mississauga in ${YEAR}: real sold prices, days on market and list-vs-sold gaps, updated from MLS. Know it before you offer.`,
   alternates: { canonical: '/recent-sales' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

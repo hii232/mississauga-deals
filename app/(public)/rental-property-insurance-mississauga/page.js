@@ -8,8 +8,8 @@ import { RelatedGuides } from '@/components/ui/related-guides';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Rental Property Insurance in Mississauga — A Landlord's Guide (${YEAR})`,
-  description: `Rental property insurance in Mississauga: what landlord insurance covers, why a standard homeowner policy won't protect a tenanted property, what drives the cost, and why to require tenant insurance. Honest, general guidance for investors.`,
+  title: { absolute: `Rental Property Insurance in Mississauga (${YEAR})` },
+  description: `Landlord insurance in Mississauga: what it covers, why a homeowner policy won't protect a tenanted property, what drives cost, and tenant insurance.`,
   keywords: [
     'rental property insurance mississauga',
     'landlord insurance mississauga',

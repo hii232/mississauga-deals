@@ -5,9 +5,9 @@ import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/
 import { fetchGoogleRating } from '@/lib/google-rating';
 
 export const metadata = {
-  title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
+  title: { absolute: 'About Hamza Nouman — Mississauga Investment REALTOR®' },
   description:
-    'Hamza Nouman is a licensed Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario. Specializing in investment properties, cash flow analysis, and data-driven real estate decisions. Creator of MississaugaInvestor.ca.',
+    'Hamza Nouman, licensed Sales Representative with Cityscape Real Estate in Mississauga. Investment properties, cash-flow analysis and data-driven advice.',
   keywords: [
     'Hamza Nouman',
     'Hamza Nouman Mississauga',

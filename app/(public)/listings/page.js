@@ -55,9 +55,9 @@ const LISTINGS_FAQ = [
 // Title/H1/intro exact-match the high-intent GSC query "investment properties
 // for sale mississauga" (pos ~14, real impressions — the money keyword).
 export const metadata = {
-  title: 'Investment Properties for Sale in Mississauga — Scored for Cash Flow & Cap Rate',
+  title: { absolute: 'Investment Properties for Sale in Mississauga' },
   description:
-    'Investment properties for sale in Mississauga — every active listing scored for cash flow, cap rate, and ROI, with legal-suite detection and price-drop alerts. Free for investors.',
+    'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
   alternates: { canonical: '/listings' },
 };
 

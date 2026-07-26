@@ -8,8 +8,8 @@ import { RelatedGuides } from '@/components/ui/related-guides';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Townhouse or Condo: Which Is the Better Investment? (Mississauga & GTA ${YEAR})`,
-  description: `Townhouse or condo — which is the better investment in Mississauga and the GTA? How condo fees, the land component, appreciation, cash flow, and tenant demand compare, plus how to run the numbers on a real listing.`,
+  title: { absolute: `Townhouse or Condo: Which Is the Better Investment?` },
+  description: `Townhouse or condo for a GTA rental? How fees, land value, appreciation, cash flow and tenant demand compare — with the numbers side by side.`,
   keywords: [
     'townhouse or condo better investment',
     'townhouse vs condo investment',

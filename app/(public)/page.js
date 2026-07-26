@@ -15,8 +15,8 @@ import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-car
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
-  title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
+  title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
+  description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — with free weekly deal alerts. Investor analysis by Hamza Nouman, RECO licensed.',
   alternates: {
     canonical: '/',
   },

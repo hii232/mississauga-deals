@@ -6,7 +6,7 @@ import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 const BASE = 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
-  title: 'How the Deal Score Works — Methodology & Data Sources',
+  title: { absolute: 'How the Deal Score Works — Methodology & Sources' },
   description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
   alternates: { canonical: '/score-methodology' },
 };

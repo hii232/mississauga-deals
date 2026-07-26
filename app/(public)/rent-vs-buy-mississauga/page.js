@@ -8,8 +8,8 @@ import { RelatedGuides } from '@/components/ui/related-guides';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Rent vs Buy in Mississauga (${YEAR}) — Which Makes More Sense?`,
-  description: `Rent vs buy in Mississauga for ${YEAR}: how mortgage rates, home prices, closing costs, equity, and your time horizon decide whether renting or buying wins. Run your own break-even with the free calculator.`,
+  title: { absolute: `Rent vs Buy in Mississauga (${YEAR})` },
+  description: `Rent vs buy in Mississauga ${YEAR}: how rates, prices, closing costs and your time horizon decide it — plus a free calculator to find your break-even.`,
   keywords: [
     'rent vs buy mississauga',
     `rent vs buy mississauga ${YEAR}`,
