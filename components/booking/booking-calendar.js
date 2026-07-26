@@ -238,7 +238,11 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
                     isSelected
                       ? 'bg-accent text-white font-bold shadow-md'
                       : disabled
-                        ? 'text-slate-300 cursor-not-allowed'
+                        // slate-400, not slate-300: disabled controls are exempt from the
+                        // contrast minimum, but at 1.48:1 the past/Sunday dates were
+                        // invisible and the grid read as broken. 2.6:1 still reads as
+                        // clearly unavailable next to navy active dates.
+                        ? 'text-slate-400 cursor-not-allowed'
                         : isToday
                           ? 'bg-accent/10 text-accent font-bold hover:bg-accent/20'
                           : 'text-navy hover:bg-cloud'
@@ -288,7 +292,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
                         isSelected
                           ? 'bg-accent text-white font-bold shadow-md'
                           : disabled
-                            ? 'bg-slate-100 text-slate-300 cursor-not-allowed line-through'
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed line-through'
                             : 'bg-cloud text-navy hover:bg-accent/10 hover:text-accent'
                       }`}
                     >
@@ -321,7 +325,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="bk-name" className="mb-1 block text-sm font-medium text-navy">
-              Name <span className="text-red-400">*</span>
+              Name <span className="text-red-600" aria-hidden="true">*</span>
             </label>
             <input
               id="bk-name"
@@ -336,7 +340,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
 
           <div>
             <label htmlFor="bk-email" className="mb-1 block text-sm font-medium text-navy">
-              Email <span className="text-red-400">*</span>
+              Email <span className="text-red-600" aria-hidden="true">*</span>
             </label>
             <input
               id="bk-email"

@@ -279,8 +279,10 @@ export function NewsClient({ articles, sources, topics }) {
                   <p className="text-[10px] font-medium text-muted uppercase tracking-wide">{stat.label}</p>
                   <div className="flex items-baseline gap-1.5 justify-center">
                     <span className="text-sm font-bold font-mono text-navy">{stat.value}</span>
+                    {/* Live-feed market deltas are data figures: red-500 measured
+                        3.76:1 and success-green ~2.5:1 on white, both under AA. */}
                     {stat.delta && (
-                      <span className={`text-[10px] font-semibold ${stat.negative ? 'text-red-500' : 'text-success'}`}>
+                      <span className={`text-[10px] font-semibold ${stat.negative ? 'text-red-600' : 'text-emerald-700'}`}>
                         {stat.delta}
                       </span>
                     )}
