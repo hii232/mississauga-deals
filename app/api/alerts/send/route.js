@@ -6,6 +6,7 @@ import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-util
 import { poolForSearch } from '@/lib/alerts/sanitize-filters';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 // The full-pool fetch (13 upstream page requests) plus per-subscriber matching
 // and SEQUENTIAL Resend sends will not reliably fit Vercel's default function
@@ -104,12 +105,40 @@ export async function POST(request) {
       byEmail[search.email].searches.push(search);
     }
 
+    // 3b. Repeat-send guard: the DOM<=3 freshness window keeps a listing
+    // eligible for up to 4 consecutive daily sends, so without this a
+    // subscriber sees the same "new" property four days running. Load what
+    // each recipient was already sent in the last 7 days (ample — nothing
+    // stays DOM<=3 longer than 4). If the table doesn't exist yet (migration
+    // not run) or the query fails, the set stays empty and behavior is
+    // exactly the pre-guard behavior — never block the send over dedupe.
+    const alreadySent = new Map(); // email -> Set(listing_id)
+    try {
+      const lookback = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: sentRows, error: sentErr } = await supabase
+        .from('alert_sent_listings')
+        .select('email, listing_id')
+        .in('email', Object.keys(byEmail))
+        .gte('sent_at', lookback);
+      if (sentErr) throw sentErr;
+      for (const row of sentRows || []) {
+        if (!alreadySent.has(row.email)) alreadySent.set(row.email, new Set());
+        alreadySent.get(row.email).add(row.listing_id);
+      }
+    } catch (err) {
+      console.error(
+        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) — sending without dedupe:',
+        err?.message || err
+      );
+    }
+
     let sentCount = 0;
     const failures = [];
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
       const allMatches = new Map(); // dedup by listing ID
+      const sentToUser = alreadySent.get(email) || new Set();
 
       for (const search of userData.searches) {
         // Merge saved filters with defaults
@@ -123,11 +152,15 @@ export async function POST(request) {
         // Apply filters to get matching listings
         const matched = applyFilters(pool, filters);
 
-        // Only include "new" listings (DOM <= 3 or first alert)
+        // Only include "new" listings (DOM <= 3 or first alert), and never a
+        // listing this recipient already received in the last 7 days — the
+        // first-alert path is filtered too, so a second saved search doesn't
+        // re-deliver properties an earlier alert already showed.
         const isFirstAlert = !search.last_sent_at;
+        const unseen = matched.filter((l) => !sentToUser.has(String(l.id)));
         const fresh = isFirstAlert
-          ? matched.slice(0, 10) // First alert: top 10 matches
-          : matched.filter((l) => l.dom <= 3).slice(0, 10); // Daily: only new (DOM 0-3)
+          ? unseen.slice(0, 10) // First alert: top 10 matches
+          : unseen.filter((l) => l.dom <= 3).slice(0, 10); // Daily: only new (DOM 0-3)
 
         for (const listing of fresh) {
           if (!allMatches.has(listing.id)) {
@@ -178,6 +211,23 @@ export async function POST(request) {
           .from('saved_searches')
           .update({ last_sent_at: new Date().toISOString() })
           .in('id', ids);
+        // Record what this email contained so tomorrow's run won't repeat it.
+        // Recorded ONLY after Resend accepts — a rejected send stays eligible.
+        // upsert (not insert) so a listing re-alerted after the 7-day window
+        // refreshes its sent_at instead of failing the primary key.
+        try {
+          const { error: recordErr } = await supabase.from('alert_sent_listings').upsert(
+            listings.map((l) => ({
+              email,
+              listing_id: String(l.id),
+              sent_at: new Date().toISOString(),
+            })),
+            { onConflict: 'email,listing_id' }
+          );
+          if (recordErr) throw recordErr;
+        } catch (err) {
+          console.error(`Alerts: could not record sent listings for ${email}:`, err?.message || err);
+        }
       } else {
         // A rejected send used to be swallowed silently — the run just reported
         // "sent: 0" with no reason, so a misconfigured sender (unverified domain
@@ -198,6 +248,16 @@ export async function POST(request) {
           '422 usually means RESEND_FROM_EMAIL is not a valid verified sender.'
       );
     }
+
+    // Housekeeping: guard rows older than double the lookback window are dead
+    // weight — clear them so the table stays a few thousand rows, not months
+    // of history. Best-effort; a failure (incl. missing table) changes nothing.
+    try {
+      await supabase
+        .from('alert_sent_listings')
+        .delete()
+        .lt('sent_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
+    } catch {}
 
     return NextResponse.json({
       message: `Sent ${sentCount} alert emails${failures.length ? `, ${failures.length} rejected` : ''}`,
@@ -250,6 +310,29 @@ function fmtPrice(p) {
 
 const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 
+// The rent every cash-flow figure in the email assumes. The site's listing
+// cards state this on every card (an investor's critique: a cash-flow number
+// with an unstated rent assumption is not credible), but the emails shipped
+// the figures bare — so the channel that reaches subscribers directly was the
+// one place the assumption stayed hidden. Reads the SAME fields the card's
+// RentAssumption component reads, so the two can never disagree; returns ''
+// when rent is missing rather than inventing one.
+function rentAssumptionLine(l) {
+  const rent = Number(l.estimatedRent);
+  if (!Number.isFinite(rent) || rent <= 0) return '';
+  const money = (n) => '$' + Math.round(n).toLocaleString();
+  const basement = Number(l.basementIncome) || 0;
+  const base = Number(l.baseRent) || 0;
+  const units = Array.isArray(l.unitBreakdown) ? l.unitBreakdown : null;
+  let breakdown = '';
+  if (units && units.length > 1) {
+    breakdown = ` · across ${units.length} units`;
+  } else if (basement > 0 && base > 0) {
+    breakdown = ` · ${money(base)} main + ${money(basement)} ${l.basementTier === 'legal' ? 'legal ' : ''}suite`;
+  }
+  return `Assumes ${money(rent)}/mo rent${breakdown}`;
+}
+
 /**
  * Build HTML email template for deal alerts
  */
@@ -266,7 +349,10 @@ function buildAlertEmail(listings, name, searches) {
         const cf = Number.isFinite(l.cashFlow) ? l.cashFlow : null;
         const price = Number.isFinite(l.price) ? l.price : 0;
         const dom = Number.isFinite(l.dom) ? l.dom : null;
-        const scoreBg = score == null ? '#94A3B8' : score >= 8 ? '#10B981' : score >= 6.5 ? '#2563EB' : '#F59E0B';
+        const rentAssumption = rentAssumptionLine(l);
+        // #047857 (not #10B981) and #B45309 (not #F59E0B): the badge prints
+        // white on this colour, and the brighter tokens leave it at ~2.4:1.
+        const scoreBg = score == null ? '#64748B' : score >= 8 ? '#047857' : score >= 6.5 ? '#2563EB' : '#B45309';
         return `
       <tr>
         <td style="padding: 16px 0; border-bottom: 1px solid #E2E8F0;">
@@ -279,6 +365,7 @@ function buildAlertEmail(listings, name, searches) {
                 <div style="color: #64748B; font-size: 13px; margin-top: 4px;">
                   ${l.beds || 0} bed · ${l.baths || 0} bath · ${esc(l.type || 'Residential')}${l.subType ? ' · ' + esc(l.subType) : ''}
                 </div>
+                ${rentAssumption ? `<div style="color: #475569; font-size: 12px; margin-top: 4px;">${esc(rentAssumption)}</div>` : ''}
               </td>
               <td style="text-align: right; vertical-align: top;">
                 <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">${fmtPrice(price)}</div>
@@ -295,7 +382,7 @@ function buildAlertEmail(listings, name, searches) {
                       CAP ${cap == null ? '—' : cap.toFixed(1) + '%'}
                     </td>
                     <td width="8"></td>
-                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#10B981' : '#EF4444'}; font-weight: 600;">
+                    <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#047857' : '#DC2626'}; font-weight: 600;">
                       PCF ${cf == null ? '—' : cf >= 0 ? `+$${cf.toLocaleString()}/mo` : `−$${Math.abs(cf).toLocaleString()}/mo`}
                     </td>
                     <td width="8"></td>
@@ -336,11 +423,17 @@ function buildAlertEmail(listings, name, searches) {
 
           <!-- Header -->
           <tr>
-            <td style="background: #1B2A4A; border-radius: 16px 16px 0 0; padding: 32px 32px 24px; text-align: center;">
-              <div style="font-size: 22px; font-weight: 700; color: white; margin-bottom: 8px;">
-                MississaugaInvestor<span style="color: #2563EB;">.ca</span>
+            <!-- Masthead on the site's "dusk" identity. bgcolor + a background
+                 shorthand carry the solid navy for Outlook and anything that
+                 ignores gradients, so the fallback is the exact previous look
+                 rather than a white box. The ".ca" was accent #2563EB on navy
+                 = 2.75:1 (the same on-navy failure fixed in the site footer);
+                 #8AB6FF is the established on-navy blue at 6.9:1. -->
+            <td bgcolor="#1B2A4A" style="background: #1B2A4A; background: linear-gradient(135deg, #16223D 0%, #1B2A4A 55%, #25355C 100%); border-radius: 16px 16px 0 0; padding: 32px 32px 24px; text-align: center;">
+              <div style="font-size: 22px; font-weight: 700; color: #FFFFFF; margin-bottom: 8px;">
+                MississaugaInvestor<span style="color: #8AB6FF;">.ca</span>
               </div>
-              <div style="color: #94A3B8; font-size: 14px;">Daily Deal Alerts</div>
+              <div style="color: #F59E0B; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;">Daily Deal Alerts</div>
             </td>
           </tr>
 
@@ -361,6 +454,8 @@ function buildAlertEmail(listings, name, searches) {
               <!-- Metric legend — explains the CAP vs PCF question every investor asks -->
               <div style="margin-top: 18px; padding: 12px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #64748B; font-size: 12px; line-height: 1.55;">
                 <strong style="color: #475569;">CAP</strong> is the yield before financing (all-cash). <strong style="color: #475569;">PCF</strong> is your monthly cash flow after the mortgage. A positive CAP with a small negative PCF is normal at today&rsquo;s rates &mdash; most of that gap is principal you keep as equity.
+                <br /><br />
+                Every figure assumes ${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down at ${DEFAULT_ASSUMPTIONS.annualInterestRate}% over ${DEFAULT_ASSUMPTIONS.amortizationYears} years, plus property tax, insurance, maintenance and vacancy. <a href="https://www.mississaugainvestor.ca/score-methodology?${UTM}" style="color: #2563EB;">See the full methodology</a> or change any assumption on a listing page.
               </div>
 
               <div style="text-align: center; margin-top: 28px;">

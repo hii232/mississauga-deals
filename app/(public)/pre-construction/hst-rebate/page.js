@@ -283,6 +283,33 @@ export default function HSTRebatePage() {
           </div>
         </section>
 
+        {/* Visible FAQ — the page declared FAQPage schema for these five Q&As
+            but never rendered them. Google requires FAQ structured data to be
+            visible on the page it is declared on: without this the page gets no
+            rich-result eligibility and is exposed to a structured-data manual
+            action. Rendered from the same HST_FAQ array as the schema so the
+            two cannot drift apart. */}
+        <section className="py-8">
+          <h2 className="section-title mb-6 text-center">Ontario HST rebate: common questions</h2>
+          <div className="space-y-3">
+            {HST_FAQ.map((qa, i) => (
+              <details
+                key={qa.question}
+                open={i === 0}
+                className="group rounded-xl border border-slate-200 bg-white p-5 [&_summary::-webkit-details-marker]:hidden"
+              >
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                  <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+                  <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </summary>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{qa.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         {/* CTA */}
         <section className="text-center py-8">
           <h2 className="font-heading font-bold text-2xl text-navy mb-3">

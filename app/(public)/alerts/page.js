@@ -153,37 +153,50 @@ export default function AlertsPage() {
             </div>
           )}
 
+          {/* Email-first: only the one REQUIRED field is visible up front.
+              Everything else was already optional (name, and four selects that
+              default to "Any"), but presenting six fields to someone who just
+              tapped "Get Free Deal Alerts" reads as work. The rest sit one tap
+              away in a native <details> — no step-2 state machine, so the form
+              still submits in a single POST and a lead can never be stranded
+              half-way through. Open it and nothing is lost; ignore it and the
+              alert is created for all deals. */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
-                  Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="Your name"
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
-              <div>
-                <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-                />
-              </div>
+            <div>
+              <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
+                Email <span className="text-red-600" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+
+            <details className="group rounded-lg border border-slate-200 bg-slate-50/60">
+              <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-2.5 text-sm font-medium text-navy">
+                <span>Narrow which deals you get <span className="font-normal text-muted">(optional)</span></span>
+                <span aria-hidden="true" className="text-muted transition-transform group-open:rotate-180">&#9662;</span>
+              </summary>
+              <div className="space-y-4 border-t border-slate-200 p-4">
+            <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
+                Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Your name"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -267,6 +280,8 @@ export default function AlertsPage() {
                 </select>
               </div>
             </div>
+              </div>
+            </details>
 
             <button
               type="submit"

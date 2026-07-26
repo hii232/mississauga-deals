@@ -22,10 +22,15 @@ export async function GET(request) {
   const beds = parseInt(searchParams.get('beds') || '3');
   const lat = parseFloat(searchParams.get('lat') || '0');
   const lng = parseFloat(searchParams.get('lng') || '0');
+  // Forward Sortation Area (first 3 postal chars, e.g. L4T = Malton). The
+  // lat/lng params were accepted but NEVER used in the lease query — every
+  // result came from the whole city while the response was labelled "nearby".
+  // FSA is the filter the MLS feed can actually apply.
+  const fsa = (searchParams.get('fsa') || '').trim().toUpperCase().slice(0, 3);
 
   try {
     // Try TIER 1: Recently leased properties
-    const leaseComps = await fetchLeaseComps(city, type, beds, 12);
+    const leaseComps = await fetchLeaseComps(city, type, beds, 12, 1, fsa);
 
     if (leaseComps.length >= 3) {
       const median = getMedian(leaseComps.map(c => c.leasePrice));
@@ -34,7 +39,7 @@ export async function GET(request) {
         median,
         count: leaseComps.length,
         source: 'lease_comps',
-        label: `Based on ${leaseComps.length} similar leases nearby in last 12 months`,
+        label: `Based on ${leaseComps.length} similar leases ${fsa ? 'in this area' : 'across ' + city} in the last 12 months`,
       });
     }
 
@@ -60,7 +65,7 @@ export async function GET(request) {
         median,
         count: activeRentals.length,
         source: 'active_rentals',
-        label: `Based on ${activeRentals.length} active rentals nearby (asking prices, may vary)`,
+        label: `Based on ${activeRentals.length} active rentals ${fsa ? 'in this area' : 'across ' + city} (asking prices, may vary)`,
       });
     }
 
@@ -78,7 +83,7 @@ export async function GET(request) {
   }
 }
 
-async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
+async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1, fsa = '') {
   const cutoff = new Date();
   cutoff.setMonth(cutoff.getMonth() - months);
   const cutoffStr = cutoff.toISOString().split('T')[0];
@@ -103,6 +108,11 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
     "ListPrice le 8000", // Lease prices are monthly rent amounts, not purchase prices
   ];
 
+  // Neighbourhood scoping, when the caller asks for it.
+  if (/^L[0-9][A-Z]$/.test(fsa)) {
+    filters.push(`startswith(PostalCode, '${fsa}')`);
+  }
+
   // Add type filter if we have a mapping
   if (typeMap[type]) {
     filters.push(typeMap[type]);
@@ -111,7 +121,7 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
   const sel = [
     'ListingKey', 'ListPrice', 'ClosePrice', 'City', 'UnparsedAddress',
     'BedroomsTotal', 'BathroomsTotalInteger', 'PropertySubType',
-    'ModificationTimestamp', 'DaysOnMarket', 'Latitude', 'Longitude',
+    'ModificationTimestamp', 'DaysOnMarket', 'Latitude', 'Longitude', 'PostalCode',
   ].join(',');
 
   const url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
@@ -130,6 +140,7 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1) {
   return items.map(l => ({
     id: l.ListingKey,
     address: l.UnparsedAddress || 'Address withheld',
+    fsa: (l.PostalCode || '').slice(0, 3),
     beds: l.BedroomsTotal || 0,
     baths: l.BathroomsTotalInteger || 0,
     type: l.PropertySubType || '',
@@ -181,6 +192,7 @@ async function fetchActiveRentals(city, type, beds) {
   return items.map(l => ({
     id: l.ListingKey,
     address: l.UnparsedAddress || 'Address withheld',
+    fsa: (l.PostalCode || '').slice(0, 3),
     beds: l.BedroomsTotal || 0,
     baths: l.BathroomsTotalInteger || 0,
     type: l.PropertySubType || '',

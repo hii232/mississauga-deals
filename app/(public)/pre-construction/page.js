@@ -4,7 +4,7 @@ import { trackConversion } from '@/lib/track-conversion';
 import { useState } from 'react';
 import Link from 'next/link';
 import { HOOD_DATA } from '@/lib/constants';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 
 const BUDGETS = [
@@ -23,6 +23,46 @@ const TIMELINES = [
 ];
 
 const HOODS = Object.keys(HOOD_DATA);
+
+// Pre-construction carries real query volume, but this page was a VIP signup
+// form with no explanatory content and no FAQ markup. These answer what
+// actually stops an investor from signing: how deposits are staged, what
+// interim occupancy costs, whether they can back out, and whether pre-con even
+// beats resale — answered honestly, downsides included, because a page that
+// pretends there aren't any reads like a builder's brochure.
+//
+// Deliberately NO dollar figures or dates: the enhanced HST rebate is bounded
+// by signing date and tiered by price, and schema can be surfaced by Google
+// long after either changes. /pre-construction/hst-rebate owns those numbers;
+// this links to it. Question set is disjoint from /faq, /listings,
+// /market-pulse and /recent-sales so no two pages compete for one rich result.
+const PRECON_FAQ = [
+  {
+    question: 'How do deposits work on a pre-construction condo in Ontario?',
+    answer:
+      'Unlike a resale purchase, where the deposit is a single payment, a pre-construction deposit is staged over months — commonly a payment on signing, then further instalments at set intervals, and sometimes a final one at interim occupancy. The total is set by the builder and is typically higher for investors than for end users, with more again asked of international buyers. The schedule is written into the agreement of purchase and sale, so it is worth reading before you sign rather than after.',
+  },
+  {
+    question: 'What is interim occupancy and why does it cost money?',
+    answer:
+      'There is usually a gap between the date you can move into a new condo and the date the building is legally registered and the unit becomes yours. During that gap — interim occupancy — you pay the builder a monthly occupancy fee covering interest on the unpaid balance, estimated property taxes and common expenses. None of it pays down a mortgage or builds equity, and it can run for months, so an investor should budget it as a real carrying cost rather than meet it as a surprise.',
+  },
+  {
+    question: 'Can I cancel a pre-construction condo purchase after signing?',
+    answer:
+      "Yes, within a limited window. Ontario's Condominium Act gives buyers of a new condominium a 10-day statutory cooling-off period after receiving the signed agreement and the disclosure statement, during which the agreement can be rescinded and the deposit returned. After those 10 days the agreement binds you, which makes the cooling-off period the time to have a lawyer read the disclosure statement — not a formality to skip.",
+  },
+  {
+    question: 'Do investors qualify for the HST rebate on a new build?',
+    answer:
+      'Yes — the enhanced Ontario rebate on new homes carries no first-time-buyer requirement, and purpose-built rental developers qualify as well, which is unusual among housing incentives. The amount depends on the purchase price and on when the agreement of purchase and sale was signed, since the enhanced rebate applies to a defined window. The HST rebate guide on this site sets out the current tiers, dates and eligibility rules in full.',
+  },
+  {
+    question: 'Is pre-construction a better investment than a resale property?',
+    answer:
+      'It is a different trade, not automatically a better one. Pre-construction lets you control a unit with a staged deposit and take any appreciation between signing and closing, and everything arrives new and under warranty. Against that: you collect no rent during construction, occupancy fees consume cash before closing, completion dates slip, and the market at completion is unknowable. A resale property cash flows from day one and can be analysed with real numbers today. Run both against your own timeline before deciding.',
+  },
+];
 
 export default function PreConstructionPage() {
   const [form, setForm] = useState({
@@ -199,7 +239,7 @@ export default function PreConstructionPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
-                Name <span className="text-red-400">*</span>
+                Name <span className="text-red-600" aria-hidden="true">*</span>
               </label>
               <input
                 id="name"
@@ -215,7 +255,7 @@ export default function PreConstructionPage() {
 
             <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium text-navy">
-                Email <span className="text-red-400">*</span>
+                Email <span className="text-red-600" aria-hidden="true">*</span>
               </label>
               <input
                 id="email"
@@ -317,6 +357,49 @@ export default function PreConstructionPage() {
         </div>
       </div>
       </div>
+      <FAQJsonLd items={PRECON_FAQ} />
+      {/* Lives on THIS page, not the shared layout: the layout also wraps
+          /pre-construction/projects and /hst-rebate, so putting it there
+          published the same FAQ markup on all three — and gave hst-rebate two
+          competing FAQPage blocks. */}
+      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:px-8">
+        <h2 className="font-heading text-xl font-bold text-navy">
+          Pre-construction questions investors ask
+        </h2>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {PRECON_FAQ.map((qa) => (
+            <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
+              <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{qa.answer}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-sm text-slate-500">
+          Go deeper:{' '}
+          <Link
+            href="/pre-construction/hst-rebate"
+            className="font-medium text-accent no-underline hover:text-accent-dark"
+          >
+            the Ontario HST rebate explained
+          </Link>
+          ,{' '}
+          <Link
+            href="/pre-construction/projects"
+            className="font-medium text-accent no-underline hover:text-accent-dark"
+          >
+            current GTA pre-construction projects
+          </Link>
+          , or compare against{' '}
+          <Link href="/listings" className="font-medium text-accent no-underline hover:text-accent-dark">
+            resale listings that cash flow today
+          </Link>
+          .
+        </p>
+        <p className="mt-3 text-xs text-slate-500">
+          General information only — not legal or tax advice. Have a lawyer review any agreement of purchase and sale
+          during the cooling-off period.
+        </p>
+      </section>
     </>
   );
 }

@@ -1,8 +1,56 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import { processListings } from '@/lib/listings/process-listings';
+
+// SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
+// the listings themselves were fetched client-side, so Googlebot received an
+// empty shell and none of the inventory was indexable. That made the site's
+// highest-value commercial page invisible for the query it targets.
+//
+// ISR: the HTML is built on the server and re-used for 10 minutes, so a
+// crawler always gets a full page without every request hitting the MLS feed.
+// ListingsContainer keeps ALL its interactivity — it takes these rows as
+// initialListings and skips its own fetch when they are present, so filters,
+// sorting, the map and the gate behave exactly as before.
+export const revalidate = 600;
+
+// Buying-side questions for the money page. Deliberately DISTINCT from the
+// /faq set (which covers the product, the deal score and Hamza) so the two
+// pages never publish duplicate FAQ markup competing for the same rich result.
+// Every figure quoted here is one the site's own engine uses — the $2,500
+// legal / $500 inspection line items and the land-transfer treatment come
+// straight from getClosingCosts, so this copy can't drift from the calculator.
+const LISTINGS_FAQ = [
+  {
+    question: 'Are these all the investment properties for sale in Mississauga?',
+    answer:
+      'Yes — this page lists every active residential listing in Mississauga from the TRREB/PropTx MLS feed, not a hand-picked selection. Each one is scored automatically for cash flow, cap rate and cash-on-cash return, so a listing appears whether or not the numbers work. Use the filters to narrow by price, beds, property type, neighbourhood or strategy.',
+  },
+  {
+    question: 'How much down payment do I need for an investment property in Ontario?',
+    answer:
+      'A property you will not live in requires at least 20% down — mortgage default insurance is not available on non-owner-occupied rentals, so the low-down-payment options open to primary residences do not apply. If you plan to live in one unit of a two-to-four-unit property, less may be possible. Every figure on this page assumes 20% down; you can change that assumption on any listing page or in the mortgage calculator.',
+  },
+  {
+    question: 'What closing costs should I budget on top of the down payment?',
+    answer:
+      'Land transfer tax is the big one, and it is charged on a sliding scale — on a $1,000,000 purchase the Ontario tax alone is $16,475. Properties in the City of Toronto pay a municipal land transfer tax on top of that, roughly doubling it. Budget about $2,500 for legal fees and title insurance and a few hundred more for the inspection. The cash-to-close figure on each listing page adds all of this up for you.',
+  },
+  {
+    question: 'Does a legal basement suite change the numbers?',
+    answer:
+      'Substantially — a second suite adds a second rent cheque against the same mortgage, which is what moves many Mississauga properties from negative to positive cash flow. Listings flagged as having a legal suite have that income counted in full; where a suite looks possible but is not confirmed legal, the income is discounted before it reaches the score, so an unverified basement never flatters a deal.',
+  },
+  {
+    question: 'Which Mississauga neighbourhoods have the best cash flow?',
+    answer:
+      'Cash flow generally improves as you move away from the waterfront — the lower entry prices in areas like Malton, Cooksville and Mississauga Valleys carry rents that are far closer to their purchase prices than Port Credit or Lorne Park. Rather than trusting a static ranking, sort this page by cash flow, or read the neighbourhood guides, which are rebuilt from live listing data.',
+  },
+];
 
 // Title/H1/intro exact-match the high-intent GSC query "investment properties
 // for sale mississauga" (pos ~14, real impressions — the money keyword).
@@ -15,7 +63,36 @@ export const metadata = {
 
 // Loads instantly with skeletons, then fetches client-side progressively.
 // Page 1 (200 listings) appears in ~1-2s, remaining pages load in background.
-export default function ListingsPage() {
+// Server-side fetch of the first page of inventory. Deliberately ONE page
+// (200 rows): enough that the HTML is substantive and the top of the market is
+// indexable, without making the crawler wait on 13 upstream requests. A
+// failure returns [] and the client fetch takes over exactly as it does today,
+// so a feed hiccup degrades to the old behaviour rather than an error page.
+async function fetchInitialListings() {
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    // Local hosts appear as BOTH "localhost:3000" and "127.0.0.1:3000"; matching
+    // only the former built an https:// URL against a plain-http dev server, the
+    // TLS error hit the catch, and the page silently fell back to an empty
+    // server render — which looked exactly like SSR not working at all.
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
+    const proto = isLocal ? 'http' : 'https';
+    const res = await fetch(`${proto}://${host}/api/listings?limit=200&page=1`, {
+      next: { revalidate: 600 },
+    });
+    if (!res.ok) return { listings: [], total: 0 };
+    const data = await res.json();
+    const rows = processListings(data.listings || []);
+    return { listings: rows, total: Number(data.total) || rows.length };
+  } catch {
+    return { listings: [], total: 0 };
+  }
+}
+
+export default async function ListingsPage() {
+  const { listings, total } = await fetchInitialListings();
+
   return (
     <main className="min-h-screen bg-cloud">
       <BreadcrumbJsonLd
@@ -24,6 +101,7 @@ export default function ListingsPage() {
           { name: 'Investment Properties for Sale', url: 'https://www.mississaugainvestor.ca/listings' },
         ]}
       />
+      <FAQJsonLd items={LISTINGS_FAQ} />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-navy">
@@ -57,10 +135,43 @@ export default function ListingsPage() {
         </div>
         <Suspense>
           <ListingsContainer
-            initialListings={[]}
+            initialListings={listings}
             apiEndpoint="/api/listings"
           />
         </Suspense>
+
+        {/* Server-rendered buying guidance. The listings themselves arrive
+            client-side, so without this the highest-value commercial page
+            offers a crawler four short paragraphs — thin for the query it
+            targets. Mirrors the FAQ schema above it exactly. */}
+        <section className="mt-12">
+          <h2 className="font-heading text-xl font-bold text-navy">
+            Buying an investment property in Mississauga: common questions
+          </h2>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {LISTINGS_FAQ.map((qa) => (
+              <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
+                <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-slate-600">{qa.answer}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-slate-500">
+            Model a specific property in the{' '}
+            <Link href="/mortgage-calculator" className="font-medium text-accent no-underline hover:text-accent-dark">
+              income property mortgage calculator
+            </Link>
+            , see how each score is built on the{' '}
+            <Link href="/score-methodology" className="font-medium text-accent no-underline hover:text-accent-dark">
+              methodology page
+            </Link>
+            , or compare areas in the{' '}
+            <Link href="/neighbourhoods" className="font-medium text-accent no-underline hover:text-accent-dark">
+              Mississauga neighbourhood guides
+            </Link>
+            .
+          </p>
+        </section>
       </div>
     </main>
   );

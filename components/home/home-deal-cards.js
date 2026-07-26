@@ -105,54 +105,49 @@ function HomeDealCard({ deal, photo, isGated }) {
 
         {/* Metrics — gated for anonymous */}
         <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-1.5 sm:p-2">
-          {isGated ? (
-            <>
-              <div>
-                <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
-                <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
-                <p className="text-[11px] sm:text-xs font-bold text-slate-300">🔒</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
-                <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
-                <p className="text-[11px] sm:text-xs font-bold text-navy">{pct1(deal.capRate)}</p>
-              </div>
-              <div>
-                <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
-                <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-400' : cf >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
-                </p>
-              </div>
-              <div>
-                <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
-                <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
-              </div>
-            </>
-          )}
+          {/* CAP and the deal score are NEVER gated. The hero card on this
+              same page prints a cap rate in full, so locking it on the card
+              below showed a visitor two different answers for one property and
+              read as a trick rather than a teaser. Cap rate and score are the
+              proof the platform works — they earn the signup. Only the monthly
+              cash-flow figure (and, on the listing page, the full breakdown,
+              BRRR projection and alerts) sits behind the gate. */}
+          <div>
+            <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
+            <p className="text-[11px] sm:text-xs font-bold text-navy">{pct1(deal.capRate)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
+            {isGated ? (
+              <p className="text-[11px] sm:text-xs font-bold text-accent" aria-label="Sign up free to see monthly cash flow">
+                Free
+              </p>
+            ) : (
+              <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-400' : cf >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
+            <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
+          </div>
         </div>
-        {isGated ? (
-          <p className="mt-1.5 text-center text-[10px] sm:text-[11px] font-medium text-accent">
-            Sign up free to unlock deal metrics
+        {/* The assumption behind the CAP shown above — now rendered for gated
+            cards too, because a cap rate with a hidden rent assumption is the
+            unverifiable number the whole rent-assumption work set out to fix.
+            Short form only: these cards render two-up at 375px, so the full
+            main+suite breakdown lives on the listing page. */}
+        {deal.estimatedRent > 0 && (
+          <p className="mt-1.5 text-center text-[10px] text-slate-500">
+            Assumes ${Math.round(deal.estimatedRent).toLocaleString()}/mo rent
+            {deal.basementIncome > 0 ? ' incl. suite' : deal.unitCount >= 2 ? ` · ${deal.unitCount} units` : ''}
           </p>
-        ) : (
-          // The assumption behind the unlocked metrics, stated on the card
-          // itself. Short form only — these cards render two-up at 375px, so
-          // the full main+suite breakdown lives on the listing page.
-          deal.estimatedRent > 0 && (
-            <p className="mt-1.5 text-center text-[10px] text-slate-500">
-              Assumes ${Math.round(deal.estimatedRent).toLocaleString()}/mo rent
-              {deal.basementIncome > 0 ? ' incl. suite' : deal.unitCount >= 2 ? ` · ${deal.unitCount} units` : ''}
-            </p>
-          )
+        )}
+        {isGated && (
+          <p className="mt-1 text-center text-[10px] sm:text-[11px] font-medium text-accent">
+            Sign up free for monthly cash flow
+          </p>
         )}
       </div>
     </Link>

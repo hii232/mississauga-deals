@@ -12,6 +12,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Income Property Mortgage Calculator — Mississauga Cash Flow & Payments',
     description: 'Free income property mortgage & cash-flow calculator for Mississauga real estate investors by Hamza Nouman.',
+    images: ['/opengraph-image'],
   },
 };
 export default function Layout({ children }) { return children; }

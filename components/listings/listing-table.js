@@ -165,7 +165,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
 
                   {/* Cash Flow */}
                   <td className={`px-4 py-3 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    <span className={listing.cashFlow >= 0 ? 'text-success font-semibold' : 'text-red-500 font-semibold'}>
+                    <span className={listing.cashFlow >= 0 ? 'text-emerald-700 font-semibold' : 'text-red-600 font-semibold'}>
                       {fmtNum(listing.cashFlow)}
                     </span>
                   </td>
@@ -174,7 +174,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
                   <td className="px-4 py-3">
                     <div className="flex gap-1">
                       {listing.hasSuite && (
-                        <span className="rounded bg-success/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-success">
+                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-emerald-700">
                           Suite
                         </span>
                       )}
@@ -184,7 +184,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
                         </span>
                       )}
                       {listing.priceDrop > 0 && (
-                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-500">
+                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-red-600">
                           Reduced
                         </span>
                       )}

@@ -13,6 +13,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'Compare Investment Properties — MississaugaInvestor.ca',
     description: 'Side-by-side investment comparison: cash flow, cap rate, deal score, and more.',
+    images: ['/opengraph-image'],
   },
 };
 

@@ -11,9 +11,9 @@ export default function Footer() {
           <div className="md:col-span-1">
             <div className="flex items-center gap-0.5 mb-3">
               <span className="font-heading font-bold text-lg text-white">MississaugaInvestor</span>
-              <span className="font-heading font-bold text-lg text-accent">.ca</span>
+              <span className="font-heading font-bold text-lg text-[#8AB6FF]">.ca</span>
             </div>
-            <p className="text-white/50 text-xs leading-relaxed mb-4">
+            <p className="text-white/70 text-xs leading-relaxed mb-4">
               Mississauga's investment property platform. Data-driven analysis for smart real estate decisions.
             </p>
             <div className="text-xs text-white/60 space-y-1">
@@ -21,12 +21,12 @@ export default function Footer() {
               <p>Cityscape Real Estate Ltd., Brokerage</p>
               <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
               <p>
-                <a href="tel:6476091289" className="text-accent hover:text-accent/80 no-underline">647-609-1289</a>
+                <a href="tel:6476091289" className="text-[#8AB6FF] hover:text-white no-underline">647-609-1289</a>
                 {' · '}
-                <a href="mailto:hamza@nouman.ca" className="text-accent hover:text-accent/80 no-underline">hamza@nouman.ca</a>
+                <a href="mailto:hamza@nouman.ca" className="text-[#8AB6FF] hover:text-white no-underline">hamza@nouman.ca</a>
               </p>
               <p>
-                <a href="https://www.mississaugainvestor.ca" className="text-accent hover:text-accent/80 no-underline">
+                <a href="https://www.mississaugainvestor.ca" className="text-[#8AB6FF] hover:text-white no-underline">
                   mississaugainvestor.ca
                 </a>
               </p>
@@ -37,19 +37,19 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-semibold text-sm text-white mb-3">Platform</h4>
             <ul className="space-y-2 text-xs">
-              <li><Link href="/listings" className="text-white/50 hover:text-white no-underline transition-colors">Investment Listings</Link></li>
-              <li><Link href="/sell" className="text-white/50 hover:text-white no-underline transition-colors">Sell Your Home</Link></li>
-              <li><Link href="/market-pulse" className="text-white/50 hover:text-white no-underline transition-colors">Market Pulse</Link></li>
-              <li><Link href="/neighbourhoods" className="text-white/50 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
-              <li><Link href="/quiz" className="text-white/50 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
-              <li><Link href="/pre-construction/projects" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction Projects</Link></li>
-              <li><Link href="/pre-construction" className="text-white/50 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
-              <li><Link href="/pre-construction/hst-rebate" className="text-white/50 hover:text-white no-underline transition-colors">HST Rebate Guide</Link></li>
-              <li><Link href="/mortgage-calculator" className="text-white/50 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>
-              <li><Link href="/blog" className="text-white/50 hover:text-white no-underline transition-colors">Blog</Link></li>
-              <li><Link href="/book-call" className="text-white/50 hover:text-white no-underline transition-colors">Book a Free Call</Link></li>
-              <li><Link href="/about" className="text-white/50 hover:text-white no-underline transition-colors">About Hamza Nouman</Link></li>
-              <li><Link href="/faq" className="text-white/50 hover:text-white no-underline transition-colors">FAQ</Link></li>
+              <li><Link href="/listings" className="text-white/70 hover:text-white no-underline transition-colors">Investment Listings</Link></li>
+              <li><Link href="/sell" className="text-white/70 hover:text-white no-underline transition-colors">Sell Your Home</Link></li>
+              <li><Link href="/market-pulse" className="text-white/70 hover:text-white no-underline transition-colors">Market Pulse</Link></li>
+              <li><Link href="/neighbourhoods" className="text-white/70 hover:text-white no-underline transition-colors">Neighbourhoods</Link></li>
+              <li><Link href="/quiz" className="text-white/70 hover:text-white no-underline transition-colors">Find My Deal</Link></li>
+              <li><Link href="/pre-construction/projects" className="text-white/70 hover:text-white no-underline transition-colors">Pre-Construction Projects</Link></li>
+              <li><Link href="/pre-construction" className="text-white/70 hover:text-white no-underline transition-colors">Pre-Construction VIP</Link></li>
+              <li><Link href="/pre-construction/hst-rebate" className="text-white/70 hover:text-white no-underline transition-colors">HST Rebate Guide</Link></li>
+              <li><Link href="/mortgage-calculator" className="text-white/70 hover:text-white no-underline transition-colors">Mortgage Calculator</Link></li>
+              <li><Link href="/blog" className="text-white/70 hover:text-white no-underline transition-colors">Blog</Link></li>
+              <li><Link href="/book-call" className="text-white/70 hover:text-white no-underline transition-colors">Book a Free Call</Link></li>
+              <li><Link href="/about" className="text-white/70 hover:text-white no-underline transition-colors">About Hamza Nouman</Link></li>
+              <li><Link href="/faq" className="text-white/70 hover:text-white no-underline transition-colors">FAQ</Link></li>
             </ul>
           </div>
 
@@ -59,11 +59,11 @@ export default function Footer() {
               <Link href="/guides" className="text-white hover:text-accent no-underline transition-colors">Investor Guides</Link>
             </h4>
             <ul className="space-y-2 text-xs">
-              <li><Link href="/cash-flow-positive-properties-ontario" className="text-white/50 hover:text-white no-underline transition-colors">Cash-Flow-Positive Properties</Link></li>
-              <li><Link href="/rent-vs-buy-mississauga" className="text-white/50 hover:text-white no-underline transition-colors">Rent vs Buy in Mississauga</Link></li>
-              <li><Link href="/townhouse-vs-condo-investment" className="text-white/50 hover:text-white no-underline transition-colors">Townhouse vs Condo</Link></li>
-              <li><Link href="/hurontario-lrt-real-estate" className="text-white/50 hover:text-white no-underline transition-colors">Hurontario LRT &amp; Real Estate</Link></li>
-              <li><Link href="/rental-property-insurance-mississauga" className="text-white/50 hover:text-white no-underline transition-colors">Rental Property Insurance</Link></li>
+              <li><Link href="/cash-flow-positive-properties-ontario" className="text-white/70 hover:text-white no-underline transition-colors">Cash-Flow-Positive Properties</Link></li>
+              <li><Link href="/rent-vs-buy-mississauga" className="text-white/70 hover:text-white no-underline transition-colors">Rent vs Buy in Mississauga</Link></li>
+              <li><Link href="/townhouse-vs-condo-investment" className="text-white/70 hover:text-white no-underline transition-colors">Townhouse vs Condo</Link></li>
+              <li><Link href="/hurontario-lrt-real-estate" className="text-white/70 hover:text-white no-underline transition-colors">Hurontario LRT &amp; Real Estate</Link></li>
+              <li><Link href="/rental-property-insurance-mississauga" className="text-white/70 hover:text-white no-underline transition-colors">Rental Property Insurance</Link></li>
             </ul>
           </div>
 
@@ -80,15 +80,15 @@ export default function Footer() {
             </ul>
             {/* GTA-wide coverage — Mississauga stays the focus above, but the
                 platform now scores listings across the whole GTA. */}
-            <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/40">Across the GTA</p>
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/60">Across the GTA</p>
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
               {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton'].map((c) => (
                 <li key={c}>
-                  <Link href={`/gta?city=${encodeURIComponent(c)}`} className="text-white/50 hover:text-white no-underline transition-colors">{c}</Link>
+                  <Link href={`/gta?city=${encodeURIComponent(c)}`} className="text-white/70 hover:text-white no-underline transition-colors">{c}</Link>
                 </li>
               ))}
               <li>
-                <Link href="/gta" className="text-accent hover:text-accent/80 no-underline transition-colors">All GTA &rarr;</Link>
+                <Link href="/gta" className="text-[#8AB6FF] hover:text-white no-underline transition-colors">All GTA &rarr;</Link>
               </li>
             </ul>
           </div>
@@ -115,14 +115,14 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
           {/* Bona Fide Interest Notice (PropTx VOW Datafeed Agreement Section 6.3(k)) */}
-          <p className="text-[10px] text-white/30 leading-relaxed">
+          <p className="text-[11px] text-white/60 leading-relaxed">
             The information provided herein must only be used by consumers that have a bona fide interest
             in the purchase, sale, or lease of real estate and may not be used for any commercial purpose
             or any other purpose.
           </p>
 
           {/* TRREB Disclaimer */}
-          <p className="text-[10px] text-white/30 leading-relaxed">
+          <p className="text-[11px] text-white/60 leading-relaxed">
             The listing data is provided under copyright by the Toronto Regional Real Estate Board (TRREB).
             The listing data is deemed reliable but is not guaranteed accurate by TRREB. The trademarks
             REALTOR®, REALTORS®, and the REALTOR® logo are controlled by The Canadian Real Estate Association
@@ -132,7 +132,7 @@ export default function Footer() {
           </p>
 
           {/* Investment Disclaimer */}
-          <p className="text-[10px] text-white/30 leading-relaxed">
+          <p className="text-[11px] text-white/60 leading-relaxed">
             Investment scores, cash flow estimates, cap rates, and all financial metrics displayed on this site
             are calculated estimates for informational purposes only. They are not appraisals, broker price opinions,
             or guaranteed returns. Actual investment performance depends on many factors not captured in these
@@ -141,7 +141,7 @@ export default function Footer() {
           </p>
 
           {/* Deal Score Disclaimer */}
-          <p className="text-[10px] text-white/30 leading-relaxed">
+          <p className="text-[11px] text-white/60 leading-relaxed">
             This score measures estimated investment return potential only — not property quality, condition,
             or desirability. Scores are based on mathematical calculations using list price, estimated rental
             income, and operating costs. A low investment score does not mean the property is undesirable — it
@@ -151,7 +151,7 @@ export default function Footer() {
           </p>
 
           {/* PIPEDA */}
-          <p className="text-[10px] text-white/30 leading-relaxed">
+          <p className="text-[11px] text-white/60 leading-relaxed">
             This website complies with PIPEDA (Personal Information Protection and Electronic Documents Act)
             and CASL (Canada's Anti-Spam Legislation). Your personal information is collected and used in
             accordance with our privacy policy.
@@ -159,12 +159,12 @@ export default function Footer() {
 
           {/* Copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-white/5">
-            <p className="text-[10px] text-white/25">
+            <p className="text-[11px] text-white/70">
               © {new Date().getFullYear()} MississaugaInvestor.ca · Hamza Nouman · All rights reserved.
             </p>
-            <div className="flex gap-4 text-[10px]">
-              <Link href="/privacy" className="text-white/25 hover:text-white/50 no-underline transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="text-white/25 hover:text-white/50 no-underline transition-colors">Terms</Link>
+            <div className="flex gap-4 text-[11px]">
+              <Link href="/privacy" className="text-white/70 hover:text-white no-underline transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="text-white/70 hover:text-white no-underline transition-colors">Terms</Link>
             </div>
           </div>
         </div>

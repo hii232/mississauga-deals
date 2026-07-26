@@ -82,9 +82,14 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       return;
     }
 
+    // Phone is optional here, matching /signup and /api/lead. It used to block
+    // step 2 outright, so a visitor who had already given a real email and name
+    // — on the highest-intent surface on the site, a specific property's
+    // analysis — was turned away over the one field people most resist. Still
+    // validated when supplied, so a typo can't reach Hamza as a dead contact.
     const digits = phone.replace(/\D/g, '');
-    if (digits.length < 10) {
-      setError('Please enter a valid phone number.');
+    if (phone && digits.length < 10) {
+      setError('Please enter a valid phone number, or leave it blank.');
       return;
     }
 
@@ -130,8 +135,9 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   function handleSkipStep2() {
     // They gave email but skipped name/phone — still a real lead. Previously
     // this only wrote to localStorage, so the email NEVER reached Hamza and the
-    // lead was silently lost. Capture it server-side (email-only, no phone — so
-    // NOT source 'registration', which would 400 without a phone). Fire-and-
+    // lead was silently lost. Capture it server-side. (The distinct source is
+    // kept so Hamza can see in admin which leads skipped step 2 — /api/lead no
+    // longer rejects a registration without a phone.) Fire-and-
     // forget: never block the UI or lose the conversion on a network hiccup.
     fetch('/api/lead', {
       method: 'POST',
@@ -277,16 +283,17 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-navy">Phone Number</label>
+                  <label className="mb-1 block text-sm font-medium text-navy">
+                    Phone Number <span className="font-normal text-slate-500">(optional)</span>
+                  </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(formatPhone(e.target.value))}
                     placeholder="(647) 361-1234"
-                    required
                     className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
-                  <p className="mt-1 text-[11px] text-slate-500">We&apos;ll text you top deals before they hit the site</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Add it and Hamza can text you deals before they hit the site</p>
                 </div>
 
                 <button

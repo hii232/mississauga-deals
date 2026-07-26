@@ -167,7 +167,7 @@ export default function MortgageCalculatorPage() {
   }, [price, downPct, rate, amort, rent, propertyTax, insurance, maintenance, vacancy, management]);
 
   const cashFlowColor =
-    calc.monthlyCashFlow >= 0 ? 'text-green-600' : 'text-red-500';
+    calc.monthlyCashFlow >= 0 ? 'text-emerald-700' : 'text-red-600';
 
   return (
     <>
@@ -395,7 +395,7 @@ function MetricRow({ label, value, good }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-muted">{label}</span>
-      <span className={`text-sm font-mono font-bold ${good === true ? 'text-green-600' : good === false ? 'text-red-500' : 'text-navy'}`}>
+      <span className={`text-sm font-mono font-bold ${good === true ? 'text-emerald-700' : good === false ? 'text-red-600' : 'text-navy'}`}>
         {value}
       </span>
     </div>
@@ -406,7 +406,7 @@ function BreakdownRow({ label, value, positive }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-muted">{label}</span>
-      <span className={`text-xs font-mono ${positive ? 'text-green-600' : 'text-red-400'}`}>
+      <span className={`text-xs font-mono ${positive ? 'text-emerald-700' : 'text-red-600'}`}>
         {positive ? '+' : ''}${fmt(Math.abs(value))}
       </span>
     </div>

@@ -93,7 +93,7 @@ export default function RecentPage() {
                     {item.cashFlow != null && (
                       <>
                         <span className="h-1 w-1 rounded-full bg-slate-300" />
-                        <span className={item.cashFlow >= 0 ? 'text-success' : 'text-red-500'}>
+                        <span className={item.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}>
                           {item.cashFlow >= 0 ? '+' : '-'}${Math.abs(item.cashFlow).toLocaleString()}/mo
                         </span>
                       </>

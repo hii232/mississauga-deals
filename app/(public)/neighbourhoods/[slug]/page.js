@@ -234,15 +234,15 @@ export default async function NeighbourhoodGuidePage({ params }) {
       </p>
       <div className="rounded-lg border border-gray-100 p-5 mb-2">
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted">Estimated rent</span><span className="font-mono font-semibold text-green-600">+${exampleRent.toLocaleString()}/mo</span></div>
-          <div className="flex justify-between"><span className="text-muted">Mortgage payment</span><span className="font-mono text-red-500">−${cf.mortgage.toLocaleString()}/mo</span></div>
-          <div className="flex justify-between"><span className="text-muted">Property tax</span><span className="font-mono text-red-500">−${cf.propTax.toLocaleString()}/mo</span></div>
-          <div className="flex justify-between"><span className="text-muted">Insurance</span><span className="font-mono text-red-500">−${cf.insurance.toLocaleString()}/mo</span></div>
-          <div className="flex justify-between"><span className="text-muted">Maintenance reserve</span><span className="font-mono text-red-500">−${cf.maintenance.toLocaleString()}/mo</span></div>
-          <div className="flex justify-between"><span className="text-muted">Vacancy allowance</span><span className="font-mono text-red-500">−${cf.vacancy.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Estimated rent</span><span className="font-mono font-semibold text-emerald-700">+${exampleRent.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Mortgage payment</span><span className="font-mono text-red-600">−${cf.mortgage.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Property tax</span><span className="font-mono text-red-600">−${cf.propTax.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Insurance</span><span className="font-mono text-red-600">−${cf.insurance.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Maintenance reserve</span><span className="font-mono text-red-600">−${cf.maintenance.toLocaleString()}/mo</span></div>
+          <div className="flex justify-between"><span className="text-muted">Vacancy allowance</span><span className="font-mono text-red-600">−${cf.vacancy.toLocaleString()}/mo</span></div>
           <div className="border-t border-gray-100 pt-2 flex justify-between">
             <span className="font-bold text-navy">Monthly cash flow</span>
-            <span className={`font-mono font-bold ${cf.cashFlow >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+            <span className={`font-mono font-bold ${cf.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
               {cf.cashFlow >= 0 ? '+' : '−'}${Math.abs(cf.cashFlow).toLocaleString()}/mo
             </span>
           </div>

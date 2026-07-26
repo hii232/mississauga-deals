@@ -8,7 +8,7 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
 import { NeighbourhoodScene } from '@/components/art/neighbourhood-scene';
 import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
@@ -29,6 +29,27 @@ const neighbourhoodListSchema = {
     url: `${BASE}/neighbourhoods/${slugify(name)}`,
   })),
 };
+// Targets the high-intent query "best neighbourhoods to invest in mississauga"
+// (real GSC impressions, striking-distance position). Answers stay in sync with
+// the ranked HOOD_DATA shown on the page.
+const NEIGHBOURHOODS_FAQ = [
+  {
+    question: 'What are the best neighbourhoods to invest in Mississauga?',
+    answer:
+      'For rental cash flow, the highest-yielding Mississauga neighbourhoods are Clarkson, Malton, and Cooksville (around 5% gross rent yield), followed by Erin Mills and Dixie. Clarkson and Cooksville pair strong yields with an upward price trend, making them balanced picks for cash flow plus appreciation, while City Centre and Port Credit trade lower yields for stronger long-term appreciation. Every Mississauga neighbourhood on this page is ranked by rent yield, price trend, and days on market so you can match an area to your investment strategy.',
+  },
+  {
+    question: 'Which Mississauga neighbourhood has the best rental cash flow?',
+    answer:
+      'Clarkson and Malton currently lead Mississauga on gross rent yield (about 5.1%), meaning rent covers more of the carrying costs relative to the purchase price. Cooksville is close behind with a warmer price trend. Lower-priced areas generally yield more, while premium waterfront areas like Port Credit yield less but appreciate faster.',
+  },
+  {
+    question: 'Is Mississauga a good place to invest in real estate in 2026?',
+    answer:
+      'Mississauga combines GTA-level rental demand with lower entry prices than downtown Toronto, strong tenant demand from students and commuters, and major transit investment such as the Hazel McCallion (Hurontario) LRT. Several neighbourhoods still offer positive or near-neutral cash flow at current rates. Use the deal scores and cash-flow analysis on this site to evaluate specific properties.',
+  },
+];
+
 // Cards shown before the "show all" reveal (3 full rows on the lg 3-col grid).
 const INITIAL_COUNT = 9;
 
@@ -76,6 +97,10 @@ export default function NeighbourhoodsPage() {
   return (
     <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(neighbourhoodListSchema) }} />
+    {/* City-wide questions belong to the DIRECTORY page only. They used to
+        live in the layout, which also wraps [slug], so all 24 hood pages
+        published the same three answers and competed with this page. */}
+    <FAQJsonLd items={NEIGHBOURHOODS_FAQ} />
     <BreadcrumbJsonLd
       items={[
         { name: 'Home', url: `${BASE}/` },
@@ -178,7 +203,7 @@ export default function NeighbourhoodsPage() {
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-500">YoY Change*</p>
-                  <p className={`text-sm font-bold ${data.priceYoY >= 4 ? 'text-success' : data.priceYoY >= 2.5 ? 'text-gold-dark' : 'text-muted'}`}>
+                  <p className={`text-sm font-bold ${data.priceYoY >= 4 ? 'text-emerald-700' : data.priceYoY >= 2.5 ? 'text-gold-dark' : 'text-muted'}`}>
                     +{data.priceYoY}%
                   </p>
                 </div>
@@ -188,7 +213,7 @@ export default function NeighbourhoodsPage() {
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-500">Inventory*</p>
-                  <p className={`text-sm font-bold ${data.inventory === 'Low' ? 'text-red-500' : data.inventory === 'Medium' ? 'text-gold-dark' : 'text-muted'}`}>
+                  <p className={`text-sm font-bold ${data.inventory === 'Low' ? 'text-red-600' : data.inventory === 'Medium' ? 'text-gold-dark' : 'text-muted'}`}>
                     {data.inventory}
                   </p>
                 </div>
@@ -242,13 +267,39 @@ export default function NeighbourhoodsPage() {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY &amp; inventory</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
+      {/* Visible FAQ — renders the SAME NEIGHBOURHOODS_FAQ array as the FAQPage
+          schema above. Google requires FAQ structured data to be visible on the
+          page; the schema was previously declared with none of it on screen,
+          which forfeits rich-result eligibility and risks a structured-data
+          manual action. Sharing one array means they can never drift. */}
+      <section className="mt-12">
+        <h2 className="section-title mb-6">Investing in Mississauga: common questions</h2>
+        <div className="space-y-3">
+          {NEIGHBOURHOODS_FAQ.map((qa, i) => (
+            <details
+              key={qa.question}
+              open={i === 0}
+              className="group rounded-xl border border-slate-200 bg-white p-5 [&_summary::-webkit-details-marker]:hidden"
+            >
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                <h3 className="font-heading text-sm font-semibold text-navy">{qa.question}</h3>
+                <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{qa.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       {/* Recent Sales Activity */}
       {recentSales.length > 0 && (
         <div className="mt-10 card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h2 className="font-heading font-semibold text-lg text-navy">Recent Sales Across Mississauga</h2>
-              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-success">
+              <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                 <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
                 Live
               </span>
@@ -283,7 +334,7 @@ export default function NeighbourhoodsPage() {
                     <td className="py-2.5 text-muted text-xs hidden sm:table-cell">{comp.city}</td>
                     <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
                     <td className="py-2.5 text-center">
-                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-success' : comp.priceDelta > 0 ? 'text-red-500' : 'text-muted'}`}>
+                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
                         {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
                       </span>
                     </td>

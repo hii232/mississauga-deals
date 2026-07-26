@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
+import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
@@ -12,10 +12,11 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 2,000+ properties analyzed across 24 neighbourhoods.',
+  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
   alternates: {
     canonical: '/',
   },
@@ -194,7 +195,7 @@ function HeroDealCard({ deal, photo }) {
         <p className="mt-0.5 text-xs text-muted">{deal.beds} bed · {deal.baths} bath · {deal.type}</p>
         <div className="mt-3 flex gap-2">
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">CAP {deal.capRate}%</span>
-          <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+          <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
             {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
           </span>
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">{deal.dom} DOM</span>
@@ -356,7 +357,16 @@ function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map(({ num, Scene, title, desc }) => (
             <div key={num} className="card relative overflow-hidden p-6 text-center transition-shadow hover:shadow-lg">
-              <span className="absolute left-4 top-3 font-heading text-4xl font-extrabold text-navy/5">{num}</span>
+              {/* A real numbered badge, not the old 5%-opacity watermark. The
+                  watermark sat immediately before the illustration, whose SVG
+                  carries decorative <text> ("8.6", "$"), so extracted page text
+                  read "018.6" and "02$" — garbled for anything reading the page
+                  as text, Google included, while looking fine on screen. A
+                  legible badge states the sequence properly and removes the
+                  adjacency. White on accent measures 5.2:1. */}
+              <div className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                {Number(num)}
+              </div>
               <Scene className="mx-auto mb-4 h-28 w-auto" />
               <h3 className="font-heading font-semibold text-lg text-navy mb-2">{title}</h3>
               <p className="text-sm text-muted leading-relaxed">{desc}</p>
@@ -425,7 +435,7 @@ function AgentProfile({ googleRating }) {
 
             <div className="flex flex-wrap gap-6 justify-center md:justify-start mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-navy">2,000+</p>
+                <p className="text-2xl font-bold text-navy">{PLATFORM_STATS.propertiesAnalyzed}</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
               </div>
               <div className="text-center">
@@ -855,6 +865,12 @@ export default async function HomePage() {
       <GoogleReviews googleRating={googleRating} />
       <AgentProfile googleRating={googleRating} />
       <CTASection />
+
+      {/* Mobile sticky capture — the hero CTA scrolls away in the first swipe
+          on a long page; this keeps one always-reachable primary action.
+          /alerts (name+email capture) works for logged-in and logged-out
+          visitors alike, unlike the auth-state-dependent hero button. */}
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }

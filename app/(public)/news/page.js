@@ -20,6 +20,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: TITLE,
     description: DESCRIPTION,
+    images: ['/opengraph-image'],
   },
 };
 

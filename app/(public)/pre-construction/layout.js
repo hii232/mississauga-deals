@@ -9,4 +9,5 @@ export const metadata = {
     url: 'https://www.mississaugainvestor.ca/pre-construction',
   },
 };
+
 export default function Layout({ children }) { return children; }

@@ -256,7 +256,7 @@ export default function MarketPulsePage() {
               </div>
               <div className="rounded-lg bg-cloud p-2.5 text-center">
                 <p className="text-[10px] font-medium uppercase text-slate-500">Negotiation</p>
-                <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-success' : 'text-red-500'}`}>
+                <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                   {salesStats.avgNegotiationGap > 0 ? '+' : ''}{salesStats.avgNegotiationGap}%
                 </p>
               </div>
@@ -283,7 +283,7 @@ export default function MarketPulsePage() {
                     </td>
                     <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
                     <td className="py-2.5 text-center">
-                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-success' : comp.priceDelta > 0 ? 'text-red-500' : 'text-muted'}`}>
+                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
                         {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
                       </span>
                     </td>
@@ -319,7 +319,7 @@ export default function MarketPulsePage() {
                 </div>
                 <div className="flex items-center gap-4 text-xs">
                   <span className="text-muted">{fmtK(data.avgPrice)}</span>
-                  <span className="text-success font-medium">+{data.priceYoY}%</span>
+                  <span className="text-emerald-700 font-medium">+{data.priceYoY}%</span>
                 </div>
               </div>
             ))}

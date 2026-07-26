@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { createClient } from '@supabase/supabase-js';
 import { processListings } from '@/lib/listings/process-listings';
 import { applyFilters, DEFAULT_FILTERS } from '@/components/listings/filter-utils';
@@ -367,6 +368,27 @@ function statLine(d, size = 11) {
   return `<div style="font-family:${SERIF};font-size:${size}px;color:${MUTED};letter-spacing:2px;text-transform:uppercase;">${parts.join(' &nbsp;&middot;&nbsp; ')}</div>`;
 }
 
+// The rent every cash-flow figure above assumes. The site's listing cards state
+// this on every card — an investor's critique was that a cash-flow number with
+// an unstated rent assumption isn't credible — but the newsletter shipped the
+// figures bare, so the retention channel was the last place the assumption
+// stayed hidden. Reads the SAME fields the card component reads so the two can
+// never disagree, and renders nothing when rent is unknown rather than guessing.
+function rentAssumption(d, size = 11) {
+  const rent = Number(d.estimatedRent);
+  if (!Number.isFinite(rent) || rent <= 0) return '';
+  const money = (n) => '$' + Math.round(n).toLocaleString();
+  const basement = Number(d.basementIncome) || 0;
+  const base = Number(d.baseRent) || 0;
+  const units = Array.isArray(d.unitBreakdown) ? d.unitBreakdown : null;
+  let extra = '';
+  if (units && units.length > 1) extra = ` across ${units.length} units`;
+  else if (basement > 0 && base > 0) {
+    extra = ` &mdash; ${money(base)} main + ${money(basement)} ${d.basementTier === 'legal' ? 'legal ' : ''}suite`;
+  }
+  return `<div style="font-family:${SERIF};font-size:${size}px;font-style:italic;color:${MUTED};margin-top:5px;">Assumes ${money(rent)}/mo rent${extra}</div>`;
+}
+
 function dealPhoto(d) {
   const p = Array.isArray(d.photos) ? d.photos[0] : null;
   return typeof p === 'string' && p.startsWith('http') ? p : null;
@@ -388,6 +410,7 @@ function buildDealsHTML(deals, personalized) {
   <div style="margin-top:6px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-size:26px;font-weight:700;color:${INK};text-decoration:none;line-height:1.2;">${esc(hero.address)}</a></div>
   <div style="font-family:${SERIF};font-size:21px;color:${INK};margin-top:8px;">${fmtPrice(hero.price)} <span style="font-size:13px;color:${MUTED};font-style:italic;">&middot; ${esc(hero.type || 'Property')}</span></div>
   <div style="margin-top:12px;">${statLine(hero)}</div>
+  ${rentAssumption(hero)}
   <div style="margin-top:14px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};text-decoration:underline;">Read the full analysis &#8594;</a></div>`;
 
   const rows = rest.map((d, i) => {
@@ -399,6 +422,7 @@ function buildDealsHTML(deals, personalized) {
         <a href="${dealUrl(d)}" style="font-family:${SERIF};font-size:17px;font-weight:700;color:${INK};text-decoration:none;">${esc(d.address)}</a>
         <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${Number.isFinite(d.hamzaScore) ? d.hamzaScore : '—'}/10</div>
         <div style="margin-top:7px;">${statLine(d, 10)}</div>
+        ${rentAssumption(d, 10)}
       </td>
       <td align="right" style="vertical-align:top;white-space:nowrap;padding-left:10px;">
         <div style="font-family:${SERIF};font-size:17px;color:${INK};">${fmtPrice(d.price)}</div>
@@ -407,8 +431,15 @@ function buildDealsHTML(deals, personalized) {
     ${i < rest.length - 1 ? `<div style="border-top:1px solid ${HAIR};margin-top:18px;"></div>` : ''}`;
   }).join('');
 
+  // The financing basis behind every CAP/cash-flow figure above. The site
+  // discloses it on /score-methodology; without it here a subscriber cannot
+  // tell whether "+$312/mo" assumes 20% down or 35%. Built from
+  // DEFAULT_ASSUMPTIONS so it can never drift from the engine.
+  const basis = `<div style="font-family:${SERIF};font-size:10px;font-style:italic;color:${MUTED};margin-top:16px;line-height:1.6;">Figures assume ${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down at ${DEFAULT_ASSUMPTIONS.annualInterestRate}% over ${DEFAULT_ASSUMPTIONS.amortizationYears} years, plus property tax, insurance, maintenance and vacancy. <a href="https://www.mississaugainvestor.ca/score-methodology?utm_source=newsletter&utm_medium=email&utm_campaign=weekly" style="color:${INK};">Full methodology &#8594;</a></div>`;
+
   return `${heroHtml}
-  ${rest.length ? `${hairline()}${kicker('Also on the Market')}${rows}` : ''}`;
+  ${rest.length ? `${hairline()}${kicker('Also on the Market')}${rows}` : ''}
+  ${basis}`;
 }
 
 // ── Latest blog post block ──
@@ -599,9 +630,9 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       const sampleDeals = [
-        { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, neighbourhood: 'Lakeview', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-1.jpg'] },
-        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
-        { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
+        { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, estimatedRent: 4300, baseRent: 3100, basementIncome: 1200, basementTier: 'legal', neighbourhood: 'Lakeview', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-1.jpg'] },
+        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, estimatedRent: 2700, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
+        { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, estimatedRent: 3800, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
       ];
       // Preview uses the REAL live stats, not a hardcoded sample. A preview
       // built on frozen numbers is worthless for checking the thing that
