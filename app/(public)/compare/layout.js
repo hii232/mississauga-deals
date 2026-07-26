@@ -1,7 +1,7 @@
 export const metadata = {
-  title: 'Compare Investment Properties Side by Side',
+  title: { absolute: 'Compare Investment Properties Side by Side' },
   description:
-    'Compare Mississauga investment properties side by side — price, deal score, cash flow, cap rate, cash-on-cash return, suite potential, and more on MississaugaInvestor.ca.',
+    'Compare Mississauga investment properties side by side — price, deal score, cash flow, cap rate, cash-on-cash return and suite potential.',
   alternates: { canonical: '/compare' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

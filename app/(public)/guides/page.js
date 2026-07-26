@@ -8,8 +8,8 @@ const YEAR = new Date().getFullYear();
 const BASE = 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
-  title: `Mississauga Real Estate Investor Guides (${YEAR})`,
-  description: `Free, honest guides for Mississauga real estate investors: cash-flow-positive properties, rent vs buy, townhouse vs condo, the Hurontario LRT's impact, and landlord insurance — each with real numbers and a link to the tools.`,
+  title: { absolute: `Mississauga Real Estate Investor Guides (${YEAR})` },
+  description: `Free guides for Mississauga investors: cash-flow-positive properties, rent vs buy, townhouse vs condo, the Hurontario LRT, and landlord insurance.`,
   keywords: [
     'mississauga real estate investor guides',
     'real estate investing guides mississauga',

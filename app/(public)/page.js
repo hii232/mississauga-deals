@@ -15,8 +15,8 @@ import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-car
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
-  title: { absolute: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals by Hamza Nouman' },
-  description: 'Find the best real estate investment deals in Mississauga with Hamza Nouman, Cityscape Real Estate Ltd. Cash flow analysis, cap rates, deal scores, and expert insights on every property. 1,800+ properties analyzed across 24 neighbourhoods.',
+  title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
+  description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — with free weekly deal alerts. Investor analysis by Hamza Nouman, RECO licensed.',
   alternates: {
     canonical: '/',
   },
@@ -50,7 +50,15 @@ async function fetchLiveStats() {
       : data.salesToListRatio
         ? (data.salesToListRatio * 100).toFixed(1) + '%'
         : null;
-    const avgSoldPrice = data.avgPrices?.all?.soldAvg || data.avgPrice || null;
+    // WRONG NUMBER FIXED: this fell back to `data.avgPrice` — the average of
+    // ACTIVE LIST prices — and then labelled it "Avg. Sold". Whenever the sold
+    // figure was unavailable the stats bar printed the list average twice under
+    // two different labels, which is why Avg Price and Avg Sold both read
+    // $1.01M while the same bar claimed a 97% sale-to-list ratio: those three
+    // numbers cannot all be true at once. A sold average now comes only from
+    // real sold data; when there is none the tile is omitted, matching the
+    // omit-never-fake rule the rest of this bar already follows.
+    const avgSoldPrice = data.avgPrices?.all?.soldAvg || null;
 
     const fmtPrice = (p) => {
       if (!p || p <= 0) return null;

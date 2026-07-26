@@ -40,11 +40,15 @@ export function generateMetadata({ params }) {
   if (!name) return { title: 'Neighbourhood Not Found' };
   const d = HOOD_DATA[name];
 
-  const title = `${name} Mississauga Investment Property Guide — Prices, Rents & Cash Flow`;
-  const description = `Investing in ${name}, Mississauga: average price ${fmtK(d.avgPrice)} (${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}% YoY), ${d.rentYield}% rent yield, ${d.avgDOM} days on market. Rent estimates by bedroom, sample cash flow, and Hamza Nouman's take.`;
+  // Sized for the SERP: title <= ~60 chars and description <= ~155 so neither
+  // is truncated mid-phrase. The brand is dropped from the title via `absolute`
+  // (og:siteName already makes Google render it separately) — that reclaims 25
+  // characters for the neighbourhood name and the actual query.
+  const title = `${name} Investment Property Guide (Mississauga)`;
+  const description = `Investing in ${name}: average price ${fmtK(d.avgPrice)} (${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}% YoY), ${d.rentYield}% rent yield, ${d.avgDOM} days on market, plus a sample cash flow.`;
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: `/neighbourhoods/${params.slug}` },
     openGraph: {

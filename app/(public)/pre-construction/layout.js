@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'Pre-Construction Condos Mississauga — VIP Access + Save $130K HST | Hamza Nouman',
-  description: 'Get VIP early access to pre-construction condos in Mississauga plus save up to $130,000 with the Ontario HST rebate. Investment analysis, floor plans, and pricing from Hamza Nouman, Cityscape Real Estate Ltd.',
+  title: { absolute: 'Pre-Construction Condos Mississauga — VIP Access' },
+  description: 'VIP early access to Mississauga pre-construction condos, plus up to $130,000 off with the Ontario HST rebate. Floor plans, pricing and investment analysis.',
   alternates: { canonical: '/pre-construction' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

@@ -1,9 +1,9 @@
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman',
+  title: { absolute: 'Mississauga Real Estate Investing FAQ — Answered' },
   description:
-    'Frequently asked questions about investing in Mississauga real estate with Hamza Nouman, Cityscape Real Estate Ltd.. Learn how deal scores work, what cap rates mean, BRRR strategy, and how to find cash flow positive investment properties.',
+    'How deal scores work, what cap rate and cash-on-cash mean, the BRRR strategy, and how to find cash-flow-positive Mississauga investment properties.',
   keywords: [
     'Mississauga real estate FAQ',
     'Hamza Nouman FAQ',

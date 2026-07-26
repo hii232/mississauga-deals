@@ -3,8 +3,8 @@ import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: `Mississauga Housing Market ${YEAR} — Prices, Trends & Stats | Market Pulse`,
-  description: `Mississauga housing market ${YEAR}: average home prices by type, sale-to-list ratios, days on market, months of inventory, and mortgage rates — live MLS data blended with TRREB Market Watch, explained for investors by Hamza Nouman.`,
+  title: { absolute: `Mississauga Housing Market ${YEAR} — Prices & Trends` },
+  description: `Mississauga housing market ${YEAR}: average prices by type, sale-to-list ratio, days on market and inventory — live MLS data plus TRREB Market Watch.`,
   alternates: { canonical: '/market-pulse' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

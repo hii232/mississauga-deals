@@ -2,8 +2,8 @@ import { PageHero } from '@/components/layout/page-hero';
 import { BookingCalendar } from '@/components/booking/booking-calendar';
 
 export const metadata = {
-  title: 'Book a Call with Hamza Nouman — Free 30-Min Consultation',
-  description: 'Schedule a free 30-minute consultation with Hamza Nouman, REALTOR® at Cityscape Real Estate. Discuss Mississauga investment properties, pre-construction, HST rebate, and more.',
+  title: { absolute: 'Book a Call — Free 30-Min Investor Consultation' },
+  description: 'Book a free 30-minute call with Hamza Nouman, REALTOR®. Talk Mississauga investment properties, pre-construction and the Ontario HST rebate.',
   alternates: { canonical: '/book-call' },
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)

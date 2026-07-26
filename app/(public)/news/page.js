@@ -7,7 +7,7 @@ const DESCRIPTION =
   'Stay updated with the latest Canadian real estate news, Bank of Canada rate decisions, market reports, and investment insights.';
 
 export const metadata = {
-  title: TITLE,
+  title: { absolute: TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/news' },
   openGraph: {

@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Sell Your Mississauga Property — Free Market Evaluation by Hamza Nouman',
+  title: { absolute: 'Sell Your Mississauga Home — Free Home Valuation' },
   description: 'Get a free market evaluation for your Mississauga property from Hamza Nouman, Sales Representative at Cityscape Real Estate Ltd.. Data-driven pricing, expert negotiation, and maximum value for your home.',
   alternates: { canonical: '/sell' },
   openGraph: {

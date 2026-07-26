@@ -1,8 +1,8 @@
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
-  description: 'Take a 60-second quiz to discover your ideal Mississauga real estate investment strategy. Get matched with properties that fit your goals: cash flow, appreciation, or BRRR.',
+  title: { absolute: 'Find Your Investment Strategy — 60-Second Quiz' },
+  description: 'A 60-second quiz to find your Mississauga investment strategy — get matched to properties that fit your goals: cash flow, appreciation, or BRRR.',
   openGraph: {
     images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
     title: 'Find Your Investment Strategy — 60-Second Deal Quiz',

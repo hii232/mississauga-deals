@@ -97,12 +97,19 @@ async function fetchLiveListingStats(baseUrl) {
       ? Math.round(withDom.reduce((s, l) => s + domOf(l), 0) / withDom.length)
       : 28;
 
-    // Compute avg price; fall back to the latest transcribed TRREB average
-    // rather than a frozen round number that drifts stale.
+    // Average ACTIVE LIST price. It used to fall back to the latest TRREB
+    // monthly average when the feed returned nothing — but that figure is an
+    // average SOLD price, a different measurement. The fallback therefore
+    // published a sold average under a list-price label, and since the sold
+    // tile reads from the same TRREB number the homepage showed "Avg Price"
+    // and "Avg Sold" as the identical $1.01M while also claiming a 97%
+    // sale-to-list ratio: three figures that cannot all be true together.
+    // Now null when there is no live inventory, and every consumer already
+    // omits a null stat rather than inventing one.
     const withPrice = raw.filter((l) => priceOf(l) > 0);
     const avgPrice = withPrice.length > 0
       ? Math.round(withPrice.reduce((s, l) => s + priceOf(l), 0) / withPrice.length)
-      : mississaugaMonthly[mississaugaMonthly.length - 1].avgPrice;
+      : null;
 
     // Classify each listing into exactly ONE bucket, most specific first.
     // Order matters: "Semi-Detached" contains the substring "Detached", and
@@ -232,7 +239,13 @@ export async function GET() {
     region: 'Mississauga',
     activeCount: liveListings?.activeCount || 0,
     avgDOM: liveListings?.avgDOM || 28,
-    avgPrice: liveListings?.avgPrice || tRREBSold.all.avgPrice,
+    // LIVE list-price average only. Falling back to tRREBSold.all.avgPrice
+    // here published a SOLD average under a list-price key, which is what made
+    // the homepage print the same $1.01M for "Avg Price" and "Avg Sold"
+    // alongside a 97% sale-to-list ratio. (avgPrices.all.avg keeps its own
+    // TRREB fallback: the market-pulse chart that consumes it states the
+    // substitution in its caption, so there it is disclosed, not disguised.)
+    avgPrice: liveListings?.avgPrice || null,
     avgPrices,
     salesToListRatio,
     avgSoldPrice: soldStats?.avgSoldPrice || 0,
