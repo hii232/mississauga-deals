@@ -395,7 +395,7 @@ export function NewsClient({ articles, sources, topics }) {
 
         {/* ── Source Attribution ──────────────────────────── */}
         {filtered.length > 0 && (
-          <p className="mt-10 text-center text-xs text-slate-400">
+          <p className="mt-10 text-center text-xs text-slate-500">
             Aggregated from Bank of Canada, BNN Bloomberg, Financial Post, Better Dwelling, Storeys, Canadian Mortgage Trends, REM & CBC Business
           </p>
         )}

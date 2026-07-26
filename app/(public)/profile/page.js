@@ -53,11 +53,11 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="rounded-lg bg-cloud p-4">
-            <p className="text-xs font-medium uppercase text-slate-400 mb-1">Name</p>
+            <p className="text-xs font-medium uppercase text-slate-500 mb-1">Name</p>
             <p className="text-sm font-medium text-navy">{profile.name || 'Not provided'}</p>
           </div>
           <div className="rounded-lg bg-cloud p-4">
-            <p className="text-xs font-medium uppercase text-slate-400 mb-1">Email</p>
+            <p className="text-xs font-medium uppercase text-slate-500 mb-1">Email</p>
             <p className="text-sm font-medium text-navy">{profile.email || 'Not provided'}</p>
           </div>
         </div>

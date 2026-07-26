@@ -1168,7 +1168,7 @@ function ListingNav({ currentId }) {
       </button>
 
       <div className="flex items-center gap-2">
-        {position && <span className="text-xs text-slate-400 hidden sm:inline">{position}</span>}
+        {position && <span className="text-xs text-slate-500 hidden sm:inline">{position}</span>}
         <button
           onClick={() => prevId && router.push('/listings/' + prevId)}
           disabled={!prevId}

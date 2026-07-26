@@ -189,15 +189,15 @@ export default function SavedPage() {
 
                   <div className="grid grid-cols-3 gap-2 rounded-lg bg-cloud p-2.5 text-center mb-3">
                     <div>
-                      <p className="text-[10px] font-medium uppercase text-slate-400">Score</p>
+                      <p className="text-[10px] font-medium uppercase text-slate-500">Score</p>
                       <p className="text-sm font-bold" style={{ color: scoreHex }}>{listing.hamzaScore}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium uppercase text-slate-400">Cap</p>
+                      <p className="text-[10px] font-medium uppercase text-slate-500">Cap</p>
                       <p className="text-sm font-bold text-navy">{listing.capRate.toFixed(1)}%</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium uppercase text-slate-400">CF</p>
+                      <p className="text-[10px] font-medium uppercase text-slate-500">CF</p>
                       <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
                         {fmtNum(listing.cashFlow)}
                       </p>

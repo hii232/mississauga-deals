@@ -36,7 +36,7 @@ function PriceInput({ value, onChange, placeholder }) {
   const display = value > 0 ? value : '';
   return (
     <div className="relative flex-1 min-w-[110px]">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">$</span>
+      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">$</span>
       <input
         type="number"
         value={display}

@@ -410,7 +410,7 @@ export default function PreConstructionProjectsPage() {
 
       {/* ── Disclaimer ───────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <p className="text-[10px] text-slate-400 leading-relaxed text-center">
+        <p className="text-[10px] text-slate-500 leading-relaxed text-center">
           Prices, availability, and project details are subject to change without notice. Information is gathered from public sources and developer materials and may not reflect the most current data. All images and renderings are for illustrative purposes only. Please contact Hamza Nouman for the latest pricing, availability, and floor plans. Hamza Nouman, Salesperson, Cityscape Real Estate Ltd., Brokerage. Not intended to solicit buyers or sellers currently under contract.
         </p>
       </div>

@@ -137,7 +137,7 @@ function HomeDealCard({ deal, photo, isGated }) {
                 Free
               </p>
             ) : (
-              <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-400' : cf >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+              <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-500' : cf >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                 {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
               </p>
             )}
