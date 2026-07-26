@@ -17,7 +17,7 @@ export function BrowseScene({ className = '' }) {
       <rect x="87" y="72" width="14" height="32" rx="2" fill={NAVY} opacity="0.12" stroke={NAVY} strokeWidth="2.5" />
       {/* score badge */}
       <circle cx="118" cy="38" r="17" fill={GREEN} />
-      <text x="118" y="43" textAnchor="middle" fontSize="13" fontWeight="800" fill="#fff" fontFamily="system-ui, sans-serif">8.6</text>
+      <path d="M111 38 l4.5 4.5 9.5 -9.5" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
       {/* sparkle */}
       <path d="M30 34 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3 Z" fill={GOLD} opacity="0.9" />
     </svg>
@@ -37,7 +37,7 @@ export function AnalysisScene({ className = '' }) {
       <circle cx="102" cy="38" r="4" fill={GREEN} />
       {/* dollar chip */}
       <rect x="40" y="16" width="30" height="14" rx="7" fill={GOLD} opacity="0.9" />
-      <text x="55" y="26.5" textAnchor="middle" fontSize="10" fontWeight="800" fill="#fff" fontFamily="system-ui, sans-serif">$</text>
+      <path d="M55 19.5 v7 M52.5 21.5 h5 M52.5 24.5 h5" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" />
       {/* magnifier */}
       <circle cx="116" cy="82" r="18" fill="#fff" stroke={NAVY} strokeWidth="5" />
       <line x1="129" y1="95" x2="142" y2="108" stroke={NAVY} strokeWidth="6" strokeLinecap="round" />

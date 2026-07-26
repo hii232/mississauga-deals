@@ -357,7 +357,16 @@ function HowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map(({ num, Scene, title, desc }) => (
             <div key={num} className="card relative overflow-hidden p-6 text-center transition-shadow hover:shadow-lg">
-              <span className="absolute left-4 top-3 font-heading text-4xl font-extrabold text-navy/5">{num}</span>
+              {/* A real numbered badge, not the old 5%-opacity watermark. The
+                  watermark sat immediately before the illustration, whose SVG
+                  carries decorative <text> ("8.6", "$"), so extracted page text
+                  read "018.6" and "02$" — garbled for anything reading the page
+                  as text, Google included, while looking fine on screen. A
+                  legible badge states the sequence properly and removes the
+                  adjacency. White on accent measures 5.2:1. */}
+              <div className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
+                {Number(num)}
+              </div>
               <Scene className="mx-auto mb-4 h-28 w-auto" />
               <h3 className="font-heading font-semibold text-lg text-navy mb-2">{title}</h3>
               <p className="text-sm text-muted leading-relaxed">{desc}</p>
