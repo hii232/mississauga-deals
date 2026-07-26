@@ -33,9 +33,19 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links.
+              These column headings are h2, not h4. They used to be h4 with no
+              h3 or h2 anywhere in the footer, so every page on the site ended
+              in a skipped heading level — measured across all 34 public routes,
+              18 showed an h2->h4 jump and the rest h1->h4, entirely from here.
+              Skipping levels breaks the heading outline screen-reader users
+              navigate by and muddies the document structure crawlers read.
+              h2 is the correct level: these are top-level sections of the
+              contentinfo landmark, siblings of the page's own h2 sections, so
+              the outline stays flat whatever the page above happens to end on.
+              Visual size is set by the classes, not the tag, so nothing moves. */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-white mb-3">Platform</h4>
+            <h2 className="font-heading font-semibold text-sm text-white mb-3">Platform</h2>
             <ul className="space-y-2 text-xs">
               <li><Link href="/listings" className="text-white/70 hover:text-white no-underline transition-colors">Investment Listings</Link></li>
               <li><Link href="/sell" className="text-white/70 hover:text-white no-underline transition-colors">Sell Your Home</Link></li>
@@ -55,9 +65,9 @@ export default function Footer() {
 
           {/* Investor Guides */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-white mb-3">
+            <h2 className="font-heading font-semibold text-sm text-white mb-3">
               <Link href="/guides" className="text-white hover:text-accent no-underline transition-colors">Investor Guides</Link>
-            </h4>
+            </h2>
             <ul className="space-y-2 text-xs">
               <li><Link href="/cash-flow-positive-properties-ontario" className="text-white/70 hover:text-white no-underline transition-colors">Cash-Flow-Positive Properties</Link></li>
               <li><Link href="/rent-vs-buy-mississauga" className="text-white/70 hover:text-white no-underline transition-colors">Rent vs Buy in Mississauga</Link></li>
@@ -69,7 +79,7 @@ export default function Footer() {
 
           {/* Service Areas */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-white mb-3">Service Areas</h4>
+            <h2 className="font-heading font-semibold text-sm text-white mb-3">Service Areas</h2>
             <ul className="space-y-2 text-xs text-white/50">
               <li>Port Credit · Lakeview</li>
               <li>Clarkson · Lorne Park</li>
@@ -95,7 +105,7 @@ export default function Footer() {
 
           {/* Compliance */}
           <div>
-            <h4 className="font-heading font-semibold text-sm text-white mb-3">Compliance</h4>
+            <h2 className="font-heading font-semibold text-sm text-white mb-3">Compliance</h2>
             <div className="space-y-3 text-xs">
               <a href="https://www.cityscaperealestate.ca" target="_blank" rel="noreferrer" className="flex items-center gap-2 text-white/50 hover:text-white no-underline transition-colors">
                 <span className="text-base">🏢</span> Cityscape Real Estate Ltd., Brokerage

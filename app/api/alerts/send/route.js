@@ -9,6 +9,8 @@ import { tagRecipient } from '@/lib/emails/recipient-token';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { requireCronOrAdmin } from '@/lib/api-auth';
 
+const plural = (n, singular, pluralForm = `${singular}s`) => `${n} ${n === 1 ? singular : pluralForm}`;
+
 // The full-pool fetch (13 upstream page requests) plus per-subscriber matching
 // and SEQUENTIAL Resend sends will not reliably fit Vercel's default function
 // window. The old page-1-only version squeaked under it; the fixed pool must
@@ -92,6 +94,12 @@ export async function POST(request) {
     // keeps the same loud-failure and non-JSON guards.
     const rawListings = await fetchAllListings(SITE_URL, '/api/listings');
     const allListings = processListings(rawListings.listings);
+    // Surfaced in every response, success or "sent 0", because "0 emails went
+    // out" is ambiguous on its own — it's the normal, healthy result on a day
+    // with nothing new, and it's ALSO what a dead AMPRE token looks like (feed
+    // returns nothing, every search matches nothing, indistinguishable from
+    // "quiet day" without this number sitting next to it).
+    let feedListingCount = allListings.length;
 
     // 2b. GTA pool — only fetched when some saved search is scoped outside
     // Mississauga (filters.city set by the save-search flow on /gta pages).
@@ -109,6 +117,7 @@ export async function POST(request) {
       } catch (err) {
         console.error('Alerts: GTA listings fetch error', err);
       }
+      feedListingCount += gtaListings.length;
     }
 
     // 3. Group searches by email (one email per user)
@@ -150,10 +159,19 @@ export async function POST(request) {
     let sentCount = 0;
     const failures = [];
     const preview = []; // dry-run only: what WOULD have gone out, and to whom
+    // Populated in BOTH modes. "Sent 0" / "would send 0" is ambiguous on its
+    // own — it's the normal, healthy result on a day with nothing new, and
+    // it's ALSO what a dead feed or an over-narrow saved search looks like.
+    // `matched` (before the freshness/dedupe rule) vs `fresh` (after it) tells
+    // them apart: matched>0 & fresh=0 means "nothing NEW today" (fine);
+    // matched=0 means this search's filters currently match nothing at all
+    // (worth a look, more so if feedListingCount is also suspiciously low).
+    const matchSummary = [];
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
-      const allMatches = new Map(); // dedup by listing ID
+      const allMatches = new Map(); // dedup by listing ID — FRESH (what would send)
+      const allMatchedPreFreshness = new Map(); // dedup by listing ID — matched filters, before freshness
       const sentToUser = alreadySent.get(email) || new Set();
 
       for (const search of userData.searches) {
@@ -167,6 +185,9 @@ export async function POST(request) {
 
         // Apply filters to get matching listings
         const matched = applyFilters(pool, filters);
+        for (const l of matched) {
+          if (!allMatchedPreFreshness.has(l.id)) allMatchedPreFreshness.set(l.id, l);
+        }
 
         // Only include "new" listings (DOM <= 3 or first alert), and never a
         // listing this recipient already received in the last 7 days — the
@@ -185,8 +206,16 @@ export async function POST(request) {
         }
       }
 
+      const matchedCount = allMatchedPreFreshness.size;
+      matchSummary.push({ email, matched: matchedCount, fresh: allMatches.size });
+
       // Skip if no new matches
-      if (allMatches.size === 0) continue;
+      if (allMatches.size === 0) {
+        if (dryRun) {
+          preview.push({ email, wouldSend: 0, matched: matchedCount, subject: null, listings: [] });
+        }
+        continue;
+      }
 
       const listings = Array.from(allMatches.values())
         .sort((a, b) => b.hamzaScore - a.hamzaScore)
@@ -200,6 +229,7 @@ export async function POST(request) {
         preview.push({
           email,
           wouldSend: listings.length,
+          matched: matchedCount,
           subject: alertSubject(listings),
           listings: listings.slice(0, 5).map((l) => ({
             id: l.id,
@@ -287,13 +317,24 @@ export async function POST(request) {
     if (dryRun) {
       // No housekeeping either — a dry run touches nothing but reads.
       const totalWouldSend = preview.reduce((n, p) => n + p.wouldSend, 0);
+      const totalMatched = matchSummary.reduce((n, m) => n + m.matched, 0);
+      let message;
+      if (totalWouldSend > 0) {
+        message = `Would send ${totalWouldSend} listing${totalWouldSend === 1 ? '' : 's'} across ${preview.filter((p) => p.wouldSend > 0).length} email${preview.filter((p) => p.wouldSend > 0).length === 1 ? '' : 's'} — nothing was actually sent.`;
+      } else if (feedListingCount === 0) {
+        message = `The feed returned 0 active listings — nothing can match. Check the AMPRE token before assuming subscriber filters are the problem.`;
+      } else if (totalMatched === 0) {
+        message = `The feed has ${plural(feedListingCount, 'active listing')}, but 0 currently match any saved search's filters (see each recipient's "matched" count below).`;
+      } else {
+        message = `${plural(feedListingCount, 'active listing')}, ${totalMatched} match a saved search — but none are NEW since the last alert. That's expected on a quiet day, not a failure.`;
+      }
       return NextResponse.json({
         dryRun: true,
-        message: totalWouldSend > 0
-          ? `Would send ${totalWouldSend} listing${totalWouldSend === 1 ? '' : 's'} across ${preview.length} email${preview.length === 1 ? '' : 's'} — nothing was actually sent.`
-          : `${searches.length} active saved search${searches.length === 1 ? '' : 'es'}, but no subscriber has a new match right now — a real run would send 0 emails.`,
+        message,
         recipients: preview.length,
         wouldSend: totalWouldSend,
+        feedListingCount,
+        matchSummary,
         preview,
       });
     }
@@ -308,10 +349,26 @@ export async function POST(request) {
         .lt('sent_at', new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString());
     } catch {}
 
+    // "Sent 0 alert emails" alone reads as a failure but is the normal, daily
+    // result whenever nobody has a new match — this is exactly what confused
+    // the "is delivery broken?" question the first time this ran for real.
+    // Same disambiguation as the dry-run message, built from the same counts.
+    const totalMatchedReal = matchSummary.reduce((n, m) => n + m.matched, 0);
+    let sentZeroReason = '';
+    if (sentCount === 0 && failures.length === 0) {
+      sentZeroReason = feedListingCount === 0
+        ? ' The feed returned 0 active listings — nothing could match. Check the AMPRE token.'
+        : totalMatchedReal === 0
+          ? ` The feed has ${plural(feedListingCount, 'active listing')}, but 0 match any saved search's filters right now.`
+          : ` ${plural(feedListingCount, 'active listing')}, ${totalMatchedReal} match a saved search — just none are new since the last alert. Normal on a quiet day.`;
+    }
+
     return NextResponse.json({
-      message: `Sent ${sentCount} alert emails${failures.length ? `, ${failures.length} rejected` : ''}`,
+      message: `Sent ${sentCount} alert emails${failures.length ? `, ${failures.length} rejected` : ''}.${sentZeroReason}`,
       sent: sentCount,
       failed: failures.length,
+      feedListingCount,
+      matchSummary,
       // Surfaced so the daily run is self-diagnosing without dashboard access.
       failures: failures.slice(0, 5),
     });

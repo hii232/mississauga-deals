@@ -133,7 +133,11 @@ export default function InlineCTA({ variant = 'deals', className = '' }) {
   return (
     <div className={`bg-gradient-to-br ${v.gradient} rounded-2xl p-8 text-center ${className}`}>
       <span className="text-3xl mb-3 block">{v.icon}</span>
-      <h3 className="font-heading text-xl font-bold text-white mb-2">{v.headline}</h3>
+      {/* h2, not h3: this block is a distinct section of the page, and on /blog
+          it was the FIRST heading after the h1, producing an h1->h3 skip in the
+          document outline. Pages that already have h2 sections keep a flat
+          outline either way. Size comes from the classes, so nothing moves. */}
+      <h2 className="font-heading text-xl font-bold text-white mb-2">{v.headline}</h2>
       <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">{v.sub}</p>
 
       {v.capture ? (

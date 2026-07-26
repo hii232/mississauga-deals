@@ -473,7 +473,13 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
 
   async function sendForReal() {
     const n = result?.data?.wouldSend;
-    const who = result?.data?.recipients;
+    // NOT result.data.recipients — that now counts every subscriber the dry
+    // run evaluated, including ones with nothing to send. An inbox count has
+    // to be people who'd actually receive something, or "1 subscriber, 0
+    // would send" would confirm-dialog as "emailing 1 real subscriber."
+    const who = Array.isArray(result?.data?.preview)
+      ? result.data.preview.filter((p) => p.wouldSend > 0).length
+      : result?.data?.recipients;
     // Force a preview first — sending blind, with no idea how many real
     // inboxes are about to receive mail, is the exact mistake this button
     // exists to prevent.
@@ -595,12 +601,20 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
           )}
           {/* Per-recipient breakdown of exactly what a real send would contain —
               proves the matching pipeline works without anything going out. */}
+          {typeof result.data.feedListingCount === 'number' && (
+            <p className="mt-2 text-blue-300/70">Feed: {result.data.feedListingCount} active listing{result.data.feedListingCount === 1 ? '' : 's'} fetched this run.</p>
+          )}
           {Array.isArray(result.data.preview) && result.data.preview.length > 0 && (
             <ul className="mt-2 space-y-2">
               {result.data.preview.map((p, i) => (
                 <li key={i} className="border-t border-blue-400/15 pt-2 first:border-t-0 first:pt-0">
-                  <p className="font-medium text-blue-100">{p.email} — {p.wouldSend} listing{p.wouldSend === 1 ? '' : 's'}</p>
-                  <p className="text-blue-300/70">&ldquo;{p.subject}&rdquo;</p>
+                  <p className="font-medium text-blue-100">
+                    {p.email} — {p.wouldSend > 0 ? `${p.wouldSend} listing${p.wouldSend === 1 ? '' : 's'}` : 'nothing new'}
+                    {/* matched (before the "is it new" rule) vs wouldSend (after) tells apart
+                        "quiet day, all caught up" from "this search's filters match nothing" */}
+                    <span className="font-normal text-blue-300/60"> · {p.matched} listing{p.matched === 1 ? '' : 's'} match{p.matched === 1 ? 'es' : ''} the saved filters</span>
+                  </p>
+                  {p.subject && <p className="text-blue-300/70">&ldquo;{p.subject}&rdquo;</p>}
                   {p.listings?.map((l) => (
                     <p key={l.id} className="text-blue-300/60">
                       {l.address} — ${Number(l.price).toLocaleString()} · score {l.score?.toFixed?.(1) ?? l.score}
