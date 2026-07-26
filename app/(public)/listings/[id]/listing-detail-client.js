@@ -28,7 +28,7 @@ import { HOOD_DATA } from '@/lib/constants';
 //
 // The unlock is the email itself, taken inline: asking for it here and sending
 // the visitor to /signup would repeat the exact friction removed from the hero.
-function AuthGate({ children, isAuthenticated, title, valueLine, source, onUnlock }) {
+function AuthGate({ children, isAuthenticated, title, valueLine, source, listing, onUnlock }) {
   if (isAuthenticated) return children;
   return (
     <div className="mx-auto max-w-md py-6 text-center">
@@ -44,6 +44,7 @@ function AuthGate({ children, isAuthenticated, title, valueLine, source, onUnloc
           id={`gate-email-${source}`}
           source={source}
           tone="light"
+          listing={listing}
           buttonLabel="Unlock — Free"
           note="Free forever. No credit card. Unsubscribe anytime."
           onCaptured={onUnlock}
@@ -1372,7 +1373,14 @@ export default function PropertyDetailClient({ initialListing = null }) {
     price: String(listing.price || ''),
   }).toString();
   const bookHref = `/book-call?${listingCtx}`;
-  const signupHref = `/signup?${listingCtx}`;
+  // The same property, in the shape /api/lead expects. Every email captured on
+  // this page now carries it, so Hamza's lead notification names the property
+  // and links to it instead of just saying someone signed up.
+  const leadListing = {
+    id: listing.id || params.id,
+    address: listing.address || '',
+    price: listing.price || '',
+  };
 
   return (
     <main className="min-h-screen bg-cloud overflow-x-hidden pb-20 lg:pb-0">
@@ -1543,7 +1551,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
                     </div>
                     <div className="text-center">
                       <p className="text-xs text-muted">Potential CF</p>
-                      <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+                      {/* emerald-700/red-600, not success/danger: those tokens
+                          measure 2.4-3.8:1 on white and this is a NUMBER, which
+                          has to clear AA. Missed by the earlier sweep of this
+                          page because the summary metrics only render once the
+                          visitor is unlocked, and the sweep ran gated. */}
+                      <p className={`text-sm font-bold ${listing.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                         {fmtNum(listing.cashFlow)}
                       </p>
                     </div>
@@ -1560,15 +1573,29 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   )}
                 </>
               ) : (
-                <div className="mt-4 flex flex-col items-center justify-center rounded-lg bg-slate-50 py-4 sm:py-5">
-                  <p className="mb-2 text-xs font-medium text-navy">Cash flow, cap rate &amp; mortgage breakdown</p>
-                  <Link
-                    href={signupHref}
-                    className="rounded-lg bg-accent px-4 py-2 text-center text-xs font-semibold text-white shadow-md transition-colors hover:bg-accent/90 no-underline"
-                  >
-                    Sign Up Free — 10 Seconds
-                  </Link>
-                  <p className="mt-1 text-[10px] text-slate-500">Free forever. No credit card.</p>
+                /* Was a "Sign Up Free — 10 Seconds" link to /signup: the last
+                   click-then-page-load capture path on this page. It sent a
+                   visitor who was reading a specific property away to a form,
+                   and the metrics they wanted were two navigations behind it.
+                   Now the email is taken here and the numbers unlock in place,
+                   matching the gates on the analysis tabs below. */
+                <div className="mt-4 rounded-lg bg-slate-50 p-4">
+                  <p className="text-center text-xs font-semibold text-navy">
+                    Cash flow, cap rate &amp; mortgage breakdown
+                  </p>
+                  <p className="mb-3 mt-1 text-center text-[11px] text-slate-600">
+                    Enter your email to unlock them right here.
+                  </p>
+                  <InlineEmailCapture
+                    id="summary-unlock-email"
+                    source="Listing — Summary Metrics"
+                    tone="light"
+                    stack
+                    listing={leadListing}
+                    buttonLabel="Unlock — Free"
+                    note="Free forever. No credit card. Unsubscribe anytime."
+                    onCaptured={unlock}
+                  />
                 </div>
               )}
 
@@ -1622,6 +1649,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
               <AuthGate
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
+                listing={leadListing}
                 source="Listing — Estimated Value"
                 title="What is this property really worth?"
                 valueLine="An independent estimate from comparable sales nearby, with the range and the comps it was built from."
@@ -1633,6 +1661,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
               <AuthGate
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
+                listing={leadListing}
                 source="Listing — Sold Comps"
                 title="See what nearby homes actually sold for"
                 valueLine="Real sold prices, dates and distances for comparable properties — the numbers that tell you whether this one is priced right."
@@ -1651,6 +1680,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
               <AuthGate
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
+                listing={leadListing}
                 source="Listing — Mortgage"
                 title="Your monthly payment on this property"
                 valueLine="Full mortgage breakdown at today's rates — payment, principal vs interest, CMHC insurance and land transfer tax."
@@ -1662,6 +1692,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
               <AuthGate
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
+                listing={leadListing}
                 source="Listing — Cap Rate"
                 title="Does this property actually cash flow?"
                 valueLine="Cap rate, net operating income, cash-on-cash return and monthly cash flow — with every assumption adjustable."
@@ -1673,6 +1704,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
               <AuthGate
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
+                listing={leadListing}
                 source="Listing — BRRR"
                 title="Run the BRRR numbers on this property"
                 valueLine="Buy, renovate, rent, refinance — see the capital left in the deal and the return after refinancing."

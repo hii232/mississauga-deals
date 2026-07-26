@@ -16,7 +16,19 @@ import { ProofRow } from '@/components/ui/proof-row';
 // `initialEmail` / `initialStep` let a caller that has ALREADY captured the
 // email (the homepage hero's inline field) open this straight at step 2 instead
 // of asking for the email a second time.
-export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'gate', initialEmail = '', initialStep = 1 }) {
+// `listing` ({ id, address, price }) is threaded through to /api/lead so the
+// notification Hamza receives names the property the visitor was looking at.
+// Without it the API's listing fields stay null and the property block in the
+// lead email — which already exists and links straight to the listing — never
+// renders for the highest-intent leads on the site.
+export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'gate', initialEmail = '', initialStep = 1, listing = null }) {
+  const leadListing = listing
+    ? {
+        listingId: listing.id || undefined,
+        listingAddress: listing.address || undefined,
+        listingPrice: listing.price || undefined,
+      }
+    : {};
   const router = useRouter();
   const [step, setStep] = useState(initialStep);
   const [email, setEmail] = useState(initialEmail);
@@ -104,6 +116,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
           email,
           phone,
           source: trigger === 'view-limit' ? 'View Limit' : 'Sign Up',
+          ...leadListing,
           timestamp: new Date().toISOString(),
         }),
       });
@@ -148,6 +161,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
         name: (firstName || lastName) ? `${firstName} ${lastName}`.trim() : undefined,
         phone: phone || undefined,
         source: trigger === 'view-limit' ? 'View Limit (email only)' : 'Sign Up (email only)',
+        ...leadListing,
         timestamp: new Date().toISOString(),
       }),
     }).catch(() => {});

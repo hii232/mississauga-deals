@@ -28,6 +28,14 @@ export function InlineEmailCapture({
   id = 'inline-email',
   autoFocus = false,
   stack = false,
+  // Optional property context ({ id, address, price }). /api/lead already
+  // stores listing_id/address/price and renders a property block with a
+  // "View listing →" link in the notification email, but this component only
+  // ever posted {email, source}, so every email captured on a listing page
+  // reached Hamza without saying WHICH property — the single most useful fact
+  // for the follow-up. Passed on to the profile modal too, so the completed
+  // profile lands against the same property instead of a bare "Sign Up".
+  listing = null,
   onCaptured,
 }) {
   const [email, setEmail] = useState('');
@@ -49,7 +57,18 @@ export function InlineEmailCapture({
       const res = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: value, source, timestamp: new Date().toISOString() }),
+        body: JSON.stringify({
+          email: value,
+          source,
+          ...(listing
+            ? {
+                listingId: listing.id || undefined,
+                listingAddress: listing.address || undefined,
+                listingPrice: listing.price || undefined,
+              }
+            : {}),
+          timestamp: new Date().toISOString(),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       // Never fake success on a rejection (429 rate-limit, 400) — that would
@@ -127,6 +146,7 @@ export function InlineEmailCapture({
         initialEmail={email.trim()}
         initialStep={2}
         trigger={source}
+        listing={listing}
         onClose={finish}
         onSuccess={finish}
       />
