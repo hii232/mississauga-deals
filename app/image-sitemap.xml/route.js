@@ -21,10 +21,16 @@ function xmlEscape(s) {
   ));
 }
 
-async function fetchListings() {
+// Pages of up to 100 rows (the feed clamps `limit` — see app/api/listings/
+// route.js) to pull per feed. Same budget for both feeds so neither is
+// arbitrarily favoured, mirroring the LISTING_PAGE_BUDGET convention already
+// established in app/sitemap.js.
+const LISTING_PAGE_BUDGET = 15;
+
+async function fetchFeed(path) {
   const all = [];
   try {
-    const res = await fetch(`${SITE_URL}/api/listings?limit=200&page=1`, {
+    const res = await fetch(`${SITE_URL}${path}?limit=200&page=1`, {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return all;
@@ -33,9 +39,9 @@ async function fetchListings() {
     const totalPages = data.pages || 1;
     if (totalPages > 1) {
       const promises = [];
-      for (let p = 2; p <= Math.min(totalPages, 15); p++) {
+      for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
         promises.push(
-          fetch(`${SITE_URL}/api/listings?limit=200&page=${p}`, {
+          fetch(`${SITE_URL}${path}?limit=200&page=${p}`, {
             next: { revalidate: 3600 },
           }).then((r) => (r.ok ? r.json() : { listings: [] }))
         );
@@ -44,14 +50,31 @@ async function fetchListings() {
       results.forEach((d) => all.push(...(d.listings || [])));
     }
   } catch (err) {
-    console.error('Image sitemap: failed to fetch listings', err);
+    console.error(`Image sitemap: failed to fetch ${path}`, err);
   }
   return all;
+}
+
+// This used to fetch ONLY /api/listings (Mississauga) — the exact same gap
+// the main sitemap had until it added a dedicated GTA branch: /api/listings-gta
+// serves the same /listings/{id} detail route for ~24,500 GTA properties, and
+// every one of those pages' real photos (confirmed flowing since the $top=100
+// media-expand fix) was invisible to Google Images. Both feeds are fetched in
+// parallel and merged; dedupe below guards against the same edge case the main
+// sitemap already documented (a listing's sort position can shift mid-fetch on
+// a live-sorted feed and land in both page slices).
+async function fetchListings() {
+  const [mississauga, gta] = await Promise.all([
+    fetchFeed('/api/listings'),
+    fetchFeed('/api/listings-gta'),
+  ]);
+  return [...mississauga, ...gta];
 }
 
 export async function GET() {
   const listings = await fetchListings();
 
+  const seen = new Set();
   const urls = listings
     .map((l) => {
       const id = l.ListingKey || l.id;
@@ -61,6 +84,8 @@ export async function GET() {
         .slice(0, 10); // Google honours up to 1,000/URL; 10 is plenty per listing
       if (photos.length === 0) return null;
       const loc = `${BASE}/listings/${encodeURIComponent(id)}`;
+      if (seen.has(loc)) return null;
+      seen.add(loc);
       const images = photos
         .map((u) => `    <image:image><image:loc>${xmlEscape(u)}</image:loc></image:image>`)
         .join('\n');
