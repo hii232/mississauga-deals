@@ -10,9 +10,16 @@ const SITE_URL =
     ? 'http://localhost:3000'
     : 'https://www.mississaugainvestor.ca';
 
-// Refresh at most every 10 minutes — this powers the neighbourhood cards' live
-// avg price / DOM / yield.
-export const revalidate = 600;
+// Serve per-request, never at build time. With only `revalidate` exported,
+// Next STATICALLY generated this route during the build — and the batched
+// 30-page feed walk (up to 5 batches x 25s) blew the 60s static-generation
+// budget three times and FAILED THE ENTIRE #67 DEPLOY. Live stats computed
+// from a live feed have no business in the build; the fetch-level
+// `revalidate` below still caches the underlying feed pages for 10 minutes,
+// so per-request cost stays low.
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+const revalidate = 600;
 
 /**
  * GET /api/neighbourhood-stats
@@ -31,7 +38,9 @@ export async function GET() {
     const { listings: raw } = await fetchFeedPages(SITE_URL, '/api/listings', {
       pages: 30,
       revalidate,
-      timeoutMs: 25000,
+      // 10s, not 25: pages fetch in batches of 6 (5 batches for 30 pages), and
+      // the worst case must fit inside maxDuration — 5 x 10s = 50s < 60s.
+      timeoutMs: 10000,
     });
     if (raw.length === 0) return NextResponse.json({ stats: {} });
 
