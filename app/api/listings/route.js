@@ -178,7 +178,7 @@ export async function GET(request) {
     });
 
     // Honest "N+ days on market" floor (see lib/listings/first-seen.js).
-    await applyFirstSeenFloor(listings);
+    const firstSeenTracker = await applyFirstSeenFloor(listings);
 
     return NextResponse.json(
       {
@@ -192,6 +192,7 @@ export async function GET(request) {
         // from symptoms like sqft:0 — that is precisely how the silent
         // fall-through to the minimal tier went unnoticed.
         fieldTier,
+        firstSeenTracker,
         page,
         limit,
         pages: Math.ceil(total / limit),

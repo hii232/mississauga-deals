@@ -56,7 +56,7 @@ function OverviewTab({ listing }) {
     { label: 'Type', value: listing.subType || listing.type },
     { label: 'Bedrooms', value: listing.beds },
     { label: 'Bathrooms', value: listing.baths },
-    { label: 'Days on Market', value: listing.dom },
+    { label: 'Days on Market', value: listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—' },
     { label: 'Price Drop', value: listing.priceDrop ? `${listing.priceDrop}%` : 'None' },
     { label: 'Year Built', value: listing.yearBuilt || 'N/A' },
     { label: 'Status', value: listing.status },
@@ -1507,7 +1507,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   {listing.beds} bed / {listing.baths} bath
                 </span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-navy">
-                  {listing.dom} DOM
+                  {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'} DOM
                 </span>
               </div>
 
