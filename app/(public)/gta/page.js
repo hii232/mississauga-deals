@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -201,14 +202,11 @@ async function fetchGtaListings(city) {
     const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
     const origin = `${isLocal ? 'http' : 'https'}://${host}`;
     const qs = city ? `&city=${encodeURIComponent(city)}` : '';
-    const res = await fetch(`${origin}/api/listings-gta?limit=200&page=1${qs}`, {
-      next: { revalidate: 600 },
-      signal: AbortSignal.timeout(timeoutMs),
-    });
-    if (!res.ok) return { listings: [], total: 0 };
-    const data = await res.json();
+    // Shared feed fetch — see lib/listings/fetch-feed.js.
+    const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', { pages: 2, qs, timeoutMs });
+    if (!data) return { listings: [], total: 0 };
     // browsableTotal excludes the commercial/lease rows the site never shows.
-    return { listings: processListings(data.listings || []), total: Number(data.browsableTotal ?? data.total) || 0 };
+    return { listings: processListings(raw), total: Number(data.browsableTotal ?? data.total) || 0 };
   } catch {
     return { listings: [], total: 0 }; // client fetch takes over — same as before this change
   }

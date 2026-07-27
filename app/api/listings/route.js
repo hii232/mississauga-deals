@@ -148,7 +148,10 @@ export async function GET(request) {
 
       return {
         id: l.ListingKey,
-        mlsId: l.ListingId,
+        // ListingId is VOW-suppressed (null) on active listings, but ListingKey
+        // IS the MLS number ('W13607630') — a null mlsId on every record just
+        // looks broken to anyone reading the API.
+        mlsId: l.ListingId || l.ListingKey,
         price,
         address: addr(l),
         city,

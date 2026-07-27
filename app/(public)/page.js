@@ -3,6 +3,7 @@ import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@
 import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
@@ -94,30 +95,12 @@ async function fetchTopDeals() {
     const proto = host.includes('localhost') ? 'http' : 'https';
     const baseUrl = `${proto}://${host}`;
 
-    // Fetch all pages to get accurate total count
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return { deals: [], photoMap: {}, totalCount: 0 };
-    const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
-
-    // Fetch remaining pages
-    if (totalPages > 1) {
-      const pagePromises = [];
-      for (let p = 2; p <= totalPages; p++) {
-        pagePromises.push(
-          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-            next: { revalidate: 3600 },
-          }).then((r) => r.ok ? r.json() : null)
-        );
-      }
-      const pages = await Promise.all(pagePromises);
-      for (const pg of pages) {
-        if (pg?.listings) raw.push(...pg.listings);
-      }
-    }
+    // Fetch all pages for an accurate total via the shared feed fetch —
+    // this sat on its own fetch with revalidate 3600, so the homepage kept
+    // serving hour-old (or, across deploys, DAYS-old) feed data after every
+    // fix. See lib/listings/fetch-feed.js.
+    const { listings: raw, first: data } = await fetchFeedPages(baseUrl, '/api/listings', { pages: 999 });
+    if (!data) return { deals: [], photoMap: {}, totalCount: 0 };
 
     const processed = processListings(raw);
     const hoodStats = computeHoodStats(processed);

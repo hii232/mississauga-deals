@@ -5,6 +5,7 @@ import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 
 // SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
 // the listings themselves were fetched client-side, so Googlebot received an
@@ -90,12 +91,13 @@ async function fetchInitialListings() {
     // server render — which looked exactly like SSR not working at all.
     const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
     const proto = isLocal ? 'http' : 'https';
-    const res = await fetch(`${proto}://${host}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 600 },
-    });
-    if (!res.ok) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
-    const data = await res.json();
-    const rows = processListings(data.listings || []);
+    // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
+    // /gta and the homepage, 2 pages of 100 (~200 rows, matching the previous
+    // initial render size). See the helper for why this replaced a page-local
+    // fetch with a long-lived cache entry.
+    const { listings: rawRows, first: data } = await fetchFeedPages(`${proto}://${host}`, '/api/listings', { pages: 2 });
+    if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
+    const rows = processListings(rawRows);
     // browsableTotal excludes the commercial/lease rows the site never shows —
     // see /api/listings. Using the raw @odata.count here would advertise ~60
     // listings a visitor can never reach.
