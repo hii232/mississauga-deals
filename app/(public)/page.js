@@ -424,11 +424,14 @@ function HowItWorks() {
             <div key={num} className="card relative overflow-hidden p-6 text-center transition-shadow hover:shadow-lg">
               {/* A real numbered badge, not the old 5%-opacity watermark. The
                   watermark sat immediately before the illustration, whose SVG
-                  carries decorative <text> ("8.6", "$"), so extracted page text
-                  read "018.6" and "02$" — garbled for anything reading the page
-                  as text, Google included, while looking fine on screen. A
-                  legible badge states the sequence properly and removes the
-                  adjacency. White on accent measures 5.2:1. */}
+                  used to carry decorative <text> ("8.6", "$"), so extracted
+                  page text read "018.6" and "02$" — garbled for anything
+                  reading the page as text, Google included, while looking
+                  fine on screen. The scene art is now pure vector shapes
+                  (no <text> at all), and this legible badge sits in its own
+                  block above the illustration with clear margin — verified
+                  clean at 375px, no visual or text-extraction collision.
+                  White on accent measures 5.2:1. */}
               <div className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                 {Number(num)}
               </div>
