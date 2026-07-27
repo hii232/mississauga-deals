@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { computeDaysSinceUpdate, computeDomFloor } from '@/lib/listings/market-timing';
+import { computeDaysOnMarket, computeDaysSinceUpdate, computeDomFloor, parseLivingAreaRange } from '@/lib/listings/market-timing';
+import { probeSupportedFields } from '@/lib/listings/ampre-fields';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +25,24 @@ function addr(l) {
     .filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
 }
 
-// Fields confirmed to work with AMPRE OData API
-// Note: OnMarketDate, LivingArea, BuildingAreaTotal are NOT supported
+// Same normalization as the feed routes — AssociationFee arrives with a
+// frequency, and an annual fee shown as monthly would be a wrong number.
+function normalizeCondoFee(fee, frequency) {
+  if (!fee || fee <= 0) return 0;
+  const freq = (frequency || 'Monthly').toLowerCase();
+  if (freq.includes('annual') || freq.includes('yearly')) return Math.round(fee / 12);
+  if (freq.includes('quarter')) return Math.round(fee / 3);
+  if (freq.includes('semi')) return Math.round(fee / 6);
+  return Math.round(fee);
+}
+
+// Guaranteed-safe core. The probed fields (real listing dates for DOM,
+// CityRegion, LivingAreaRange, AssociationFee…) are appended per-request from
+// probeSupportedFields — this route previously kept its own hardcoded list and
+// silently fell out of sync with the feeds: the DETAIL page showed dom "—",
+// neighbourhood "Mississauga" and an ESTIMATED condo fee while the card for
+// the same listing showed dom 25, "Cooksville" and the real fee — so cash
+// flow and cash-on-cash visibly disagreed between card and detail.
 const SEL = [
   'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
   'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
@@ -54,6 +71,11 @@ export async function GET(request) {
   try {
     const safeId = id.replace(/'/g, "''");
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+    // Ask the feed what this token may select (memoised 1h) and use ALL of it —
+    // byte-identical field surface to the listings feeds, so the numbers
+    // derived downstream cannot disagree between the card and this page.
+    const supported = await probeSupportedFields(TOK);
+    const FULL_SEL = supported.length ? SEL + ',' + supported.join(',') : SEL;
 
     // Photos, pulled in the SAME request as the listing.
     //
@@ -74,7 +96,7 @@ export async function GET(request) {
     // Byte-identical to the listings feed's ACCEPTED expand — the only diff was
     // the missing MediaKey, and this exact form is proven against production.
     const EXPAND = '&$expand=' + encodeURIComponent('Media($select=MediaURL,MediaKey;$orderby=Order)');
-    const sel = '$select=' + encodeURIComponent(SEL);
+    const sel = '$select=' + encodeURIComponent(FULL_SEL);
 
     let l = null;
 
@@ -111,9 +133,9 @@ export async function GET(request) {
       ? Math.round(((l.OriginalListPrice - price) / l.OriginalListPrice) * 100)
       : 0;
     const rem = l.PublicRemarks || '';
-    // DaysOnMarket comes back null on ACTIVE listings from this feed, so 0
-    // here means UNKNOWN, not "listed today" — see lib/listings/market-timing.js.
-    const dom = Number(l.DaysOnMarket) > 0 ? Number(l.DaysOnMarket) : 0;
+    // Same computation as the feeds — real listing dates first, feed DOM
+    // second, never the sync stamp. See lib/listings/market-timing.js.
+    const dom = computeDaysOnMarket(l);
     const daysSinceUpdate = computeDaysSinceUpdate(l);
     const domFloor = computeDomFloor(dom, daysSinceUpdate, 0);
 
@@ -133,7 +155,9 @@ export async function GET(request) {
       price,
       address: addr(l),
       city,
-      neighbourhood: city,
+      // CityRegion = the real community, matching the feeds. Falls back to
+      // city exactly as before when the feed omits it.
+      neighbourhood: l.CityRegion || city,
       postalCode: l.PostalCode,
       beds,
       baths: l.BathroomsTotalInteger || 0,
@@ -151,7 +175,9 @@ export async function GET(request) {
       images: photos,
       lat: l.Latitude,
       lng: l.Longitude,
-      sqft: 0,
+      sqft: l.LivingArea || l.BuildingAreaTotal || parseLivingAreaRange(l.LivingAreaRange),
+      sqftApproximate: !l.LivingArea && !l.BuildingAreaTotal && !!l.LivingAreaRange,
+      condoFee: normalizeCondoFee(l.AssociationFee, l.AssociationFeeFrequency),
       originalPrice: l.OriginalListPrice || price,
       priceDrop: drop,
       priceReduction: drop,
@@ -164,7 +190,11 @@ export async function GET(request) {
       { listing },
       {
         headers: {
-          'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600',
+          // 15 minutes, matching the feeds. This sat at s-maxage=86400 — the
+          // SAME 24h-cache bug already killed on the feed routes but missed
+          // here, so every detail-page fix stayed invisible on re-visits for
+          // up to a day while the cards updated in 15 minutes.
+          'Cache-Control': 's-maxage=900, stale-while-revalidate=3600',
           'Access-Control-Allow-Origin': '*',
         },
       }
