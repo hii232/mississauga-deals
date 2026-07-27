@@ -17,6 +17,28 @@ export function isFixerUpper(remarks) {
   return FIXER_RE.test(remarks || '');
 }
 
+// ── "Below Market" badge cutoff ──
+// evDiffPct compares each listing's price to a rough neighbourhood-average
+// estimate — a formula with real spread, so a fixed -3% cutoff badged
+// roughly 70% of any given result set "Below Market" (a badge on almost
+// everything is a badge on nothing — it stops meaning "this one is a genuine
+// standout"). Instead of guessing a new fixed number, derive the cutoff from
+// the ACTUAL spread of whatever result set is on screen: the value at its
+// own 15th percentile, so only the listings genuinely in the bottom slice of
+// this search read as underpriced. Never LOOSER than -3% — a thin or tight
+// result set (fewer than 10 priced listings, or one where even the 15th
+// percentile is barely negative) should never start badging something that
+// is only marginally under its estimate.
+export function computeBelowMarketCutoff(listings) {
+  const vals = (listings || [])
+    .filter((l) => l.estimatedValue > 0 && Number.isFinite(l.evDiffPct))
+    .map((l) => l.evDiffPct)
+    .sort((a, b) => a - b);
+  if (vals.length < 10) return -3;
+  const idx = Math.floor(vals.length * 0.15);
+  return Math.min(vals[idx], -3);
+}
+
 // ── Default Filter State ──
 export const DEFAULT_FILTERS = {
   search: '',

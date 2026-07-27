@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { ListingCard } from './listing-card';
 import SignupGateModal from '@/components/ui/signup-gate-modal';
+import { computeBelowMarketCutoff } from './filter-utils';
 
 const PAGE_SIZE = 30;
 const FREE_CARD_CLICKS = 3; // After this many card clicks, show signup modal
@@ -42,6 +43,10 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [cardClicks, setCardClicks] = useState(0);
   const [signupTrigger, setSignupTrigger] = useState('gate');
+
+  // Derived from THIS result set's own spread, not a hand-picked constant —
+  // see computeBelowMarketCutoff for why a fixed -3% badged ~70% of cards.
+  const belowMarketCutoff = useMemo(() => computeBelowMarketCutoff(listings), [listings]);
 
   // Verify access server-side (catches revoked users)
   useEffect(() => {
@@ -193,6 +198,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
                 onToggleCompare={onToggleCompare}
                 batchPhoto={photoMap?.[listing.id]}
                 onSignupClick={() => { setSignupTrigger('gate'); setShowSignupModal(true); }}
+                belowMarketCutoff={belowMarketCutoff}
               />
             </div>
           );
