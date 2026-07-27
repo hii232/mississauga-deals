@@ -128,7 +128,7 @@ export async function GET(request) {
         { status: result.status }
       );
     }
-    const { data, fieldTier } = result;
+    const { data, fieldTier, supportedFields } = result;
     let items = data.value || [];
     const total = data['@odata.count'] || items.length;
 
@@ -227,7 +227,7 @@ export async function GET(request) {
     const firstSeenTracker = await applyFirstSeenFloor(listings);
 
     return NextResponse.json(
-      { listings, total, browsableTotal, fieldTier, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
+      { listings, total, browsableTotal, fieldTier, supportedFields, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
       {
         headers: {
           // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN

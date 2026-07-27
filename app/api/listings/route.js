@@ -96,7 +96,7 @@ export async function GET(request) {
         { status: result.status }
       );
     }
-    const { data, fieldTier } = result;
+    const { data, fieldTier, supportedFields } = result;
 
     let items = data.value || [];
     const total = data['@odata.count'] || items.length;
@@ -210,6 +210,7 @@ export async function GET(request) {
         // from symptoms like sqft:0 — that is precisely how the silent
         // fall-through to the minimal tier went unnoticed.
         fieldTier,
+        supportedFields,
         firstSeenTracker,
         page,
         limit,
