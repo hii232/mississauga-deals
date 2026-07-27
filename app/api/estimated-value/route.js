@@ -33,7 +33,13 @@ export async function GET(request) {
   // Build type filter
   const typeLower = type.toLowerCase();
   const typeMap = {
-    'detached': "(PropertyType eq 'Residential' or PropertyType eq 'Residential Freehold')",
+    // Was PropertyType eq 'Residential'/'Residential Freehold' — that field is a
+    // broad TRREB category shared by semi-detached, townhouse, duplex, triplex
+    // and multiplex too, so a "detached" query pulled in cheaper subtypes as
+    // comps and could understate the CMA estimate for the site's most common
+    // property type. PropertySubType is the field that actually distinguishes
+    // them (see the exact-eq pattern already used by /api/rental-comps).
+    'detached': "PropertySubType eq 'Detached'",
     'semi-detached': "contains(PropertySubType, 'Semi')",
     'semi': "contains(PropertySubType, 'Semi')",
     'town': "(contains(PropertySubType, 'Town') or contains(PropertySubType, 'Row') or contains(PropertySubType, 'Att'))",

@@ -11,7 +11,8 @@ export const metadata = {
     title: 'Privacy Policy',
     description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
     url: 'https://www.mississaugainvestor.ca/privacy',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Privacy Policy | MississaugaInvestor.ca' }],
   },
 };
 

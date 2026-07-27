@@ -35,7 +35,7 @@ function SliderInput({ label, value, onChange, min = 0, max = 10, step = 0.5, pr
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
           {label}
         </label>
         <span className="text-xs font-bold text-navy">
@@ -88,7 +88,7 @@ function NeighbourhoodSelect({ selected, onChange }) {
 
   return (
     <div ref={ref} className="relative">
-      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-slate-500">
         Neighbourhoods
       </label>
       <button
@@ -100,7 +100,7 @@ function NeighbourhoodSelect({ selected, onChange }) {
           {selected.length === 0 ? 'All neighbourhoods' : `${selected.length} selected`}
         </span>
         <svg
-          className={`h-4 w-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -145,7 +145,7 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
       <div className="divide-y divide-slate-100">
         {/* Investment Metrics */}
         <div className="p-5">
-          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Investment Metrics
           </h3>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -189,7 +189,7 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
 
         {/* Market Timing */}
         <div className="p-5">
-          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Days on Market
           </h3>
           <div className="flex items-center gap-3">
@@ -206,7 +206,7 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-navy placeholder:text-slate-300 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
-            <span className="text-sm text-slate-400">to</span>
+            <span className="text-sm text-slate-500">to</span>
             <div className="flex-1">
               <input
                 type="number"
@@ -225,7 +225,7 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
 
         {/* Location */}
         <div className="p-5">
-          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Location
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -245,7 +245,7 @@ export function InvestorFiltersAdvanced({ filters, updateFilter }) {
 
         {/* Special Features */}
         <div className="p-5">
-          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Special Features
           </h3>
           <div className="grid gap-4 sm:grid-cols-2">

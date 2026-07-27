@@ -19,7 +19,8 @@ export const metadata = {
   ],
   alternates: { canonical: '/townhouse-vs-condo-investment' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Townhouse or Condo: Which Is the Better Investment? (${YEAR})` }],
     title: `Townhouse or Condo: Which Is the Better Investment? (${YEAR})`,
     description: 'How condo fees, land, appreciation, cash flow and tenant demand compare for townhouse vs condo investing in Mississauga and the GTA.',
     url: 'https://www.mississaugainvestor.ca/townhouse-vs-condo-investment',

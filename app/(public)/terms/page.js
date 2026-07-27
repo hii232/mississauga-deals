@@ -11,7 +11,8 @@ export const metadata = {
     title: 'Terms of Service',
     description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
     url: 'https://www.mississaugainvestor.ca/terms',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Terms of Service | MississaugaInvestor.ca' }],
   },
 };
 

@@ -130,7 +130,8 @@ export function generateMetadata({ searchParams }) {
         title: copy.h1,
         description: copy.sub,
         url: `https://www.mississaugainvestor.ca${canonical}`,
-        images: ['/opengraph-image'],
+        // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+        images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: copy.h1 }],
       },
       twitter: {
         card: 'summary_large_image',
@@ -149,7 +150,8 @@ export function generateMetadata({ searchParams }) {
       title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
       description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
       url: 'https://www.mississaugainvestor.ca/gta',
-      images: ['/opengraph-image'],
+      // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More' }],
     },
   };
 }
@@ -284,7 +286,7 @@ export default async function GtaListingsPage({ searchParams }) {
           </div>
           {/* CAP-vs-cash-flow clarifier (matches /listings) so GTA investors
               aren't confused by a positive cap rate next to negative cash flow. */}
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
@@ -293,6 +295,8 @@ export default async function GtaListingsPage({ searchParams }) {
           <p className="mt-2 text-sm text-slate-500">
             <span className="text-slate-500">Investor guides:</span>{' '}
             <Link href="/guides" className="font-medium text-accent hover:text-accent-dark no-underline">All guides</Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/mississauga-vs-brampton-vs-hamilton" className="font-medium text-accent hover:text-accent-dark no-underline">Mississauga vs Brampton vs Hamilton</Link>
             <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
             <span aria-hidden="true" className="text-slate-400"> · </span>

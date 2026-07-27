@@ -18,7 +18,8 @@ export const metadata = {
   ],
   alternates: { canonical: '/guides' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Real Estate Investor Guides (${YEAR})` }],
     title: `Mississauga Real Estate Investor Guides (${YEAR})`,
     description: 'Free, honest guides for Mississauga real estate investors — cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
     url: `${BASE}/guides`,

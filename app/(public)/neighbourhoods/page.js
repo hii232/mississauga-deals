@@ -9,6 +9,7 @@ import { PageHero } from '@/components/layout/page-hero';
 import { NeighbourhoodScene } from '@/components/art/neighbourhood-scene';
 import { neighbourhoodPhoto } from '@/lib/neighbourhood-images';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import { AuthGate } from '@/components/ui/auth-gate';
 
 const FILTERS = ['All', 'Hot', 'Warm', 'Cool'];
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
@@ -58,15 +59,16 @@ export default function NeighbourhoodsPage() {
   const [showAll, setShowAll] = useState(false);
   const [recentSales, setRecentSales] = useState([]);
   const [hoodStats, setHoodStats] = useState({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    fetch('/api/sold-comps?limit=8')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.comps) setRecentSales(data.comps);
-      })
-      .catch(() => {});
-    // Live per-neighbourhood avg price / DOM / yield from active listings.
+    const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
+    setIsAuthenticated(registered);
+  }, []);
+
+  useEffect(() => {
+    // Live per-neighbourhood avg price / DOM / yield from ACTIVE listings —
+    // not sold data, so no gate applies.
     fetch('/api/neighbourhood-stats')
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -74,6 +76,18 @@ export default function NeighbourhoodsPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Individual sold prices + addresses are VOW-restricted TRREB data — skip
+  // the fetch entirely while gated (matches /recent-sales and listing-detail).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetch('/api/sold-comps?limit=8')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.comps) setRecentSales(data.comps);
+      })
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   // Merge curated HOOD_DATA with live aggregates: price/DOM/yield go live when
   // we have a sample, trend + YoY stay curated (Hamza's outlook).
@@ -293,8 +307,13 @@ export default function NeighbourhoodsPage() {
         </div>
       </section>
 
-      {/* Recent Sales Activity */}
-      {recentSales.length > 0 && (
+      {/* Recent Sales Activity — individual sold prices/addresses are
+          VOW-restricted TRREB data, gated the same real way as /recent-sales
+          and the listing-detail Sold Comps tab. Shown to a not-yet-registered
+          visitor as a capture prompt (mirroring every other gate on the site)
+          instead of just vanishing; once genuinely unlocked with zero comps
+          the section hides again, matching the original behaviour. */}
+      {(!isAuthenticated || recentSales.length > 0) && (
         <div className="mt-10 card p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -314,38 +333,46 @@ export default function NeighbourhoodsPage() {
               </svg>
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">City</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold Price</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden md:table-cell">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentSales.map((comp) => (
-                  <tr key={comp.id} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2.5">
-                      <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
-                    </td>
-                    <td className="py-2.5 text-muted text-xs hidden sm:table-cell">{comp.city}</td>
-                    <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
-                    <td className="py-2.5 text-center">
-                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
-                        {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-right text-xs text-muted hidden md:table-cell">
-                      {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
-                    </td>
+          <AuthGate
+            isAuthenticated={isAuthenticated}
+            onUnlock={() => setIsAuthenticated(true)}
+            source="Neighbourhoods — Recent Sales"
+            title="See exactly what nearby homes sold for"
+            valueLine="Real sold prices, addresses and dates across Mississauga — free, no credit card."
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
+                    <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">City</th>
+                    <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold Price</th>
+                    <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
+                    <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden md:table-cell">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recentSales.map((comp) => (
+                    <tr key={comp.id} className="border-b border-slate-50 last:border-0">
+                      <td className="py-2.5">
+                        <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
+                      </td>
+                      <td className="py-2.5 text-muted text-xs hidden sm:table-cell">{comp.city}</td>
+                      <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
+                      <td className="py-2.5 text-center">
+                        <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
+                          {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right text-xs text-muted hidden md:table-cell">
+                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </AuthGate>
         </div>
       )}
       {/* CTA */}

@@ -48,8 +48,13 @@ function TopPickCard({ listing, photo }) {
         >
           {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
         </div>
-        {/* CF+ badge */}
-        <span className="absolute left-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
+        {/* CF+ badge. Unconditional here because the parent TopPicks already
+            filters to cashFlow > 0 before rendering this card — every listing
+            in this carousel genuinely qualifies.
+            bg-emerald-500/90 measured 2.39:1 for white text over a light
+            photo — opaque emerald-700 = 5.48:1, same fix as its twin on the
+            main listing-card.js badge. */}
+        <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
           Cash Flowing
         </span>
       </div>
@@ -105,12 +110,12 @@ function TopPicks({ listings, photoMap, isRegistered }) {
         </div>
         {isRegistered && (
           <div className="hidden sm:flex items-center gap-1">
-            <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+            <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-500 hover:text-navy hover:bg-slate-100 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+            <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-500 hover:text-navy hover:bg-slate-100 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -518,7 +523,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
                     {l.address.split(',')[0]}
                     <button
                       onClick={() => toggleCompare(l.id)}
-                      className="ml-1 text-slate-400 hover:text-red-500"
+                      className="ml-1 text-slate-500 hover:text-red-500"
                     >
                       &times;
                     </button>

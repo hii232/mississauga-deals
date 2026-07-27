@@ -68,7 +68,8 @@ export const metadata = {
     title: 'Investment Properties for Sale in Mississauga',
     description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
     url: 'https://www.mississaugainvestor.ca/listings',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Properties for Sale in Mississauga' }],
   },
 };
 
@@ -154,7 +155,11 @@ export default async function ListingsPage() {
           <p className="mt-1 text-sm text-slate-500">
             Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
           </p>
-          <p className="mt-1 text-xs text-slate-400">
+          {/* text-slate-400 measured 2.56:1 on white for this 12px caption —
+              fails AA. slate-500 (4.76:1) is the token already used correctly
+              for the two inline terms right below it; the surrounding prose
+              had just never been raised to match. */}
+          <p className="mt-1 text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>

@@ -36,7 +36,8 @@ export const metadata = {
     'Ontario HST rebate on new homes: up to $130,000 off a qualifying new build. Who qualifies, the savings tiers by price, and the April 2026 deadline.',
   alternates: { canonical: '/pre-construction/hst-rebate' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000' }],
     title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
     description:
       'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',

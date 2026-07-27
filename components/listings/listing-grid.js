@@ -229,7 +229,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
 
           {getPageNumbers().map((page, i) =>
             page === '...' ? (
-              <span key={`dot-${i}`} className="px-2 text-sm text-slate-400">...</span>
+              <span key={`dot-${i}`} className="px-2 text-sm text-slate-500">...</span>
             ) : (
               <button
                 key={page}

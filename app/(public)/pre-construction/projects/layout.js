@@ -6,7 +6,8 @@ export const metadata = {
     'Browse 80+ pre-construction condos and townhomes across the GTA — Mississauga, Toronto, Brampton, Vaughan, Oakville, Markham, Hamilton & more. Get VIP pricing, floor plans, and first access through Hamza Nouman.',
   alternates: { canonical: '/pre-construction/projects' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Pre-Construction Projects — Condos & Townhomes' }],
     title: 'GTA Pre-Construction Projects — Condos & Townhomes',
     description:
       'Browse the latest pre-construction projects across the Greater Toronto Area. VIP pricing and first access available.',

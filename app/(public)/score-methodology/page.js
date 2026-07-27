@@ -18,7 +18,8 @@ export const metadata = {
     title: 'How the Deal Score Works — Methodology & Sources',
     description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
     url: 'https://www.mississaugainvestor.ca/score-methodology',
-    images: ['/opengraph-image'],
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works — Methodology & Sources' }],
   },
 };
 
@@ -243,7 +244,9 @@ export default function ScoreMethodologyPage() {
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">Score Ranges</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             <div className="text-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white font-bold text-sm flex items-center justify-center mx-auto mb-2">8+</div>
+              {/* emerald-500 measured 2.54:1 for white text — its blue-600
+                  sibling badge below already passes at 5.17:1. emerald-700 = 5.48:1. */}
+              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold text-sm flex items-center justify-center mx-auto mb-2">8+</div>
               <p className="text-xs font-semibold text-emerald-800">Strong Deal</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">

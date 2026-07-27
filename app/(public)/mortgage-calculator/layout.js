@@ -3,7 +3,8 @@ export const metadata = {
   description: 'Free calculator for Ontario income properties: mortgage payment, rental cash flow, cap rate, CMHC insurance, land transfer tax and the stress test.',
   alternates: { canonical: '/mortgage-calculator' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Income Property Mortgage Calculator — Mississauga Cash Flow & Payments' }],
     title: 'Income Property Mortgage Calculator — Mississauga Cash Flow & Payments',
     description: 'Free income property mortgage & cash-flow calculator for Mississauga real estate investors by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/mortgage-calculator',

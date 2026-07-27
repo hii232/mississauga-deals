@@ -19,7 +19,8 @@ export const metadata = {
   ],
   alternates: { canonical: '/hurontario-lrt-real-estate' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Hurontario LRT Real Estate Impact (${YEAR})` }],
     title: `Hurontario LRT Real Estate Impact (${YEAR})`,
     description: 'What the Hurontario LRT (Hazel McCallion Line) means for Mississauga investors along the Port Credit → City Centre → Cooksville corridor.',
     url: 'https://www.mississaugainvestor.ca/hurontario-lrt-real-estate',

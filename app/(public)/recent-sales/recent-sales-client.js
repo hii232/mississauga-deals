@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtCurrency } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
+import { AuthGate } from '@/components/ui/auth-gate';
 
 const HERO = {
   eyebrow: 'Live · MLS sold data',
@@ -40,8 +41,19 @@ export function RecentSalesClient() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('All');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
+    setIsAuthenticated(registered);
+  }, []);
+
+  // Individual sold prices + addresses are VOW-restricted TRREB data — this
+  // used to fetch and render them for every anonymous visitor. Now the fetch
+  // itself is skipped while gated, so no sold record ever reaches an
+  // unauthenticated browser (matches the listing-detail Sold Comps tab).
+  useEffect(() => {
+    if (!isAuthenticated) { setLoading(false); return; }
     async function load() {
       try {
         const params = new URLSearchParams({ limit: '50' });
@@ -59,7 +71,7 @@ export function RecentSalesClient() {
     }
     setLoading(true);
     load();
-  }, [typeFilter]);
+  }, [typeFilter, isAuthenticated]);
 
   if (loading) {
     return (
@@ -84,26 +96,36 @@ export function RecentSalesClient() {
       <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
+      {/* Individual sold prices + addresses are VOW-restricted TRREB data —
+          gated the same real way as the listing-detail Sold Comps tab. */}
+      <AuthGate
+        isAuthenticated={isAuthenticated}
+        onUnlock={() => setIsAuthenticated(true)}
+        source="Recent Sales — Sold Data"
+        title="See exactly what nearby homes sold for"
+        valueLine="Real sold prices, dates and the list-vs-sold gap for every recent Mississauga sale — free, no credit card."
+      >
+
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="card p-5 text-center">
-            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Avg Sold Price</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg Sold Price</p>
             <p className="font-heading font-bold text-xl text-navy">{fmtK(stats.avgSoldPrice)}</p>
           </div>
           <div className="card p-5 text-center">
-            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Avg Days to Sell</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg Days to Sell</p>
             <p className="font-heading font-bold text-xl text-navy">{stats.avgDOM}<span className="text-sm font-normal text-muted ml-1">days</span></p>
           </div>
           <div className="card p-5 text-center">
-            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Avg Negotiation</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg Negotiation</p>
             <p className={`font-heading font-bold text-xl ${stats.avgNegotiationGap < 0 ? 'text-success' : stats.avgNegotiationGap > 0 ? 'text-red-500' : 'text-navy'}`}>
               {stats.avgNegotiationGap > 0 ? '+' : ''}{stats.avgNegotiationGap}%
             </p>
             <p className="text-[10px] text-muted">{stats.avgNegotiationGap < 0 ? 'below list' : 'above list'}</p>
           </div>
           <div className="card p-5 text-center">
-            <p className="text-[10px] font-medium uppercase text-slate-400 mb-1">Sales Found</p>
+            <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Sales Found</p>
             <p className="font-heading font-bold text-xl text-navy">{stats.count}</p>
             <p className="text-[10px] text-muted">of {stats.total} total</p>
           </div>
@@ -205,7 +227,7 @@ export function RecentSalesClient() {
           <h3 className="text-sm font-bold text-navy mb-3">Market Insight</h3>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-lg bg-cloud p-3">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Buyer Leverage</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Buyer Leverage</p>
               <p className="text-sm font-bold text-navy">
                 {stats.avgNegotiationGap < -2 ? 'Strong' : stats.avgNegotiationGap < 0 ? 'Moderate' : 'Weak'}
               </p>
@@ -214,7 +236,7 @@ export function RecentSalesClient() {
               </p>
             </div>
             <div className="rounded-lg bg-cloud p-3">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Speed</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Speed</p>
               <p className="text-sm font-bold text-navy">
                 {stats.avgDOM <= 14 ? 'Very Fast' : stats.avgDOM <= 30 ? 'Normal' : 'Slow'}
               </p>
@@ -223,7 +245,7 @@ export function RecentSalesClient() {
               </p>
             </div>
             <div className="rounded-lg bg-cloud p-3">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Investor Signal</p>
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Investor Signal</p>
               <p className={`text-sm font-bold ${stats.avgNegotiationGap < -3 ? 'text-success' : 'text-gold'}`}>
                 {stats.avgNegotiationGap < -3 ? 'Buy Zone' : stats.avgNegotiationGap < 0 ? 'Fair Market' : 'Competitive'}
               </p>
@@ -234,6 +256,8 @@ export function RecentSalesClient() {
           </div>
         </div>
       )}
+
+      </AuthGate>
 
       {/* CTA */}
       <div className="card bg-navy p-8 text-center">
@@ -249,7 +273,7 @@ export function RecentSalesClient() {
       </div>
 
       {/* Attribution */}
-      <p className="mt-6 text-center text-[10px] text-slate-400">
+      <p className="mt-6 text-center text-[10px] text-slate-500">
         Data provided by TRREB via AMPRE. Sold prices and dates reflect MLS-recorded closings.
       </p>
       </div>

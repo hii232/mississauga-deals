@@ -151,7 +151,7 @@ export function ListingMap({ listings, photoMap }) {
     <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       {/* Map legend */}
       <div className="absolute top-3 right-3 z-[1000] rounded-lg bg-white/95 px-3 py-2 shadow-md backdrop-blur-sm">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Score</p>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Score</p>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 text-[10px] text-slate-500">
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: '#10B981' }} />8+
@@ -171,7 +171,7 @@ export function ListingMap({ listings, photoMap }) {
       {/* Map count */}
       <div className="absolute top-3 left-3 z-[1000] rounded-lg bg-white/95 px-3 py-2 shadow-md backdrop-blur-sm">
         <p className="text-xs font-semibold text-navy">
-          {listings.filter((l) => l.lat && l.lng).length} <span className="font-normal text-slate-400">on map</span>
+          {listings.filter((l) => l.lat && l.lng).length} <span className="font-normal text-slate-500">on map</span>
         </p>
       </div>
 

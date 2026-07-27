@@ -19,7 +19,8 @@ export const metadata = {
   ],
   alternates: { canonical: '/cash-flow-positive-properties-ontario' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Cash Flow Positive Properties in Ontario (${YEAR})` }],
     title: `Cash Flow Positive Properties in Ontario (${YEAR})`,
     description: 'What makes a rental cash-flow positive at today\'s rates, and how to filter Mississauga/GTA listings already scored for positive cash flow.',
     url: 'https://www.mississaugainvestor.ca/cash-flow-positive-properties-ontario',

@@ -44,7 +44,16 @@ export async function generateMetadata({ params }) {
       publishedTime: post.created_at || undefined,
       modifiedTime: post.updated_at || post.created_at || undefined,
       authors: ['Hamza Nouman'],
-      images: [{ url: blogCoverUrl(post, true) }],
+      // og:image:width/height only when the cover is our OWN generated one
+      // (/api/blog-cover, verified 1200x630 in app/api/blog-cover/route.js) —
+      // a post with a real cover_image_url (an imported photo) has genuinely
+      // unknown dimensions, and guessing them would be exactly the fabricated
+      // number this codebase's honesty rules exist to prevent.
+      images: [
+        post.cover_image_url
+          ? { url: blogCoverUrl(post, true) }
+          : { url: blogCoverUrl(post, true), width: 1200, height: 630, alt: post.title },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
@@ -277,7 +286,11 @@ export default async function BlogPostPage({ params }) {
                 <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
                   📞 647-609-1289
                 </a>
-                <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-500 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-600 transition">
+                {/* bg-emerald-500 measured 2.54:1 for white text — the same
+                    AA failure fixed on the homepage badges this morning,
+                    recurring here on a real conversion CTA on the site's
+                    top-traffic page type. emerald-700 = 5.48:1. */}
+                <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-800 transition">
                   📅 Book Free Call
                 </Link>
               </div>

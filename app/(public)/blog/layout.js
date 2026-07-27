@@ -3,7 +3,8 @@ export const metadata = {
   description: 'Expert analysis, neighbourhood guides and investment strategies for Mississauga real estate investors — market updates and cash-flow insights, free.',
   alternates: { canonical: '/blog' },
   openGraph: {
-    images: ['/opengraph-image'], // branded fallback OG (Next replaces, not merges, the parent openGraph)
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman' }],
     title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
     description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/blog',

@@ -249,16 +249,23 @@ export default function ComparePage() {
                           const isBest = colIdx === bestIdx;
                           let textClass = 'text-navy';
 
+                          // text-success (#10B981) and text-red-500 (#EF4444) as
+                          // FOREGROUND text on this table's white/cloud rows
+                          // measured 2.42-2.54:1 and 3.60-3.76:1 — fails AA on
+                          // the exact cash-flow figures this tool exists to let
+                          // an investor compare at a glance. emerald-700 and
+                          // red-600 both pass (5.2-5.5:1 and 4.6-4.8:1),
+                          // including on the `isBest` cells' success/5 tint.
                           if (metric.key === 'cashFlow') {
-                            textClass = val >= 0 ? 'text-success font-semibold' : 'text-red-500 font-semibold';
+                            textClass = val >= 0 ? 'text-emerald-700 font-semibold' : 'text-red-600 font-semibold';
                           } else if (metric.key === 'hamzaScore') {
                             textClass = 'font-bold';
                           } else if (metric.key === 'hasSuite' && val) {
-                            textClass = 'text-success font-medium';
+                            textClass = 'text-emerald-700 font-medium';
                           } else if (metric.key === 'lrtAccess' && val) {
                             textClass = 'text-accent font-medium';
                           } else if (metric.key === 'priceDrop' && val > 0) {
-                            textClass = 'text-red-500 font-medium';
+                            textClass = 'text-red-600 font-medium';
                           }
 
                           return (
@@ -293,9 +300,13 @@ export default function ComparePage() {
                   const best = listings.reduce((a, b) => a.cashFlow > b.cashFlow ? a : b);
                   return (
                     <div className="rounded-lg bg-cloud p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Best Cash Flow</p>
+                      {/* text-slate-400 measured 2.45:1 on bg-cloud at 10px —
+                          fails AA. slate-500 is 4.55:1. Same fix as the table
+                          cells below and the badges/captions fixed elsewhere
+                          this week. */}
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Best Cash Flow</p>
                       <p className="text-sm font-bold text-navy">{best.address.split(' ').slice(0, 3).join(' ')}</p>
-                      <p className={`text-xs font-mono font-semibold ${best.cashFlow >= 0 ? 'text-success' : 'text-red-500'}`}>
+                      <p className={`text-xs font-mono font-semibold ${best.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
                         {fmtNum(best.cashFlow)}
                       </p>
                     </div>
@@ -305,7 +316,7 @@ export default function ComparePage() {
                   const best = listings.reduce((a, b) => a.capRate > b.capRate ? a : b);
                   return (
                     <div className="rounded-lg bg-cloud p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Best Cap Rate</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Best Cap Rate</p>
                       <p className="text-sm font-bold text-navy">{best.address.split(' ').slice(0, 3).join(' ')}</p>
                       <p className="text-xs font-mono font-semibold text-accent">{best.capRate.toFixed(1)}%</p>
                     </div>
@@ -315,7 +326,7 @@ export default function ComparePage() {
                   const best = listings.reduce((a, b) => a.price < b.price ? a : b);
                   return (
                     <div className="rounded-lg bg-cloud p-3">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 mb-1">Lowest Entry Price</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Lowest Entry Price</p>
                       <p className="text-sm font-bold text-navy">{best.address.split(' ').slice(0, 3).join(' ')}</p>
                       <p className="text-xs font-mono font-semibold text-navy">{fmtK(best.price)}</p>
                     </div>
