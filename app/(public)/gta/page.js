@@ -9,6 +9,11 @@ import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 
+// Room for the 25s cache-seeding feed fetch below — without this the page
+// function itself can be killed at the platform default before the fetch
+// resolves, which reproduces the empty shell with a longer fuse.
+export const maxDuration = 60;
+
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS).
 // Exported so the sitemap can list every indexable /gta?city= page.
 export const CITY_COPY = {
@@ -195,12 +200,16 @@ export function generateMetadata({ searchParams }) {
 // and query a single city; the hub gets a short one because it is the heavy
 // query and is not where the ranking value sits.
 async function fetchGtaListings(city) {
-  // 8s for the hub too. It sat at 4s while the GTA hub runs the SLOWEST query
-  // on the site (17-city OR filter + every Toronto sub-area + media expand,
-  // plus the field probe on a cold API instance) — so the hub's SSR fetch
-  // timed out on essentially every render and the page shipped ZERO embedded
-  // listings (verified live: 278KB shell) while /listings shipped 99.
-  const timeoutMs = 8000;
+  // 25s. Verified against production runtime logs: the GTA feed call answers
+  // 200 every time but takes LONGER than the old timeout on a cache-seeding
+  // render (24.5k-row filter + $count + media expand + the field probe on a
+  // cold API instance) — so the SSR fetch aborted, the page shipped an empty
+  // shell, and the API logged a 200 nobody consumed. With the fetch cached at
+  // revalidate 300 and served stale-while-revalidate, exactly ONE render per
+  // 5 minutes pays this budget; every other render gets the cached rows
+  // instantly. A generous seed budget is the difference between /gta having
+  // SSR content and not having it.
+  const timeoutMs = 25000;
   try {
     const h = await headers();
     const host = h.get('host') || 'www.mississaugainvestor.ca';

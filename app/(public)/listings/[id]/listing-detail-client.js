@@ -1511,6 +1511,16 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-navy">
                   {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'} DOM
                 </span>
+                {/* Real square footage flows from the feed as of 2026-07-27 but
+                    was never displayed. TREB serves it as a banded range
+                    ("700-799" -> 750), so the value is honest only with the
+                    tilde — sqftApproximate is set exactly when the number is a
+                    band midpoint rather than a measured area. Hidden at 0. */}
+                {listing.sqft > 0 && (
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-navy">
+                    {listing.sqftApproximate ? '~' : ''}{listing.sqft.toLocaleString()} sqft
+                  </span>
+                )}
               </div>
 
               {/* Key Metrics */}
