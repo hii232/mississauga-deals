@@ -163,7 +163,36 @@ async function fetchLiveListingStats(baseUrl) {
       }
     }
 
-    return { activeCount: count, avgDOM, avgPrice, avgPrices };
+    // ── Motivated-seller radar (Hamza, 2026-07-27) ──
+    // dom >= 60: sitting for two months. Computed across the WHOLE active
+    // feed (this function pages all of it), never a single page. dom 0 means
+    // UNKNOWN and is excluded — a listing with no known age is never called
+    // stale. priceDrop is the mapped percentage discount from
+    // OriginalListPrice, so > 0 means the seller has already cut at least 1%.
+    const STALE_DOM = 60;
+    const staleRows = raw.filter((l) => { const d = domOf(l); return d != null && d >= STALE_DOM; });
+    const staleCount = staleRows.length;
+    const stalePct = count > 0 ? Math.round((staleCount / count) * 1000) / 10 : 0;
+    const cutOf = (l) => Number(l.priceDrop ?? l.priceReduction) || 0;
+    const staleWithPriceCut = staleRows.filter((l) => cutOf(l) > 0).length;
+    // neighbourhood is the board's own community (CityRegion) — non-canonical
+    // names appear under their real label rather than being remapped.
+    const staleByNeighbourhood = {};
+    for (const l of staleRows) {
+      const hood = String(l.neighbourhood || l.city || '').trim();
+      if (!hood) continue;
+      staleByNeighbourhood[hood] = (staleByNeighbourhood[hood] || 0) + 1;
+    }
+    // Descending by count so the biggest pockets read first.
+    const staleByNeighbourhoodSorted = Object.fromEntries(
+      Object.entries(staleByNeighbourhood).sort((a, b) => b[1] - a[1])
+    );
+
+    return {
+      activeCount: count, avgDOM, avgPrice, avgPrices,
+      staleCount, stalePct, staleWithPriceCut,
+      staleByNeighbourhood: staleByNeighbourhoodSorted,
+    };
   } catch {
     return null;
   }
@@ -259,6 +288,11 @@ export async function GET() {
     source: 'Live MLS Data + TRREB Market Watch',
     region: 'Mississauga',
     activeCount: liveListings?.activeCount || 0,
+    // Motivated-seller radar — whole-feed counts, see fetchLiveListingStats.
+    staleCount: liveListings?.staleCount ?? 0,
+    stalePct: liveListings?.stalePct ?? 0,
+    staleWithPriceCut: liveListings?.staleWithPriceCut ?? 0,
+    staleByNeighbourhood: liveListings?.staleByNeighbourhood ?? {},
     // null (not a hardcoded 28) when the feed supplies no real days-on-market —
     // consumers already omit the tile rather than print an invented figure.
     avgDOM: liveListings?.avgDOM ?? null,
