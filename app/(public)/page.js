@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
 import { formatLiveCount } from '@/lib/listings/properties-analyzed';
-import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
@@ -14,6 +13,23 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
+
+// ISR, not per-request SSR. This page used to call headers() (only to build
+// its own base URL) which forced a FULL dynamic render — and the render
+// awaits a whole-feed walk before sending a byte. With warm caches that's
+// fine; after a deploy purge against a throttled upstream it was a measured
+// 56-SECOND TTFB for every visitor on the money page. Cached HTML with
+// background regeneration means visitors always get an instant page and the
+// feed walk happens off the request path, at most once per 5 minutes.
+export const revalidate = 300;
+
+// Public domain, NOT request headers — headers() is what forced dynamic
+// rendering. Same constant+trade-off as app/image-sitemap.xml/route.js
+// (previews read production data; dev reads localhost).
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
   title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
@@ -28,13 +44,11 @@ export const metadata = {
 // ─────────────────────────────────────────────
 async function fetchLiveStats() {
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    const proto = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${proto}://${host}`;
-
-    const res = await fetch(`${baseUrl}/api/market-stats`, {
+    const res = await fetch(`${SITE_URL}/api/market-stats`, {
       next: { revalidate: 300 },
+      // Bounded so a cold stats recompute can never stall page regeneration
+      // (or a build-time prerender, which has a hard 60s budget).
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) return null;
     const data = await res.json();
@@ -90,16 +104,14 @@ async function fetchLiveStats() {
 // ─────────────────────────────────────────────
 async function fetchTopDeals() {
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    const proto = host.includes('localhost') ? 'http' : 'https';
-    const baseUrl = `${proto}://${host}`;
-
     // Fetch all pages for an accurate total via the shared feed fetch —
     // this sat on its own fetch with revalidate 3600, so the homepage kept
     // serving hour-old (or, across deploys, DAYS-old) feed data after every
-    // fix. See lib/listings/fetch-feed.js.
-    const { listings: raw, first: data } = await fetchFeedPages(baseUrl, '/api/listings', { pages: 999 });
+    // fix. See lib/listings/fetch-feed.js. timeoutMs 5000 bounds the whole
+    // walk (~5 batches) to ~30s worst case: regeneration happens off the
+    // request path now, but build-time prerender still has a hard 60s
+    // budget and must never be blown by a slow upstream (see #68's lesson).
+    const { listings: raw, first: data } = await fetchFeedPages(SITE_URL, '/api/listings', { pages: 999, timeoutMs: 5000 });
     if (!data) return { deals: [], photoMap: {}, totalCount: 0 };
 
     const processed = processListings(raw);
@@ -139,8 +151,12 @@ async function fetchTopDeals() {
     try {
       const photoPromises = top.map(async (d) => {
         try {
-          const r = await fetch(`${baseUrl}/api/photos?id=${encodeURIComponent(d.id)}&limit=1`, {
-            cache: 'no-store',
+          // revalidate, not no-store — a no-store fetch forces the whole page
+          // dynamic, undoing the ISR this page depends on. Top-deal photos
+          // changing within 5 minutes is not a real concern.
+          const r = await fetch(`${SITE_URL}/api/photos?id=${encodeURIComponent(d.id)}&limit=1`, {
+            next: { revalidate: 300 },
+            signal: AbortSignal.timeout(5000),
           });
           if (r.ok) {
             const data = await r.json();
