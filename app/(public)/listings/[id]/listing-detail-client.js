@@ -247,7 +247,7 @@ function MortgageTab({ listing }) {
           <BreakdownRow label="Property Tax" value={calc.propTax} />
           <BreakdownRow label={`Insurance`} value={calc.insurance} />
           {calc.condoFee > 0 ? (
-            <BreakdownRow label="Condo Fee" value={calc.condoFee} />
+            <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={calc.condoFee} />
           ) : (
             <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
           )}
@@ -339,7 +339,7 @@ function CapRateTab({ listing }) {
           <BreakdownRow label="Property Tax" value={Math.round(calc.annualOpExPropertyTax)} annual negative />
           <BreakdownRow label="Insurance" value={Math.round(calc.annualOpExInsurance)} annual negative />
           {calc.annualOpExCondoFee > 0 ? (
-            <BreakdownRow label="Condo Fee" value={Math.round(calc.annualOpExCondoFee)} annual negative />
+            <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={Math.round(calc.annualOpExCondoFee)} annual negative />
           ) : (
             <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
           )}
