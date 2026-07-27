@@ -23,7 +23,13 @@ const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap)
 });
 
 // ── Top Picks Card ──
-function TopPickCard({ listing, photo }) {
+// isRegistered gates the actual VALUES, not just their opacity. The overlay
+// below used to be the only gate — a CSS blur-sm over the real numbers — so
+// "Top N cash-flowing deals are locked" sat directly above CAP/CF/CoC text
+// that was still genuinely present and legible in the DOM (blur is a paint
+// effect, not a data boundary). Now an unregistered visitor never receives
+// the real figures for these cards at all, so the "locked" copy is true.
+function TopPickCard({ listing, photo, isRegistered }) {
   const scoreHex = scoreColorHex(listing.hamzaScore);
   return (
     <Link
@@ -65,15 +71,15 @@ function TopPickCard({ listing, photo }) {
         <div className="mt-1.5 grid grid-cols-3 gap-0.5 text-center rounded-md bg-cloud p-1.5">
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CAP</p>
-            <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.capRate)}</p>
+            <p className="text-[11px] font-bold text-navy truncate">{isRegistered ? pct1(listing.capRate) : '••••'}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CF/mo</p>
-            <p className="text-[11px] font-bold text-emerald-700 truncate">{Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—'}</p>
+            <p className="text-[11px] font-bold text-emerald-700 truncate">{isRegistered ? (Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—') : '••••'}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
-            <p className="text-[11px] font-bold text-navy truncate">{pct1(listing.cashOnCash)}</p>
+            <p className="text-[11px] font-bold text-navy truncate">{isRegistered ? pct1(listing.cashOnCash) : '••••'}</p>
           </div>
         </div>
       </div>
@@ -131,7 +137,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
         >
           {topPicks.map((listing) => (
             <div key={listing.id} style={{ scrollSnapAlign: 'start' }}>
-              <TopPickCard listing={listing} photo={listing.photos?.[0] || photoMap[listing.id] || null} />
+              <TopPickCard listing={listing} photo={listing.photos?.[0] || photoMap[listing.id] || null} isRegistered={isRegistered} />
             </div>
           ))}
         </div>
@@ -154,7 +160,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, apiEndpoint = '/api/listings', popularHoods }) {
+export function ListingsContainer({ initialListings, initialTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -311,39 +317,54 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
     };
   }, []);
 
-  // Client-side fallback: if SSR returned no listings, fetch on client
-  // Shows page 1 instantly, then loads remaining pages in background
+  // Loads the rest of the inventory. Two starting states:
+  //  - Cold start (no SSR data): fetch page 1 ourselves and show it instantly.
+  //  - SSR already primed page 1 (the common case since /listings and /gta
+  //    became server-rendered): skip straight to background-loading pages
+  //    2+. This used to bail out entirely whenever SSR provided ANY rows
+  //    ("if (initialListings.length > 0) return"), which meant the site was
+  //    permanently capped at whatever the server's single page fetched
+  //    (~198 rows) even though the real feed has thousands — every count
+  //    claim above ~200 was comparing against data the page never loaded.
+  // Either way, remaining pages load in the background and get appended.
   useEffect(() => {
-    if (initialListings.length > 0) return;
     let cancelled = false;
-    async function fetchClient() {
+    async function fetchRemaining() {
       try {
         const { processListings } = await import('@/lib/listings/process-listings');
-
         const cityQs = cityParam ? '&city=' + encodeURIComponent(cityParam) : '';
 
-        // Fetch page 1 and show immediately
-        const res = await fetch(apiEndpoint + '?limit=200&page=1' + cityQs);
-        if (!res.ok) {
-          // Feed down: stop the skeletons and show an honest error state
-          if (!cancelled) { setIsLoading(false); setLoadError(true); }
-          return;
-        }
-        const data = await res.json();
-        const page1 = data.listings || data || [];
-        const totalPages = data.pages || 1;
+        let page1Raw = [];
+        let totalPages;
 
-        if (!cancelled) {
-          setLoadError(false);
-          setIsLoading(false);
-          if (page1.length > 0) setListings(processListings(page1));
+        if (initialListings.length === 0) {
+          // Cold start — fetch page 1 ourselves and show it immediately.
+          const res = await fetch(apiEndpoint + '?limit=200&page=1' + cityQs);
+          if (!res.ok) {
+            // Feed down: stop the skeletons and show an honest error state
+            if (!cancelled) { setIsLoading(false); setLoadError(true); }
+            return;
+          }
+          const data = await res.json();
+          page1Raw = data.listings || data || [];
+          totalPages = data.pages || 1;
+
+          if (!cancelled) {
+            setLoadError(false);
+            setIsLoading(false);
+            if (page1Raw.length > 0) setListings(processListings(page1Raw));
+          }
+        } else {
+          // SSR already gave us page 1 (processed) — work out how many more
+          // pages exist from the real total instead of guessing.
+          totalPages = initialTotal > 0 ? Math.ceil(initialTotal / 200) : 1;
         }
 
         // Fetch remaining pages in parallel batches, appending as they arrive
         if (totalPages > 1 && !cancelled) {
           const maxPages = Math.min(totalPages, 50);
           const batchSize = 5;
-          const allExtra = [];
+          const allExtraRaw = [];
 
           for (let batchStart = 2; batchStart <= maxPages && !cancelled; batchStart += batchSize) {
             const batch = [];
@@ -356,11 +377,18 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
               );
             }
             const results = await Promise.all(batch);
-            for (const r of results) allExtra.push(...r);
+            for (const r of results) allExtraRaw.push(...r);
 
-            // Update listings after each batch so user sees more appearing
-            if (!cancelled && allExtra.length > 0) {
-              setListings(processListings([...page1, ...allExtra]));
+            if (!cancelled && allExtraRaw.length > 0) {
+              const processedExtra = processListings(allExtraRaw);
+              // Merge with whichever base we started from — SSR's already-
+              // processed rows, or this run's own freshly-processed page 1 —
+              // and drop any listing pages 2+ happen to repeat (dedupe key
+              // matches process-listings' own address+price dedupe).
+              const base = initialListings.length > 0 ? initialListings : processListings(page1Raw);
+              const seen = new Set(base.map((l) => l.address + '|' + l.price));
+              const merged = base.concat(processedExtra.filter((l) => !seen.has(l.address + '|' + l.price)));
+              setListings(merged);
             }
           }
         }
@@ -368,9 +396,9 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
         if (!cancelled) { setIsLoading(false); setLoadError(true); }
       }
     }
-    fetchClient();
+    fetchRemaining();
     return () => { cancelled = true; };
-  }, [initialListings, cityParam, apiEndpoint, retryKey]);
+  }, [initialListings, initialTotal, cityParam, apiEndpoint, retryKey]);
 
   const toggleCompare = useCallback((id) => {
     setCompareIds((prev) =>

@@ -189,6 +189,7 @@ export default async function ListingsPage() {
         <Suspense>
           <ListingsContainer
             initialListings={listings}
+            initialTotal={total}
             apiEndpoint="/api/listings"
           />
         </Suspense>
