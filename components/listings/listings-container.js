@@ -451,6 +451,30 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           investment properties" as if that were the whole market. */}
       <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={Math.max(displayTotal || initialTotal || 0, listings.length)} popularHoods={popularHoods} searchCity={searchCity} />
 
+      {/* Motivated-seller context band — the email campaign and social links
+          land people on /listings?sort=dom with zero explanation of what
+          they're looking at. Shown only in that sort so the page narrates the
+          view ("longest-waiting sellers first") and routes the intent into the
+          alerts capture path. Display-only; sorting is untouched. */}
+      {filters.sortKey === 'dom' && filtered.length > 0 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex items-start gap-3">
+            <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-gold" aria-hidden="true" />
+            <p className="text-sm text-navy">
+              <span className="font-bold">Motivated-seller view:</span> sorted by days on market —
+              longest-waiting sellers first. A seller who has already cut their price once is far
+              more likely to negotiate again.
+            </p>
+          </div>
+          <Link
+            href="/alerts"
+            className="flex-shrink-0 rounded-lg bg-navy px-4 py-1.5 text-center text-xs font-semibold text-white shadow-sm transition hover:bg-navy/90 no-underline"
+          >
+            Alert me on new price cuts
+          </Link>
+        </div>
+      )}
+
       {/* Signup prompt — show when not registered */}
       {!isRegistered && filtered.length > 0 && (
         <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-gradient-to-r from-accent/5 to-emerald-50 px-4 py-3 sm:px-5">
