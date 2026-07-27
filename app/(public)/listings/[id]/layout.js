@@ -72,9 +72,17 @@ export async function generateMetadata({ params }) {
   const price = listing.price ? `$${listing.price.toLocaleString()}` : '';
   const beds = listing.beds || 0;
   const baths = listing.baths || 0;
+  // Real community from the feed's CityRegion (available 2026-07-27). A title
+  // carrying "Port Credit, Mississauga" instead of just "Mississauga" targets
+  // the street+neighbourhood queries these pages actually win, and makes
+  // ~5,400 titles genuinely distinct. Only rendered when it adds information —
+  // the fallback sets neighbourhood = city, and "Mississauga, Mississauga"
+  // would read as a bug in the SERP.
+  const hood = listing.neighbourhood && listing.neighbourhood !== city ? listing.neighbourhood : null;
+  const where = hood ? `${hood}, ${city}` : city;
 
-  const title = `${address}, ${city} — ${type} for Sale${price ? ` ${price}` : ''}`;
-  const description = `${type} for sale at ${address}, ${city}. ${beds} bed, ${baths} bath${price ? ` · Listed at ${price}` : ''}. Cash flow analysis, cap rate, deal score, and investment insights by Hamza Nouman.`;
+  const title = `${address}, ${where} — ${type} for Sale${price ? ` ${price}` : ''}`;
+  const description = `${type} for sale at ${address}, ${where}. ${beds} bed, ${baths} bath${price ? ` · Listed at ${price}` : ''}. Cash flow analysis, cap rate, deal score, and investment insights by Hamza Nouman.`;
 
   return {
     title,
