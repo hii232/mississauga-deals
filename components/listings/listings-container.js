@@ -445,7 +445,11 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
 
       {/* Investor Filters */}
-      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={listings.length} popularHoods={popularHoods} searchCity={searchCity} />
+      {/* totalCount is the MARKET total, not the loaded slice — passing
+          listings.length made the "of N" clause unreachable (equal to
+          resultCount when unfiltered), so the SSR view read "Showing 199
+          investment properties" as if that were the whole market. */}
+      <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={Math.max(displayTotal || initialTotal || 0, listings.length)} popularHoods={popularHoods} searchCity={searchCity} />
 
       {/* Signup prompt — show when not registered */}
       {!isRegistered && filtered.length > 0 && (
