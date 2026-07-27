@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtCurrency } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
+import { AuthGate } from '@/components/ui/auth-gate';
 
 const HERO = {
   eyebrow: 'Live · MLS sold data',
@@ -40,8 +41,19 @@ export function RecentSalesClient() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [typeFilter, setTypeFilter] = useState('All');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
+    setIsAuthenticated(registered);
+  }, []);
+
+  // Individual sold prices + addresses are VOW-restricted TRREB data — this
+  // used to fetch and render them for every anonymous visitor. Now the fetch
+  // itself is skipped while gated, so no sold record ever reaches an
+  // unauthenticated browser (matches the listing-detail Sold Comps tab).
+  useEffect(() => {
+    if (!isAuthenticated) { setLoading(false); return; }
     async function load() {
       try {
         const params = new URLSearchParams({ limit: '50' });
@@ -59,7 +71,7 @@ export function RecentSalesClient() {
     }
     setLoading(true);
     load();
-  }, [typeFilter]);
+  }, [typeFilter, isAuthenticated]);
 
   if (loading) {
     return (
@@ -83,6 +95,16 @@ export function RecentSalesClient() {
     <>
       <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Individual sold prices + addresses are VOW-restricted TRREB data —
+          gated the same real way as the listing-detail Sold Comps tab. */}
+      <AuthGate
+        isAuthenticated={isAuthenticated}
+        onUnlock={() => setIsAuthenticated(true)}
+        source="Recent Sales — Sold Data"
+        title="See exactly what nearby homes sold for"
+        valueLine="Real sold prices, dates and the list-vs-sold gap for every recent Mississauga sale — free, no credit card."
+      >
 
       {/* Stats Cards */}
       {stats && (
@@ -234,6 +256,8 @@ export function RecentSalesClient() {
           </div>
         </div>
       )}
+
+      </AuthGate>
 
       {/* CTA */}
       <div className="card bg-navy p-8 text-center">

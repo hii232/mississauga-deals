@@ -11,49 +11,19 @@ import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { SkylineStrip } from '@/components/art/cityscape';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { InlineEmailCapture } from '@/components/ui/inline-email-capture';
-import { ProofRow } from '@/components/ui/proof-row';
+import { AuthGate } from '@/components/ui/auth-gate';
 import { deduplicatePhotos } from '@/lib/utils/dedup-photos';
 import { calculateDistance } from '@/lib/sold-comps';
 import { HOOD_DATA } from '@/lib/constants';
 
-// ──────────────────────────────────────────
-//  Auth Gate Overlay
-// ──────────────────────────────────────────
-// A REAL gate. This used to render `children` behind a CSS blur, so every
-// gated figure — sold comps, cap rate, BRRR — was sitting in the DOM in plain
-// text for anyone who opened DevTools or disabled CSS. It captured no email
-// from those visitors and put VOW-restricted sold data in an unauthenticated
-// browser. The gated subtree is now simply not rendered, which also means its
-// components never mount and never fire their fetches.
-//
-// The unlock is the email itself, taken inline: asking for it here and sending
-// the visitor to /signup would repeat the exact friction removed from the hero.
-function AuthGate({ children, isAuthenticated, title, valueLine, source, listing, onUnlock }) {
-  if (isAuthenticated) return children;
-  return (
-    <div className="mx-auto max-w-md py-6 text-center">
-      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-accent/10">
-        <svg className="h-5 w-5 text-accent" fill="none" viewBox="0 0 24 24" strokeWidth="1.8" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-        </svg>
-      </div>
-      <p className="mb-1 text-base font-bold text-navy">{title}</p>
-      <p className="mx-auto mb-4 max-w-xs text-xs text-muted">{valueLine}</p>
-      <div className="text-left">
-        <InlineEmailCapture
-          id={`gate-email-${source}`}
-          source={source}
-          tone="light"
-          listing={listing}
-          buttonLabel="Unlock — Free"
-          note="Free forever. No credit card. Unsubscribe anytime."
-          onCaptured={onUnlock}
-        />
-      </div>
-      <ProofRow className="mt-5 border-t border-slate-100 pt-4" />
-    </div>
-  );
-}
+// AuthGate moved to components/ui/auth-gate.js (byte-identical) so
+// /recent-sales, /neighbourhoods and /market-pulse can gate their own
+// individual sold-comp records the same real way: this used to render
+// `children` behind a CSS blur, so every gated figure was sitting in the DOM
+// in plain text for anyone who opened DevTools or disabled CSS, capturing no
+// email and putting VOW-restricted sold data in an unauthenticated browser.
+// The gated subtree is not rendered at all, so its components never mount and
+// never fire their fetches.
 
 // ──────────────────────────────────────────
 //  Slider Component

@@ -7,12 +7,19 @@ import { fmtK } from '@/lib/utils/format';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
+import { AuthGate } from '@/components/ui/auth-gate';
 
 export default function MarketPulsePage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [recentSales, setRecentSales] = useState([]);
   const [salesStats, setSalesStats] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const registered = typeof window !== 'undefined' && localStorage.getItem('user_registered') === 'true';
+    setIsAuthenticated(registered);
+  }, []);
 
   useEffect(() => {
     async function load() {
@@ -27,8 +34,12 @@ export default function MarketPulsePage() {
       }
     }
     load();
+  }, []);
 
-    // Fetch recent sold comps
+  // Individual sold prices + addresses are VOW-restricted TRREB data — skip
+  // the fetch entirely while gated (matches /recent-sales and listing-detail).
+  useEffect(() => {
+    if (!isAuthenticated) return;
     fetch('/api/sold-comps?limit=5')
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -36,7 +47,7 @@ export default function MarketPulsePage() {
         if (data?.stats) setSalesStats(data.stats);
       })
       .catch(() => {});
-  }, []);
+  }, [isAuthenticated]);
 
   // Derive stats from HOOD_DATA as fallback
   const hoodEntries = Object.entries(HOOD_DATA);
@@ -225,8 +236,12 @@ export default function MarketPulsePage() {
           one-tap way to convert mid-scroll without leaving the page. */}
       <InlineCTA variant="newsletter" className="mb-10" />
 
-      {/* Recent Sales Activity */}
-      {recentSales.length > 0 && (
+      {/* Recent Sales Activity — individual sold prices/addresses are
+          VOW-restricted TRREB data, gated the same real way as /recent-sales
+          and the listing-detail Sold Comps tab. Shown to a not-yet-registered
+          visitor as a capture prompt instead of vanishing; once genuinely
+          unlocked with zero comps the section hides again. */}
+      {(!isAuthenticated || recentSales.length > 0) && (
         <div className="card p-6 mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-semibold text-lg text-navy">
@@ -243,59 +258,67 @@ export default function MarketPulsePage() {
             </Link>
           </div>
 
-          {/* Mini stats row */}
-          {salesStats && (
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-500">Avg Sold</p>
-                <p className="text-sm font-bold text-navy">{fmtK(salesStats.avgSoldPrice)}</p>
+          <AuthGate
+            isAuthenticated={isAuthenticated}
+            onUnlock={() => setIsAuthenticated(true)}
+            source="Market Pulse — Recent Sales"
+            title="See exactly what nearby homes sold for"
+            valueLine="Real sold prices, addresses and dates across Mississauga — free, no credit card."
+          >
+            {/* Mini stats row */}
+            {salesStats && (
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="rounded-lg bg-cloud p-2.5 text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Avg Sold</p>
+                  <p className="text-sm font-bold text-navy">{fmtK(salesStats.avgSoldPrice)}</p>
+                </div>
+                <div className="rounded-lg bg-cloud p-2.5 text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Avg DOM</p>
+                  <p className="text-sm font-bold text-navy">{salesStats.avgDOM}d</p>
+                </div>
+                <div className="rounded-lg bg-cloud p-2.5 text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500">Negotiation</p>
+                  <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {salesStats.avgNegotiationGap > 0 ? '+' : ''}{salesStats.avgNegotiationGap}%
+                  </p>
+                </div>
               </div>
-              <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-500">Avg DOM</p>
-                <p className="text-sm font-bold text-navy">{salesStats.avgDOM}d</p>
-              </div>
-              <div className="rounded-lg bg-cloud p-2.5 text-center">
-                <p className="text-[10px] font-medium uppercase text-slate-500">Negotiation</p>
-                <p className={`text-sm font-bold ${salesStats.avgNegotiationGap < 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                  {salesStats.avgNegotiationGap > 0 ? '+' : ''}{salesStats.avgNegotiationGap}%
-                </p>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Sales table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
-                  <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">DOM</th>
-                  <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentSales.map((comp) => (
-                  <tr key={comp.id} className="border-b border-slate-50 last:border-0">
-                    <td className="py-2.5">
-                      <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
-                    </td>
-                    <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
-                    <td className="py-2.5 text-center">
-                      <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
-                        {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-center text-muted hidden sm:table-cell">{comp.dom}d</td>
-                    <td className="py-2.5 text-right text-xs text-muted hidden sm:table-cell">
-                      {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
-                    </td>
+            {/* Sales table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="text-left py-2 text-[10px] font-semibold uppercase text-slate-500">Address</th>
+                    <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500">Sold</th>
+                    <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500">vs List</th>
+                    <th className="text-center py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">DOM</th>
+                    <th className="text-right py-2 text-[10px] font-semibold uppercase text-slate-500 hidden sm:table-cell">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {recentSales.map((comp) => (
+                    <tr key={comp.id} className="border-b border-slate-50 last:border-0">
+                      <td className="py-2.5">
+                        <p className="text-sm font-medium text-navy truncate max-w-[200px]">{comp.address}</p>
+                      </td>
+                      <td className="py-2.5 text-right font-semibold text-navy">{fmtK(comp.closePrice)}</td>
+                      <td className="py-2.5 text-center">
+                        <span className={`text-xs font-semibold ${comp.priceDelta < 0 ? 'text-emerald-700' : comp.priceDelta > 0 ? 'text-red-600' : 'text-muted'}`}>
+                          {comp.priceDelta > 0 ? '+' : ''}{comp.priceDelta}%
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-center text-muted hidden sm:table-cell">{comp.dom}d</td>
+                      <td className="py-2.5 text-right text-xs text-muted hidden sm:table-cell">
+                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </AuthGate>
         </div>
       )}
 
