@@ -24,7 +24,15 @@ export default function MarketPulsePage() {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch('/api/market-stats');
+        // Hard 10s budget. A cold /api/market-stats recompute can take 60-90s
+        // when the feed upstream is slow — and this page's loading gate held
+        // the ENTIRE page (metrics, CTAs, capture forms) on a skeleton until
+        // the fetch resolved, which reads as "the website isn't loading"
+        // (reported live by Hamza, 2026-07-27). Every stat below has a
+        // fallback for stats == null, so rendering without the live payload
+        // is strictly better than rendering nothing; the API's own CDN cache
+        // makes the next visit fast anyway.
+        const res = await fetch('/api/market-stats', { signal: AbortSignal.timeout(10000) });
         const data = await res.json();
         setStats(data);
       } catch (err) {
