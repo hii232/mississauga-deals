@@ -5,7 +5,12 @@ import { buildMotivatedSellersEmail } from '@/lib/emails/motivated-sellers-email
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 
-export const maxDuration = 60;
+// 300, not 60: fetchRadar calls /api/market-stats with cache:'no-store', and a
+// cold recompute of that route can take 60-90s when the feed upstream is slow.
+// At 60 the draft GET died mid-fetch and the approver email silently never
+// went out. 300 is within the plan's Fluid limit and leaves room for the
+// batched send in the POST path too.
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 // One-off campaign id. Powers the approval token + the "already sent" guard, so

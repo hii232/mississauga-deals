@@ -94,6 +94,14 @@ const MARKET_FAQ = [
       'It is the sale price as a percentage of the asking price, averaged across sales. Above 100% means homes are generally selling over asking (competitive bidding), while below 100% means sellers are accepting less than they asked. For an investor it sets the realistic negotiation expectation before writing an offer, and a falling ratio is usually the earliest sign a market is cooling — it moves before average prices do.',
   },
   {
+    // Targets "motivated sellers Mississauga" / "how long on market" queries —
+    // the search demand today's radar campaign feeds. Definitional like the
+    // rest: the live counts live in the radar card above, never in this copy.
+    question: 'How do I find motivated sellers in Mississauga?',
+    answer:
+      'Days on market is the most reliable public signal. A listing that has sat well past the market’s typical selling time — roughly 60 days or more — tells you the seller’s expectations and the market have not met, and a price cut on top of that means the seller has already shown flexibility once. The Motivated Seller Radar on this page tracks how many active Mississauga listings currently fit that profile and which neighbourhoods they cluster in, and every listing on this site shows its real days on market so you can sort the whole city by who has been waiting longest before you write an offer.',
+  },
+  {
     question: 'Where does this Mississauga market data come from?',
     answer:
       'Two sources, labelled separately on the page rather than blended into one number. Days on market and active listing counts come from live MLS data through the PropTx/AMPRE feed and update continuously. Sold prices, sales volume, months of inventory, sale-to-list ratio and year-over-year changes come from the Toronto Regional Real Estate Board’s monthly Market Watch report, and the month they represent is stated on the page so a monthly snapshot is never read as today’s figure.',
@@ -131,6 +139,10 @@ export default function Layout({ children }) {
           Put these numbers to work:{' '}
           <a href="/listings" className="font-medium text-accent no-underline hover:text-accent-dark">
             browse scored Mississauga listings
+          </a>
+          ,{' '}
+          <a href="/listings?sort=dom" className="font-medium text-accent no-underline hover:text-accent-dark">
+            see the longest-sitting listings
           </a>
           ,{' '}
           <a href="/mortgage-calculator" className="font-medium text-accent no-underline hover:text-accent-dark">
