@@ -1,27 +1,24 @@
-import { headers } from 'next/headers';
 import { formatAddress } from '@/lib/utils/format';
 
-// Derive the origin from the request, NOT from NODE_ENV. `next start` runs with
-// NODE_ENV=production locally too, so a NODE_ENV check points a local server at
-// the live domain — which is unreachable from a dev/CI box, so the fetch fails
-// and EVERY listing page silently falls back to generic metadata. page.js next
-// door already documents this exact trap; this file had not been updated to
-// match, which is why listing metadata could never be verified locally.
+// Origin WITHOUT request APIs — headers() in generateMetadata forced the
+// entire route dynamic, disabling the ISR page.js declares (see the fuller
+// note there). The local-verification trap the old headers() approach dodged
+// (`next start` runs with NODE_ENV=production locally, so a NODE_ENV check
+// pointed local servers at the live domain) is handled by the VERCEL env var
+// instead: set only on the platform, so deployed builds get the public
+// domain and local dev AND local `next start` both get localhost.
 //
 // Never VERCEL_URL either: the *.vercel.app deployment URL sits behind Vercel
 // deployment protection, so server-side fetches to it 401.
-async function siteUrl() {
-  const h = await headers();
-  const host = h.get('host') || 'www.mississaugainvestor.ca';
-  const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
-  return `${isLocal ? 'http' : 'https'}://${host}`;
-}
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
 
 // Fetch minimal listing data for SEO metadata — one call via listing-single
 async function fetchListingData(id) {
   try {
     const res = await fetch(
-      `${await siteUrl()}/api/listing-single?id=${encodeURIComponent(id)}`,
+      `${SITE_URL}/api/listing-single?id=${encodeURIComponent(id)}`,
       { next: { revalidate: 3600 } }
     );
     if (!res.ok) return null;
@@ -43,7 +40,7 @@ async function fetchListingData(id) {
 async function fetchListingPhoto(id) {
   try {
     const res = await fetch(
-      `${await siteUrl()}/api/photos?id=${encodeURIComponent(id)}&limit=1`,
+      `${SITE_URL}/api/photos?id=${encodeURIComponent(id)}&limit=1`,
       { next: { revalidate: 86400 } }
     );
     if (!res.ok) return null;
