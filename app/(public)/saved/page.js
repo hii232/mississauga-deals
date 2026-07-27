@@ -53,14 +53,12 @@ export default function SavedPage() {
 
     let cancelled = false;
 
-    // Batch fetch photos
-    for (let i = 0; i < needPhotos.length; i += 50) {
-      const batch = needPhotos.slice(i, i + 50);
-      fetch('/api/photos-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids: batch }),
-      })
+    // Batch fetch photos — GET so the CDN can cache the response (POST is
+    // never cached); 25 per call matching the endpoint's cap, ids sorted for
+    // a stable cache key.
+    for (let i = 0; i < needPhotos.length; i += 25) {
+      const batch = needPhotos.slice(i, i + 25);
+      fetch(`/api/photos-batch?ids=${encodeURIComponent([...batch].sort().join(','))}`)
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (cancelled || !data?.photos) return;

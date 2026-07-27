@@ -236,14 +236,14 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   const photoQueueRef = useRef([]);        // IDs waiting to be fetched
   const photoTimerRef = useRef(null);      // background drainer timer
 
-  // Helper: fetch a batch of photos (up to 25) via batch endpoint
+  // Helper: fetch a batch of photos (up to 25) via batch endpoint.
+  // GET, not POST: Vercel's CDN only caches GET responses, so with POST every
+  // visitor scrolling the same page re-paid 25 upstream media queries. IDs are
+  // sorted so two visitors covering the same listings produce the same cache
+  // key regardless of arrival order.
   const fetchPhotoBatch = useCallback(async (ids) => {
     try {
-      const res = await fetch('/api/photos-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      });
+      const res = await fetch(`/api/photos-batch?ids=${encodeURIComponent([...ids].sort().join(','))}`);
       if (!res.ok) throw new Error('batch failed');
       const data = await res.json();
       const photos = data?.photos || {};
