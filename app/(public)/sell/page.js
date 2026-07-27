@@ -58,11 +58,18 @@ const agentServiceSchema = {
 
 // Honest, general answers — no fabricated stats, commissions, or timelines.
 // Specifics come from the free valuation + CMA, which every answer routes back to.
-const SELL_FAQ = [
+//
+// A FUNCTION, not a static array: two of these answers quote how many listings
+// the engine scores, and they also ship inside this page's FAQPage JSON-LD — so
+// a hardcoded figure sent a stale number to Google as well as to the reader.
+// They said "over 1,800" while the same page's stat tile showed the live count,
+// contradicting itself in its own copy.
+function buildSellFaq(propertiesAnalyzed) {
+  return [
   {
     question: 'How do you sell my home for the most?',
     answer:
-      'It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score over 1,800 Mississauga listings, markets your home professionally on the open market (MLS plus targeted exposure), and — as an investment-focused agent — knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.',
+      `It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score ${propertiesAnalyzed} Mississauga listings, markets your home professionally on the open market (MLS plus targeted exposure), and — as an investment-focused agent — knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.`,
   },
   {
     question: 'What makes your approach different from other agents?',
@@ -72,7 +79,7 @@ const SELL_FAQ = [
   {
     question: 'How do you decide what to list my home for?',
     answer:
-      'Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score over 1,800 Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.',
+      `Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score ${propertiesAnalyzed} Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.`,
   },
   {
     question: 'What does it cost to sell a home in Ontario?',
@@ -89,7 +96,8 @@ const SELL_FAQ = [
     answer:
       'No. The valuation is free and there’s no obligation — to sell, to list, or to do anything at all. Many people request one just to understand their equity or plan ahead. If the time is right, Hamza is there; if it isn’t, that’s a perfectly good answer too.',
   },
-];
+  ];
+}
 
 // A function, not a static array: the "Priced with data" line quotes the
 // live properties-analyzed count (see lib/listings/properties-analyzed.js),
@@ -147,6 +155,7 @@ export default async function SellPage() {
   const reviews = GOOGLE_REVIEWS.slice(0, 3);
   const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
   const DIFFERENTIATORS = buildDifferentiators(propertiesAnalyzed);
+  const SELL_FAQ = buildSellFaq(propertiesAnalyzed);
 
   return (
     <>
