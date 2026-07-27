@@ -4,7 +4,11 @@ import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 30;
+// 60, not 30: production error clusters show this route's own 30s ceiling
+// being hit (77 timeouts since Jun 24) — the cold path (field probe + 24.5k-row
+// filter + $count + media expand) can genuinely exceed it, and a route killed
+// at 30s fails the SSR cache seed that /gta's 25s-budget fetch depends on.
+export const maxDuration = 60;
 
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
