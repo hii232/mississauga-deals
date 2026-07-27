@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, formatAddress } from '@/lib/utils/format';
 
@@ -32,6 +33,7 @@ export function HomeDealCards({ deals, photoMap }) {
             deal={deal}
             photo={photo}
             isGated={!isAuthenticated && i > 0}
+            priority={i === 0}
           />
         );
       })}
@@ -39,7 +41,7 @@ export function HomeDealCards({ deals, photoMap }) {
   );
 }
 
-function HomeDealCard({ deal, photo, isGated }) {
+function HomeDealCard({ deal, photo, isGated, priority }) {
   const scoreHex = scoreColorHex(deal.hamzaScore);
   const score = Number.isFinite(deal.hamzaScore) ? deal.hamzaScore : null;
   const cf = Number.isFinite(deal.cashFlow) ? deal.cashFlow : null;
@@ -51,7 +53,14 @@ function HomeDealCard({ deal, photo, isGated }) {
     >
       <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
         {photo ? (
-          <img src={photo} alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          <Image
+            src={photo}
+            alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`}
+            fill
+            sizes="(min-width: 1024px) 25vw, 50vw"
+            priority={priority}
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-8 w-8 sm:h-12 sm:w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
