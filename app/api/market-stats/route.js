@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 import { headers } from 'next/headers';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
@@ -60,29 +61,18 @@ const mississaugaMonthly = [
 // ── Fetch live stats from internal APIs ──────────────────
 async function fetchLiveListingStats(baseUrl) {
   try {
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 3600 },
+    // THE SAME fetch path the /listings page uses (lib/listings/fetch-feed.js).
+    // This function kept its own loop with limit=200 cache keys after the
+    // pages moved off them — and Next's Data Cache persists across deploys,
+    // so every stat here (activeCount, avgDOM, the radar) was computed from
+    // PRE-FIX cached rows: avgDOM read 75 and every neighbourhood read
+    // "Mississauga" while the live feed had long been fixed. One shared fetch
+    // path means the stats and the pages can never read different data again.
+    const { listings: raw } = await fetchFeedPages(baseUrl, '/api/listings', {
+      pages: 999,
+      revalidate: 3600,
+      timeoutMs: 25000,
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const raw = data.listings || data || [];
-    const totalPages = data.pages || 1;
-
-    // Fetch remaining pages
-    if (totalPages > 1) {
-      const promises = [];
-      for (let p = 2; p <= totalPages; p++) {
-        promises.push(
-          fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-            next: { revalidate: 3600 },
-          }).then((r) => (r.ok ? r.json() : null))
-        );
-      }
-      const pages = await Promise.all(promises);
-      for (const pg of pages) {
-        if (pg?.listings) raw.push(...pg.listings);
-      }
-    }
 
     if (raw.length === 0) return null;
 
@@ -116,6 +106,14 @@ async function fetchLiveListingStats(baseUrl) {
     const withDom = raw.filter((l) => { const d = domOf(l); return d != null && d > 0; });
     const avgDOM = withDom.length > 0
       ? Math.round(withDom.reduce((s, l) => s + domOf(l), 0) / withDom.length)
+      : null;
+    // Median resists the long tail (a handful of 300+ day listings drags the
+    // mean) — for "how fast does inventory move" it is the honest headline.
+    const sortedDoms = withDom.map(domOf).sort((a, b) => a - b);
+    const medianDOM = sortedDoms.length > 0
+      ? (sortedDoms.length % 2
+          ? sortedDoms[(sortedDoms.length - 1) / 2]
+          : Math.round((sortedDoms[sortedDoms.length / 2 - 1] + sortedDoms[sortedDoms.length / 2]) / 2))
       : null;
 
     // Average ACTIVE LIST price. It used to fall back to the latest TRREB
@@ -189,7 +187,7 @@ async function fetchLiveListingStats(baseUrl) {
     );
 
     return {
-      activeCount: count, avgDOM, avgPrice, avgPrices,
+      activeCount: count, avgDOM, medianDOM, avgPrice, avgPrices,
       staleCount, stalePct, staleWithPriceCut,
       staleByNeighbourhood: staleByNeighbourhoodSorted,
     };
@@ -288,6 +286,10 @@ export async function GET() {
     source: 'Live MLS Data + TRREB Market Watch',
     region: 'Mississauga',
     activeCount: liveListings?.activeCount || 0,
+    // Live-feed DOM. avgDOM/medianDOM are computed from the SAME live rows as
+    // the radar below; the TRREB sold-market DOM figures keep their own
+    // clearly-named fields (avgSoldDOM, mississaugaAvgLDOM/PDOM).
+    medianDOM: liveListings?.medianDOM ?? null,
     // Motivated-seller radar — whole-feed counts, see fetchLiveListingStats.
     staleCount: liveListings?.staleCount ?? 0,
     stalePct: liveListings?.stalePct ?? 0,
@@ -439,6 +441,9 @@ export async function GET() {
   };
 
   return NextResponse.json(stats, {
-    headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=1800' },
+    // 24h per spec (2026-07-27): these are daily pitch/report numbers, not a
+    // live ticker. Vercel purges the CDN cache on deploy, so code fixes still
+    // surface immediately; only organic drift waits for the daily refresh.
+    headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600' },
   });
 }
