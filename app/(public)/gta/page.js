@@ -41,6 +41,28 @@ export const CITY_COPY = {
   'Ancaster': { h1: 'Ancaster Investment Properties', sub: 'Active Ancaster listings — scored and analyzed', region: 'City of Hamilton' },
 };
 
+// 27 of these 28 `sub` strings above were "Active {city} listings — scored and
+// analyzed" — the SAME five words with only the city name swapped, used as the
+// meta description, OG/Twitter description AND the visible hero subtitle on
+// every one of those pages. That is the near-duplicate-content pattern Google's
+// own guidance warns hurts indexing, and it wasted the one real, city-specific
+// fact these pages already have on hand: the municipal property tax rate
+// CityInvestorNotes states in prose lower on the same page. Rebuilding `sub`
+// from `region` + the real researched rate (read from the SAME table the
+// cash-flow engine uses — never restated by hand) makes all 27 genuinely
+// distinct instead of templated, and ties the description to this site's
+// actual differentiator (real per-city tax, not a generic listing blurb).
+// Toronto keeps its own hand-written aggregate copy (it names 5 sub-areas,
+// which is already unique and would be redundant to regenerate).
+Object.keys(CITY_COPY).forEach((city) => {
+  if (city === 'Toronto') return;
+  const copy = CITY_COPY[city];
+  const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
+  copy.sub = rate
+    ? `Active ${city} listings in ${copy.region} — cash flow, cap rate and deal score costed with ${city}'s ${(rate * 100).toFixed(2)}% property tax.`
+    : `Active ${city} listings in ${copy.region} — cash flow, cap rate and deal score analysis for investors.`;
+});
+
 // Server-rendered, genuinely per-city content for the 28 indexable
 // /gta?city= pages. Before this, everything below each page's h1 + one-line
 // subtitle was byte-identical across all 28 (the listings themselves are
