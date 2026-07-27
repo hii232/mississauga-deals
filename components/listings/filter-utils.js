@@ -69,7 +69,7 @@ export const STRATEGY_CHIPS = [
   { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
   { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
   { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
-  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom <= 3 },
+  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom >= 1 && l.dom <= 3 }, // dom 0 = unknown, not new — without the >=1 this chip matched every listing whose age the feed withholds
   { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
   { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
   { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },

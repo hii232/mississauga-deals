@@ -93,15 +93,30 @@ async function fetchInitialListings() {
     const res = await fetch(`${proto}://${host}/api/listings?limit=200&page=1`, {
       next: { revalidate: 600 },
     });
-    if (!res.ok) return { listings: [], total: 0 };
+    if (!res.ok) return { listings: [], total: 0, displayTotal: 0 };
     const data = await res.json();
     const rows = processListings(data.listings || []);
     // browsableTotal excludes the commercial/lease rows the site never shows —
     // see /api/listings. Using the raw @odata.count here would advertise ~60
     // listings a visitor can never reach.
-    return { listings: rows, total: Number(data.browsableTotal ?? data.total) || rows.length };
+    const feedTotal = Number(data.browsableTotal ?? data.total) || rows.length;
+    // The DISPLAYED total comes from the same canonical source every other
+    // page quotes (/api/market-stats activeCount, same URL + same revalidate →
+    // shared cache entry). Before this, each surface sampled its own count at
+    // its own cache moment, so one crawl read 2,547 on the homepage, 2,555 on
+    // /about and 2,591 here — three live numbers for one fact. feedTotal keeps
+    // driving the pagination math; only the CLAIM is unified.
+    let displayTotal = feedTotal;
+    try {
+      const ms = await fetch(`${proto}://${host}/api/market-stats`, { next: { revalidate: 300 } });
+      if (ms.ok) {
+        const stats = await ms.json();
+        if (Number(stats.activeCount) > 0) displayTotal = Number(stats.activeCount);
+      }
+    } catch {}
+    return { listings: rows, total: feedTotal, displayTotal };
   } catch {
-    return { listings: [], total: 0 };
+    return { listings: [], total: 0, displayTotal: 0 };
   }
 }
 
@@ -132,7 +147,7 @@ function buildItemList(listings) {
 }
 
 export default async function ListingsPage() {
-  const { listings, total } = await fetchInitialListings();
+  const { listings, total, displayTotal } = await fetchInitialListings();
   const itemList = buildItemList(listings);
 
   return (
@@ -193,6 +208,7 @@ export default async function ListingsPage() {
           <ListingsContainer
             initialListings={listings}
             initialTotal={total}
+            displayTotal={displayTotal}
             apiEndpoint="/api/listings"
           />
         </Suspense>

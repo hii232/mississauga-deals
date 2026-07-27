@@ -195,7 +195,13 @@ export async function GET(request) {
       },
       {
         headers: {
-          'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600',
+          // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN
+          // for 24h, which had two nasty effects on a feed labelled "live":
+          // every deploy's data fix stayed INVISIBLE on re-crawls for up to a
+          // day (a re-audit kept reading pre-fix responses and reasonably
+          // concluded nothing was fixed), and each surface's cache aged
+          // differently so the same count read differently page to page.
+          'Cache-Control': 's-maxage=900, stale-while-revalidate=3600',
           'Access-Control-Allow-Origin': '*',
         },
       }

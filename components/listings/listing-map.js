@@ -105,7 +105,7 @@ export function ListingMap({ listings, photoMap }) {
               <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#F8FAFC;border-radius:6px;padding:6px;text-align:center;">
                 <div>
                   <div style="font-size:9px;text-transform:uppercase;color:#94A3B8;font-weight:500;">DOM</div>
-                  <div style="font-size:12px;font-weight:700;color:#1B2A4A;">${listing.dom}</div>
+                  <div style="font-size:12px;font-weight:700;color:#1B2A4A;">${listing.dom >= 1 ? listing.dom : '—'}</div>
                 </div>
                 <div>
                   <div style="font-size:9px;text-transform:uppercase;color:#94A3B8;font-weight:500;">CAP</div>

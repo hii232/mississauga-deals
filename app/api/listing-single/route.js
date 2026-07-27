@@ -54,42 +54,46 @@ export async function GET(request) {
     const safeId = id.replace(/'/g, "''");
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
+    // Photos, pulled in the SAME request as the listing.
+    //
+    // This route previously asked for no Media at all, which quietly cost the
+    // site its best SEO asset on its highest-traffic page type. The listing
+    // detail page is server-rendered from this endpoint, so with no photos in
+    // the payload the server HTML for all ~5,400 listing pages carried:
+    //   - a RealEstateListing JSON-LD with NO `image` (PropertyJsonLd only
+    //     emits `image` when photos exist) — and images are what earn the
+    //     rich result for a property listing
+    //   - no LCP image in the markup at all; the hero only appeared after a
+    //     separate client fetch to /api/photos, an endpoint the backlog
+    //     already flags as intermittently timing out
+    // The Media $expand is confirmed working against production (the listings
+    // feed settles on the core+media tier and returns real photo URLs), so
+    // asking for it here is safe. Degrades exactly as before if it is ever
+    // rejected: `expand` is dropped and the client fetch still fills photos in.
+    const EXPAND = '&$expand=' + encodeURIComponent('Media($select=MediaURL;$orderby=Order)');
+    const sel = '$select=' + encodeURIComponent(SEL);
+
     let l = null;
 
-    // Approach 1: Direct entity key access — fastest
-    const resp1 = await fetch(
-      BASE + "/Property('" + safeId + "')?$select=" + encodeURIComponent(SEL),
-      { headers }
-    );
-    if (resp1.ok) {
-      const body = await resp1.json();
-      if (body?.ListingKey) l = body;
-    }
+    // Each approach is tried WITH the Media expand first, then without, so a
+    // rejected expand costs only the photos rather than the whole listing.
+    const attempts = [
+      BASE + "/Property('" + safeId + "')?" + sel + EXPAND,
+      BASE + "/Property('" + safeId + "')?" + sel,
+      BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'") + '&' + sel + EXPAND + '&$top=1',
+      BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'") + '&' + sel + '&$top=1',
+      // Some IDs are a ListingId rather than a ListingKey.
+      BASE + '/Property?$filter=' + encodeURIComponent("ListingId eq '" + safeId + "'") + '&' + sel + EXPAND + '&$top=1',
+      BASE + '/Property?$filter=' + encodeURIComponent("ListingId eq '" + safeId + "'") + '&' + sel + '&$top=1',
+    ];
 
-    // Approach 2: Filter by ListingKey
-    if (!l) {
-      const resp2 = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'")
-          + '&$select=' + encodeURIComponent(SEL) + '&$top=1',
-        { headers }
-      );
-      if (resp2.ok) {
-        const data = await resp2.json();
-        l = data.value?.[0] || null;
-      }
-    }
-
-    // Approach 3: Filter by ListingId (some IDs may be ListingId)
-    if (!l) {
-      const resp3 = await fetch(
-        BASE + '/Property?$filter=' + encodeURIComponent("ListingId eq '" + safeId + "'")
-          + '&$select=' + encodeURIComponent(SEL) + '&$top=1',
-        { headers }
-      );
-      if (resp3.ok) {
-        const data = await resp3.json();
-        l = data.value?.[0] || null;
-      }
+    for (const url of attempts) {
+      const resp = await fetch(url, { headers });
+      if (!resp.ok) continue;
+      const body = await resp.json();
+      // Entity-key form returns the record directly; filter form wraps it.
+      const found = body?.ListingKey ? body : body?.value?.[0] || null;
+      if (found) { l = found; break; }
     }
 
     if (!l) {
@@ -104,7 +108,19 @@ export async function GET(request) {
       ? Math.round(((l.OriginalListPrice - price) / l.OriginalListPrice) * 100)
       : 0;
     const rem = l.PublicRemarks || '';
-    const dom = l.DaysOnMarket || 0;
+    // DaysOnMarket comes back null on ACTIVE listings from this feed, so 0
+    // here means UNKNOWN, not "listed today" — see lib/listings/market-timing.js.
+    const dom = Number(l.DaysOnMarket) > 0 ? Number(l.DaysOnMarket) : 0;
+
+    // Photos from the expanded Media, deduped and in feed order.
+    const photos = [];
+    if (Array.isArray(l.Media)) {
+      const seen = new Set();
+      for (const m of l.Media) {
+        const u = m?.MediaURL || '';
+        if (u && !seen.has(u)) { seen.add(u); photos.push(u); }
+      }
+    }
 
     const listing = {
       id: l.ListingKey,
@@ -124,8 +140,8 @@ export async function GET(request) {
       status: l.StandardStatus,
       brokerage: l.ListOfficeName || '',
       remarks: rem,
-      photos: [],
-      images: [],
+      photos,
+      images: photos,
       lat: l.Latitude,
       lng: l.Longitude,
       sqft: 0,

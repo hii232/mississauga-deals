@@ -1,18 +1,27 @@
+import { headers } from 'next/headers';
 import { formatAddress } from '@/lib/utils/format';
 
-// Public site URL — never use VERCEL_URL here: the *.vercel.app deployment URL
-// is behind Vercel deployment protection, so server-side fetches to it 401 and
-// every listing page falls back to generic metadata.
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
+// Derive the origin from the request, NOT from NODE_ENV. `next start` runs with
+// NODE_ENV=production locally too, so a NODE_ENV check points a local server at
+// the live domain — which is unreachable from a dev/CI box, so the fetch fails
+// and EVERY listing page silently falls back to generic metadata. page.js next
+// door already documents this exact trap; this file had not been updated to
+// match, which is why listing metadata could never be verified locally.
+//
+// Never VERCEL_URL either: the *.vercel.app deployment URL sits behind Vercel
+// deployment protection, so server-side fetches to it 401.
+async function siteUrl() {
+  const h = await headers();
+  const host = h.get('host') || 'www.mississaugainvestor.ca';
+  const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
+  return `${isLocal ? 'http' : 'https'}://${host}`;
+}
 
 // Fetch minimal listing data for SEO metadata — one call via listing-single
 async function fetchListingData(id) {
   try {
     const res = await fetch(
-      `${SITE_URL}/api/listing-single?id=${encodeURIComponent(id)}`,
+      `${await siteUrl()}/api/listing-single?id=${encodeURIComponent(id)}`,
       { next: { revalidate: 3600 } }
     );
     if (!res.ok) return null;
@@ -23,11 +32,18 @@ async function fetchListingData(id) {
   }
 }
 
-// First photo for the social share image
+// First photo for the social share image.
+//
+// Only used as a FALLBACK now: /api/listing-single carries its photos inline
+// (it expands Media in the same request), so the common path costs one upstream
+// call instead of two. That matters here specifically — /api/photos is the
+// endpoint the backlog flags as intermittently timing out, and it was sitting
+// in the metadata path of the site's highest-traffic page type, where a timeout
+// means the listing shares with no preview image at all.
 async function fetchListingPhoto(id) {
   try {
     const res = await fetch(
-      `${SITE_URL}/api/photos?id=${encodeURIComponent(id)}&limit=1`,
+      `${await siteUrl()}/api/photos?id=${encodeURIComponent(id)}&limit=1`,
       { next: { revalidate: 86400 } }
     );
     if (!res.ok) return null;
@@ -39,10 +55,8 @@ async function fetchListingPhoto(id) {
 }
 
 export async function generateMetadata({ params }) {
-  const [listing, photo] = await Promise.all([
-    fetchListingData(params.id),
-    fetchListingPhoto(params.id),
-  ]);
+  const listing = await fetchListingData(params.id);
+  const photo = listing?.photos?.[0] || (await fetchListingPhoto(params.id));
 
   if (!listing) {
     return {
