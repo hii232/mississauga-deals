@@ -5,6 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
+import { HOOD_DATA } from '@/lib/constants';
+
+const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // A malformed listing (missing/NaN derived number) must NEVER crash the card and
 // blank the whole listings grid. Format defensively; show a dash, never NaN.
@@ -242,12 +245,37 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         </div>
 
         {/* Bed/bath/type */}
-        <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
+        <div className="mb-1 flex items-center gap-3 text-xs text-slate-500">
           <span>{listing.beds} bed</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span>{listing.baths} bath</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span className="capitalize">{listing.type}</span>
+        </div>
+
+        {/* Neighbourhood — linked to the investment guide for Mississauga hoods,
+            plain text for GTA cities without a guide. The listing detail page
+            already links here; matching that pattern on the card passes link
+            equity from /listings (the site's highest-traffic page) to the 24
+            established neighbourhood guide pages. */}
+        <div className="mb-2 text-[10px] text-slate-500">
+          {listing.neighbourhood && listing.neighbourhood !== listing.city
+            ? (HOOD_DATA[listing.neighbourhood] ? (
+                <Link
+                  href={`/neighbourhoods/${slugify(listing.neighbourhood)}`}
+                  className="hover:text-accent transition-colors"
+                  title={`${listing.neighbourhood} investment guide`}
+                >
+                  {listing.neighbourhood}
+                </Link>
+              ) : listing.neighbourhood)
+            : null}
+          {listing.neighbourhood && listing.neighbourhood !== listing.city && listing.city && (
+            <span>, {listing.city}</span>
+          )}
+          {(!listing.neighbourhood || listing.neighbourhood === listing.city) && listing.city && (
+            <span>{listing.city}</span>
+          )}
         </div>
 
         {/* The rent assumption every metric below is derived from. Hidden, a
