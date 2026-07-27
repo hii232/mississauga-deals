@@ -1,14 +1,30 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 
 // ── Animated Counter Hook ──
+// Starts AT the target, not 0: this dashboard is server-rendered (the target
+// is computed from real listings at SSR time), so a useState(0) initial value
+// made every stat — Total Deals, CF+ Deals, Best Cap, Best Cash Flow, Avg
+// Score — render as a literal "0" in the HTML a crawler or a fast screenshot
+// sees, directly beside listing cards showing real numbers. requestAnimationFrame
+// never runs on the server, so that zero was never overwritten until the
+// client's first animation frame landed. Skips the count-up animation on
+// mount (nothing to animate — SSR already has the real number) but still
+// animates smoothly when the target later changes (filters, async data
+// arriving on a cold client-side start), which is the effect this was for.
 function useCountUp(target, duration = 600) {
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(target);
+  const isFirstRun = useRef(true);
   useEffect(() => {
     if (!target && target !== 0) { setValue(0); return; }
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      setValue(target);
+      return;
+    }
     let start = null;
     let raf;
     const step = (ts) => {

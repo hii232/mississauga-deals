@@ -160,14 +160,21 @@ export async function GET(request) {
         : 0;
       const rem = l.PublicRemarks || '';
 
-      let dom = l.DaysOnMarket || 0;
-      if (dom === 0) {
-        const listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
-        if (listDate) {
-          const diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
-          if (diff > 0 && diff < 1000) dom = diff;
-        }
+      // PropTx's own DaysOnMarket field has been observed on production
+      // returning the SAME value for every single active Mississauga listing
+      // at once (e.g. every one of ~200 rows reading dom:17) — a batch-
+      // recompute artifact upstream, not a real per-listing figure. A
+      // listing's own list-date fields cannot fail that way (each one is set
+      // once, independently, when that listing was created), so compute DOM
+      // from real dates FIRST and only trust the feed's DaysOnMarket as a
+      // last resort when no date field is present at all.
+      let dom = 0;
+      const listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
+      if (listDate) {
+        const diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
+        if (diff > 0 && diff < 1000) dom = diff;
       }
+      if (dom === 0) dom = l.DaysOnMarket || 0;
 
       // Extract photos from expanded Media
       const ph = [];

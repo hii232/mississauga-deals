@@ -67,7 +67,7 @@ function RentAssumption({ listing }) {
   );
 }
 
-export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick }) {
+export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick, belowMarketCutoff = -3 }) {
   const [saved, setSaved] = useState(false);
 
   // Initialize saved state from localStorage
@@ -203,11 +203,11 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             <p className="text-lg font-bold text-navy">{fmtK(listing.price)}</p>
             {listing.estimatedValue > 0 && (
               <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                listing.evDiffPct < -3 ? 'bg-emerald-100 text-emerald-700'
+                listing.evDiffPct <= belowMarketCutoff ? 'bg-emerald-100 text-emerald-700'
                   : listing.evDiffPct > 3 ? 'bg-red-100 text-red-700'
                     : 'bg-slate-100 text-slate-600'
               }`}>
-                {listing.evDiffPct < -3 ? 'Below Market' : listing.evDiffPct > 3 ? 'Above Market' : 'At Market'}
+                {listing.evDiffPct <= belowMarketCutoff ? 'Below Market' : listing.evDiffPct > 3 ? 'Above Market' : 'At Market'}
               </span>
             )}
           </div>
@@ -256,13 +256,18 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             </div>
             {isGated ? (
               <>
+                {/* This used to print the literal word "Free" in the value
+                    slot — same bold styling as a real number — so the row
+                    read as "CoC: Free" / "Cash Flow/mo: Free", as if the
+                    RETURN were free rather than the unlock being free. A
+                    masked placeholder can't be misread as a figure. */}
                 <div>
                   <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
-                  <p className="text-sm font-bold text-accent">Free</p>
+                  <p className="text-sm font-bold text-accent">••••</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-slate-500">Cash Flow/mo</p>
-                  <p className="text-sm font-bold text-accent">Free</p>
+                  <p className="text-sm font-bold text-accent">••••</p>
                 </div>
               </>
             ) : (

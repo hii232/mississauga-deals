@@ -1,8 +1,8 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
-import { PLATFORM_STATS } from '@/lib/constants';
 import Link from 'next/link';
 import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating } from '@/lib/google-rating';
+import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
 
 export const metadata = {
   title: { absolute: 'About Hamza Nouman — Mississauga Investment REALTOR®' },
@@ -55,6 +55,9 @@ export const metadata = {
 export default async function AboutPage() {
   // Live from Google; null hides every rating claim on the page.
   const googleRating = await fetchGoogleRating();
+  // Same live count the homepage hero uses — see lib/listings/properties-analyzed.js
+  // for why this replaced a hand-set PLATFORM_STATS constant.
+  const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
   const breadcrumbs = [
     { name: 'Home', url: 'https://www.mississaugainvestor.ca' },
     { name: 'About Hamza Nouman', url: 'https://www.mississaugainvestor.ca/about' },
@@ -120,7 +123,7 @@ export default async function AboutPage() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div>
-              <p className="text-2xl font-bold text-navy">{PLATFORM_STATS.propertiesAnalyzed}</p>
+              <p className="text-2xl font-bold text-navy">{propertiesAnalyzed}</p>
               <p className="text-xs text-muted">Properties Analyzed</p>
             </div>
             <div>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
+import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
@@ -12,7 +13,6 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
-import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
@@ -405,7 +405,7 @@ function HowItWorks() {
     {
       num: '03',
       Scene: ConnectScene,
-      title: 'Connect with Hamza',
+      title: 'Book a Free Call',
       desc: 'Book a free strategy call to discuss your investment goals and get personalized recommendations.',
     },
   ];
@@ -423,11 +423,14 @@ function HowItWorks() {
             <div key={num} className="card relative overflow-hidden p-6 text-center transition-shadow hover:shadow-lg">
               {/* A real numbered badge, not the old 5%-opacity watermark. The
                   watermark sat immediately before the illustration, whose SVG
-                  carries decorative <text> ("8.6", "$"), so extracted page text
-                  read "018.6" and "02$" — garbled for anything reading the page
-                  as text, Google included, while looking fine on screen. A
-                  legible badge states the sequence properly and removes the
-                  adjacency. White on accent measures 5.2:1. */}
+                  used to carry decorative <text> ("8.6", "$"), so extracted
+                  page text read "018.6" and "02$" — garbled for anything
+                  reading the page as text, Google included, while looking
+                  fine on screen. The scene art is now pure vector shapes
+                  (no <text> at all), and this legible badge sits in its own
+                  block above the illustration with clear margin — verified
+                  clean at 375px, no visual or text-extraction collision.
+                  White on accent measures 5.2:1. */}
               <div className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
                 {Number(num)}
               </div>
@@ -445,7 +448,7 @@ function HowItWorks() {
 // ─────────────────────────────────────────────
 //   AGENT PROFILE
 // ─────────────────────────────────────────────
-function AgentProfile({ googleRating }) {
+function AgentProfile({ googleRating, propertiesAnalyzed }) {
   return (
     <section className="relative overflow-hidden bg-cloud py-16">
       <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
@@ -499,7 +502,7 @@ function AgentProfile({ googleRating }) {
 
             <div className="flex flex-wrap gap-6 justify-center md:justify-start mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-navy">{PLATFORM_STATS.propertiesAnalyzed}</p>
+                <p className="text-2xl font-bold text-navy">{propertiesAnalyzed}</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
               </div>
               <div className="text-center">
@@ -720,12 +723,14 @@ export default async function HomePage() {
   // in which case the hero omits the number rather than fabricate one (the old
   // code fell back to a hardcoded "2,000+", which overstated the real ~few-hundred
   // Mississauga inventory whenever totalCount was < 500 or the feed was down).
-  const heroCount =
-    topDeals.totalCount >= 500
-      ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
-      : topDeals.totalCount > 0
-        ? topDeals.totalCount.toLocaleString()
-        : null;
+  const heroCount = formatLiveCount(topDeals.totalCount);
+  // Same live figure, same rounding rule, used for the bio's "Properties
+  // Analyzed" stat too — this used to be a hand-set PLATFORM_STATS constant
+  // ("1,800+") that drifted below the hero's own live count on the same
+  // page, so a visitor could see the platform claim to have analyzed FEWER
+  // properties than it was showing active right above it. Falls back to the
+  // same constant only when the feed is down and heroCount is null.
+  const propertiesAnalyzed = heroCount || PLATFORM_STATS.propertiesAnalyzed;
 
   const heroDeal = topDeals.deals[0] || null;
 
@@ -933,14 +938,18 @@ export default async function HomePage() {
 
       {/* Testimonials before About Hamza */}
       <GoogleReviews googleRating={googleRating} />
-      <AgentProfile googleRating={googleRating} />
+      <AgentProfile googleRating={googleRating} propertiesAnalyzed={propertiesAnalyzed} />
       <CTASection />
 
-      {/* Mobile sticky capture — the hero CTA scrolls away in the first swipe
-          on a long page; this keeps one always-reachable primary action.
-          /alerts (name+email capture) works for logged-in and logged-out
-          visitors alike, unlike the auth-state-dependent hero button. */}
-      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
+      {/* No mobile sticky capture bar on this page (unlike the long-form
+          guide/blog pages that use it): the hero's own email capture sits at
+          the very top of the homepage and is always the first thing a mobile
+          visitor sees, so the sticky bar had nothing to compensate for — it
+          only ever overlapped that same hero capture instead. Verified at a
+          real 375x667 viewport (iPhone SE-class, and what any 375x812 phone
+          shows before the browser chrome collapses): the fixed bottom bar
+          covered the hero's email input and its submit button entirely, two
+          capture surfaces stacked in one viewport. */}
     </>
   );
 }

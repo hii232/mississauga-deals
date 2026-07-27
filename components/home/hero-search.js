@@ -31,7 +31,7 @@ export function HeroSearch() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search listings by address, neighbourhood, or postal code"
-          placeholder="Search by address, neighbourhood, postal code..."
+          placeholder="Address or neighbourhood"
           className="w-full bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl pl-12 pr-28 py-3.5 text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/15 transition-colors"
         />
         <button

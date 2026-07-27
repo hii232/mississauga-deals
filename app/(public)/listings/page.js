@@ -172,6 +172,10 @@ export default async function ListingsPage() {
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">
               Townhouse vs condo
             </Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/rent-by-bedroom-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
+              Rent by bedroom
+            </Link>
           </p>
           {/* Region switcher — Mississauga is the flagship default, but any GTA
               city is one tap away (routes to the /gta?city= pages). */}
@@ -185,6 +189,7 @@ export default async function ListingsPage() {
         <Suspense>
           <ListingsContainer
             initialListings={listings}
+            initialTotal={total}
             apiEndpoint="/api/listings"
           />
         </Suspense>

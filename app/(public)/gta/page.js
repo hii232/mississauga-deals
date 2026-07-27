@@ -183,18 +183,18 @@ async function fetchGtaListings(city) {
       next: { revalidate: 600 },
       signal: AbortSignal.timeout(timeoutMs),
     });
-    if (!res.ok) return [];
+    if (!res.ok) return { listings: [], total: 0 };
     const data = await res.json();
-    return processListings(data.listings || []);
+    return { listings: processListings(data.listings || []), total: Number(data.total) || 0 };
   } catch {
-    return []; // client fetch takes over — same as before this change
+    return { listings: [], total: 0 }; // client fetch takes over — same as before this change
   }
 }
 
 export default async function GtaListingsPage({ searchParams }) {
   const city = (searchParams?.city || '').trim();
   const copy = CITY_COPY[city];
-  const initialListings = await fetchGtaListings(city);
+  const { listings: initialListings, total: initialTotal } = await fetchGtaListings(city);
 
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
   const sub = copy
@@ -301,11 +301,14 @@ export default async function GtaListingsPage({ searchParams }) {
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
             <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">Townhouse vs condo</Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/rent-by-bedroom-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">Rent by bedroom</Link>
           </p>
         </div>
         <Suspense>
           <ListingsContainer
             initialListings={initialListings}
+            initialTotal={initialTotal}
             apiEndpoint="/api/listings-gta"
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
           />
