@@ -5,7 +5,7 @@ import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 
 // SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
 // the listings themselves were fetched client-side, so Googlebot received an
@@ -92,10 +92,10 @@ async function fetchInitialListings() {
     const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
     const proto = isLocal ? 'http' : 'https';
     // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
-    // /gta and the homepage, 2 pages of 100 (~200 rows, matching the previous
-    // initial render size). See the helper for why this replaced a page-local
-    // fetch with a long-lived cache entry.
-    const { listings: rawRows, first: data } = await fetchFeedPages(`${proto}://${host}`, '/api/listings', { pages: 2 });
+    // /gta and the homepage. One page of 100 — the grid renders 30 cards and
+    // the ItemList uses 20, so a second page was pure payload. See the helper
+    // for why this replaced a page-local fetch with a long-lived cache entry.
+    const { listings: rawRows, first: data } = await fetchFeedPages(`${proto}://${host}`, '/api/listings', { pages: 1 });
     if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const rows = processListings(rawRows);
     // browsableTotal excludes the commercial/lease rows the site never shows —
@@ -215,7 +215,7 @@ export default async function ListingsPage() {
         </div>
         <Suspense>
           <ListingsContainer
-            initialListings={listings}
+            initialListings={slimForSSR(listings)}
             initialTotal={total}
             initialPages={pages}
             displayTotal={displayTotal}
