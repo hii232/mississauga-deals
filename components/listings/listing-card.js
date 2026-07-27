@@ -245,9 +245,22 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         {/* Metrics row */}
         <div className="relative">
           <div className="grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center">
+            {/* dom 0 means UNKNOWN, not "listed today" — the feed withholds
+                days-on-market on active listings (lib/listings/market-timing.js).
+                Printing a bare 0 read as "brand new" on every card. When the
+                real figure is missing we show a dash and, where we have it, the
+                honest thing we DO know: how long since the listing last changed. */}
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
-              <p className="text-sm font-bold text-navy">{listing.dom}</p>
+              <p className="text-[10px] font-medium uppercase text-slate-500">
+                {listing.dom >= 1 ? 'DOM' : 'Updated'}
+              </p>
+              <p className="text-sm font-bold text-navy">
+                {listing.dom >= 1
+                  ? listing.dom
+                  : Number.isFinite(listing.daysSinceUpdate)
+                    ? (listing.daysSinceUpdate === 0 ? 'Today' : `${listing.daysSinceUpdate}d ago`)
+                    : '—'}
+              </p>
             </div>
             {/* CAP is never gated — see home-deal-cards: the same property's cap
                 rate is printed elsewhere on the site, so locking it here showed
