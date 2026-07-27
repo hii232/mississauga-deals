@@ -96,7 +96,10 @@ async function fetchInitialListings() {
     if (!res.ok) return { listings: [], total: 0 };
     const data = await res.json();
     const rows = processListings(data.listings || []);
-    return { listings: rows, total: Number(data.total) || rows.length };
+    // browsableTotal excludes the commercial/lease rows the site never shows —
+    // see /api/listings. Using the raw @odata.count here would advertise ~60
+    // listings a visitor can never reach.
+    return { listings: rows, total: Number(data.browsableTotal ?? data.total) || rows.length };
   } catch {
     return { listings: [], total: 0 };
   }

@@ -723,7 +723,13 @@ export default async function HomePage() {
   // in which case the hero omits the number rather than fabricate one (the old
   // code fell back to a hardcoded "2,000+", which overstated the real ~few-hundred
   // Mississauga inventory whenever totalCount was < 500 or the feed was down).
-  const heroCount = formatLiveCount(topDeals.totalCount);
+  // ONE number for every count claim on this page. liveStats.count is
+  // /api/market-stats `activeCount` — the same value the stats bar below
+  // renders, and the same one /about and /sell read. The hero used to format
+  // its own copy of this count differently ("2,500+" vs the bar's "2,547"),
+  // which read as two contradictory facts about our own inventory. Falls back
+  // to the locally-counted total only if market-stats is unavailable.
+  const heroCount = formatLiveCount(liveStats?.count ?? topDeals.totalCount);
   // Same live figure, same rounding rule, used for the bio's "Properties
   // Analyzed" stat too — this used to be a hand-set PLATFORM_STATS constant
   // ("1,800+") that drifted below the hero's own live count on the same

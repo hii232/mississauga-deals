@@ -185,7 +185,8 @@ async function fetchGtaListings(city) {
     });
     if (!res.ok) return { listings: [], total: 0 };
     const data = await res.json();
-    return { listings: processListings(data.listings || []), total: Number(data.total) || 0 };
+    // browsableTotal excludes the commercial/lease rows the site never shows.
+    return { listings: processListings(data.listings || []), total: Number(data.browsableTotal ?? data.total) || 0 };
   } catch {
     return { listings: [], total: 0 }; // client fetch takes over — same as before this change
   }

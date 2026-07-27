@@ -103,11 +103,20 @@ async function fetchLiveListingStats(baseUrl) {
     };
     const typeOf = (l) => `${l.type ?? l.PropertyType ?? ''} ${l.subType ?? l.PropertySubType ?? ''}`;
 
-    // Compute avg DOM from active listings
-    const withDom = raw.filter((l) => domOf(l) != null);
+    // Compute avg DOM from active listings.
+    // dom 0 means UNKNOWN, not "listed today" — the feed withholds
+    // days-on-market on active listings (lib/listings/market-timing.js), so
+    // every row currently arrives as 0. This used to accept 0 as a real value
+    // (the filter only excluded null), which averaged a page of unknowns into a
+    // confident-looking "Avg DOM" on the homepage stats bar and /market-pulse.
+    // The old `: 28` fallback was worse still — a hardcoded number published
+    // under a "Live MLS Data" label. Now: only genuine values count, and when
+    // there are none the stat is null so every consumer omits the tile rather
+    // than inventing one.
+    const withDom = raw.filter((l) => { const d = domOf(l); return d != null && d > 0; });
     const avgDOM = withDom.length > 0
       ? Math.round(withDom.reduce((s, l) => s + domOf(l), 0) / withDom.length)
-      : 28;
+      : null;
 
     // Average ACTIVE LIST price. It used to fall back to the latest TRREB
     // monthly average when the feed returned nothing — but that figure is an
@@ -250,7 +259,9 @@ export async function GET() {
     source: 'Live MLS Data + TRREB Market Watch',
     region: 'Mississauga',
     activeCount: liveListings?.activeCount || 0,
-    avgDOM: liveListings?.avgDOM || 28,
+    // null (not a hardcoded 28) when the feed supplies no real days-on-market —
+    // consumers already omit the tile rather than print an invented figure.
+    avgDOM: liveListings?.avgDOM ?? null,
     // LIVE list-price average only. Falling back to tRREBSold.all.avgPrice
     // here published a SOLD average under a list-price key, which is what made
     // the homepage print the same $1.01M for "Avg Price" and "Avg Sold"

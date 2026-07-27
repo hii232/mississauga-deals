@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { computeDaysOnMarket, computeDaysSinceUpdate } from '@/lib/listings/market-timing';
+import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -107,73 +109,24 @@ export async function GET(request) {
       filters.push('(' + cityFilters.join(' or ') + ')');
     }
 
-    const sel = [
-      'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
-      'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
-      'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
-      'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
-      'StandardStatus', 'ListOfficeName', 'PublicRemarks',
-      'Latitude', 'Longitude', 'ModificationTimestamp',
-      'OnMarketDate', 'ListingContractDate', 'OriginalEntryTimestamp',
-      'LivingArea', 'BuildingAreaTotal',
-      'AssociationFee', 'AssociationFeeFrequency',
-    ].join(',');
-
-    const expand = 'Media($select=MediaURL,MediaKey;$orderby=Order)';
-
-    let url = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-      + '&$select=' + encodeURIComponent(sel)
-      + '&$expand=' + encodeURIComponent(expand)
-      + '&$top=' + limit + '&$skip=' + skip
+    const base = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '));
+    const tail = '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    let resp = await fetch(url, {
-      headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
-    });
-
-    // Fallback: without $expand
-    if (!resp.ok) {
-      const urlNoExpand = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-        + '&$select=' + encodeURIComponent(sel)
-        + '&$top=' + limit + '&$skip=' + skip
-        + '&$orderby=ModificationTimestamp desc&$count=true';
-      resp = await fetch(urlNoExpand, {
-        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
-      });
+    const result = await fetchWithFieldTiers(base, tail, TOK);
+    if (result.error) {
+      return NextResponse.json(
+        { error: result.error, detail: result.detail },
+        { status: result.status }
+      );
     }
-
-    // Fallback: without date fields
-    if (!resp.ok) {
-      const selSafe = [
-        'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
-        'City', 'PostalCode', 'UnparsedAddress', 'StreetNumber', 'StreetName',
-        'StreetSuffix', 'UnitNumber', 'BedroomsTotal', 'BathroomsTotalInteger',
-        'PropertyType', 'PropertySubType', 'YearBuilt', 'DaysOnMarket',
-        'StandardStatus', 'ListOfficeName', 'PublicRemarks',
-        'Latitude', 'Longitude', 'ModificationTimestamp',
-      ].join(',');
-      const urlSafe = BASE + '/Property?$filter=' + encodeURIComponent(filters.join(' and '))
-        + '&$select=' + encodeURIComponent(selSafe)
-        + '&$top=' + limit + '&$skip=' + skip
-        + '&$orderby=ModificationTimestamp desc&$count=true';
-      resp = await fetch(urlSafe, {
-        headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
-      });
-      if (!resp.ok) {
-        const e = await resp.text();
-        return NextResponse.json(
-          { error: 'PropTx ' + resp.status, detail: e.substring(0, 400) },
-          { status: resp.status }
-        );
-      }
-    }
-
-    const data = await resp.json();
+    const { data, fieldTier } = result;
     let items = data.value || [];
     const total = data['@odata.count'] || items.length;
 
     // Filter out commercial/lease subtypes
     const EXCLUDED = /sale of business|commercial|industrial|office|retail|vacant land|common element|parking|locker|storage/i;
+    const rawCount = items.length;
     items = items.filter((l) => {
       const sub = l.PropertySubType || '';
       const prop = l.PropertyType || '';
@@ -181,6 +134,10 @@ export async function GET(request) {
       if (/lease/i.test(prop) || /lease/i.test(sub)) return false;
       return true;
     });
+    // See /api/listings for why the raw @odata.count is not the number to
+    // advertise: it counts commercial/lease rows this site never shows.
+    const excludedRate = rawCount > 0 ? (rawCount - items.length) / rawCount : 0;
+    const browsableTotal = Math.round(total * (1 - excludedRate));
 
     const listings = items.map((l) => {
       const price = l.ListPrice || 0;
@@ -198,23 +155,10 @@ export async function GET(request) {
         : 0;
       const rem = l.PublicRemarks || '';
 
-      // PropTx's own DaysOnMarket field has been observed on production
-      // returning the SAME value for every single active GTA listing at once
-      // (e.g. every one of ~200 rows reading dom:5) — a batch-recompute
-      // artifact upstream, not a real per-listing figure. A listing's own
-      // list-date fields cannot fail that way (each one is set once,
-      // independently, when that listing was created), so compute DOM from
-      // real dates FIRST and only trust the feed's DaysOnMarket as a last
-      // resort when no date field is present at all.
-      // OriginalEntryTimestamp = when listing first entered the system (best proxy for list date)
-      // ModificationTimestamp = last updated (less accurate but better than 0)
-      let dom = 0;
-      const listDate = l.OnMarketDate || l.ListingContractDate || l.OriginalEntryTimestamp || l.ModificationTimestamp;
-      if (listDate) {
-        const diff = Math.floor((Date.now() - new Date(listDate).getTime()) / 86400000);
-        if (diff > 0 && diff < 1000) dom = diff;
-      }
-      if (dom === 0) dom = l.DaysOnMarket || 0;
+      // See lib/listings/market-timing.js — ModificationTimestamp is the sync
+      // stamp and must never stand in for days-on-market. 0 = unknown.
+      const dom = computeDaysOnMarket(l);
+      const daysSinceUpdate = computeDaysSinceUpdate(l);
 
       // Extract photos from expanded Media
       const ph = [];
@@ -241,6 +185,7 @@ export async function GET(request) {
         yearBuilt: l.YearBuilt,
         dom,
         daysOnMarket: dom,
+        daysSinceUpdate,
         status: l.StandardStatus,
         brokerage: l.ListOfficeName || '',
         remarks: rem,
@@ -264,7 +209,7 @@ export async function GET(request) {
     });
 
     return NextResponse.json(
-      { listings, total, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
+      { listings, total, browsableTotal, fieldTier, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
       {
         headers: {
           'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600',

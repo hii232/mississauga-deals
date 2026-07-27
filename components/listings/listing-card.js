@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 
@@ -67,7 +68,7 @@ function RentAssumption({ listing }) {
   );
 }
 
-export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick, belowMarketCutoff = -3 }) {
+export function ListingCard({ listing, isGated, isCompared, onToggleCompare, batchPhoto, onSignupClick, belowMarketCutoff = -3, priority = false }) {
   const [saved, setSaved] = useState(false);
 
   // Initialize saved state from localStorage
@@ -98,11 +99,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
       {/* Photo — links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
-          <img
+          <Image
             src={photo}
             alt={photoAlt(listing)}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            priority={priority}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
@@ -242,9 +245,22 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         {/* Metrics row */}
         <div className="relative">
           <div className="grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center">
+            {/* dom 0 means UNKNOWN, not "listed today" — the feed withholds
+                days-on-market on active listings (lib/listings/market-timing.js).
+                Printing a bare 0 read as "brand new" on every card. When the
+                real figure is missing we show a dash and, where we have it, the
+                honest thing we DO know: how long since the listing last changed. */}
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
-              <p className="text-sm font-bold text-navy">{listing.dom}</p>
+              <p className="text-[10px] font-medium uppercase text-slate-500">
+                {listing.dom >= 1 ? 'DOM' : 'Updated'}
+              </p>
+              <p className="text-sm font-bold text-navy">
+                {listing.dom >= 1
+                  ? listing.dom
+                  : Number.isFinite(listing.daysSinceUpdate)
+                    ? (listing.daysSinceUpdate === 0 ? 'Today' : `${listing.daysSinceUpdate}d ago`)
+                    : '—'}
+              </p>
             </div>
             {/* CAP is never gated — see home-deal-cards: the same property's cap
                 rate is printed elsewhere on the site, so locking it here showed

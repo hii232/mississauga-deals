@@ -35,11 +35,17 @@ export async function GET(request) {
       filters.push("UnitNumber eq '" + unit.replace(/'/g, "''") + "'");
     }
 
+    // OnMarketDate / ListingContractDate / OriginalEntryTimestamp are the toxic
+    // group — naming any of them makes AMPRE reject the whole query (see
+    // lib/listings/ampre-fields.js for how they were isolated). Asking for them
+    // here meant this query ALWAYS failed into the fallback below, which also
+    // drops CloseDate — so the price history lost the real sold date and fell
+    // back to ModificationTimestamp. CloseDate itself is proven good: it
+    // returns real values on /api/sold-comps.
     const sel = [
       'ListingKey', 'ListingId', 'ListPrice', 'ClosePrice',
       'StandardStatus', 'DaysOnMarket', 'ListOfficeName',
-      'OnMarketDate', 'CloseDate', 'ListingContractDate',
-      'OriginalEntryTimestamp', 'ModificationTimestamp',
+      'CloseDate', 'ModificationTimestamp',
       'OriginalListPrice', 'PropertyType', 'PropertySubType',
     ].join(',');
 

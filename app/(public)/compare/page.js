@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { processListings } from '@/lib/listings/process-listings';
-import { fmtK, fmtNum, fmtCurrency } from '@/lib/utils/format';
+import { fmtK, fmtNum, fmtCurrency, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -185,7 +185,7 @@ export default function ComparePage() {
                   Best Investment: {listings[winnerIdx].address}
                 </p>
                 <p className="text-xs text-muted">
-                  Score {listings[winnerIdx].hamzaScore}/10 · CF {fmtNum(listings[winnerIdx].cashFlow)} · Cap {listings[winnerIdx].capRate.toFixed(1)}%
+                  Score {listings[winnerIdx].hamzaScore}/10 · CF {fmtNum(listings[winnerIdx].cashFlow)} · Cap {pct1(listings[winnerIdx].capRate)}
                 </p>
               </div>
             </div>
@@ -318,7 +318,7 @@ export default function ComparePage() {
                     <div className="rounded-lg bg-cloud p-3">
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500 mb-1">Best Cap Rate</p>
                       <p className="text-sm font-bold text-navy">{best.address.split(' ').slice(0, 3).join(' ')}</p>
-                      <p className="text-xs font-mono font-semibold text-accent">{best.capRate.toFixed(1)}%</p>
+                      <p className="text-xs font-mono font-semibold text-accent">{pct1(best.capRate)}</p>
                     </div>
                   );
                 })()}

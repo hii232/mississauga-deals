@@ -199,6 +199,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
                 batchPhoto={photoMap?.[listing.id]}
                 onSignupClick={() => { setSignupTrigger('gate'); setShowSignupModal(true); }}
                 belowMarketCutoff={belowMarketCutoff}
+                priority={currentPage === 1 && index === 0}
               />
             </div>
           );

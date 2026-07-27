@@ -113,9 +113,12 @@ function ContextStat({ label, value, format, icon, delay }) {
 }
 
 // ── Main Component ──
-export function DealScreener({ listings, loading = false }) {
+export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
   const [soldStats, setSoldStats] = useState(null);
   const [showPortfolio, setShowPortfolio] = useState(false);
+  // True while the background pages are still streaming in — i.e. the stats
+  // below summarise a subset, not the whole market.
+  const stillLoading = marketTotal > 0 && listings.length < marketTotal;
 
   // Fetch sold market stats — SCOPED to the page's city so a GTA page doesn't
   // show Mississauga sold data. /listings → Mississauga; /gta?city=X → that
@@ -198,9 +201,18 @@ export function DealScreener({ listings, loading = false }) {
                 <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
                 {metrics.suites.toLocaleString()} suites
               </span>
+              {/* The server renders only the FIRST page of inventory (the rest
+                  streams in client-side), so this used to read "198 analyzed"
+                  in the HTML — which is what a crawler, and any audit tool that
+                  does not run JS, permanently sees. Stating the real market
+                  size alongside what is loaded keeps it honest at every moment:
+                  no partial load is ever presented as the whole market, and the
+                  true coverage figure is in the server-rendered markup. */}
               <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
-                <span className="h-1 w-1 rounded-full bg-accent" />
-                {metrics.total.toLocaleString()} analyzed
+                <span className={`h-1 w-1 rounded-full bg-accent${stillLoading ? ' animate-pulse' : ''}`} />
+                {stillLoading
+                  ? `${metrics.total.toLocaleString()} of ${marketTotal.toLocaleString()} analyzed`
+                  : `${metrics.total.toLocaleString()} analyzed`}
               </span>
             </div>
           )}
