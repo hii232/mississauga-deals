@@ -229,6 +229,27 @@ export async function GET(request) {
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
     }
+    // Self-disarm: the daily cron keeps triggering this draft path after the
+    // campaign has gone out, which would mail Hamza an [APPROVE] draft every
+    // day forever. If broadcast_sends already records this campaign as sent,
+    // skip drafting entirely. Read-only; if the table is missing we draft as
+    // before.
+    try {
+      const { data: sent } = await supabase
+        .from('broadcast_sends')
+        .select('campaign_key')
+        .eq('campaign_key', CAMPAIGN)
+        .maybeSingle();
+      if (sent) {
+        return NextResponse.json({
+          alreadySent: true,
+          campaign: CAMPAIGN,
+          note: 'Campaign already sent — no draft emailed. Remove the cron entry in vercel.json when convenient.',
+        });
+      }
+    } catch {
+      // table missing — proceed with the draft
+    }
     const { radar, reason } = await fetchRadar();
     if (!radar) {
       return NextResponse.json(
