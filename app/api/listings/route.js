@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { computeDaysOnMarket, computeDaysSinceUpdate } from '@/lib/listings/market-timing';
+import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 
@@ -152,7 +152,13 @@ export async function GET(request) {
         price,
         address: addr(l),
         city,
-        neighbourhood: city,
+        // CityRegion is the COMMUNITY (Cooksville, Malton, Port Credit…). This
+        // was hardcoded to `city`, so every Mississauga listing reported its
+        // neighbourhood as "Mississauga" — defeating neighbourhood filtering,
+        // the 24 guide pages, and the per-neighbourhood rent table (every
+        // listing silently fell back to the city-level default rent). Falls
+        // back to city when the feed omits it, i.e. exactly today's behaviour.
+        neighbourhood: l.CityRegion || city,
         postalCode: l.PostalCode,
         beds,
         baths: l.BathroomsTotalInteger || 0,
@@ -169,7 +175,12 @@ export async function GET(request) {
         images: ph,
         lat: l.Latitude,
         lng: l.Longitude,
-        sqft: l.LivingArea || l.BuildingAreaTotal || 0,
+        // LivingArea/BuildingAreaTotal are unsupported by this feed (see
+        // ampre-fields.js), which is why $/sqft has been blank site-wide.
+        // LivingAreaRange is TREB's banded range string ("700-799") — a
+        // different field, parsed to its midpoint. Approximate by nature.
+        sqft: l.LivingArea || l.BuildingAreaTotal || parseLivingAreaRange(l.LivingAreaRange),
+        sqftApproximate: !l.LivingArea && !l.BuildingAreaTotal && !!l.LivingAreaRange,
         // Real per-listing feed timestamp. Selected from AMPRE but previously
         // dropped during mapping, so the sitemap had no genuine lastmod to use
         // and fell back to "now" for every listing.
