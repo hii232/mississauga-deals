@@ -6,9 +6,7 @@ import Link from 'next/link';
 //
 // Includes the pillar blog posts: they publish with zero internal links from
 // the static site, and links from established pages are how the cluster passes
-// authority to them. RelatedGuides takes the FIRST `limit` non-current entries,
-// so the order below is deliberately interleaved static/pillar — every landing
-// page surfaces a mix instead of only whichever type sits at the top.
+// authority to them. The order below is deliberately interleaved static/pillar.
 export const GUIDES = [
   { href: '/cash-flow-positive-properties-ontario', title: 'Cash-Flow-Positive Properties', blurb: 'What it actually takes to clear positive cash flow at today’s rates.' },
   { href: '/blog/best-cash-flow-neighbourhoods-mississauga-2026', title: 'Best Cash Flow Neighbourhoods (2026)', blurb: 'Where the rent-to-price math works right now — and the trade each area asks.' },
@@ -29,7 +27,19 @@ export const GUIDES = [
  * to exclude it. Shows up to `limit` others (default 4).
  */
 export function RelatedGuides({ current, limit = 4, className = '' }) {
-  const others = GUIDES.filter((g) => g.href !== current).slice(0, limit);
+  // Rotate the list so it starts just past `current` in cluster order, instead
+  // of always taking GUIDES[0..limit-1]. With a fixed slice, every guide past
+  // index `limit` (7 of the 12 entries — including 5 whole blog pillar posts)
+  // never appeared in ANY page's "More investor guides" widget, because only
+  // pages whose own index sits inside the first `limit` slots could ever push
+  // one of them into view. Rotating per-page is deterministic (same `current`
+  // always yields the same order, so SSR and hydration match) and spreads
+  // inbound links across the whole cluster instead of funnelling them all to
+  // the same first few entries.
+  const idx = GUIDES.findIndex((g) => g.href === current);
+  const start = idx === -1 ? 0 : idx + 1;
+  const rotated = [...GUIDES.slice(start), ...GUIDES.slice(0, start)];
+  const others = rotated.filter((g) => g.href !== current).slice(0, limit);
   if (!others.length) return null;
   return (
     <div className={`mt-12 ${className}`}>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, mortgageSplit, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
@@ -854,12 +855,13 @@ function PhotoGallery({ photos, listingId, address }) {
         className="group relative aspect-[4/3] sm:aspect-[16/10] max-h-[50vh] sm:max-h-[55vh] lg:max-h-none overflow-hidden rounded-xl bg-slate-200 cursor-pointer w-full"
         onClick={() => hasRealPhotos && setLightboxOpen(true)}
       >
-        <img
+        <Image
           src={images[activeIdx]}
           alt={address ? `${address} — property photo` : 'Property photo'}
-          className="h-full w-full object-cover object-center"
-          fetchPriority="high"
-          decoding="async"
+          fill
+          sizes="(min-width: 1024px) 560px, 100vw"
+          priority
+          className="object-cover object-center"
           onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
         />
         {/* Left/Right arrows on main image */}

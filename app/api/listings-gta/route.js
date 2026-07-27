@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { computeDaysOnMarket, computeDaysSinceUpdate } from '@/lib/listings/market-timing';
+import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 
@@ -128,7 +128,7 @@ export async function GET(request) {
         { status: result.status }
       );
     }
-    const { data, fieldTier } = result;
+    const { data, fieldTier, supportedFields } = result;
     let items = data.value || [];
     const total = data['@odata.count'] || items.length;
 
@@ -184,7 +184,11 @@ export async function GET(request) {
         price,
         address: addr(l),
         city,
-        neighbourhood: city,
+        // CityRegion = the COMMUNITY, not the municipality. See the note in
+        // /api/listings — this was hardcoded to `city`, so neighbourhood
+        // filtering and the per-neighbourhood rent table never saw a real
+        // community name. Falls back to city exactly as before when absent.
+        neighbourhood: l.CityRegion || city,
         postalCode: l.PostalCode,
         beds,
         baths: l.BathroomsTotalInteger || 0,
@@ -201,7 +205,10 @@ export async function GET(request) {
         images: ph,
         lat: l.Latitude,
         lng: l.Longitude,
-        sqft: l.LivingArea || l.BuildingAreaTotal || 0,
+        // TREB serves sqft as a banded range string; the numeric fields are
+        // unsupported. Parsed to the band midpoint — approximate by nature.
+        sqft: l.LivingArea || l.BuildingAreaTotal || parseLivingAreaRange(l.LivingAreaRange),
+        sqftApproximate: !l.LivingArea && !l.BuildingAreaTotal && !!l.LivingAreaRange,
         // Already selected from AMPRE (all three fallback $selects) but never
         // returned, so the sitemap had no real date for GTA listings and
         // stamped "now" on every one. Passthrough only — no logic depends on it.
@@ -220,7 +227,7 @@ export async function GET(request) {
     const firstSeenTracker = await applyFirstSeenFloor(listings);
 
     return NextResponse.json(
-      { listings, total, browsableTotal, fieldTier, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
+      { listings, total, browsableTotal, fieldTier, supportedFields, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
       {
         headers: {
           // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN

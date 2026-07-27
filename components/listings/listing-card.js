@@ -55,6 +55,13 @@ function RentAssumption({ listing }) {
     breakdown = `${money(base)} main + ${money(basement)} ${listing.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
 
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // and cash flow below are computed on a bedroom/sqft estimate for every
+  // condo/apt listing. The card's own breakdown line already labels this
+  // "Condo Fee (est.)"; this is the same disclosure at the point where a
+  // visitor is told "every figure below assumes" the numbers on this card.
+  const condoNote = listing.condoFeeEstimated;
+
   return (
     <div className="mb-3 rounded-lg border border-accent/15 bg-accent/[0.04] px-2.5 py-1.5">
       <p className="text-[11px] leading-tight text-navy">
@@ -62,7 +69,7 @@ function RentAssumption({ listing }) {
         {breakdown && <span className="text-slate-500"> · {breakdown}</span>}
       </p>
       <p className="text-[10px] leading-tight text-slate-500">
-        Every figure below assumes this rent
+        Every figure below assumes this rent{condoNote ? ' and an estimated condo fee' : ''}
       </p>
     </div>
   );
@@ -347,7 +354,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             )}
             {listing.condoFee > 0 && (
               <p className="text-[10px] text-amber-600 font-medium">
-                Condo fee: ${money(listing.condoFee)}/mo
+                Condo fee: ${money(listing.condoFee)}/mo{listing.condoFeeEstimated ? ' (est.)' : ''}
               </p>
             )}
           </div>
