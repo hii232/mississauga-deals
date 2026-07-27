@@ -15,6 +15,13 @@ const BASE = 'https://www.mississaugainvestor.ca';
 // same ~3,000-listing coverage as before.
 const LISTING_PAGE_BUDGET = 30;
 
+// Hard per-request timeout — see the note in app/image-sitemap.xml/route.js.
+// This file makes up to 2 x LISTING_PAGE_BUDGET upstream calls inside a 60s
+// static-generation budget; an unbounded hang fails the entire build.
+const FETCH_TIMEOUT_MS = 8000;
+const timedFetch = (url) =>
+  fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -129,9 +136,7 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    const res = await fetch(`${baseUrl}/api/listings?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await timedFetch(`${baseUrl}/api/listings?limit=200&page=1`);
 
     if (res.ok) {
       const data = await res.json();
@@ -144,9 +149,7 @@ export default async function sitemap() {
         const promises = [];
         for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
           promises.push(
-            fetch(`${baseUrl}/api/listings?limit=200&page=${p}`, {
-              next: { revalidate: 3600 },
-            }).then((r) => (r.ok ? r.json() : { listings: [] }))
+            timedFetch(`${baseUrl}/api/listings?limit=200&page=${p}`).then((r) => (r.ok ? r.json() : { listings: [] })).catch(() => ({ listings: [] }))
           );
         }
         const results = await Promise.all(promises);
@@ -196,9 +199,7 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    const res = await fetch(`${baseUrl}/api/listings-gta?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await timedFetch(`${baseUrl}/api/listings-gta?limit=200&page=1`);
 
     if (res.ok) {
       const data = await res.json();
@@ -208,9 +209,7 @@ export default async function sitemap() {
         const promises = [];
         for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
           promises.push(
-            fetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`, {
-              next: { revalidate: 3600 },
-            }).then((r) => (r.ok ? r.json() : { listings: [] }))
+            timedFetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`).then((r) => (r.ok ? r.json() : { listings: [] })).catch(() => ({ listings: [] }))
           );
         }
         (await Promise.all(promises)).forEach((d) => all.push(...(d.listings || [])));

@@ -27,12 +27,21 @@ function xmlEscape(s) {
 // established in app/sitemap.js.
 const LISTING_PAGE_BUDGET = 15;
 
+// Hard per-request timeout. These routes are statically generated at build
+// time, where Next allows a page 60s TOTAL — and this file alone makes up to
+// 2 x LISTING_PAGE_BUDGET upstream calls. Without a bound, one slow or hanging
+// upstream consumes the whole budget and FAILS THE BUILD (observed: "Static
+// page generation for /sitemap.xml is still timing out after 3 attempts",
+// which broke every preview deploy). A dropped page costs a few sitemap URLs
+// that the next revalidation picks up; a failed build costs the whole deploy.
+const FETCH_TIMEOUT_MS = 8000;
+const timedFetch = (url) =>
+  fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+
 async function fetchFeed(path) {
   const all = [];
   try {
-    const res = await fetch(`${SITE_URL}${path}?limit=200&page=1`, {
-      next: { revalidate: 3600 },
-    });
+    const res = await timedFetch(`${SITE_URL}${path}?limit=200&page=1`);
     if (!res.ok) return all;
     const data = await res.json();
     all.push(...(data.listings || (Array.isArray(data) ? data : [])));
@@ -41,9 +50,9 @@ async function fetchFeed(path) {
       const promises = [];
       for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
         promises.push(
-          fetch(`${SITE_URL}${path}?limit=200&page=${p}`, {
-            next: { revalidate: 3600 },
-          }).then((r) => (r.ok ? r.json() : { listings: [] }))
+          timedFetch(`${SITE_URL}${path}?limit=200&page=${p}`)
+            .then((r) => (r.ok ? r.json() : { listings: [] }))
+            .catch(() => ({ listings: [] }))
         );
       }
       const results = await Promise.all(promises);
