@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating, googleRatingShort } from '@/lib/google-rating';
-import { GOOGLE_REVIEWS, PLATFORM_STATS } from '@/lib/constants';
+import { GOOGLE_REVIEWS } from '@/lib/constants';
 import { ValuationForm } from '@/components/sell/valuation-form';
+import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
@@ -90,28 +91,35 @@ const SELL_FAQ = [
   },
 ];
 
-const DIFFERENTIATORS = [
-  {
-    icon: '📣',
-    title: 'Marketed to every serious buyer',
-    body: 'Full MLS exposure plus targeted marketing — professional photography, standout listing copy, and the right buyers reached — so your home draws maximum interest and competing offers on the open market.',
-  },
-  {
-    icon: '📊',
-    title: 'Priced with data, not guesswork',
-    body: `The same analytics engine that has scored ${PLATFORM_STATS.propertiesAnalyzed} Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.`,
-  },
-  {
-    icon: '🛠️',
-    title: 'Full-service, handled for you',
-    body: 'You get the works — professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end.',
-  },
-  {
-    icon: '🎯',
-    title: 'An investor’s read on your home',
-    body: 'Hamza knows exactly what today’s buyers value — layout, location, secondary-suite potential, cash-flow appeal — and positions your home to attract the most buyers and the strongest offers.',
-  },
-];
+// A function, not a static array: the "Priced with data" line quotes the
+// live properties-analyzed count (see lib/listings/properties-analyzed.js),
+// which is only known per-request — this used to be a hand-set
+// PLATFORM_STATS constant baked in at build time that drifted from the same
+// figure shown live elsewhere on the site.
+function buildDifferentiators(propertiesAnalyzed) {
+  return [
+    {
+      icon: '📣',
+      title: 'Marketed to every serious buyer',
+      body: 'Full MLS exposure plus targeted marketing — professional photography, standout listing copy, and the right buyers reached — so your home draws maximum interest and competing offers on the open market.',
+    },
+    {
+      icon: '📊',
+      title: 'Priced with data, not guesswork',
+      body: `The same analytics engine that has scored ${propertiesAnalyzed} Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.`,
+    },
+    {
+      icon: '🛠️',
+      title: 'Full-service, handled for you',
+      body: 'You get the works — professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end.',
+    },
+    {
+      icon: '🎯',
+      title: 'An investor’s read on your home',
+      body: 'Hamza knows exactly what today’s buyers value — layout, location, secondary-suite potential, cash-flow appeal — and positions your home to attract the most buyers and the strongest offers.',
+    },
+  ];
+}
 
 const STEPS = [
   {
@@ -137,6 +145,8 @@ export default async function SellPage() {
   // Live from Google; null hides every rating claim on the page.
   const googleRating = await fetchGoogleRating();
   const reviews = GOOGLE_REVIEWS.slice(0, 3);
+  const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
+  const DIFFERENTIATORS = buildDifferentiators(propertiesAnalyzed);
 
   return (
     <>

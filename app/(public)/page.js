@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
+import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
@@ -445,7 +446,7 @@ function HowItWorks() {
 // ─────────────────────────────────────────────
 //   AGENT PROFILE
 // ─────────────────────────────────────────────
-function AgentProfile({ googleRating }) {
+function AgentProfile({ googleRating, propertiesAnalyzed }) {
   return (
     <section className="relative overflow-hidden bg-cloud py-16">
       <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
@@ -499,7 +500,7 @@ function AgentProfile({ googleRating }) {
 
             <div className="flex flex-wrap gap-6 justify-center md:justify-start mb-6">
               <div className="text-center">
-                <p className="text-2xl font-bold text-navy">{PLATFORM_STATS.propertiesAnalyzed}</p>
+                <p className="text-2xl font-bold text-navy">{propertiesAnalyzed}</p>
                 <p className="text-[11px] text-muted">Properties Analyzed</p>
               </div>
               <div className="text-center">
@@ -720,12 +721,14 @@ export default async function HomePage() {
   // in which case the hero omits the number rather than fabricate one (the old
   // code fell back to a hardcoded "2,000+", which overstated the real ~few-hundred
   // Mississauga inventory whenever totalCount was < 500 or the feed was down).
-  const heroCount =
-    topDeals.totalCount >= 500
-      ? `${(Math.floor(topDeals.totalCount / 100) * 100).toLocaleString()}+`
-      : topDeals.totalCount > 0
-        ? topDeals.totalCount.toLocaleString()
-        : null;
+  const heroCount = formatLiveCount(topDeals.totalCount);
+  // Same live figure, same rounding rule, used for the bio's "Properties
+  // Analyzed" stat too — this used to be a hand-set PLATFORM_STATS constant
+  // ("1,800+") that drifted below the hero's own live count on the same
+  // page, so a visitor could see the platform claim to have analyzed FEWER
+  // properties than it was showing active right above it. Falls back to the
+  // same constant only when the feed is down and heroCount is null.
+  const propertiesAnalyzed = heroCount || PLATFORM_STATS.propertiesAnalyzed;
 
   const heroDeal = topDeals.deals[0] || null;
 
@@ -933,7 +936,7 @@ export default async function HomePage() {
 
       {/* Testimonials before About Hamza */}
       <GoogleReviews googleRating={googleRating} />
-      <AgentProfile googleRating={googleRating} />
+      <AgentProfile googleRating={googleRating} propertiesAnalyzed={propertiesAnalyzed} />
       <CTASection />
 
       {/* Mobile sticky capture — the hero CTA scrolls away in the first swipe
