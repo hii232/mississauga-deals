@@ -110,12 +110,12 @@ function TopPicks({ listings, photoMap, isRegistered }) {
         </div>
         {isRegistered && (
           <div className="hidden sm:flex items-center gap-1">
-            <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+            <button onClick={() => scroll(-1)} className="rounded-full p-1.5 text-slate-500 hover:text-navy hover:bg-slate-100 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors">
+            <button onClick={() => scroll(1)} className="rounded-full p-1.5 text-slate-500 hover:text-navy hover:bg-slate-100 transition-colors">
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -523,7 +523,7 @@ export function ListingsContainer({ initialListings, apiEndpoint = '/api/listing
                     {l.address.split(',')[0]}
                     <button
                       onClick={() => toggleCompare(l.id)}
-                      className="ml-1 text-slate-400 hover:text-red-500"
+                      className="ml-1 text-slate-500 hover:text-red-500"
                     >
                       &times;
                     </button>

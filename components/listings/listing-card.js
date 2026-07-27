@@ -351,7 +351,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           {/* Save button */}
           <button
             onClick={toggleSave}
-            className={`flex items-center gap-1 text-xs transition-colors ${saved ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}
+            className={`flex items-center gap-1 text-xs transition-colors ${saved ? 'text-red-500' : 'text-slate-500 hover:text-red-500'}`}
             aria-label={saved ? 'Unsave' : 'Save'}
           >
             <svg

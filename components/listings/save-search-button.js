@@ -135,7 +135,7 @@ export function SaveSearchButton({ filters, city }) {
               <div className="p-4 border-b border-slate-100">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="font-semibold text-navy text-sm">Save This Search</h3>
-                  <button type="button" onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
+                  <button type="button" onClick={() => setOpen(false)} className="text-slate-500 hover:text-slate-600">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>

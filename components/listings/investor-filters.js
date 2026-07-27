@@ -136,7 +136,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
       {/* Search bar */}
       <div className="relative">
         <svg
-          className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+          className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
         >
           <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -279,7 +279,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
         <div className="flex gap-2">
           <div className="relative flex-1">
             <svg
-              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
+              className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
               fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
@@ -328,7 +328,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
 
             <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-3">
               <h2 className="text-base font-bold text-navy">Filters</h2>
-              <button onClick={() => setMobileOpen(false)} className="rounded-full p-1 text-slate-400 hover:text-navy hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <button onClick={() => setMobileOpen(false)} className="rounded-full p-1 text-slate-500 hover:text-navy hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center">
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -340,7 +340,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
               <div className="space-y-2">
                 <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Search</h3>
                 <div className="relative">
-                  <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
                   </svg>
                   <input
@@ -563,7 +563,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
               {tag.label}
               <button
                 onClick={tag.clear}
-                className="ml-0.5 text-slate-400 hover:text-red-500 transition-colors"
+                className="ml-0.5 text-slate-500 hover:text-red-500 transition-colors"
               >
                 ×
               </button>
