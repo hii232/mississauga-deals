@@ -427,7 +427,10 @@ export function ListingsContainer({ initialListings, initialTotal = 0, apiEndpoi
   return (
     <div className="space-y-6">
       {/* Deal Screener */}
-      <DealScreener listings={filtered} loading={isLoading} />
+      {/* marketTotal is the feed's real browsable count, so the screener can
+          say "198 of 2,606 analyzed" while the rest streams in rather than
+          presenting the first page as the entire market. */}
+      <DealScreener listings={filtered} loading={isLoading} marketTotal={initialTotal} />
 
       {/* Top Picks — highest-scored CF+ deals */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
