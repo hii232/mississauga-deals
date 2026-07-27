@@ -106,14 +106,22 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
       {/* Photo — links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
-          <Image
-            src={photo}
-            alt={photoAlt(listing)}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            priority={priority}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <>
+            {/* Shimmer under the image while it loads. A cold TRREB photo can
+                take seconds (or, under upstream throttle, much longer), and
+                until now the card sat on flat white — which reads as broken.
+                The Image renders on top and simply covers this when painted;
+                no state, no layout shift. */}
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
+            <Image
+              src={photo}
+              alt={photoAlt(listing)}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              priority={priority}
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
