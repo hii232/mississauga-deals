@@ -263,6 +263,24 @@ export default function QuizPage() {
               Let&apos;s find the right deals for you. Reach out and I&apos;ll send you personalized listings that match your criteria.
             </p>
 
+            {/* Risk reversal, echoed at this high-intent moment. The quiz result
+                is a top-of-funnel capture (5 answers + contact info already
+                given) with a real "reach out" CTA, but the site's strongest
+                closing incentive lived only on the homepage/book-call/blog —
+                same accent-tinted band, same copy, same AA-safe accent-dark
+                chip verified on those pages. */}
+            <div className="mb-6 rounded-xl border border-accent/20 bg-accent/5 p-4 text-left max-w-md mx-auto">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                <span className="inline-flex w-fit items-center rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-accent-dark">
+                  Exclusive offer
+                </span>
+                <p className="text-sm leading-relaxed text-navy">
+                  <span className="font-semibold">Close with Hamza and your first month&rsquo;s mortgage is on us</span> —
+                  applied as a credit on closing. All investment properties qualify.
+                </p>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
                 href="tel:6476091289"
