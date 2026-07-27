@@ -19,7 +19,7 @@
     },
     {
       "path": "/api/broadcast/motivated-sellers",
-      "schedule": "45 16 * * *"
+      "schedule": "15 17 * * *"
     },
     {
       "path": "/api/market-stats",
