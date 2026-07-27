@@ -200,6 +200,73 @@ export default function MarketPulsePage() {
         </div>
       )}
 
+      {/* Motivated Seller Radar — the stale-inventory numbers the API already
+          computes (dom >= 60, whole feed) finally get a surface. This is the
+          page's most actionable insight for a buyer: where sellers have been
+          waiting longest and have already cut. Display-only — every figure
+          comes from /api/market-stats verbatim, and the section hides itself
+          entirely when the radar fields are absent or zero (older cached API
+          responses, feed outage) rather than inventing a number. */}
+      {stats?.staleCount > 0 && stats?.activeCount > 0 && (
+        <div className="card p-6 mb-10 border-l-4 !border-l-gold">
+          <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-1">
+            <h2 className="font-heading font-semibold text-lg text-navy inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-gold shrink-0" aria-hidden="true" />
+              Motivated Seller Radar
+            </h2>
+            <span className="text-[11px] text-slate-500">Live MLS — updates daily</span>
+          </div>
+          <p className="text-xs text-muted mb-5 leading-relaxed">
+            A seller two months in who has already moved on price is far more likely to move
+            again. These listings are where offers carry the most leverage right now.
+          </p>
+
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="rounded-lg bg-cloud p-3 text-center">
+              <p className="font-heading font-bold text-2xl text-navy">{stats.staleCount.toLocaleString()}</p>
+              <p className="text-[11px] text-slate-600 leading-tight mt-0.5">sitting 60+ days</p>
+            </div>
+            <div className="rounded-lg bg-cloud p-3 text-center">
+              <p className="font-heading font-bold text-2xl text-navy">{(stats.staleWithPriceCut ?? 0).toLocaleString()}</p>
+              <p className="text-[11px] text-slate-600 leading-tight mt-0.5">already cut asking</p>
+            </div>
+            <div className="rounded-lg bg-cloud p-3 text-center">
+              <p className="font-heading font-bold text-2xl text-navy">{stats.stalePct ?? Math.round((stats.staleCount / stats.activeCount) * 100)}%</p>
+              <p className="text-[11px] text-slate-600 leading-tight mt-0.5">of active listings</p>
+            </div>
+          </div>
+
+          {stats.staleByNeighbourhood && Object.keys(stats.staleByNeighbourhood).length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-xs font-semibold uppercase text-slate-500 mb-2">
+                Where they&apos;re sitting
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(stats.staleByNeighbourhood).slice(0, 5).map(([hood, count]) => (
+                  <Link
+                    key={hood}
+                    href={`/listings?hood=${encodeURIComponent(hood)}&sort=dom`}
+                    className="text-[11px] text-navy hover:text-accent bg-cloud rounded-full px-2.5 py-1 no-underline font-medium"
+                  >
+                    {hood} <span className="text-slate-500 font-normal">· {count}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <Link href="/listings?sort=dom" className="btn-primary !px-6 !py-2.5 text-center no-underline">
+              See Longest-Sitting Listings
+            </Link>
+            <p className="text-[11px] text-slate-500 leading-snug">
+              &ldquo;60+ days&rdquo; is measured from each listing&apos;s own MLS listing date;
+              a cut means the ask is below original list.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Avg Prices by Type - Bar Chart */}
       <div className="card p-6 mb-10">
         <h2 className="font-heading font-semibold text-lg text-navy mb-1">
