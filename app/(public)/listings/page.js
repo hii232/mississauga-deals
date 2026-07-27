@@ -141,7 +141,10 @@ function buildItemList(listings) {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Investment Properties for Sale in Mississauga',
-    numberOfItems: listings.length,
+    // Must match the ItemList actually emitted below (20 entries) — this
+    // declared the loaded-slice size (199) against a 20-item list, an
+    // internally inconsistent schema object.
+    numberOfItems: Math.min(listings.length, 20),
     itemListElement: listings.slice(0, 20).map((l, i) => ({
       '@type': 'ListItem',
       position: i + 1,

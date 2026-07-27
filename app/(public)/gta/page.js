@@ -200,7 +200,7 @@ export default async function GtaListingsPage({ searchParams }) {
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
   const sub = copy
     ? copy.sub
-    : 'All active listings across the Greater Toronto Area — scored and analyzed';
+    : 'The most recently updated listings across the Greater Toronto Area — scored and analyzed'; // ~24.5k GTA listings exist; the page loads the freshest slice, so "all" was an overclaim
 
   const chips = city
     ? []
