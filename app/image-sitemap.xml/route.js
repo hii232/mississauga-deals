@@ -8,6 +8,8 @@
 
 export const revalidate = 21600; // 6h, matches the main sitemap
 
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+
 const BASE = 'https://www.mississaugainvestor.ca';
 
 // Public domain, NOT VERCEL_URL — the *.vercel.app URL is behind Vercel
@@ -35,33 +37,21 @@ const LISTING_PAGE_BUDGET = 15;
 // which broke every preview deploy). A dropped page costs a few sitemap URLs
 // that the next revalidation picks up; a failed build costs the whole deploy.
 const FETCH_TIMEOUT_MS = 8000;
-const timedFetch = (url) =>
-  fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
 
 async function fetchFeed(path) {
-  const all = [];
+  // Shared feed fetch — same limit=100 cache keys as the pages, the main
+  // sitemap and market-stats. See lib/listings/fetch-feed.js.
   try {
-    const res = await timedFetch(`${SITE_URL}${path}?limit=200&page=1`);
-    if (!res.ok) return all;
-    const data = await res.json();
-    all.push(...(data.listings || (Array.isArray(data) ? data : [])));
-    const totalPages = data.pages || 1;
-    if (totalPages > 1) {
-      const promises = [];
-      for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
-        promises.push(
-          timedFetch(`${SITE_URL}${path}?limit=200&page=${p}`)
-            .then((r) => (r.ok ? r.json() : { listings: [] }))
-            .catch(() => ({ listings: [] }))
-        );
-      }
-      const results = await Promise.all(promises);
-      results.forEach((d) => all.push(...(d.listings || [])));
-    }
+    const { listings } = await fetchFeedPages(SITE_URL, path, {
+      pages: LISTING_PAGE_BUDGET,
+      revalidate: 3600,
+      timeoutMs: FETCH_TIMEOUT_MS,
+    });
+    return listings;
   } catch (err) {
     console.error(`Image sitemap: failed to fetch ${path}`, err);
+    return [];
   }
-  return all;
 }
 
 // This used to fetch ONLY /api/listings (Mississauga) — the exact same gap

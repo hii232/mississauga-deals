@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { CITY_COPY } from '@/app/(public)/gta/page';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
@@ -19,8 +20,7 @@ const LISTING_PAGE_BUDGET = 30;
 // This file makes up to 2 x LISTING_PAGE_BUDGET upstream calls inside a 60s
 // static-generation budget; an unbounded hang fails the entire build.
 const FETCH_TIMEOUT_MS = 8000;
-const timedFetch = (url) =>
-  fetch(url, { next: { revalidate: 3600 }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -136,29 +136,18 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    const res = await timedFetch(`${baseUrl}/api/listings?limit=200&page=1`);
+    // Shared feed fetch — the SAME limit=100 cache keys the pages and
+    // market-stats read. This branch kept its own limit=200 loop, i.e. its
+    // own set of Data Cache entries with their own staleness, which is the
+    // split-brain that had the sitemap regenerate with ZERO listing URLs
+    // while the pages were serving fresh rows.
+    const { listings: allListings } = await fetchFeedPages(baseUrl, '/api/listings', {
+      pages: LISTING_PAGE_BUDGET,
+      revalidate: 3600,
+      timeoutMs: FETCH_TIMEOUT_MS,
+    });
 
-    if (res.ok) {
-      const data = await res.json();
-      const listings = data.listings || data || [];
-      const totalPages = data.pages || 1;
-
-      // Get remaining pages
-      const allListings = [...listings];
-      if (totalPages > 1) {
-        const promises = [];
-        for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
-          promises.push(
-            timedFetch(`${baseUrl}/api/listings?limit=200&page=${p}`).then((r) => (r.ok ? r.json() : { listings: [] })).catch(() => ({ listings: [] }))
-          );
-        }
-        const results = await Promise.all(promises);
-        results.forEach((d) => {
-          const extra = d.listings || d || [];
-          allListings.push(...extra);
-        });
-      }
-
+    {
       listingPages = allListings
         .filter((l) => l.ListingKey || l.id)
         .map((l) => ({
@@ -199,22 +188,14 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    const res = await timedFetch(`${baseUrl}/api/listings-gta?limit=200&page=1`);
+    // Same shared fetch as the Mississauga branch above.
+    const { listings: all } = await fetchFeedPages(baseUrl, '/api/listings-gta', {
+      pages: LISTING_PAGE_BUDGET,
+      revalidate: 3600,
+      timeoutMs: FETCH_TIMEOUT_MS,
+    });
 
-    if (res.ok) {
-      const data = await res.json();
-      const all = [...(data.listings || [])];
-      const totalPages = data.pages || 1;
-      if (totalPages > 1) {
-        const promises = [];
-        for (let p = 2; p <= Math.min(totalPages, LISTING_PAGE_BUDGET); p++) {
-          promises.push(
-            timedFetch(`${baseUrl}/api/listings-gta?limit=200&page=${p}`).then((r) => (r.ok ? r.json() : { listings: [] })).catch(() => ({ listings: [] }))
-          );
-        }
-        (await Promise.all(promises)).forEach((d) => all.push(...(d.listings || [])));
-      }
-
+    {
       gtaListingPages = all
         .filter((l) => l.id)
         .map((l) => ({
