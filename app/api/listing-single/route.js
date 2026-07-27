@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { computeDaysSinceUpdate, computeDomFloor } from '@/lib/listings/market-timing';
 
 export const dynamic = 'force-dynamic';
 
@@ -111,6 +112,8 @@ export async function GET(request) {
     // DaysOnMarket comes back null on ACTIVE listings from this feed, so 0
     // here means UNKNOWN, not "listed today" — see lib/listings/market-timing.js.
     const dom = Number(l.DaysOnMarket) > 0 ? Number(l.DaysOnMarket) : 0;
+    const daysSinceUpdate = computeDaysSinceUpdate(l);
+    const domFloor = computeDomFloor(dom, daysSinceUpdate, 0);
 
     // Photos from the expanded Media, deduped and in feed order.
     const photos = [];
@@ -137,6 +140,8 @@ export async function GET(request) {
       yearBuilt: l.YearBuilt,
       dom,
       daysOnMarket: dom,
+      daysSinceUpdate,
+      domFloor,
       status: l.StandardStatus,
       brokerage: l.ListOfficeName || '',
       remarks: rem,

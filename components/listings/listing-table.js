@@ -150,7 +150,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
 
                   {/* DOM */}
                   <td className={`px-4 py-3 text-slate-600 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    {listing.dom >= 1 ? listing.dom : '—'}
+                    {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'}
                   </td>
 
                   {/* CAP */}

@@ -250,16 +250,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
                 Printing a bare 0 read as "brand new" on every card. When the
                 real figure is missing we show a dash and, where we have it, the
                 honest thing we DO know: how long since the listing last changed. */}
+            {/* Real DOM plain; otherwise the provable minimum as "N+" (on
+                market AT LEAST N days — see market-timing.js); dash when
+                nothing is known. Never a bare fabricated number. */}
             <div>
-              <p className="text-[10px] font-medium uppercase text-slate-500">
-                {listing.dom >= 1 ? 'DOM' : 'Updated'}
-              </p>
+              <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
               <p className="text-sm font-bold text-navy">
-                {listing.dom >= 1
-                  ? listing.dom
-                  : Number.isFinite(listing.daysSinceUpdate)
-                    ? (listing.daysSinceUpdate === 0 ? 'Today' : `${listing.daysSinceUpdate}d ago`)
-                    : '—'}
+                {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'}
               </p>
             </div>
             {/* CAP is never gated — see home-deal-cards: the same property's cap
