@@ -244,7 +244,7 @@ function HeroDealCard({ deal, photo }) {
             {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
           </span>
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">
-            {deal.dom >= 1 ? `${deal.dom} DOM` : Number.isFinite(deal.daysSinceUpdate) ? (deal.daysSinceUpdate === 0 ? 'Updated today' : `Updated ${deal.daysSinceUpdate}d ago`) : 'New data soon'}
+            {deal.dom >= 1 ? `${deal.dom} DOM` : deal.domFloor >= 1 ? `${deal.domFloor}+ DOM` : 'DOM —'}
           </span>
         </div>
         {/* The rent behind those numbers. This card is the first metric an

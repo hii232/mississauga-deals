@@ -66,8 +66,8 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Dupl
 export const STRATEGY_CHIPS = [
   { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
   { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate 5% or above — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
-  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => l.dom >= 45 },
-  { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => l.dom >= 60 && l.priceDrop >= 5 },
+  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => (l.domFloor ?? l.dom) >= 45 }, // floor = provable minimum, so 45+ is only ever claimed when true
+  { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => (l.domFloor ?? l.dom) >= 60 && l.priceDrop >= 5 },
   { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
   { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom >= 1 && l.dom <= 3 }, // dom 0 = unknown, not new — without the >=1 this chip matched every listing whose age the feed withholds
   { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
@@ -85,8 +85,8 @@ export const SORT_OPTIONS = [
   { key: 'caprate', label: 'Cap Rate (Highest Yield)', fn: (a, b) => b.capRate - a.capRate },
   { key: 'price', label: 'Price (Low to High)', fn: (a, b) => a.price - b.price },
   { key: 'priceDesc', label: 'Price (High to Low)', fn: (a, b) => b.price - a.price },
-  { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => b.dom - a.dom },
-  { key: 'domNew', label: 'DOM (Newest First)', fn: (a, b) => a.dom - b.dom },
+  { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => (b.domFloor ?? b.dom) - (a.domFloor ?? a.dom) },
+  { key: 'domNew', label: 'DOM (Newest First)', fn: (a, b) => (a.domFloor ?? a.dom) - (b.domFloor ?? b.dom) },
   { key: 'drop', label: 'Price Drop (Biggest Cuts)', fn: (a, b) => b.priceDrop - a.priceDrop },
   { key: 'rent', label: 'Rent (Highest)', fn: (a, b) => b.estimatedRent - a.estimatedRent },
   { key: 'coc', label: 'CoC Return', fn: (a, b) => b.cashOnCash - a.cashOnCash },

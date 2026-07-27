@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { computeDaysOnMarket, computeDaysSinceUpdate } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
+import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30;
@@ -207,6 +208,9 @@ export async function GET(request) {
         condoFee: normalizeCondoFee(l.AssociationFee, l.AssociationFeeFrequency),
       };
     });
+
+    // Honest "N+ days on market" floor (see lib/listings/first-seen.js).
+    await applyFirstSeenFloor(listings);
 
     return NextResponse.json(
       { listings, total, browsableTotal, fieldTier, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
