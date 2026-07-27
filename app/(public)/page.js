@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
 import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fmtK } from '@/lib/utils/format';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
@@ -174,7 +174,12 @@ async function fetchTopDeals() {
     // site can make — Hamza's read, and the data supports it.
     const cfPlusCount = processed.filter((l) => Number.isFinite(l.cashFlow) && l.cashFlow > 0).length;
 
-    return { deals: top, photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
+    // slimForSSR before returning: the deal objects are serialized into the
+    // page payload as client-component props, and each carried its FULL
+    // photos + images arrays (~40 signed URLs each) while HomeDealCards reads
+    // ONLY photoMap — measured at ~337KB of dead photo URLs in the homepage
+    // HTML. Same cure /listings already uses; every computed number is kept.
+    return { deals: slimForSSR(top, 4), photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
   } catch {
     return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {}, cfPlusCount: null };
   }
