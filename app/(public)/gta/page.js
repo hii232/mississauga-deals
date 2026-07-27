@@ -301,6 +301,8 @@ export default async function GtaListingsPage({ searchParams }) {
             <Link href="/cash-flow-positive-properties-ontario" className="font-medium text-accent hover:text-accent-dark no-underline">Cash-flow-positive properties</Link>
             <span aria-hidden="true" className="text-slate-400"> · </span>
             <Link href="/townhouse-vs-condo-investment" className="font-medium text-accent hover:text-accent-dark no-underline">Townhouse vs condo</Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/rent-by-bedroom-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">Rent by bedroom</Link>
           </p>
         </div>
         <Suspense>
