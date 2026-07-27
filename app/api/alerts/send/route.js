@@ -446,7 +446,13 @@ function rentAssumptionLine(l) {
   } else if (basement > 0 && base > 0) {
     breakdown = ` · ${money(base)} main + ${money(basement)} ${l.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
-  return `Assumes ${money(rent)}/mo rent${breakdown}`;
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // and cash flow for every condo/apt listing are computed on a bedroom/sqft
+  // estimate, and the site labels that figure "Condo Fee (est.)" everywhere
+  // it's shown. The email rendered the same estimate-derived numbers with no
+  // such disclosure.
+  const condoNote = l.condoFeeEstimated ? ' · condo fee is estimated' : '';
+  return `Assumes ${money(rent)}/mo rent${breakdown}${condoNote}`;
 }
 
 /**

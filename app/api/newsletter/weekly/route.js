@@ -389,7 +389,13 @@ function rentAssumption(d, size = 11) {
   else if (basement > 0 && base > 0) {
     extra = ` &mdash; ${money(base)} main + ${money(basement)} ${d.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
-  return `<div style="font-family:${SERIF};font-size:${size}px;font-style:italic;color:${MUTED};margin-top:5px;">Assumes ${money(rent)}/mo rent${extra}</div>`;
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // and cash flow for every condo/apt listing are computed on a bedroom/sqft
+  // estimate, and the site labels that figure "Condo Fee (est.)" everywhere
+  // it's shown. The newsletter rendered the same estimate-derived numbers
+  // with no such disclosure.
+  const condoNote = d.condoFeeEstimated ? ' &middot; condo fee is estimated' : '';
+  return `<div style="font-family:${SERIF};font-size:${size}px;font-style:italic;color:${MUTED};margin-top:5px;">Assumes ${money(rent)}/mo rent${extra}${condoNote}</div>`;
 }
 
 function dealPhoto(d) {
@@ -639,7 +645,7 @@ export async function GET(request) {
       }
       const sampleDeals = [
         { id: 'SAMPLE1', address: '1234 Lakeshore Rd E', price: 899000, hamzaScore: 8.4, capRate: 5.2, cashFlow: 312, beds: 3, estimatedRent: 4300, baseRent: 3100, basementIncome: 1200, basementTier: 'legal', neighbourhood: 'Lakeview', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-1.jpg'] },
-        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, estimatedRent: 2700, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
+        { id: 'SAMPLE2', address: '55 Village Centre Blvd', price: 649000, hamzaScore: 7.9, capRate: 4.8, cashFlow: 145, beds: 2, estimatedRent: 2700, condoFeeEstimated: true, neighbourhood: 'City Centre', type: 'Condo Apt', photos: ['https://www.mississaugainvestor.ca/images/sample-house-2.jpg'] },
         { id: 'SAMPLE3', address: '890 Clarkson Rd S', price: 1050000, hamzaScore: 7.6, capRate: 4.5, cashFlow: -85, beds: 4, estimatedRent: 3800, neighbourhood: 'Clarkson', type: 'Detached', photos: ['https://www.mississaugainvestor.ca/images/sample-house-3.jpg'] },
       ];
       // Preview uses the REAL live stats, not a hardcoded sample. A preview
