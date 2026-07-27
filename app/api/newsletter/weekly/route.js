@@ -9,7 +9,11 @@ import { sanitizePost } from '@/lib/blog/sanitize-content';
 import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 
-export const maxDuration = 60;
+// 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
+// at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
+// — worst case ~75s before a single email sends. The old budget could kill
+// the route mid-walk on a slow upstream, so the send silently never happened.
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 // ── Auth ──

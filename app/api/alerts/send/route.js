@@ -16,7 +16,11 @@ const plural = (n, singular, pluralForm = `${singular}s`) => `${n} ${n === 1 ? s
 // window. The old page-1-only version squeaked under it; the fixed pool must
 // not die at the timeout wall and silently send to only the first subscribers.
 // Newsletter uses 60s for one batch send; alerts do N sends, so give headroom.
-export const maxDuration = 120;
+// 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
+// at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
+// — worst case ~75s before a single email sends. The old budget could kill
+// the route mid-walk on a slow upstream, so the send silently never happened.
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
 
 const supabase =
