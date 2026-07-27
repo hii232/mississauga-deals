@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -195,7 +195,12 @@ export function generateMetadata({ searchParams }) {
 // and query a single city; the hub gets a short one because it is the heavy
 // query and is not where the ranking value sits.
 async function fetchGtaListings(city) {
-  const timeoutMs = city ? 8000 : 4000;
+  // 8s for the hub too. It sat at 4s while the GTA hub runs the SLOWEST query
+  // on the site (17-city OR filter + every Toronto sub-area + media expand,
+  // plus the field probe on a cold API instance) — so the hub's SSR fetch
+  // timed out on essentially every render and the page shipped ZERO embedded
+  // listings (verified live: 278KB shell) while /listings shipped 99.
+  const timeoutMs = 8000;
   try {
     const h = await headers();
     const host = h.get('host') || 'www.mississaugainvestor.ca';
@@ -203,7 +208,7 @@ async function fetchGtaListings(city) {
     const origin = `${isLocal ? 'http' : 'https'}://${host}`;
     const qs = city ? `&city=${encodeURIComponent(city)}` : '';
     // Shared feed fetch — see lib/listings/fetch-feed.js.
-    const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', { pages: 2, qs, timeoutMs });
+    const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', { pages: 1, qs, timeoutMs });
     if (!data) return { listings: [], total: 0 };
     // browsableTotal excludes the commercial/lease rows the site never shows.
     return { listings: processListings(raw), total: Number(data.browsableTotal ?? data.total) || 0 };
@@ -328,7 +333,7 @@ export default async function GtaListingsPage({ searchParams }) {
         </div>
         <Suspense>
           <ListingsContainer
-            initialListings={initialListings}
+            initialListings={slimForSSR(initialListings)}
             initialTotal={initialTotal}
             apiEndpoint="/api/listings-gta"
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
