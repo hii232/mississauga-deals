@@ -68,13 +68,22 @@ async function fetchLiveListingStats(baseUrl) {
     // PRE-FIX cached rows: avgDOM read 75 and every neighbourhood read
     // "Mississauga" while the live feed had long been fixed. One shared fetch
     // path means the stats and the pages can never read different data again.
-    const { listings: raw } = await fetchFeedPages(baseUrl, '/api/listings', {
+    const { listings: raw, first } = await fetchFeedPages(baseUrl, '/api/listings', {
       pages: 999,
       revalidate: 3600,
       timeoutMs: 25000,
     });
 
     if (raw.length === 0) return null;
+
+    // How much of the feed actually landed. On a cold fill some page fetches
+    // time out and are skipped, so the first computation after a deploy can
+    // run on ~85% of the inventory — verified live: activeCount froze at
+    // 2,159 of ~2,555 under the 24h cache. The caller uses this to shorten
+    // the cache on an incomplete fill so it self-heals in minutes instead of
+    // publishing an undercount for a day.
+    const feedTotal = Number(first?.browsableTotal ?? first?.total) || raw.length;
+    const fillRatio = feedTotal > 0 ? raw.length / feedTotal : 1;
 
     const count = raw.length;
 
@@ -187,7 +196,7 @@ async function fetchLiveListingStats(baseUrl) {
     );
 
     return {
-      activeCount: count, avgDOM, medianDOM, avgPrice, avgPrices,
+      activeCount: count, feedTotal, fillRatio, avgDOM, medianDOM, avgPrice, avgPrices,
       staleCount, stalePct, staleWithPriceCut,
       staleByNeighbourhood: staleByNeighbourhoodSorted,
     };
@@ -441,9 +450,15 @@ export async function GET() {
   };
 
   return NextResponse.json(stats, {
-    // 24h per spec (2026-07-27): these are daily pitch/report numbers, not a
-    // live ticker. Vercel purges the CDN cache on deploy, so code fixes still
-    // surface immediately; only organic drift waits for the daily refresh.
-    headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600' },
+    // 24h per spec when the fill is COMPLETE. An incomplete cold fill (page
+    // timeouts skipped — measured: 2,159 of 2,555 rows on the first run after
+    // deploy) gets 15 minutes instead, so the undercount self-heals on the
+    // next request (the failed pages aren't cached, and by then the API is
+    // warm) rather than being frozen into the daily numbers.
+    headers: {
+      'Cache-Control': (liveListings?.fillRatio ?? 1) >= 0.95
+        ? 's-maxage=86400, stale-while-revalidate=3600'
+        : 's-maxage=900, stale-while-revalidate=3600',
+    },
   });
 }
