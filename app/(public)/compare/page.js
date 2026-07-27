@@ -22,7 +22,7 @@ const METRICS = [
   { key: 'baths', label: 'Baths', format: (v) => v ?? '--' },
   { key: 'sqft', label: 'Sq Ft', format: (v) => v > 0 ? v.toLocaleString() : 'N/A' },
   { key: 'pricePerSqFt', label: '$/SqFt', format: (v) => v > 0 ? '$' + v : 'N/A', best: 'low' },
-  { key: 'dom', label: 'Days on Market', format: (v) => `${v} days`, best: 'high' },
+  { key: 'dom', label: 'Days on Market', format: (v) => (v >= 1 ? `${v} days` : '—'), best: 'high' }, // 0 = unknown, never "0 days"
   { key: 'hamzaScore', label: 'Deal Score', format: (v) => `${v}/10`, best: 'high' },
   { key: 'estimatedRent', label: 'Est. Monthly Rent', format: (v) => fmtCurrency(v) + '/mo', best: 'high' },
   { key: 'monthlyExpenses', label: 'Monthly Costs', format: (v) => fmtCurrency(v) + '/mo', best: 'low' },

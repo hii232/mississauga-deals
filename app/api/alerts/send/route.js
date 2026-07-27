@@ -197,7 +197,17 @@ export async function POST(request) {
         const unseen = matched.filter((l) => !sentToUser.has(String(l.id)));
         const fresh = isFirstAlert
           ? unseen.slice(0, 10) // First alert: top 10 matches
-          : unseen.filter((l) => l.dom <= 3).slice(0, 10); // Daily: only new (DOM 0-3)
+          // Freshness without fabrication: real DOM 1-3 when the feed supplies
+          // it; otherwise fall back to "record changed in the last 3 days"
+          // (daysSinceUpdate) — an honest proxy for newly listed/changed, and
+          // the only market-timing signal the feed serves on active listings.
+          // The old `l.dom <= 3` matched EVERY listing once DOM became an
+          // honest 0-when-unknown, which would have made the daily email an
+          // arbitrary 10 rather than a "new deals" email.
+          : unseen.filter((l) =>
+              (l.dom >= 1 && l.dom <= 3) ||
+              (!(l.dom >= 1) && Number.isFinite(l.daysSinceUpdate) && l.daysSinceUpdate <= 3)
+            ).slice(0, 10);
 
         for (const listing of fresh) {
           if (!allMatches.has(listing.id)) {

@@ -37,7 +37,7 @@ function SkeletonCard() {
   );
 }
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage }) {
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage, marketTotal = 0 }) {
   const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [accessVerified, setAccessVerified] = useState(isRegistered);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -262,8 +262,13 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
         </nav>
       )}
 
+      {/* When only part of the market is loaded (SSR serves one page; the
+          rest streams in), say so — "of 199" while the header claims ~2,500
+          read as a hard cap to anyone (or any crawler) counting cards. */}
       <p className="py-4 text-center text-xs text-slate-500">
-        Showing {startIndex + 1}–{Math.min(startIndex + PAGE_SIZE, listings.length)} of {listings.length} properties
+        {marketTotal > listings.length
+          ? `Showing ${startIndex + 1}–${Math.min(startIndex + PAGE_SIZE, listings.length)} of ${marketTotal.toLocaleString()} properties · ${listings.length.toLocaleString()} loaded so far`
+          : `Showing ${startIndex + 1}–${Math.min(startIndex + PAGE_SIZE, listings.length)} of ${listings.length.toLocaleString()} properties`}
       </p>
 
       {/* Two-step signup modal */}

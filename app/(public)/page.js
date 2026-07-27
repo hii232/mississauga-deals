@@ -169,9 +169,15 @@ async function fetchTopDeals() {
       await Promise.all(photoPromises);
     } catch { /* photos optional */ }
 
-    return { deals: top, photoMap, totalCount: processed.length, hoodStats };
+    // How many of the processed listings are actually cash-flow positive at
+    // 20% down (by the site's stated rent model). Powers the hero's honesty
+    // hook: "only N of M cash flow" is the most differentiated true claim the
+    // site can make — Hamza's read, and the data supports it.
+    const cfPlusCount = processed.filter((l) => Number.isFinite(l.cashFlow) && l.cashFlow > 0).length;
+
+    return { deals: top, photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
   } catch {
-    return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {} };
+    return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {}, cfPlusCount: null };
   }
 }
 
@@ -237,7 +243,9 @@ function HeroDealCard({ deal, photo }) {
           <span className={`rounded-md bg-cloud px-2 py-1 text-[10px] font-bold ${deal.cashFlow >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
             {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
           </span>
-          <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">{deal.dom} DOM</span>
+          <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">
+            {deal.dom >= 1 ? `${deal.dom} DOM` : Number.isFinite(deal.daysSinceUpdate) ? (deal.daysSinceUpdate === 0 ? 'Updated today' : `Updated ${deal.daysSinceUpdate}d ago`) : 'New data soon'}
+          </span>
         </div>
         {/* The rent behind those numbers. This card is the first metric an
             investor sees on the site — an unexplained 6.9% cap here is exactly
@@ -772,6 +780,20 @@ export default async function HomePage() {
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
                 {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
+              {/* The honest hook. Computed live from the same processed set the
+                  deal cards use — never hardcoded, hidden entirely when the
+                  feed is down. Positive-CF scarcity is the site's most
+                  differentiated TRUE claim: most Mississauga listings do not
+                  cash flow at today's rates, and saying so out loud is what
+                  separates this platform from marketing math. white/90 on the
+                  dusk navy ≈ 12:1; the accent number is bold for hierarchy. */}
+              {Number.isFinite(topDeals.cfPlusCount) && topDeals.totalCount > 0 && (
+                <p className="text-white/90 text-sm md:text-base leading-snug mb-3 max-w-xl">
+                  Right now only{' '}
+                  <span className="font-bold text-[#8AB6FF]">{topDeals.cfPlusCount.toLocaleString()}</span>{' '}
+                  of {topDeals.totalCount.toLocaleString()} cash flow at 20% down — we flag every one.
+                </p>
+              )}
               {/* Claim, not an action — hidden on mobile so it doesn't push the
                   email capture below the fold. */}
               <div className="hidden sm:inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">

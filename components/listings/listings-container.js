@@ -160,7 +160,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, initialTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
+export function ListingsContainer({ initialListings, initialTotal = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -427,10 +427,12 @@ export function ListingsContainer({ initialListings, initialTotal = 0, apiEndpoi
   return (
     <div className="space-y-6">
       {/* Deal Screener */}
-      {/* marketTotal is the feed's real browsable count, so the screener can
-          say "198 of 2,606 analyzed" while the rest streams in rather than
-          presenting the first page as the entire market. */}
-      <DealScreener listings={filtered} loading={isLoading} marketTotal={initialTotal} />
+      {/* marketTotal: prefer the canonical site-wide count (market-stats
+          activeCount — the same number the homepage, /about and /sell quote)
+          so one crawl never reads different totals on different pages;
+          initialTotal (the feed's own browsable count) is the fallback and
+          still drives the pagination math. */}
+      <DealScreener listings={filtered} loading={isLoading} marketTotal={displayTotal || initialTotal} />
 
       {/* Top Picks — highest-scored CF+ deals */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
@@ -514,6 +516,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, apiEndpoi
       {view === 'grid' && (
         <ListingGrid
           listings={filtered}
+          marketTotal={displayTotal || initialTotal}
           isRegistered={isRegistered}
           compareIds={compareIds}
           onToggleCompare={toggleCompare}

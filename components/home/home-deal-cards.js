@@ -152,8 +152,13 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
             )}
           </div>
           <div>
-            <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
-            <p className="text-[11px] sm:text-xs font-bold text-navy">{deal.dom}</p>
+            {/* dom 0 = unknown (feed withholds it on active listings) — show
+                what we DO know, days since the record changed, never a bare 0
+                that reads as "listed today". */}
+            <p className="text-[10px] font-medium uppercase text-slate-500">{deal.dom >= 1 ? 'DOM' : 'Updated'}</p>
+            <p className="text-[11px] sm:text-xs font-bold text-navy">
+              {deal.dom >= 1 ? deal.dom : Number.isFinite(deal.daysSinceUpdate) ? (deal.daysSinceUpdate === 0 ? 'Today' : `${deal.daysSinceUpdate}d`) : '—'}
+            </p>
           </div>
         </div>
         {/* The assumption behind the CAP shown above — now rendered for gated
