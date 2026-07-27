@@ -405,7 +405,7 @@ function HowItWorks() {
     {
       num: '03',
       Scene: ConnectScene,
-      title: 'Connect with Hamza',
+      title: 'Book a Free Call',
       desc: 'Book a free strategy call to discuss your investment goals and get personalized recommendations.',
     },
   ];
