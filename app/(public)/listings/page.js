@@ -93,7 +93,7 @@ async function fetchInitialListings() {
     const res = await fetch(`${proto}://${host}/api/listings?limit=200&page=1`, {
       next: { revalidate: 600 },
     });
-    if (!res.ok) return { listings: [], total: 0, displayTotal: 0 };
+    if (!res.ok) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const data = await res.json();
     const rows = processListings(data.listings || []);
     // browsableTotal excludes the commercial/lease rows the site never shows —
@@ -114,9 +114,13 @@ async function fetchInitialListings() {
         if (Number(stats.activeCount) > 0) displayTotal = Number(stats.activeCount);
       }
     } catch {}
-    return { listings: rows, total: feedTotal, displayTotal };
+    // data.pages is the API's OWN page count from the raw @odata.count.
+    // Re-deriving it client-side from the post-filter browsableTotal computed
+    // 13 where the truth was 14 — page 14's listings were permanently
+    // unreachable (measured on production: real $2.8M-$4M listings lived there).
+    return { listings: rows, total: feedTotal, displayTotal, pages: Number(data.pages) || 0 };
   } catch {
-    return { listings: [], total: 0, displayTotal: 0 };
+    return { listings: [], total: 0, displayTotal: 0, pages: 0 };
   }
 }
 
@@ -147,7 +151,7 @@ function buildItemList(listings) {
 }
 
 export default async function ListingsPage() {
-  const { listings, total, displayTotal } = await fetchInitialListings();
+  const { listings, total, displayTotal, pages } = await fetchInitialListings();
   const itemList = buildItemList(listings);
 
   return (
@@ -208,6 +212,7 @@ export default async function ListingsPage() {
           <ListingsContainer
             initialListings={listings}
             initialTotal={total}
+            initialPages={pages}
             displayTotal={displayTotal}
             apiEndpoint="/api/listings"
           />

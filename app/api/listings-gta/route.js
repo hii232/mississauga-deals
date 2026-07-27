@@ -210,10 +210,10 @@ export async function GET(request) {
     });
 
     // Honest "N+ days on market" floor (see lib/listings/first-seen.js).
-    await applyFirstSeenFloor(listings);
+    const firstSeenTracker = await applyFirstSeenFloor(listings);
 
     return NextResponse.json(
-      { listings, total, browsableTotal, fieldTier, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
+      { listings, total, browsableTotal, fieldTier, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
       {
         headers: {
           // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN

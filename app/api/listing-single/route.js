@@ -71,7 +71,9 @@ export async function GET(request) {
     // feed settles on the core+media tier and returns real photo URLs), so
     // asking for it here is safe. Degrades exactly as before if it is ever
     // rejected: `expand` is dropped and the client fetch still fills photos in.
-    const EXPAND = '&$expand=' + encodeURIComponent('Media($select=MediaURL;$orderby=Order)');
+    // Byte-identical to the listings feed's ACCEPTED expand — the only diff was
+    // the missing MediaKey, and this exact form is proven against production.
+    const EXPAND = '&$expand=' + encodeURIComponent('Media($select=MediaURL,MediaKey;$orderby=Order)');
     const sel = '$select=' + encodeURIComponent(SEL);
 
     let l = null;

@@ -160,7 +160,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, initialTotal = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
+export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -357,7 +357,11 @@ export function ListingsContainer({ initialListings, initialTotal = 0, displayTo
         } else {
           // SSR already gave us page 1 (processed) — work out how many more
           // pages exist from the real total instead of guessing.
-          totalPages = initialTotal > 0 ? Math.ceil(initialTotal / 200) : 1;
+          // Prefer the API's own page count. Deriving it here from the
+          // POST-filter total over the RAW page size computed 13 where the
+          // API said 14 — the last page was never fetched and its listings
+          // were unreachable everywhere on the site.
+          totalPages = initialPages > 0 ? initialPages : initialTotal > 0 ? Math.ceil(initialTotal / 200) : 1;
         }
 
         // Fetch remaining pages in parallel batches, appending as they arrive
@@ -398,7 +402,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, displayTo
     }
     fetchRemaining();
     return () => { cancelled = true; };
-  }, [initialListings, initialTotal, cityParam, apiEndpoint, retryKey]);
+  }, [initialListings, initialTotal, initialPages, cityParam, apiEndpoint, retryKey]);
 
   const toggleCompare = useCallback((id) => {
     setCompareIds((prev) =>
