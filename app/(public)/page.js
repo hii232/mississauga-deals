@@ -13,7 +13,6 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
-import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
@@ -942,11 +941,15 @@ export default async function HomePage() {
       <AgentProfile googleRating={googleRating} propertiesAnalyzed={propertiesAnalyzed} />
       <CTASection />
 
-      {/* Mobile sticky capture — the hero CTA scrolls away in the first swipe
-          on a long page; this keeps one always-reachable primary action.
-          /alerts (name+email capture) works for logged-in and logged-out
-          visitors alike, unlike the auth-state-dependent hero button. */}
-      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
+      {/* No mobile sticky capture bar on this page (unlike the long-form
+          guide/blog pages that use it): the hero's own email capture sits at
+          the very top of the homepage and is always the first thing a mobile
+          visitor sees, so the sticky bar had nothing to compensate for — it
+          only ever overlapped that same hero capture instead. Verified at a
+          real 375x667 viewport (iPhone SE-class, and what any 375x812 phone
+          shows before the browser chrome collapses): the fixed bottom bar
+          covered the hero's email input and its submit button entirely, two
+          capture surfaces stacked in one viewport. */}
     </>
   );
 }
