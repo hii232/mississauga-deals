@@ -1,9 +1,33 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { RecentSalesClient } from './recent-sales-client';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import InlineCTA from '@/components/ui/inline-cta';
+import { fmtK } from '@/lib/utils/format';
 
 const YEAR = new Date().getFullYear();
+
+// TRREB Market Watch publishes these CITY-WIDE aggregate figures openly —
+// unlike the individual sold records (address, exact price) in
+// RecentSalesClient's table, which now require registration per TRREB's VOW
+// rules (see the compliance fix that gated that table). Server-fetched so
+// this substance survives for anonymous visitors and crawlers, who since
+// that fix see only the registration gate where the comps table used to
+// render — this page's whole reason to exist is the query "mississauga sold
+// prices", so it needs real numbers even before someone registers.
+async function fetchMarketSnapshot() {
+  try {
+    const h = await headers();
+    const host = h.get('host') || 'www.mississaugainvestor.ca';
+    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
+    const proto = isLocal ? 'http' : 'https';
+    const res = await fetch(`${proto}://${host}/api/market-stats`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
 
 // The sales table itself is client-fetched, so this page shipped a crawler
 // little more than its h1 while targeting a genuinely high-intent query
@@ -62,7 +86,10 @@ export const metadata = {
   },
 };
 
-export default function RecentSalesPage() {
+export default async function RecentSalesPage() {
+  const marketStats = await fetchMarketSnapshot();
+  const hasSnapshot = !!marketStats?.tRREBMonth && marketStats.mississaugaAvgPrice > 0;
+
   return (
     <>
       <BreadcrumbJsonLd
@@ -74,10 +101,60 @@ export default function RecentSalesPage() {
       <FAQJsonLd items={SOLD_FAQ} />
       <RecentSalesClient />
 
-      {/* Server-rendered explainer. The sales table above is client-fetched, so
-          this is the only substantive content a crawler sees on a page aimed at
-          a high-intent query — and it is genuinely useful to a buyer who has
-          just found out sold prices aren't public in Ontario. */}
+      {/* Server-rendered aggregate snapshot — always real, never gated (see
+          fetchMarketSnapshot above for why this exists and why it's safe). */}
+      {hasSnapshot && (
+        <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+          <div className="card p-6">
+            <h2 className="font-heading text-lg font-bold text-navy">
+              Mississauga Sold Market Snapshot — {marketStats.tRREBMonth}
+            </h2>
+            <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
+              <div className="text-center">
+                <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg Sold Price</p>
+                <p className="font-heading font-bold text-lg text-navy">{fmtK(marketStats.mississaugaAvgPrice)}</p>
+              </div>
+              {marketStats.mississaugaMedianPrice > 0 && (
+                <div className="text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Median Sold Price</p>
+                  <p className="font-heading font-bold text-lg text-navy">{fmtK(marketStats.mississaugaMedianPrice)}</p>
+                </div>
+              )}
+              {marketStats.mississaugaAvgSPLP > 0 && (
+                <div className="text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Sale-to-List</p>
+                  <p className="font-heading font-bold text-lg text-navy">{marketStats.mississaugaAvgSPLP}%</p>
+                </div>
+              )}
+              {marketStats.mississaugaAvgLDOM > 0 && (
+                <div className="text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Avg Days on Market</p>
+                  <p className="font-heading font-bold text-lg text-navy">{marketStats.mississaugaAvgLDOM}d</p>
+                </div>
+              )}
+              {marketStats.mississaugaMonthsOfInventory > 0 && (
+                <div className="text-center">
+                  <p className="text-[10px] font-medium uppercase text-slate-500 mb-1">Months of Inventory</p>
+                  <p className="font-heading font-bold text-lg text-navy">{marketStats.mississaugaMonthsOfInventory}</p>
+                </div>
+              )}
+            </div>
+            <p className="mt-4 text-xs text-slate-500">
+              City-wide aggregate from TRREB&apos;s {marketStats.tRREBMonth} Market Watch report
+              {marketStats.tRREBIsStale ? ' — the most recent report on hand, which may be a couple of months behind' : ''}.
+              Individual sold listings below (exact address, price and date) require a free account — that level of
+              detail is released only through a REALTOR® or a board-agreement Virtual Office Website, per TRREB&apos;s
+              data rules.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* Server-rendered explainer, alongside the snapshot above — the sales
+          table itself is client-fetched and now gated (VOW), so these two
+          sections carry the real substance a crawler sees for a page aimed at
+          a high-intent query, and the explainer is genuinely useful to a buyer
+          who has just found out sold prices aren't public in Ontario. */}
       <section className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
         <h2 className="font-heading text-xl font-bold text-navy">
           Understanding Mississauga sold prices
