@@ -168,9 +168,9 @@ export default async function AboutPage() {
               MississaugaInvestor.ca
             </Link>{' '}
             — a data-driven investment property platform that scores every active MLS listing for
-            cash flow, cap rate, and overall investment potential. The platform analyzes over 1,800
-            properties across 24 Mississauga neighbourhoods, giving investors a quantitative edge
-            in identifying the best opportunities.
+            cash flow, cap rate, and overall investment potential. The platform analyzes{' '}
+            {propertiesAnalyzed} properties across 24 Mississauga neighbourhoods, giving investors
+            a quantitative edge in identifying the best opportunities.
           </p>
 
           <h2 className="font-heading text-2xl font-bold text-navy mb-4 mt-10">

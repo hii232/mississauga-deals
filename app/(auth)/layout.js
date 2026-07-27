@@ -1,17 +1,24 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
-import { PLATFORM_STATS } from '@/lib/constants';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
+import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
 
 export const metadata = {
   title: 'Sign In',
   robots: { index: false, follow: false },
 };
 
-const BENEFITS = [
-  'Free Hamza Score, cap rate & cash-flow analysis on every listing',
-  `Instant access to ${PLATFORM_STATS.propertiesAnalyzed} analyzed MLS listings across the GTA`,
-  'Deal alerts the moment a matching property hits the market',
-];
+// A function, not a static array: the middle benefit quotes how many listings
+// we cover, and this is the LAST thing a visitor reads before handing over an
+// email — the highest-intent surface on the site. It was pinned to the hand-set
+// PLATFORM_STATS constant ("1,800+"), so signup promised access to fewer
+// listings than the homepage that sent the visitor here advertised.
+function buildBenefits(propertiesAnalyzed) {
+  return [
+    'Free Hamza Score, cap rate & cash-flow analysis on every listing',
+    `Instant access to ${propertiesAnalyzed} analyzed MLS listings across the GTA`,
+    'Deal alerts the moment a matching property hits the market',
+  ];
+}
 
 // Base trust chips. The Google rating is prepended at render time only when
 // Google actually returns one — never hardcoded.
@@ -19,6 +26,8 @@ const TRUST = ['Licensed by RECO', 'Live MLS data · PropTx'];
 
 export default async function AuthLayout({ children }) {
   const googleRating = await fetchGoogleRating();
+  const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
+  const BENEFITS = buildBenefits(propertiesAnalyzed);
   const trust = googleRating ? [googleRatingLabel(googleRating), ...TRUST] : TRUST;
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
