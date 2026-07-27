@@ -339,7 +339,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
         if (initialListings.length === 0) {
           // Cold start — fetch page 1 ourselves and show it immediately.
-          const res = await fetch(apiEndpoint + '?limit=200&page=1' + cityQs);
+          const res = await fetch(apiEndpoint + '?limit=100&page=1' + cityQs);
           if (!res.ok) {
             // Feed down: stop the skeletons and show an honest error state
             if (!cancelled) { setIsLoading(false); setLoadError(true); }
@@ -366,7 +366,10 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
         // Fetch remaining pages in parallel batches, appending as they arrive
         if (totalPages > 1 && !cancelled) {
-          const maxPages = Math.min(totalPages, 50);
+          // 100 pages × 100 rows: the feed page size halved (media-expand
+          // cap), so the page budget doubles to keep the same ~10k-listing
+          // background coverage on the GTA hub. /listings needs ~26.
+          const maxPages = Math.min(totalPages, 100);
           const batchSize = 5;
           const allExtraRaw = [];
 
@@ -374,7 +377,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
             const batch = [];
             for (let p = batchStart; p < batchStart + batchSize && p <= maxPages; p++) {
               batch.push(
-                fetch(apiEndpoint + '?limit=200&page=' + p + cityQs)
+                fetch(apiEndpoint + '?limit=100&page=' + p + cityQs)
                   .then(r => r.ok ? r.json() : null)
                   .then(pg => pg?.listings || [])
                   .catch(() => [])

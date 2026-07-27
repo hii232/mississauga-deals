@@ -10,7 +10,10 @@ const BASE = 'https://www.mississaugainvestor.ca';
 // Upstream pages of 200 rows to pull per listing feed. Both feeds use the same
 // budget so neither is arbitrarily favoured; see the GTA branch for why full
 // coverage needs a sitemap index rather than a bigger number here.
-const LISTING_PAGE_BUDGET = 15;
+// 30 pages × 100 rows — the feed page size is capped at 100 (media-expand
+// limit, see app/api/listings/route.js), so the budget doubles to keep the
+// same ~3,000-listing coverage as before.
+const LISTING_PAGE_BUDGET = 30;
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY

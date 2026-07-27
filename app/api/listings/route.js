@@ -61,7 +61,14 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
-    const limit = Math.min(parseInt(searchParams.get('limit')) || 200, 200);
+    // Page size is capped at 100, and the cap is load-bearing: AMPRE accepts
+    // the Media $expand at $top=100 (measured: 99/99 rows return photos,
+    // fieldTier fees+media) but REJECTS it at $top=200 (~36k media rows — the
+    // CDN stores ~5 size-variants per photo), which sent every standard page
+    // request through 3 failed upstream calls before settling on a tier with
+    // photos:[] on every row. Callers all iterate via the API's own `pages`
+    // field, so they adapt to the smaller page automatically.
+    const limit = Math.min(parseInt(searchParams.get('limit')) || 100, 100);
     const skip = (page - 1) * limit;
 
     const filters = ["StandardStatus eq 'Active'", 'ListPrice ge 300000'];
