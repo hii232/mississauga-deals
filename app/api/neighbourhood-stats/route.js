@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
+import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 
 // Public site URL — never build the internal fetch from request.url (on Vercel
 // that resolves to the deployment-protected *.vercel.app host, an HTML auth wall).
@@ -21,24 +22,18 @@ export const revalidate = 600;
  */
 export async function GET() {
   try {
-    const res = await fetch(`${SITE_URL}/api/listings?limit=200&page=1`, { next: { revalidate } });
-    if (!res.ok) return NextResponse.json({ stats: {} });
-    const ctype = res.headers.get('content-type') || '';
-    if (!ctype.includes('application/json')) return NextResponse.json({ stats: {} });
-    const data = await res.json();
-
-    const raw = [...(data.listings || data || [])];
-    const totalPages = Math.min(data.pages || 1, 15);
-    if (totalPages > 1) {
-      const rest = await Promise.all(
-        Array.from({ length: totalPages - 1 }, (_, k) => k + 2).map((p) =>
-          fetch(`${SITE_URL}/api/listings?limit=200&page=${p}`, { next: { revalidate } })
-            .then((r) => (r.ok ? r.json() : { listings: [] }))
-            .catch(() => ({ listings: [] }))
-        )
-      );
-      rest.forEach((d) => raw.push(...(d.listings || [])));
-    }
+    // Shared feed fetch — the same limit=100 Data Cache keys every other
+    // consumer reads (pages #61, market-stats #65, sitemaps). This route kept
+    // its own limit=200 loop, so the per-hood avg price / DOM / yield on all
+    // 24 guide pages and the homepage cards were computed from stale pre-fix
+    // cache entries. maxPages 30 keeps the intended full-feed coverage now
+    // that the feed clamps pages to 100 rows.
+    const { listings: raw } = await fetchFeedPages(SITE_URL, '/api/listings', {
+      pages: 30,
+      revalidate,
+      timeoutMs: 25000,
+    });
+    if (raw.length === 0) return NextResponse.json({ stats: {} });
 
     return NextResponse.json({ stats: computeHoodStats(processListings(raw)) });
   } catch {
