@@ -7,7 +7,7 @@ import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 
 // Room for the 25s cache-seeding feed fetch below — without this the page
@@ -93,8 +93,29 @@ export function CityInvestorNotes({ city, copy }) {
     (c) => c !== city && CITY_COPY[c].region === copy.region
   );
 
+  const faqItems = [];
+  faqItems.push({
+    question: `What investment metrics does MississaugaInvestor.ca show for ${city} properties?`,
+    answer: `Each ${city} listing includes a Deal Score (1–10), estimated monthly cash flow, cap rate, and cash-on-cash return. All figures use a 20% down payment, the Bank of Canada 5-year stress-test rate, and ${city}'s ${rate ? `${(rate * 100).toFixed(2)}%` : 'actual'} municipal property tax rate — costs most listing sites leave out. ${city} is part of ${copy.region}.`,
+  });
+  if (rate) {
+    faqItems.push({
+      question: `What is ${city}'s property tax rate?`,
+      answer: `${city}'s residential property tax rate is ${(rate * 100).toFixed(2)}%. This rate is applied to the property's MPAC-assessed value and is used in every cash-flow and cap rate estimate shown on this page.`,
+    });
+  }
+  if (siblings.length > 0) {
+    const sibSample = siblings.slice(0, 4).join(', ');
+    faqItems.push({
+      question: `How does ${city} compare to other ${copy.region} investment markets?`,
+      answer: `${city} is one of ${siblings.length + 1} ${copy.region} markets tracked on this site. You can also browse listings in ${sibSample}${siblings.length > 4 ? ' and others' : ''} — each with the same deal scoring and cash-flow analysis.`,
+    });
+  }
+
   return (
-    <section className="mt-10 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
+    <>
+      <FAQJsonLd items={faqItems} />
+      <section className="mt-10 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
       <h2 className="font-heading text-lg font-bold text-navy">Investing in {city}</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         {city} is part of {copy.region}.{' '}
@@ -146,6 +167,7 @@ export function CityInvestorNotes({ city, copy }) {
         </Link>
       </p>
     </section>
+    </>
   );
 }
 
