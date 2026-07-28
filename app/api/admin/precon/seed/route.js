@@ -139,6 +139,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true, count: data.length });
   } catch (err) {
-    return NextResponse.json({ error: err.message || 'Seed failed' }, { status: 500 });
+    console.error('Precon seed error:', err);
+    return NextResponse.json({ error: 'Seed failed' }, { status: 500 });
   }
 }

@@ -78,6 +78,6 @@ export async function POST(request) {
     return NextResponse.json({ url: urlData.publicUrl });
   } catch (err) {
     console.error('Upload error:', err);
-    return NextResponse.json({ error: err.message || 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

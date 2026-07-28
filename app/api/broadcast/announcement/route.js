@@ -201,7 +201,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error('Announcement broadcast (GET) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -258,6 +258,6 @@ export async function POST(request) {
     );
   } catch (err) {
     console.error('Announcement broadcast (POST) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
