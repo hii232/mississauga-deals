@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
-import { CITY_COPY } from '@/app/(public)/gta/page';
+import { CITY_COPY, cityToSlug } from '@/app/(public)/gta/page';
 import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 
 // Regenerate sitemap every 6 hours
@@ -115,11 +115,12 @@ export default async function sitemap() {
     priority: 0.75,
   }));
 
-  // ── GTA city pages (/gta?city=X) — each has a unique title/description +
-  // self-canonical, but is only linked from the mega-menu, so list them here
-  // for discovery/indexing (targets "{City} investment properties"). ──
+  // ── GTA city pages (/gta/[city]) — path-segment URLs so Google treats each
+  // as a genuinely distinct page with its own canonical (previously these were
+  // /gta?city=X query-param variants, which Google consolidated into /gta and
+  // reported as "Duplicate, Google chose different canonical than user"). ──
   const gtaCityPages = Object.keys(CITY_COPY).map((city) => ({
-    url: `${BASE}/gta?city=${encodeURIComponent(city)}`,
+    url: `${BASE}/gta/${cityToSlug(city)}`,
     lastModified: now,
     changeFrequency: 'daily',
     priority: 0.7,

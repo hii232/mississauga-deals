@@ -42,8 +42,10 @@ const GTA_GROUPS = [
 ];
 
 function cityHref(city) {
-  if (city === 'Toronto (All)') return '/gta?city=Toronto';
-  return `/gta?city=${encodeURIComponent(city)}`;
+  // "Toronto (All)" maps to the /gta/toronto path — the API expands "Toronto"
+  // to every Toronto sub-area just as it did for the old ?city=Toronto param.
+  const name = city === 'Toronto (All)' ? 'Toronto' : city;
+  return '/gta/' + name.toLowerCase().replace(/\s+/g, '-');
 }
 
 const NAV_ITEMS = [

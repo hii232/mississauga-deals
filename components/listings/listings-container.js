@@ -160,7 +160,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
+export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods, city: cityProp = '' }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -180,24 +180,30 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
   const [photoMap, setPhotoMap] = useState({});
 
-  // Read city from URL (set by GTA mega-menu). Backend filters to that city when present.
-  const cityParam = searchParams.get('city') || '';
-  // Region scope for saved searches: a specific city on /gta?city=X, the
-  // whole-GTA sentinel on the /gta hub, else the Mississauga flagship feed.
+  // Read city from URL (set by GTA mega-menu) or from the `city` prop.
+  // The prop is used on path-segment pages (/gta/[city]) where no ?city= is
+  // present in the URL — the city is in the pathname, not the query string.
+  const cityFromUrl = searchParams.get('city') || '';
+  const cityParam = cityProp || cityFromUrl;
+  // Region scope for saved searches: a specific city on /gta/[city] or
+  // /gta?city=X, the whole-GTA sentinel on the /gta hub, else Mississauga.
   const searchCity = cityParam || (apiEndpoint.includes('gta') ? 'GTA' : 'Mississauga');
 
   // Sync filters to URL (so back button restores exact filter state).
-  // Preserve ?city=X so filter edits on a city-scoped page don't wipe the scope.
+  // Preserve ?city=X when the city came from a query param (legacy /gta?city=
+  // URLs redirect to /gta/[city], but this keeps the URL sync safe if ever
+  // called from a non-redirected context). Do NOT add ?city= when the city
+  // lives in the pathname — the path already carries it.
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const qs = serializeFilters(filters);
     const params = new URLSearchParams(qs);
-    if (cityParam) params.set('city', cityParam);
+    if (cityFromUrl) params.set('city', cityFromUrl);
     const final = params.toString();
     const newUrl = pathname + (final ? '?' + final : '');
     router.replace(newUrl, { scroll: false });
-  }, [filters, pathname, router, cityParam]);
+  }, [filters, pathname, router, cityFromUrl]);
 
   // Save scroll position before navigating away (restored on back)
   useEffect(() => {

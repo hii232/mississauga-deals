@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { headers } from 'next/headers';
+import { permanentRedirect } from 'next/navigation';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { ListingsContainer } from '@/components/listings/listings-container';
@@ -14,8 +15,15 @@ import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 // resolves, which reproduces the empty shell with a longer fuse.
 export const maxDuration = 60;
 
+// Convert a city name to a URL path segment.
+// "Halton Hills" → "halton-hills", "Toronto" → "toronto".
+// Exported so gta/[city]/page.js can use the same function without duplicating.
+export function cityToSlug(city) {
+  return city.toLowerCase().replace(/\s+/g, '-');
+}
+
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS).
-// Exported so the sitemap can list every indexable /gta?city= page.
+// Exported so the sitemap and gta/[city]/page.js can reference each city.
 export const CITY_COPY = {
   'Toronto': { h1: 'Toronto Investment Properties', sub: 'Active listings across Toronto, Etobicoke, North York, Scarborough, East York & York', region: 'City of Toronto' },
   'Brampton': { h1: 'Brampton Investment Properties', sub: 'Active Brampton listings — cash flow, cap rate, and deal score analysis', region: 'Peel Region' },
@@ -79,7 +87,7 @@ Object.keys(CITY_COPY).forEach((city) => {
 // never restated by hand, so this copy can't drift from the numbers on the
 // cards. The tax rate prints only when the municipality has its own researched
 // rate — a city on the generic fallback shows no rate rather than a fake one.
-function CityInvestorNotes({ city, copy }) {
+export function CityInvestorNotes({ city, copy }) {
   const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
   const siblings = Object.keys(CITY_COPY).filter(
     (c) => c !== city && CITY_COPY[c].region === copy.region
@@ -113,7 +121,7 @@ function CityInvestorNotes({ city, copy }) {
             <span key={c}>
               {i > 0 && <span aria-hidden="true" className="text-slate-400"> · </span>}
               <Link
-                href={`/gta?city=${encodeURIComponent(c)}`}
+                href={`/gta/${cityToSlug(c)}`}
                 className="font-medium text-accent no-underline hover:text-accent-dark"
               >
                 {c}
@@ -141,34 +149,10 @@ function CityInvestorNotes({ city, copy }) {
   );
 }
 
-export function generateMetadata({ searchParams }) {
-  const city = (searchParams?.city || '').trim();
-  const copy = CITY_COPY[city];
-  if (copy) {
-    const canonical = '/gta?city=' + encodeURIComponent(city);
-    return {
-      title: copy.h1,
-      description: copy.sub,
-      alternates: { canonical },
-      // Per-city social card: without this the 28 city pages inherit the root's
-      // generic OG title (Next uses the parent openGraph when a page omits it),
-      // so a shared Toronto link read "MississaugaInvestor.ca…" not "Toronto…".
-      // Keep the branded /opengraph-image.
-      openGraph: {
-        title: copy.h1,
-        description: copy.sub,
-        url: `https://www.mississaugainvestor.ca${canonical}`,
-        // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-        images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: copy.h1 }],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: copy.h1,
-        description: copy.sub,
-        images: ['/opengraph-image'],
-      },
-    };
-  }
+// Per-city metadata is generated in gta/[city]/page.js. This export covers
+// only the /gta hub view — any ?city= request is immediately redirected before
+// a search engine ever reads these tags.
+export function generateMetadata() {
   return {
     title: { absolute: 'GTA Investment Properties — Scored for Cash Flow' },
     description:
@@ -199,7 +183,7 @@ export function generateMetadata({ searchParams }) {
 // The per-city pages get the longer budget because they are the indexable ones
 // and query a single city; the hub gets a short one because it is the heavy
 // query and is not where the ranking value sits.
-async function fetchGtaListings(city) {
+export async function fetchGtaListings(city) {
   // 25s. Verified against production runtime logs: the GTA feed call answers
   // 200 every time but takes LONGER than the old timeout on a cache-seeding
   // render (24.5k-row filter + $count + media expand + the field probe on a
@@ -228,7 +212,16 @@ async function fetchGtaListings(city) {
 
 export default async function GtaListingsPage({ searchParams }) {
   const city = (searchParams?.city || '').trim();
-  const copy = CITY_COPY[city];
+
+  // Old query-param URLs (/gta?city=Toronto) permanently redirect to path-segment
+  // pages (/gta/toronto). This fixes "Duplicate, Google chose different canonical
+  // than user" in GSC — query params are treated as filter variants of /gta, not
+  // distinct pages, so Google never respected the ?city= self-canonicals.
+  if (city && CITY_COPY[city]) {
+    permanentRedirect('/gta/' + cityToSlug(city));
+  }
+
+  const copy = CITY_COPY[city]; // always null here since valid cities redirect above
   const { listings: initialListings, total: initialTotal } = await fetchGtaListings(city);
 
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
@@ -247,7 +240,7 @@ export default async function GtaListingsPage({ searchParams }) {
     { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
     { name: 'GTA Listings', url: 'https://www.mississaugainvestor.ca/gta' },
     ...(copy
-      ? [{ name: city, url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(city)}` }]
+      ? [{ name: city, url: `https://www.mississaugainvestor.ca/gta/${cityToSlug(city)}` }]
       : []),
   ];
 
@@ -262,7 +255,7 @@ export default async function GtaListingsPage({ searchParams }) {
         itemListElement: Object.keys(CITY_COPY).map((c, i) => ({
           '@type': 'ListItem',
           position: i + 1,
-          url: `https://www.mississaugainvestor.ca/gta?city=${encodeURIComponent(c)}`,
+          url: `https://www.mississaugainvestor.ca/gta/${cityToSlug(c)}`,
           name: CITY_COPY[c].h1 || c,
         })),
       }
@@ -287,7 +280,7 @@ export default async function GtaListingsPage({ searchParams }) {
                 // looked tappable but were plain text) — also crawlable links.
                 <Link
                   key={c}
-                  href={`/gta?city=${encodeURIComponent(c)}`}
+                  href={`/gta/${cityToSlug(c)}`}
                   className="rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/80 no-underline transition hover:bg-white/20 hover:text-white"
                 >
                   {c}
