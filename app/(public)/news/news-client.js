@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import InlineCTA from '@/components/ui/inline-cta';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
-import { PageHero } from '@/components/layout/page-hero';
 
 /* ── helpers ─────────────────────────────────────────────── */
 
@@ -235,13 +234,7 @@ export function NewsClient({ articles, sources, topics }) {
   const remainingArticles = filtered.slice(3);
 
   return (
-    <div className="min-h-screen bg-cloud">
-      <PageHero
-        compact
-        eyebrow="Live market news"
-        title="Real Estate Intelligence"
-        subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports — curated for investors and updated continuously."
-      />
+    <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ── Controls: freshness signal + manual refresh ── */}
@@ -402,6 +395,6 @@ export function NewsClient({ articles, sources, topics }) {
         )}
       </div>
       <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
-    </div>
+    </>
   );
 }
