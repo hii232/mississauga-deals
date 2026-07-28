@@ -1,8 +1,11 @@
+import Image from 'next/image';
 import { CityscapePanorama } from '@/components/art/cityscape';
 import Link from 'next/link';
 import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating } from '@/lib/google-rating';
 import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
+import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 export const metadata = {
   title: { absolute: 'About Hamza Nouman — Mississauga Investment REALTOR®' },
@@ -73,13 +76,14 @@ export default async function AboutPage() {
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C] py-16 md:py-24">
         <div className="relative z-10 max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-10">
-            <div className="flex-shrink-0">
-              <img
+            <div className="relative flex-shrink-0 w-48 h-48 md:w-64 md:h-64">
+              <Image
                 src="/images/hamza-headshot.jpg"
                 alt="Hamza Nouman — Mississauga Real Estate Investment Specialist at Cityscape Real Estate Ltd."
-                className="w-48 h-48 md:w-64 md:h-64 rounded-2xl object-cover object-top shadow-2xl border-2 border-white/10"
-                width={256}
-                height={256}
+                fill
+                priority
+                sizes="(min-width: 768px) 256px, 192px"
+                className="rounded-2xl object-cover object-top shadow-2xl border-2 border-white/10"
               />
             </div>
             <div className="text-center md:text-left">
@@ -226,7 +230,12 @@ export default async function AboutPage() {
             making set him apart in the real estate industry.
           </p>
 
-          <h2 className="font-heading text-2xl font-bold text-navy mb-4 mt-10">
+          {/* Newsletter capture — low-friction next step for visitors who like
+              what they see but aren&apos;t ready to call: follow the weekly deals
+              before committing to a conversation. */}
+          <InlineCTA variant="newsletter" className="mt-10 mb-10 not-prose" />
+
+          <h2 className="font-heading text-2xl font-bold text-navy mb-4">
             Contact Hamza Nouman
           </h2>
           <div className="bg-navy rounded-2xl p-8 text-center">
@@ -273,30 +282,35 @@ export default async function AboutPage() {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
-              { label: 'Cityscape Real Estate', url: 'https://www.cityscaperealestate.ca/', icon: '🏠' },
-              { label: 'REALTOR.ca Profile', url: 'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7', icon: '🏡' },
-              { label: 'HamzaHomes.ca', url: 'https://www.hamzahomes.ca/', icon: '🌐' },
-              { label: 'LinkedIn', url: 'https://www.linkedin.com/in/homeswithhamza/', icon: '💼' },
-              { label: 'Facebook', url: 'https://www.facebook.com/Homeswithhamza/', icon: '📘' },
-              { label: 'HomeFinder.ca', url: 'https://www.homefinder.ca/agents/494937-hamza-nouman', icon: '🔍' },
+              { label: 'Cityscape Real Estate', url: 'https://www.cityscaperealestate.ca/' },
+              { label: 'REALTOR.ca Profile', url: 'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7' },
+              { label: 'HamzaHomes.ca', url: 'https://www.hamzahomes.ca/' },
+              { label: 'LinkedIn', url: 'https://www.linkedin.com/in/homeswithhamza/' },
+              { label: 'Facebook', url: 'https://www.facebook.com/Homeswithhamza/' },
+              { label: 'HomeFinder.ca', url: 'https://www.homefinder.ca/agents/494937-hamza-nouman' },
             ].map((profile) => (
               <a
                 key={profile.label}
                 href={profile.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-accent/20 hover:bg-cloud transition no-underline group"
+                className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-100 hover:border-accent/20 hover:bg-cloud transition no-underline group"
               >
-                <span className="text-xl">{profile.icon}</span>
                 <div>
                   <p className="text-sm font-semibold text-navy group-hover:text-accent transition">{profile.label}</p>
                   <p className="text-[10px] text-muted truncate max-w-[250px]">{profile.url.replace('https://', '').replace('www.', '')}</p>
                 </div>
+                {/* External link icon */}
+                <svg className="h-4 w-4 flex-shrink-0 text-muted group-hover:text-accent transition" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
               </a>
             ))}
           </div>
         </div>
       </section>
+
+      <StickyMobileCTA href="/book-call" label="Book a Free 30-Min Call" />
     </>
   );
 }

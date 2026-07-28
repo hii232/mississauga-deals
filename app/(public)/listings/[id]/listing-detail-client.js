@@ -144,7 +144,17 @@ function HamzaTakeTab({ listing }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
       <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-sm font-bold text-white">H</div>
+        {/* Real headshot — matches the neighbourhood guide and blog-post author
+            box treatments; 32×32 here to match the tab's compact header */}
+        <div className="relative h-8 w-8 flex-shrink-0">
+          <Image
+            src="/images/hamza-headshot.jpg"
+            alt="Hamza Nouman"
+            fill
+            sizes="32px"
+            className="rounded-full object-cover object-top"
+          />
+        </div>
         <div>
           <p className="text-sm font-semibold text-navy">Hamza&apos;s Take</p>
           <p className="text-xs text-muted">Investment Perspective</p>
