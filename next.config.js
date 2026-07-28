@@ -14,6 +14,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.repliers.io',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
     ],
     unoptimized: false,
   },

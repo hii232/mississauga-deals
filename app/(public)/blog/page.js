@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { blogCoverUrl } from '@/lib/blog-cover';
 import { CityscapePanorama } from '@/components/art/cityscape';
 import { createClient } from '@supabase/supabase-js';
@@ -214,14 +215,19 @@ export default async function BlogPage({ searchParams }) {
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
-                    className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-md transition-all duration-300 no-underline"
+                    className="group bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden hover:border-accent/30 hover:shadow-lg transition-all duration-300 no-underline"
                   >
-                    <img
-                      src={blogCoverUrl(post)}
-                      alt={post.title}
-                      loading="lazy"
-                      className="w-full h-44 object-cover"
-                    />
+                    <div className="relative h-44 w-full overflow-hidden">
+                      <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
+                      <Image
+                        src={blogCoverUrl(post)}
+                        alt={post.title}
+                        fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        loading="lazy"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
                     <div className="p-6">
                       <div className="flex items-center gap-2 mb-3">
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colorClass}`}>
