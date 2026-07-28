@@ -137,7 +137,7 @@ function buildEmailHTML(stats, date, extras = {}) {
 <!-- Preheader: the inbox preview snippet shown next to the subject. Hidden in
      the body but prime open-rate real estate that was previously wasted. -->
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${PAPER};opacity:0;">
-  This week&rsquo;s top cash-flowing Mississauga deals, scored &mdash; plus live market stats inside.
+  ${extras.preheader ? esc(extras.preheader) : "This week’s top cash-flowing Mississauga deals, scored — plus live market stats inside."}
 </div>
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="${PAPER}" style="background:${PAPER};padding:32px 0;">
 <tr><td align="center">
@@ -573,6 +573,7 @@ async function sendToAllSubscribers(supabase, data) {
           dealsHtml: buildDealsHTML(deals, personalized),
           blogHtml,
           email,
+          preheader: buildPreheader(deals, personalized),
         });
         const subject = buildSubject(personalized, deals, dateLabel);
         return sendEmail(email, subject, html);
@@ -613,6 +614,41 @@ function buildSubject(personalized, deals, dateLabel) {
     return `${deals.length} new Mississauga investment ${deals.length === 1 ? 'deal' : 'deals'} — ${dateLabel}`;
   }
   return `Mississauga Market Weekly — ${dateLabel}`;
+}
+
+// Build the inbox preview text (shown next to the subject in Gmail / Outlook /
+// Apple Mail). The subject is already dynamic — this makes the preview slot
+// echo the same hook instead of repeating a static line. The two slots appear
+// together in the inbox thumbnail, so a cash-flow number in both reinforces
+// the signal rather than wasting one of them on boilerplate.
+//
+// Mirror the exact fallback logic from buildSubject so the two are always
+// consistent — both lead with cashFlow, then capRate, then a generic count.
+function buildPreheader(deals, personalized) {
+  const n = deals ? deals.length : 0;
+  const top = deals && deals[0];
+  if (!top || n === 0) {
+    return "This week's Mississauga market summary — live stats and investor analysis inside.";
+  }
+  const hood = (top.neighbourhood || top.city || '').toString().trim();
+  const where = hood ? ` in ${hood}` : '';
+  const more = n > 1 ? ` + ${n - 1} more inside` : '';
+  if (personalized) {
+    if (typeof top.cashFlow === 'number' && isFinite(top.cashFlow) && top.cashFlow > 0) {
+      return `Your top match: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow${where}${more}.`;
+    }
+    if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
+      return `Your top match: ${top.capRate.toFixed(1)}% cap rate${where}${more}.`;
+    }
+    return `${n} new investment ${n === 1 ? 'property' : 'properties'} matched to your search${more}.`;
+  }
+  if (typeof top.cashFlow === 'number' && isFinite(top.cashFlow) && top.cashFlow > 0) {
+    return `Top deal this week: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow${where}${more}.`;
+  }
+  if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
+    return `Top pick: ${top.capRate.toFixed(1)}% cap rate${where} — ${n} ${n === 1 ? 'property' : 'properties'} scored this week.`;
+  }
+  return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} scored this week — cash flow, cap rate and ROI on each.`;
 }
 
 function approvalBanner(wk, subscriberCount) {
@@ -664,6 +700,7 @@ export async function GET(request) {
           dealsHtml: buildDealsHTML(sampleDeals, true),
           blogHtml: buildBlogHTML({ title: 'Sample: Where Cash Flow Still Pencils in 2026', slug: 'sample-post', excerpt: 'A look at the neighbourhoods where the numbers still work.' }),
           email: 'preview@example.com',
+          preheader: buildPreheader(sampleDeals, true),
         }
       );
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
@@ -726,6 +763,7 @@ export async function GET(request) {
         dealsHtml: buildDealsHTML(deals, false),
         blogHtml: data.blogHtml,
         email: APPROVER,
+        preheader: buildPreheader(deals, false),
       });
 
     const ok = await sendEmail(
@@ -743,7 +781,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error('Newsletter error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Newsletter send failed — see server logs' }, { status: 500 });
   }
 }
 
@@ -796,6 +834,6 @@ export async function POST(request) {
     );
   } catch (err) {
     console.error('Approved send error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Newsletter send failed — see server logs' }, { status: 500 });
   }
 }

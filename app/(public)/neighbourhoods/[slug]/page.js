@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { HOOD_DATA, HOOD_RENTS, LRT_CORRIDOR_HOODS, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { calculateCashFlow, estimateRent } from '@/lib/cash-flow-engine';
 import { fmtK } from '@/lib/utils/format';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import InlineCTA from '@/components/ui/inline-cta';
 
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
@@ -209,9 +211,26 @@ export default async function NeighbourhoodGuidePage({ params }) {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY, inventory &amp; scores</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
-      {/* Hamza's take */}
+      {/* Hamza's take — headshot added to match the blog-post author-box
+          treatment (2026-07-28) for trust and attribution on each of the
+          24 neighbourhood guides. White/60 credential line is the same
+          opacity as the blog sidebar's "Licensed by RECO" line. */}
       <div className="bg-navy rounded-xl p-5 mb-8">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-accent mb-1.5">Hamza&apos;s Take</p>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="relative h-10 w-10 flex-shrink-0">
+            <Image
+              src="/images/hamza-headshot.jpg"
+              alt="Hamza Nouman"
+              fill
+              sizes="40px"
+              className="rounded-full object-cover object-top"
+            />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-accent leading-tight">Hamza&apos;s Take</p>
+            <p className="text-[10px] text-white/60 leading-tight mt-0.5">REALTOR® · Investment Specialist · Cityscape Real Estate</p>
+          </div>
+        </div>
         <p className="text-sm text-white/90 leading-relaxed italic">&ldquo;{d.note}&rdquo;</p>
       </div>
 
@@ -306,6 +325,12 @@ export default async function NeighbourhoodGuidePage({ params }) {
           </div>
         ))}
       </div>
+
+      {/* Inline email capture. Placed after the FAQ (not before — the CTA
+          row already serves ready-to-act visitors) to convert the more
+          deliberate reader who worked through data + FAQ but isn't yet
+          ready to browse or book. One component, all 24 hood guides. */}
+      <InlineCTA variant="newsletter" className="mb-10" />
 
       {/* Deep-dive reading — pillar posts covering this hood specifically,
           plus the ranking that puts it in context. Internal links from these
