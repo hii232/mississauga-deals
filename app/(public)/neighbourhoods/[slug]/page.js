@@ -6,6 +6,7 @@ import { calculateCashFlow, estimateRent } from '@/lib/cash-flow-engine';
 import { fmtK } from '@/lib/utils/format';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import InlineCTA from '@/components/ui/inline-cta';
+import { PageHero } from '@/components/layout/page-hero';
 
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
@@ -81,11 +82,6 @@ export async function generateMetadata({ params }) {
 }
 
 const TREND_LABEL = { hot: 'Hot Market', warm: 'Steady Market', cool: 'Buyer-Friendly' };
-const TREND_COLOR = {
-  hot: 'bg-red-50 text-red-600 border-red-100',
-  warm: 'bg-amber-50 text-amber-700 border-amber-100',
-  cool: 'bg-blue-50 text-blue-600 border-blue-100',
-};
 
 // Pillar posts that cover specific neighbourhoods in depth. Keys must match
 // HOOD_DATA names exactly. Every hood page also links the city-wide ranking.
@@ -154,7 +150,6 @@ export default async function NeighbourhoodGuidePage({ params }) {
 
   return (
     <>
-    <div className="max-w-3xl mx-auto px-4 pt-12 pb-28 lg:pb-12">
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -164,8 +159,17 @@ export default async function NeighbourhoodGuidePage({ params }) {
       />
       <FAQJsonLd items={faqs} />
 
+      <PageHero
+        compact
+        eyebrow={TREND_LABEL[d.trend]}
+        title={`${name} Investment Guide`}
+        subtitle={`Prices, rents, yield, and cash flow for real estate investors in ${name}, Mississauga.`}
+      />
+
+      <div className="max-w-3xl mx-auto px-4 pt-8 pb-28 lg:pb-12">
+
       {/* Breadcrumb */}
-      <nav className="text-xs text-muted mb-6">
+      <nav className="text-xs text-muted mb-4">
         <Link href="/" className="no-underline text-muted hover:text-navy">Home</Link>
         {' / '}
         <Link href="/neighbourhoods" className="no-underline text-muted hover:text-navy">Neighbourhoods</Link>
@@ -173,21 +177,12 @@ export default async function NeighbourhoodGuidePage({ params }) {
         <span className="text-navy font-medium">{name}</span>
       </nav>
 
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="font-heading font-bold text-3xl text-navy">{name} Investment Guide</h1>
-        <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${TREND_COLOR[d.trend]}`}>
-          {TREND_LABEL[d.trend]}
-        </span>
-      </div>
-      <p className="text-sm text-muted mb-8">
-        Prices, rents, yield, and cash flow for real estate investors in {name}, Mississauga.
-        {isLive && (
-          <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] font-medium text-emerald-600">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Price, DOM &amp; yield live from active listings
-          </span>
-        )}
-      </p>
+      {isLive && (
+        <p className="mb-6 flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+          Price, DOM &amp; yield live from active listings
+        </p>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
