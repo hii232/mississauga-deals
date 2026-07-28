@@ -206,6 +206,26 @@ input[type="range"].filter-slider::-moz-range-thumb {
   animation: slideUp 0.2s ease-out;
 }
 
+/* ── Print styles ──────────────────────────────────────────────────────────
+   When a visitor clicks "Print / Save as PDF" on a listing detail page,
+   the browser hides the site chrome and renders only the PrintCashFlowReport
+   component (which is hidden print:block on screen).
+   All listing-detail UI sections carry print:hidden; only the report shows. */
+@media print {
+  header,
+  footer {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  @page {
+    margin: 1.5cm;
+  }
+}
+
 /* Leaflet overrides for light theme */
 .leaflet-container {
   @apply rounded-xl;
