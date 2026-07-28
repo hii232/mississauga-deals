@@ -1,5 +1,6 @@
 import { PageHero } from '@/components/layout/page-hero';
 import { BookingCalendar } from '@/components/booking/booking-calendar';
+import { fetchGoogleRating } from '@/lib/google-rating';
 
 export const metadata = {
   title: { absolute: 'Book a Call — Free 30-Min Investor Consultation' },
@@ -17,13 +18,18 @@ export const metadata = {
   },
 };
 
-export default function BookCallPage({ searchParams }) {
+export default async function BookCallPage({ searchParams }) {
   // When the visitor clicks "Book a Viewing" on a property, the listing id +
   // address ride along in the URL so the booking notification tells Hamza
   // exactly which property they want to see.
   const listingId = typeof searchParams?.listing === 'string' ? searchParams.listing : '';
   const listingAddress = typeof searchParams?.addr === 'string' ? searchParams.addr : '';
   const listingPrice = typeof searchParams?.price === 'string' ? searchParams.price : '';
+
+  // Server-side — keeps the Places API key out of the browser. The rating
+  // block is conditionally rendered so a null response hides it cleanly rather
+  // than showing a broken or empty chip. Same pattern as /about.
+  const googleRating = await fetchGoogleRating();
 
   return (
     <>
@@ -46,7 +52,7 @@ export default function BookCallPage({ searchParams }) {
           site) reached the calendar never having seen it. Same copy as the
           homepage band, on-brand accent tint, above the calendar so it is read
           before the time-slot decision. */}
-      <div className="mb-6 rounded-xl border border-accent/20 bg-accent/5 p-4 sm:p-5">
+      <div className="mb-4 rounded-xl border border-accent/20 bg-accent/5 p-4 sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           {/* accent-dark on an accent tint, not success-green: #10B981 on a
               light band measures ~2.2:1 and fails AA (the same trap fixed on
@@ -61,6 +67,67 @@ export default function BookCallPage({ searchParams }) {
         </div>
       </div>
 
+      {/* Trust-signal strip — compact credential bar placed right before the
+          calendar so the visitor's last impression before choosing a time slot
+          is social proof + professional legitimacy.
+
+          Sourcing rules:
+          - Rating: server-side fetchGoogleRating() — null hides the chip.
+            Stars are decorative (aria-hidden); the number is the readable claim.
+          - RECO + brokerage: permanent factual credential, always shown.
+          - "Free · no pressure": echoes the page commitment at the decision point.
+
+          Contrast: gold stars are aria-hidden decorative; all readable text is
+          navy on cloud (#1B2A4A on #F8FAFC = 12.6:1, comfortably WCAG AAA). */}
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-xl border border-gray-100 bg-cloud px-5 py-4 text-center">
+
+        {googleRating && (
+          <>
+            <div className="flex items-center gap-1.5">
+              <span aria-hidden="true" className="text-gold leading-none tracking-tight">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+              <span className="text-sm font-bold text-navy">{googleRating.rating.toFixed(1)}</span>
+              <span className="text-xs text-muted">
+                on Google &middot; {googleRating.reviewCount} review{googleRating.reviewCount === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div aria-hidden="true" className="hidden h-4 w-px bg-gray-200 sm:block" />
+          </>
+        )}
+
+        <div className="flex items-center gap-1.5">
+          {/* Shield-check: licensed professional */}
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4 flex-shrink-0 text-accent"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <span className="text-xs font-medium text-navy">Licensed by RECO &middot; Cityscape Real Estate Ltd.</span>
+        </div>
+
+        <div aria-hidden="true" className="hidden h-4 w-px bg-gray-200 sm:block" />
+
+        <div className="flex items-center gap-1.5">
+          {/* Clock: time commitment is minimal */}
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4 flex-shrink-0 text-muted"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <span className="text-xs text-muted">Free &middot; 30 min &middot; No obligation</span>
+        </div>
+
+      </div>
+
       {/* Calendar */}
       <BookingCalendar
         listingId={listingId}
@@ -68,7 +135,8 @@ export default function BookCallPage({ searchParams }) {
         listingPrice={listingPrice}
       />
 
-      {/* Trust signals */}
+      {/* Disclosure footer — repeated credential note below the calendar for
+          anyone who scrolled past the strip. */}
       <div className="mt-12 text-center space-y-2">
         <p className="text-xs text-muted">
           Hamza Nouman, REALTOR® · Cityscape Real Estate Ltd., Brokerage · Licensed by RECO
