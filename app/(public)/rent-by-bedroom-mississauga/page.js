@@ -23,8 +23,14 @@ export const metadata = {
   openGraph: {
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Rent by Bedroom (${YEAR})` }],
     title: `Mississauga Rent by Bedroom (${YEAR})`,
-    description: 'Average, lowest and highest rent by bedroom count across Mississauga neighbourhoods, computed from the site’s own rent model.',
+    description: "Average, lowest and highest rent by bedroom count across Mississauga neighbourhoods, computed from the site’s own rent model.",
     url: 'https://www.mississaugainvestor.ca/rent-by-bedroom-mississauga',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Mississauga Rent by Bedroom (${YEAR})`,
+    description: "Average, lowest and highest rent by bedroom count across Mississauga neighbourhoods, computed from the site’s own rent model.",
+    images: ['/opengraph-image'],
   },
 };
 

@@ -27,6 +27,12 @@ export const metadata = {
     description: 'Property tax, land transfer tax and rental demand compared across three GTA cities — with live scored listings for each.',
     url: 'https://www.mississaugainvestor.ca/mississauga-vs-brampton-vs-hamilton',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mississauga vs Brampton vs Hamilton: Where to Invest?',
+    description: 'Property tax, land transfer tax and rental demand compared across three GTA cities — with live scored listings for each.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Property tax rates are the site's own researched 2025 TAX_RATES table (the
