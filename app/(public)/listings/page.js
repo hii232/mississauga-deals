@@ -203,6 +203,10 @@ export default async function ListingsPage() {
             <Link href="/rent-by-bedroom-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
               Rent by bedroom
             </Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/legal-second-unit-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
+              Legal second unit guide
+            </Link>
           </p>
           {/* Region switcher — Mississauga is the flagship default, but any GTA
               city is one tap away (routes to the /gta?city= pages). */}
