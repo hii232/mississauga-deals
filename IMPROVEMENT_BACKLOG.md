@@ -206,7 +206,7 @@ Ranked from the real export (52a407e3 …Performance…20260722.xlsx, 3-month, 3
 - [ ] Dedupe repeated fetch/format helpers across `app/api/*` into `lib/`
 - [ ] API routes: consistent error handling, no leaked stack traces, correct cache headers
 - [x] Verify auth actually protects every privileged route — DONE 2026-07-26. Audited all 39 API routes; the admin/* set was already fail-closed, but THREE cron endpoints authorised anyone when their secret was unset (see the Run Log). Guards now live in `lib/api-auth.js` and fail closed. Probed every privileged route in both configurations.
-- [ ] Migrate the remaining hand-rolled guard in `app/api/admin/newsletter-import` and `app/api/broadcast/announcement` to `lib/api-auth.js` — both are already fail-closed, so this is consistency, not a hole.
+- [x] Migrate the remaining hand-rolled guard in `app/api/admin/newsletter-import` and `app/api/broadcast/announcement` to `lib/api-auth.js` — DONE 2026-07-28 (improvement agent). Both broadcast routes and the newsletter-import route now use the centralized helpers. Added `isBroadcastAuthorized` + `requireBroadcast` to api-auth.js to preserve the `?key=` query-param auth path the broadcast routes expose for browser-triggered draft sends. All 3 local `isAuthorized` functions removed; 6 call sites updated. Build green.
 - [ ] Remove dead code/unused deps
 
 ## Needs Hamza
