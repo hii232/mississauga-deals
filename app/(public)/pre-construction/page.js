@@ -237,6 +237,7 @@ export default function PreConstructionPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Primary fields — always visible */}
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
                 Name <span className="text-red-600" aria-hidden="true">*</span>
@@ -249,6 +250,7 @@ export default function PreConstructionPage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Your full name"
+                autoComplete="name"
                 className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
@@ -265,81 +267,9 @@ export default function PreConstructionPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
+                autoComplete="email"
                 className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="mb-1 block text-sm font-medium text-navy">
-                Phone
-              </label>
-              <input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="647-XXX-XXXX"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="budget" className="mb-1 block text-sm font-medium text-navy">
-                Budget Range
-              </label>
-              <select
-                id="budget"
-                name="budget"
-                value={form.budget}
-                onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              >
-                {BUDGETS.map((b) => (
-                  <option key={b.value} value={b.value}>
-                    {b.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="area" className="mb-1 block text-sm font-medium text-navy">
-                Preferred Area
-              </label>
-              <select
-                id="area"
-                name="area"
-                value={form.area}
-                onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              >
-                <option value="">Any area</option>
-                {HOODS.map((h) => (
-                  <option key={h} value={h}>
-                    {h}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="timeline" className="mb-1 block text-sm font-medium text-navy">
-                Timeline
-              </label>
-              <select
-                id="timeline"
-                name="timeline"
-                value={form.timeline}
-                onChange={handleChange}
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              >
-                {TIMELINES.map((t) => (
-                  <option key={t.value} value={t.value}>
-                    {t.label}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <button
@@ -347,8 +277,100 @@ export default function PreConstructionPage() {
               disabled={loading}
               className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
             >
-              {loading ? 'Submitting...' : 'Get VIP Access'}
+              {loading ? 'Submitting…' : 'Get VIP Access'}
             </button>
+
+            {/* Optional qualifying fields — collapsed by default */}
+            <details className="group">
+              <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-dark [&::-webkit-details-marker]:hidden">
+                <svg
+                  aria-hidden="true"
+                  className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                Tell us more — helps us match the right projects (optional)
+              </summary>
+              <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+                <div>
+                  <label htmlFor="phone" className="mb-1 block text-sm font-medium text-navy">
+                    Phone
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={form.phone}
+                    onChange={handleChange}
+                    placeholder="647-XXX-XXXX"
+                    autoComplete="tel"
+                    className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="budget" className="mb-1 block text-sm font-medium text-navy">
+                    Budget Range
+                  </label>
+                  <select
+                    id="budget"
+                    name="budget"
+                    value={form.budget}
+                    onChange={handleChange}
+                    className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  >
+                    {BUDGETS.map((b) => (
+                      <option key={b.value} value={b.value}>
+                        {b.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="area" className="mb-1 block text-sm font-medium text-navy">
+                    Preferred Area
+                  </label>
+                  <select
+                    id="area"
+                    name="area"
+                    value={form.area}
+                    onChange={handleChange}
+                    className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  >
+                    <option value="">Any area</option>
+                    {HOODS.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="timeline" className="mb-1 block text-sm font-medium text-navy">
+                    Timeline
+                  </label>
+                  <select
+                    id="timeline"
+                    name="timeline"
+                    value={form.timeline}
+                    onChange={handleChange}
+                    className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                  >
+                    {TIMELINES.map((t) => (
+                      <option key={t.value} value={t.value}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </details>
 
             <p className="text-[11px] text-muted text-center">
               No obligation. We respect your privacy — unsubscribe anytime.
