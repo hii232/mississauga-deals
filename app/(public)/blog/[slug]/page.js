@@ -14,6 +14,45 @@ import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 
 export const revalidate = 60;
 
+// When a blog post covers the same topic as a dedicated investor-guide page,
+// point its canonical at the dedicated page so Google consolidates search
+// authority there rather than splitting it between the two URLs.
+// Measured problem (2026-07-26 GSC): the dedicated /rental-property-insurance-
+// mississauga page sat at position 55 while a blog post on the same topic held
+// position 12 — the purpose-built, conversion-optimised page was losing to the
+// site's own auto-generated post.
+// Keys are substrings that appear in the blog slug; values are the absolute
+// canonical URL of the dedicated page.
+const CANONICAL_OVERRIDES = [
+  {
+    slugContains: 'rental-property-insurance',
+    canonicalUrl: 'https://www.mississaugainvestor.ca/rental-property-insurance-mississauga',
+    path: '/rental-property-insurance-mississauga',
+    label: 'Rental Property Insurance in Mississauga',
+    note: 'Our dedicated guide covers building, liability, and loss-of-rent coverage — plus where to get a quote from an Ontario broker.',
+  },
+  {
+    slugContains: 'investment-property-mortgage',
+    canonicalUrl: 'https://www.mississaugainvestor.ca/mortgage-calculator',
+    path: '/mortgage-calculator',
+    label: 'Income Property Mortgage Calculator',
+    note: 'Run live payment, CMHC, and stress-test calculations with our interactive tool.',
+  },
+  {
+    slugContains: 'rent-vs-buy',
+    canonicalUrl: 'https://www.mississaugainvestor.ca/rent-vs-buy-mississauga',
+    path: '/rent-vs-buy-mississauga',
+    label: 'Rent vs Buy in Mississauga — Interactive Calculator',
+    note: 'Find your real break-even point with our calculator using Canadian semi-annual compounding and Ontario land-transfer tax.',
+  },
+];
+
+/** Returns the override object if this slug matches a known duplicate topic,
+ *  or null if the blog post is the sole coverage of its topic. */
+function getCanonicalOverride(slug) {
+  return CANONICAL_OVERRIDES.find(({ slugContains }) => slug.includes(slugContains)) ?? null;
+}
+
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -31,6 +70,13 @@ export async function generateMetadata({ params }) {
 
   if (!post) return { title: 'Post Not Found' };
   post = sanitizePost(post);
+
+  // If this post covers the same topic as a dedicated investor-guide page,
+  // point its canonical there so Google consolidates SEO authority on the
+  // purpose-built, conversion-optimised page instead of splitting it.
+  const override = getCanonicalOverride(post.slug);
+  const canonicalUrl = override?.canonicalUrl
+    ?? `https://www.mississaugainvestor.ca/blog/${post.slug}`;
 
   return {
     title: post.title,
@@ -66,7 +112,7 @@ export async function generateMetadata({ params }) {
       images: [blogCoverUrl(post, true)],
     },
     alternates: {
-      canonical: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
+      canonical: canonicalUrl,
     },
   };
 }
@@ -115,6 +161,10 @@ export default async function BlogPostPage({ params }) {
 
   const related = await fetchRelatedPosts(post.slug, post.category);
   const googleRating = await fetchGoogleRating();
+  // Detect if this post covers a topic that has a dedicated investor-guide page
+  // so we can render a "see the interactive version" notice and apply the
+  // canonical override in metadata.
+  const override = getCanonicalOverride(post.slug);
 
   return (
     <>
@@ -167,6 +217,37 @@ export default async function BlogPostPage({ params }) {
       <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
           <article>
+            {/* Dedicated-guide notice — shown only on blog posts that cover the
+                same topic as a purpose-built investor guide page. Points readers
+                to the interactive/conversion-optimised version and reinforces the
+                canonical signal we emit in <head>. Subtle: accent tint, not a
+                full-width banner, so it doesn't compete with the H1 or author
+                box. */}
+            {override && (
+              <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-accent/8 border border-accent/20">
+                <svg
+                  className="w-5 h-5 mt-0.5 flex-shrink-0 text-accent"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  {/* information-circle (Heroicons outline) */}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-[13px] font-semibold text-navy leading-snug">
+                    We also have a dedicated interactive guide:{' '}
+                    <Link href={override.path} className="underline text-accent hover:text-accent-dark">
+                      {override.label}
+                    </Link>
+                  </p>
+                  <p className="text-[12px] text-muted mt-0.5">{override.note}</p>
+                </div>
+              </div>
+            )}
+
             {/* Author Box — TOP of article */}
             <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
               <div className="relative w-14 h-14 flex-shrink-0">
