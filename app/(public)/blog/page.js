@@ -14,6 +14,20 @@ const supabase =
 // Revalidate every 60 seconds so new posts appear quickly
 export const revalidate = 60;
 
+const POSTS_PER_PAGE = 12;
+const BASE_URL = 'https://www.mississaugainvestor.ca';
+
+// Known categories — used for filter chips without an extra query.
+const CATEGORIES = [
+  'Neighbourhood Guide',
+  'Strategy',
+  'Guide',
+  'Market Analysis',
+  'Beginner Guide',
+  'Platform',
+  'General',
+];
+
 const categoryColorMap = {
   'Neighbourhood Guide': 'bg-accent/10 text-accent border-accent/20',
   'Strategy': 'bg-green-500/10 text-green-600 border-green-500/20',
@@ -24,45 +38,101 @@ const categoryColorMap = {
   'General': 'bg-gray-500/10 text-gray-600 border-gray-500/20',
 };
 
-export default async function BlogPage() {
+// Override the layout's static canonical and OG URL for deep pages so each
+// paginated URL is its own distinct indexable page — not a duplicate of page 1.
+export async function generateMetadata({ searchParams }) {
+  const page = Math.max(1, parseInt(searchParams?.page) || 1);
+  if (page <= 1) return {}; // layout's canonical /blog is correct for page 1
+  return {
+    alternates: { canonical: `/blog?page=${page}` },
+    openGraph: { url: `${BASE_URL}/blog?page=${page}` },
+  };
+}
+
+// Windowed page-number list: always include first and last page; show up to 2
+// neighbours of the current page; collapse gaps with an ellipsis marker.
+function buildPageNumbers(current, total) {
+  const nums = new Set([1, total]);
+  for (let i = Math.max(1, current - 1); i <= Math.min(total, current + 1); i++) nums.add(i);
+  const sorted = [...nums].sort((a, b) => a - b);
+  const result = [];
+  let prev = 0;
+  for (const n of sorted) {
+    if (n - prev > 1) result.push('…');
+    result.push(n);
+    prev = n;
+  }
+  return result;
+}
+
+export default async function BlogPage({ searchParams }) {
+  const currentPage = Math.max(1, parseInt(searchParams?.page) || 1);
+  const activeCategory = searchParams?.category || null;
+
   let posts = [];
+  let totalCount = 0;
+  let blogListSchema = null;
 
   if (supabase) {
-    const { data } = await supabase
+    // Lightweight query: slug + title only, for the ItemList schema and the
+    // total count. Previously `select('*')` fetched full post bodies (content,
+    // HTML, etc.) for every row just to compute read-times on the index page —
+    // the source of the 660KB+ page weight on a blog with 120+ posts.
+    let allQuery = supabase
       .from('blog_posts')
-      .select('*')
+      .select('slug, title', { count: 'exact' })
       .eq('published', true)
       .order('created_at', { ascending: false });
-    // Sanitize stored defects (old brokerage name, U+FFFD em-dashes) before
-    // titles/excerpts render or enter the ItemList schema.
+    if (activeCategory) allQuery = allQuery.eq('category', activeCategory);
+    const { data: allSlugs, count } = await allQuery;
+    totalCount = count || 0;
+
+    const listablePosts = (allSlugs || []).filter((p) => p.slug && p.title);
+    if (listablePosts.length > 0) {
+      blogListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'MississaugaInvestor.ca — Investment Insights',
+        itemListElement: listablePosts.map((p, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `${BASE_URL}/blog/${p.slug}`,
+          name: p.title,
+        })),
+      };
+    }
+
+    // Paginated display query — only the 6 fields each card actually needs.
+    const from = (currentPage - 1) * POSTS_PER_PAGE;
+    const to = from + POSTS_PER_PAGE - 1;
+    let pageQuery = supabase
+      .from('blog_posts')
+      .select('id, title, slug, category, excerpt, cover_image_url, created_at')
+      .eq('published', true)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    if (activeCategory) pageQuery = pageQuery.eq('category', activeCategory);
+    const { data } = await pageQuery;
+    // sanitizePost safely handles missing content (sanitizeBlogText is a no-op
+    // on non-strings), so the old-brokerage / U+FFFD fixes still apply.
     posts = (data || []).map(sanitizePost);
   }
 
-  // ItemList of published articles — helps search engines understand the blog
-  // index as a collection and discover/rank the individual posts. Built from the
-  // fetched posts; only emitted when there are valid entries.
-  const listablePosts = posts.filter((p) => p.slug && p.title);
-  const blogListSchema =
-    listablePosts.length > 0
-      ? {
-          '@context': 'https://schema.org',
-          '@type': 'ItemList',
-          name: 'MississaugaInvestor.ca — Investment Insights',
-          itemListElement: listablePosts.map((p, i) => ({
-            '@type': 'ListItem',
-            position: i + 1,
-            url: `https://www.mississaugainvestor.ca/blog/${p.slug}`,
-            name: p.title,
-          })),
-        }
-      : null;
+  const totalPages = Math.max(1, Math.ceil(totalCount / POSTS_PER_PAGE));
+
+  // Preserve the active category filter across pagination links.
+  const catParam = activeCategory ? `&category=${encodeURIComponent(activeCategory)}` : '';
+  const catHref = (cat) =>
+    cat && cat !== activeCategory
+      ? `/blog?category=${encodeURIComponent(cat)}`
+      : '/blog'; // "All" or deselecting the active category
 
   return (
     <>
       <BreadcrumbJsonLd
         items={[
-          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
-          { name: 'Blog', url: 'https://www.mississaugainvestor.ca/blog' },
+          { name: 'Home', url: `${BASE_URL}/` },
+          { name: 'Blog', url: `${BASE_URL}/blog` },
         ]}
       />
       {blogListSchema && (
@@ -71,6 +141,7 @@ export default async function BlogPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(blogListSchema) }}
         />
       )}
+
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63] pt-16 pb-28 md:pt-20 md:pb-36">
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
@@ -84,63 +155,142 @@ export default async function BlogPage() {
         <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-20 w-full opacity-90 md:h-28" />
       </section>
 
-      {/* Articles Grid */}
-      <section className="max-w-5xl mx-auto px-4 py-12 md:py-16">
+      {/* Articles */}
+      <section className="max-w-5xl mx-auto px-4 py-10 md:py-14">
+
+        {/* Category filter chips — only shown when there are posts to filter */}
+        {totalCount > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            <Link
+              href="/blog"
+              className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors no-underline ${
+                !activeCategory
+                  ? 'bg-navy text-white border-navy'
+                  : 'bg-white text-slate-500 border-gray-200 hover:border-navy/30 hover:text-navy'
+              }`}
+            >
+              All articles
+            </Link>
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat}
+                href={catHref(cat)}
+                className={`text-xs font-semibold px-3.5 py-1.5 rounded-full border transition-colors no-underline ${
+                  activeCategory === cat
+                    ? 'bg-navy text-white border-navy'
+                    : 'bg-white text-slate-500 border-gray-200 hover:border-navy/30 hover:text-navy'
+                }`}
+              >
+                {cat}
+              </Link>
+            ))}
+          </div>
+        )}
+
         {posts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted text-lg mb-2">Articles coming soon</p>
+            <p className="text-muted text-lg mb-2">
+              {activeCategory ? `No articles in "${activeCategory}" yet` : 'Articles coming soon'}
+            </p>
             <p className="text-sm text-muted/60">
               Expert Mississauga real estate investment guides, market analysis, and neighbourhood breakdowns.
             </p>
+            {activeCategory && (
+              <Link href="/blog" className="mt-4 inline-block text-sm text-accent font-semibold no-underline hover:underline">
+                ← View all articles
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {posts.map((post) => {
-              const readTime = Math.max(1, Math.ceil((post.content || '').split(/\s+/).length / 200));
-              const dateStr = new Date(post.created_at).toLocaleDateString('en-CA', {
-                year: 'numeric', month: 'long', day: 'numeric',
-              });
-              const colorClass = categoryColorMap[post.category] || categoryColorMap.General;
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {posts.map((post) => {
+                const dateStr = new Date(post.created_at).toLocaleDateString('en-CA', {
+                  year: 'numeric', month: 'long', day: 'numeric',
+                });
+                const colorClass = categoryColorMap[post.category] || categoryColorMap.General;
 
-              return (
-                <Link
-                  key={post.id}
-                  href={`/blog/${post.slug}`}
-                  className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-md transition-all duration-300 no-underline"
-                >
-                  <img
-                    src={blogCoverUrl(post)}
-                    alt={post.title}
-                    loading="lazy"
-                    className="w-full h-44 object-cover"
-                  />
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colorClass}`}>
-                        {post.category}
+                return (
+                  <Link
+                    key={post.id}
+                    href={`/blog/${post.slug}`}
+                    className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-md transition-all duration-300 no-underline"
+                  >
+                    <img
+                      src={blogCoverUrl(post)}
+                      alt={post.title}
+                      loading="lazy"
+                      className="w-full h-44 object-cover"
+                    />
+                    <div className="p-6">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${colorClass}`}>
+                          {post.category}
+                        </span>
+                        <span className="text-xs text-muted">{dateStr}</span>
+                      </div>
+                      <h2 className="font-heading text-lg font-bold text-navy mb-2 group-hover:text-accent transition-colors leading-snug">
+                        {post.title}
+                      </h2>
+                      {post.excerpt && (
+                        <p className="text-sm text-muted leading-relaxed mb-4 line-clamp-3">
+                          {post.excerpt}
+                        </p>
+                      )}
+                      <span className="text-xs font-semibold text-accent group-hover:underline">
+                        Read more →
                       </span>
-                      <span className="text-xs text-muted">{dateStr}</span>
-                      <span className="text-xs text-muted">{readTime} min</span>
                     </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-                    <h2 className="font-heading text-lg font-bold text-navy mb-2 group-hover:text-accent transition-colors leading-snug">
-                      {post.title}
-                    </h2>
+            {/* Pagination — only shown when there are multiple pages */}
+            {totalPages > 1 && (
+              <nav
+                aria-label="Blog pagination"
+                className="mt-10 flex items-center justify-center gap-1.5 flex-wrap"
+              >
+                {currentPage > 1 && (
+                  <Link
+                    href={`/blog?page=${currentPage - 1}${catParam}`}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-navy hover:border-accent/30 hover:text-accent transition-colors no-underline"
+                  >
+                    ← Newer
+                  </Link>
+                )}
 
-                    {post.excerpt && (
-                      <p className="text-sm text-muted leading-relaxed mb-4 line-clamp-3">
-                        {post.excerpt}
-                      </p>
-                    )}
+                {buildPageNumbers(currentPage, totalPages).map((item, i) =>
+                  item === '…' ? (
+                    <span key={`e${i}`} className="px-2 text-muted select-none" aria-hidden>…</span>
+                  ) : (
+                    <Link
+                      key={item}
+                      href={`/blog?page=${item}${catParam}`}
+                      aria-current={item === currentPage ? 'page' : undefined}
+                      className={`min-w-[36px] px-3 py-2 rounded-lg border text-sm font-semibold text-center transition-colors no-underline ${
+                        item === currentPage
+                          ? 'bg-navy text-white border-navy'
+                          : 'bg-white text-slate-500 border-gray-200 hover:border-accent/30 hover:text-navy'
+                      }`}
+                    >
+                      {item}
+                    </Link>
+                  )
+                )}
 
-                    <span className="text-xs font-semibold text-accent group-hover:underline">
-                      Read more →
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+                {currentPage < totalPages && (
+                  <Link
+                    href={`/blog?page=${currentPage + 1}${catParam}`}
+                    className="flex items-center gap-1 px-3.5 py-2 rounded-lg border border-gray-200 bg-white text-sm font-semibold text-navy hover:border-accent/30 hover:text-accent transition-colors no-underline"
+                  >
+                    Older →
+                  </Link>
+                )}
+              </nav>
+            )}
+          </>
         )}
 
         <InlineCTA variant="quiz" className="mt-16" />
