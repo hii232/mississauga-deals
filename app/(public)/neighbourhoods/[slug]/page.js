@@ -78,6 +78,17 @@ export async function generateMetadata({ params }) {
       description,
       url: `https://www.mississaugainvestor.ca/neighbourhoods/${params.slug}`,
     },
+    // Next.js REPLACES (not merges) the root layout twitter object when a page
+    // defines its own openGraph, so every neighbourhood guide without an
+    // explicit twitter block loses the root card and shares text-only on
+    // X/Twitter/Slack/iMessage. Per-page title and description ensure each of
+    // the 24 guides shows a relevant card preview rather than the generic root.
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/opengraph-image'],
+    },
   };
 }
 

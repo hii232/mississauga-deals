@@ -13,6 +13,16 @@ export const metadata = {
       'Browse the latest pre-construction projects across the Greater Toronto Area. VIP pricing and first access available.',
     url: 'https://www.mississaugainvestor.ca/pre-construction/projects',
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a
+  // layout segment defines its own openGraph — without this the projects
+  // page shares text-only on X/Twitter/Slack/iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GTA Pre-Construction Projects — Condos & Townhomes',
+    description:
+      'Browse the latest pre-construction projects across the Greater Toronto Area. VIP pricing and first access available.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function Layout({ children }) {

@@ -187,6 +187,15 @@ export function generateMetadata() {
       // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
       images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More' }],
     },
+    // Next.js REPLACES (not merges) the root layout twitter object when a page
+    // defines its own openGraph — without an explicit twitter block the /gta hub
+    // shares text-only on X/Twitter/Slack/iMessage.
+    twitter: {
+      card: 'summary_large_image',
+      title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
+      description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
+      images: ['/opengraph-image'],
+    },
   };
 }
 

@@ -44,9 +44,18 @@ const categoryColorMap = {
 export async function generateMetadata({ searchParams }) {
   const page = Math.max(1, parseInt(searchParams?.page) || 1);
   if (page <= 1) return {}; // layout's canonical /blog is correct for page 1
+  // Next.js REPLACES (not merges) the root twitter object when a page defines
+  // its own openGraph, so deep paginated pages would lose the layout's
+  // summary_large_image card without this explicit twitter block.
   return {
     alternates: { canonical: `/blog?page=${page}` },
     openGraph: { url: `${BASE_URL}/blog?page=${page}` },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
+      description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
+      images: ['/opengraph-image'],
+    },
   };
 }
 
