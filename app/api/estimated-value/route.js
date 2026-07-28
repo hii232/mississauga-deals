@@ -218,6 +218,7 @@ export async function GET(request) {
       headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
     });
   } catch (err) {
-    return NextResponse.json({ error: 'Server error', detail: err.message }, { status: 500 });
+    console.error('estimated-value error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

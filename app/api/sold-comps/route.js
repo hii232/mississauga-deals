@@ -237,7 +237,7 @@ export async function GET(request) {
       headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
     });
   } catch (err) {
-    console.error('sold-comps error:', err.message);
-    return NextResponse.json({ error: 'Server error', detail: err.message, comps: [], stats: {} }, { status: 500 });
+    console.error('sold-comps error:', err);
+    return NextResponse.json({ error: 'Server error', comps: [], stats: {} }, { status: 500 });
   }
 }

@@ -203,7 +203,7 @@ export async function GET(request) {
       }
     );
   } catch (err) {
-    console.error('listing-single err:', err.message);
-    return NextResponse.json({ error: 'Server error', detail: err.message }, { status: 500 });
+    console.error('listing-single err:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

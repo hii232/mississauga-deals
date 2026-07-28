@@ -74,8 +74,9 @@ export async function GET(request) {
 
     if (!resp.ok) {
       const errText = await resp.text().catch(() => '');
+      console.error('price-history AMPRE error', resp.status, errText.substring(0, 400));
       return NextResponse.json(
-        { error: 'AMPRE ' + resp.status, detail: errText.substring(0, 400), history: [] },
+        { error: 'AMPRE feed unavailable', history: [] },
         { status: resp.status }
       );
     }
@@ -148,7 +149,7 @@ export async function GET(request) {
       { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } }
     );
   } catch (err) {
-    console.error('price-history error:', err.message);
-    return NextResponse.json({ error: 'Server error', detail: err.message, history: [] }, { status: 500 });
+    console.error('price-history error:', err);
+    return NextResponse.json({ error: 'Server error', history: [] }, { status: 500 });
   }
 }
