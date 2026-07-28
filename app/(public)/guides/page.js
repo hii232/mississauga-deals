@@ -3,6 +3,7 @@ import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import { GUIDES } from '@/components/ui/related-guides';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 const YEAR = new Date().getFullYear();
 const BASE = 'https://www.mississaugainvestor.ca';
@@ -95,6 +96,7 @@ export default function GuidesIndexPage() {
           </div>
         </div>
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }

@@ -7,6 +7,7 @@ import { fmtK, fmtNum, fmtCurrency, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 const HERO = {
   eyebrow: 'Side-by-side analysis',
@@ -342,6 +343,7 @@ export default function ComparePage() {
           page had no capture path. */}
       <InlineCTA variant="alerts" className="mt-12" />
       </div>
+      <StickyMobileCTA href="/listings" label="Browse More Listings" />
     </>
   );
 }

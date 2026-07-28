@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import { RecentSalesClient } from './recent-sales-client';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { fmtK } from '@/lib/utils/format';
 
 const YEAR = new Date().getFullYear();
@@ -189,6 +190,7 @@ export default async function RecentSalesPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-10">
         <InlineCTA variant="newsletter" />
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }

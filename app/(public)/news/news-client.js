@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { PageHero } from '@/components/layout/page-hero';
 
 /* ── helpers ─────────────────────────────────────────────── */
@@ -400,6 +401,7 @@ export function NewsClient({ articles, sources, topics }) {
           </p>
         )}
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </div>
   );
 }
