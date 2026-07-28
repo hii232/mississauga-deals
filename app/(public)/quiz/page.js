@@ -116,7 +116,7 @@ export default function QuizPage() {
       {/* Progress bar */}
       {step <= totalSteps && (
         <div className="mb-8">
-          <div className="flex justify-between text-xs text-muted mb-2">
+          <div className="flex justify-between text-xs text-slate-500 mb-2">
             <span>Question {Math.min(step + 1, totalSteps)} of {totalSteps}</span>
             <span>{Math.round((Math.min(step, totalSteps) / totalSteps) * 100)}% complete</span>
           </div>
@@ -129,9 +129,10 @@ export default function QuizPage() {
         </div>
       )}
 
-      {/* Question Steps */}
+      {/* Question Steps — key={step} re-mounts the card on each advance,
+          triggering the animate-fadeUp entrance for a polished step transition. */}
       {step < totalSteps && (
-        <div className="card p-8">
+        <div key={step} className="card p-8 animate-fadeUp">
           <h2 className="font-heading font-semibold text-xl text-navy mb-6 text-center">
             {QUIZ[step].q}
           </h2>
@@ -140,67 +141,63 @@ export default function QuizPage() {
               <button
                 key={opt.label}
                 onClick={() => handleAnswer(opt.label)}
-                className="w-full text-left rounded-xl border border-slate-200 bg-white px-5 py-4 transition-all hover:border-accent hover:bg-accent/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/20"
+                className="group w-full text-left rounded-xl border border-slate-200 bg-white px-5 py-4 transition-all hover:border-accent hover:bg-accent/5 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/20 flex items-center justify-between gap-3"
               >
-                <span className="text-sm font-medium text-navy">{opt.label}</span>
-                {opt.sub && (
-                  <span className="block text-xs text-muted mt-0.5">{opt.sub}</span>
-                )}
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-navy">{opt.label}</span>
+                  {opt.sub && (
+                    <span className="block text-xs text-slate-500 mt-0.5">{opt.sub}</span>
+                  )}
+                </span>
+                {/* Chevron communicates "tap to advance" — makes the single-click
+                    interaction pattern obvious without any instructional copy. */}
+                <svg
+                  className="h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-accent"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {/* Email Gate */}
+      {/* Email Gate — email is collected FIRST so a partial abandonment
+          still yields the most critical lead field. Name and phone, while
+          genuinely useful, are optional and labelled clearly as such. */}
       {step === totalSteps && (
-        <div className="card p-8">
+        <div className="card p-8 animate-fadeUp">
           <div className="text-center mb-6">
-            <div className="text-4xl mb-3">🎯</div>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-3">
+              <svg className="h-6 w-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div>
             <h2 className="font-heading font-semibold text-xl text-navy mb-2">
               Your investment profile is ready
             </h2>
-            <p className="text-sm text-muted">
-              Enter your details below and we&apos;ll send you a curated list of properties tailored to your goals within 24 hours.
+            <p className="text-sm text-slate-500">
+              Enter your email to unlock your results — Hamza will follow up with matching listings tailored to your answers.
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">
+            <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger" role="alert">
               {error}
             </div>
           )}
 
           <form onSubmit={handleEmailSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="quiz-name" className="mb-1 block text-sm font-medium text-navy">
-                Name
-              </label>
-              <input
-                id="quiz-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-            <div>
-              <label htmlFor="quiz-phone" className="mb-1 block text-sm font-medium text-navy">
-                Phone
-              </label>
-              <input
-                id="quiz-phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="(647) 000-0000"
-                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
+            {/* Email first — the minimum viable capture even if the visitor
+                abandons before completing name and phone. */}
             <div>
               <label htmlFor="quiz-email" className="mb-1 block text-sm font-medium text-navy">
-                Email <span className="text-red-400">*</span>
+                Email <span className="text-red-600" aria-hidden="true">*</span>
               </label>
               <input
                 id="quiz-email"
@@ -212,16 +209,44 @@ export default function QuizPage() {
                 className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
             </div>
+            <div>
+              <label htmlFor="quiz-name" className="mb-1 flex items-center gap-1.5 text-sm font-medium text-navy">
+                Name
+                <span className="text-xs font-normal text-slate-400">optional</span>
+              </label>
+              <input
+                id="quiz-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+            <div>
+              <label htmlFor="quiz-phone" className="mb-1 flex items-center gap-1.5 text-sm font-medium text-navy">
+                Phone
+                <span className="text-xs font-normal text-slate-400">optional</span>
+              </label>
+              <input
+                id="quiz-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(647) 361-1234"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
             >
-              {loading ? 'Submitting...' : 'Get My Curated Deals'}
+              {loading ? 'Submitting...' : 'Unlock My Investment Profile'}
             </button>
           </form>
 
-          <p className="text-[11px] text-muted text-center mt-4">
+          <p className="text-[11px] text-slate-500 text-center mt-4">
             We respect your privacy. No spam, unsubscribe anytime.
           </p>
         </div>
@@ -229,37 +254,38 @@ export default function QuizPage() {
 
       {/* Result */}
       {step > totalSteps && result && (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fadeUp">
           <div className="card p-8 text-center">
             <div className="text-5xl mb-4">{result.emoji}</div>
             <h2 className="font-heading font-bold text-2xl text-navy mb-3">
               {result.title}
             </h2>
-            <p className="text-sm text-muted leading-relaxed max-w-md mx-auto mb-6">
+            <p className="text-sm text-slate-500 leading-relaxed max-w-md mx-auto mb-6">
               {result.desc}
             </p>
 
-            {/* Answer summary */}
+            {/* Answer summary — labels raised to 11px (legibility floor is 10px;
+                these carry real meaning so they warrant the extra point). */}
             <div className="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto mb-8">
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted">Budget</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Budget</p>
                 <p className="text-sm font-semibold text-navy">{answers[1]}</p>
               </div>
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted">Property</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Property</p>
                 <p className="text-sm font-semibold text-navy">{answers[2]}</p>
               </div>
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted">Timeline</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Timeline</p>
                 <p className="text-sm font-semibold text-navy">{answers[3]}</p>
               </div>
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                <p className="text-[10px] uppercase tracking-wide text-muted">Priority</p>
+                <p className="text-[11px] uppercase tracking-wide text-slate-500">Priority</p>
                 <p className="text-sm font-semibold text-navy">{answers[4]}</p>
               </div>
             </div>
 
-            <p className="text-sm text-muted mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               Let&apos;s find the right deals for you. Reach out and I&apos;ll send you personalized listings that match your criteria.
             </p>
 
@@ -286,7 +312,7 @@ export default function QuizPage() {
                 href="tel:6476091289"
                 className="btn-primary !px-8 !py-3 no-underline inline-flex items-center justify-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
                 Call 647-609-1289
@@ -295,7 +321,7 @@ export default function QuizPage() {
                 href="mailto:hamza@nouman.ca?subject=Investment%20Inquiry%20-%20Quiz%20Result&body=Hi%20Hamza%2C%0A%0AI%20just%20took%20the%20investment%20quiz%20on%20MississaugaInvestor.ca.%0A%0AMy%20strategy%3A%20${encodeURIComponent(result.title)}%0ABudget%3A%20${encodeURIComponent(answers[1])}%0AProperty%3A%20${encodeURIComponent(answers[2])}%0ATimeline%3A%20${encodeURIComponent(answers[3])}%0APriority%3A%20${encodeURIComponent(answers[4])}%0A%0AI%27d%20love%20to%20see%20matching%20deals.%20Thanks!"
                 className="rounded-lg border-2 border-accent bg-white px-8 py-3 text-sm font-semibold text-accent transition hover:bg-accent/5 no-underline inline-flex items-center justify-center gap-2"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Email Hamza
@@ -304,7 +330,7 @@ export default function QuizPage() {
 
             <button
               onClick={handleRestart}
-              className="mt-6 text-xs text-muted hover:text-accent transition-colors"
+              className="mt-6 text-xs text-slate-500 hover:text-accent transition-colors"
             >
               Retake Quiz
             </button>
