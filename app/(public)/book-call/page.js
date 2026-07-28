@@ -1,6 +1,7 @@
 import { PageHero } from '@/components/layout/page-hero';
 import { BookingCalendar } from '@/components/booking/booking-calendar';
 import { fetchGoogleRating } from '@/lib/google-rating';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
   title: { absolute: 'Book a Call — Free 30-Min Investor Consultation' },
@@ -31,8 +32,45 @@ export default async function BookCallPage({ searchParams }) {
   // than showing a broken or empty chip. Same pattern as /about.
   const googleRating = await fetchGoogleRating();
 
+  // FAQ items back the visible content on this page (free call, 30 min, RECO
+  // licensed, no-pressure offer). Must stay in sync with any copy changes.
+  const faqItems = [
+    {
+      question: 'Is the consultation really free?',
+      answer:
+        'Yes. The 30-minute call with Hamza Nouman is completely free and carries no obligation. You\'ll get honest, data-driven advice on Mississauga investment properties with no pressure to buy or sell.',
+    },
+    {
+      question: 'What can I discuss during the call?',
+      answer:
+        'You can ask about any aspect of Mississauga real estate investing: cash flow analysis, cap rates, pre-construction condos, the Ontario HST new-housing rebate, BRRR strategy, neighbourhood comparisons, or a specific property you have in mind.',
+    },
+    {
+      question: 'How long is the call?',
+      answer:
+        'Each consultation is 30 minutes. If you have a specific listing in mind, include the address when you book and Hamza will come prepared with the numbers.',
+    },
+    {
+      question: 'Can I book a property viewing through this page?',
+      answer:
+        'Yes. If you found a property on MississaugaInvestor.ca, click "Book a Viewing" on that listing and the address and details carry forward automatically. Hamza will confirm the showing time after you submit.',
+    },
+    {
+      question: 'Do I need to be ready to buy?',
+      answer:
+        'Not at all. Many investors use the call to think through their first investment or to stress-test a strategy before committing. Early-stage questions are always welcome.',
+    },
+  ];
+
   return (
     <>
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
+          { name: 'Book a Call', url: 'https://www.mississaugainvestor.ca/book-call' },
+        ]}
+      />
+      <FAQJsonLd items={faqItems} />
       <PageHero
         eyebrow={listingAddress ? 'Book a viewing' : 'Free 30-min call'}
         title={listingAddress ? 'Book a Viewing' : 'Book a Free Consultation'}
