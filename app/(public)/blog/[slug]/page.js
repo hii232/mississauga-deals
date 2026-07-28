@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
@@ -168,8 +169,14 @@ export default async function BlogPostPage({ params }) {
           <article>
             {/* Author Box — TOP of article */}
             <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
-              <div className="w-14 h-14 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                HN
+              <div className="relative w-14 h-14 flex-shrink-0">
+                <Image
+                  src="/images/hamza-headshot.jpg"
+                  alt="Hamza Nouman, Investment Property Specialist"
+                  fill
+                  sizes="56px"
+                  className="rounded-full object-cover object-top"
+                />
               </div>
               <div>
                 <p className="font-heading font-bold text-navy text-sm">Hamza Nouman</p>
@@ -207,8 +214,19 @@ export default async function BlogPostPage({ params }) {
 
             {/* End-of-post booking CTA */}
             <div className="mt-12 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 border-2 border-white/20">
-                HN
+              {/* Exclusive offer note — gold chip, sufficient contrast on navy */}
+              <div className="inline-flex items-center gap-1.5 mb-5">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-gold">Exclusive:</span>
+                <span className="text-[10px] text-white/75">First month&apos;s mortgage on us when you close</span>
+              </div>
+              <div className="relative w-16 h-16 mx-auto mb-4">
+                <Image
+                  src="/images/hamza-headshot.jpg"
+                  alt="Hamza Nouman, Investment Specialist"
+                  fill
+                  sizes="64px"
+                  className="rounded-full object-cover object-top border-2 border-white/20"
+                />
               </div>
               <h3 className="font-heading text-xl font-bold text-white mb-2">
                 Need help with this topic?
@@ -219,15 +237,21 @@ export default async function BlogPostPage({ params }) {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href="/book-call"
-                  className="btn-primary !px-6 no-underline text-center"
+                  className="btn-primary !px-6 no-underline text-center inline-flex items-center gap-2"
                 >
-                  📅 Book Free Call
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Free Call
                 </Link>
                 <a
                   href="tel:+16476091289"
-                  className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center"
+                  className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center inline-flex items-center gap-2"
                 >
-                  📞 647-609-1289
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  647-609-1289
                 </a>
               </div>
               {googleRating && (
@@ -284,20 +308,28 @@ export default async function BlogPostPage({ params }) {
               <div className="rounded-xl border border-gray-200 p-5 bg-white">
                 <p className="font-heading font-bold text-navy text-sm mb-3">Talk to Hamza</p>
                 <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
-                  📞 647-609-1289
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  647-609-1289
                 </a>
                 {/* bg-emerald-500 measured 2.54:1 for white text — the same
                     AA failure fixed on the homepage badges this morning,
                     recurring here on a real conversion CTA on the site's
                     top-traffic page type. emerald-700 = 5.48:1. */}
                 <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-800 transition">
-                  📅 Book Free Call
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Free Call
                 </Link>
               </div>
 
               {/* First Month Offer */}
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
-                <span className="text-[10px] font-bold text-emerald-600">EXCLUSIVE OFFER</span>
+                {/* text-emerald-600 on bg-accent/5 measured ~2.2:1 — fails AA.
+                    accent-dark (#1D4ED8) on white/near-white = 7.1:1, passes. */}
+                <span className="text-[10px] font-bold text-accent-dark">EXCLUSIVE OFFER</span>
                 <p className="text-sm font-semibold text-navy mt-1 leading-snug">
                   Close with Hamza — First Month&apos;s Mortgage On Us
                 </p>

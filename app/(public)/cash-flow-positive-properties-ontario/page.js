@@ -25,6 +25,12 @@ export const metadata = {
     description: 'What makes a rental cash-flow positive at today\'s rates, and how to filter Mississauga/GTA listings already scored for positive cash flow.',
     url: 'https://www.mississaugainvestor.ca/cash-flow-positive-properties-ontario',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Cash Flow Positive Properties in Ontario (${YEAR})`,
+    description: "What makes a rental cash-flow positive at today's rates, and how to filter Mississauga/GTA listings already scored for positive cash flow.",
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest content: cash-flow-positive single units are genuinely hard at current

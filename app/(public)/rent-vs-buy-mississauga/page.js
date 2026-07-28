@@ -25,6 +25,12 @@ export const metadata = {
     description: 'How rates, prices, closing costs, and time horizon decide rent vs buy in Mississauga — plus a free break-even calculator.',
     url: 'https://www.mississaugainvestor.ca/rent-vs-buy-mississauga',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Rent vs Buy in Mississauga (${YEAR})`,
+    description: 'How rates, prices, closing costs, and time horizon decide rent vs buy in Mississauga — plus a free break-even calculator.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest, general guidance — no fabricated break-even figures. The interactive

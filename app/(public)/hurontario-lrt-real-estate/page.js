@@ -25,6 +25,12 @@ export const metadata = {
     description: 'What the Hurontario LRT (Hazel McCallion Line) means for Mississauga investors along the Port Credit → City Centre → Cooksville corridor.',
     url: 'https://www.mississaugainvestor.ca/hurontario-lrt-real-estate',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Hurontario LRT Real Estate Impact (${YEAR})`,
+    description: 'What the Hurontario LRT (Hazel McCallion Line) means for Mississauga investors along the Port Credit → City Centre → Cooksville corridor.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest, general guidance. Transit's effect on values/rents is described as a
