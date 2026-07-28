@@ -83,6 +83,12 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works — Methodology & Sources' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How the Deal Score Works — Methodology & Sources',
+    description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function ScoreMethodologyPage() {

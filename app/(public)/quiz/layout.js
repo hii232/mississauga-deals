@@ -11,6 +11,12 @@ export const metadata = {
     description: 'Discover your ideal Mississauga investment strategy in 60 seconds.',
   },
   alternates: { canonical: '/quiz' },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Find Your Investment Strategy — 60-Second Deal Quiz',
+    description: 'Discover your ideal Mississauga investment strategy in 60 seconds.',
+    images: ['/opengraph-image'],
+  },
 };
 export default function Layout({ children }) {
   return (

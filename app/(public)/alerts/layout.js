@@ -12,6 +12,12 @@ export const metadata = {
     description: 'Get notified when new Mississauga investment deals match your criteria.',
     url: 'https://www.mississaugainvestor.ca/alerts',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Deal Alerts — MississaugaInvestor.ca',
+    description: 'Get notified when new Mississauga investment deals match your criteria.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function AlertsLayout({ children }) {

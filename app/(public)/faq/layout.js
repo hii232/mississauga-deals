@@ -23,6 +23,12 @@ export const metadata = {
     description: 'Common questions about Mississauga real estate investing answered by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/faq',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FAQ — Mississauga Real Estate Investment Questions | Hamza Nouman',
+    description: 'Common questions about Mississauga real estate investing answered by Hamza Nouman.',
+    images: ['/opengraph-image'],
+  },
 };
 export default function Layout({ children }) {
   return (

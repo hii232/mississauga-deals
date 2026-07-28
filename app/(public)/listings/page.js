@@ -72,6 +72,12 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Properties for Sale in Mississauga' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Investment Properties for Sale in Mississauga',
+    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Loads instantly with skeletons, then fetches client-side progressively.

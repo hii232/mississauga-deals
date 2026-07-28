@@ -9,5 +9,11 @@ export const metadata = {
     description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/blog',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
+    description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
+    images: ['/opengraph-image'],
+  },
 };
 export default function Layout({ children }) { return children; }

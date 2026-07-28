@@ -9,6 +9,12 @@ export const metadata = {
     description: 'VIP access to pre-construction projects in Mississauga. Save up to $130,000 with the Ontario HST rebate on new homes.',
     url: 'https://www.mississaugainvestor.ca/pre-construction',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pre-Construction Condos Mississauga — VIP Access + Save $130K HST',
+    description: 'VIP access to pre-construction projects in Mississauga. Save up to $130,000 with the Ontario HST rebate on new homes.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function Layout({ children }) { return children; }

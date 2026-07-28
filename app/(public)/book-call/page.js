@@ -17,6 +17,12 @@ export const metadata = {
     description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
     url: 'https://www.mississaugainvestor.ca/book-call',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Book a Call — Free 30-Min Consultation with Hamza Nouman',
+    description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default async function BookCallPage({ searchParams }) {

@@ -25,6 +25,12 @@ export const metadata = {
     description: 'Free, honest guides for Mississauga real estate investors — cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
     url: `${BASE}/guides`,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Mississauga Real Estate Investor Guides (${YEAR})`,
+    description: 'Free, honest guides for Mississauga real estate investors — cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // ItemList structured data so search engines understand /guides as the
