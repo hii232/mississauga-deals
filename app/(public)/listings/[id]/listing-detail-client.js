@@ -1687,6 +1687,67 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 )}
               </div>
 
+              {/* Investor signal badges — mirrors the listing-card photo overlay
+                  row so investors get the same at-a-glance read when they land
+                  directly on the detail page (the most common path from SEO and
+                  shared links). Uses opaque colours instead of /90 translucent:
+                  these render on white, not over a photo, so the lighter tints
+                  would fail WCAG AA — emerald-700 5.5:1, amber-700 5.0:1,
+                  accent 5.2:1 all pass on white with white text.
+                  cashFlow is from processListings (default assumptions), matching
+                  the card's signal — the gated tab shows the slider-adjusted
+                  value, which is always revealed on signup. */}
+              {(() => {
+                const isNew = listing.dom >= 1 && listing.dom <= 7;
+                const isMotivated = listing.dom >= 45;
+                const hasDrop = listing.priceDrop > 0;
+                const cashFlows = listing.cashFlow > 0;
+                const hasLegal = listing.basementTier === 'legal';
+                const hasSuite = listing.basementTier === 'potential';
+                const hasLrt = listing.lrtAccess;
+                if (!isNew && !isMotivated && !hasDrop && !cashFlows && !hasLegal && !hasSuite && !hasLrt) return null;
+                return (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {isNew && (
+                      <span className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/80" aria-hidden="true" />
+                        New Listing
+                      </span>
+                    )}
+                    {isMotivated && (
+                      <span className="rounded-full bg-amber-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Motivated Seller
+                      </span>
+                    )}
+                    {hasDrop && (
+                      <span className="rounded-full bg-amber-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Price Drop -{Math.round(listing.priceDrop)}%
+                      </span>
+                    )}
+                    {cashFlows && (
+                      <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Cash Flowing
+                      </span>
+                    )}
+                    {hasLegal && (
+                      <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Legal Suite
+                      </span>
+                    )}
+                    {hasSuite && (
+                      <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Suite Potential
+                      </span>
+                    )}
+                    {hasLrt && (
+                      <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        LRT Corridor
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Key Metrics */}
               {!isGated ? (
                 <>
