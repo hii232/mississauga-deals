@@ -8,6 +8,7 @@ import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { requireCronOrAdmin } from '@/lib/api-auth';
+import { esc, fmtPrice } from '@/lib/emails/email-utils';
 
 const plural = (n, singular, pluralForm = `${singular}s`) => `${n} ${n === 1 ? singular : pluralForm}`;
 
@@ -411,21 +412,6 @@ function alertSubject(listings) {
     }
   }
   return `${n} New Investment ${n === 1 ? 'Deal' : 'Deals'} in Mississauga`;
-}
-
-// Escape user/MLS-supplied strings interpolated into email HTML
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-  ));
-}
-
-// Price for the email row: $1M+ as "$X.XXM" (was "$1050K"), and empty when the
-// price is missing (was "$0K" because price is guarded to 0 upstream).
-function fmtPrice(p) {
-  if (!Number.isFinite(p) || p <= 0) return '';
-  if (p >= 1000000) return '$' + (p / 1000000).toFixed(2).replace(/\.?0+$/, '') + 'M';
-  return '$' + Math.round(p / 1000) + 'K';
 }
 
 const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';

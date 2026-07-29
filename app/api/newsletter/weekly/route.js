@@ -8,6 +8,7 @@ import { tagRecipient } from '@/lib/emails/recipient-token';
 import { sanitizePost } from '@/lib/blog/sanitize-content';
 import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
+import { esc, fmtPrice } from '@/lib/emails/email-utils';
 
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
@@ -41,15 +42,6 @@ async function fetchMarketStats() {
   } catch {
     return null;
   }
-}
-
-// ── Format price ──
-function fmtPrice(p) {
-  // NEVER return the literal "N/A" — callers must guard on falsy value and omit
-  // the row/tile entirely. Empty string is the safety net, never a visible N/A.
-  if (!p || p <= 0) return '';
-  if (p >= 1000000) return '$' + (p / 1000000).toFixed(2) + 'M';
-  return '$' + Math.round(p / 1000) + 'K';
 }
 
 // ── Format percentage change with arrow ──
@@ -258,11 +250,6 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
 </table>
 </body>
 </html>`;
-}
-
-// ── Escape user/listing text for safe HTML embedding ──
-function esc(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 // ── Get subscriber profiles: email → name + saved-search filters ──
