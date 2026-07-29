@@ -99,7 +99,7 @@ function ContextStat({ label, value, format, icon, delay }) {
       className="flex items-center gap-2.5 rounded-md bg-slate-50/80 px-3 py-2 transition-colors duration-150 hover:bg-slate-100/80 opacity-0 animate-fadeUp"
       style={{ animationDelay: `${delay}ms`, animationFillMode: 'forwards' }}
     >
-      <span className="text-base shrink-0">{icon}</span>
+      <span className="flex-none text-slate-400">{icon}</span>
       <div className="min-w-0">
         <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500">
           {label}
@@ -293,20 +293,44 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
 
         {/* ROW 2: MARKET CONTEXT — Smaller, informational */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          <ContextStat label="Total Listings" value={metrics.total} format="int" icon="🏠" delay={340} />
-          <ContextStat label="Avg Price" value={metrics.avgPrice} format="price" icon="💰" delay={380} />
-          <ContextStat label="Avg Rent" value={metrics.avgRent} format="price" icon="🔑" delay={420} />
-          {metrics.avgDom > 0 && <ContextStat label="Avg DOM" value={metrics.avgDom} format="int" icon="⏱" delay={460} />}
+          <ContextStat label="Total Listings" value={metrics.total} format="int" delay={340} icon={
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+            </svg>
+          } />
+          <ContextStat label="Avg Price" value={metrics.avgPrice} format="price" delay={380} icon={
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          } />
+          <ContextStat label="Avg Rent" value={metrics.avgRent} format="price" delay={420} icon={
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+            </svg>
+          } />
+          {metrics.avgDom > 0 && <ContextStat label="Avg DOM" value={metrics.avgDom} format="int" delay={460} icon={
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          } />}
           {soldStats && soldStats.avgSoldPrice > 0 && (
-            <ContextStat label="Avg Sold" value={soldStats.avgSoldPrice} format="price" icon="✅" delay={500} />
+            <ContextStat label="Avg Sold" value={soldStats.avgSoldPrice} format="price" delay={500} icon={
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            } />
           )}
           {soldStats && soldStats.avgSoldPrice > 0 && (
             <ContextStat
               label="Sale-to-List"
               value={100 + (soldStats.avgNegotiationGap || 0)}
               format="pct"
-              icon="📊"
               delay={540}
+              icon={
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
+              }
             />
           )}
         </div>
