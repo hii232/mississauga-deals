@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
+import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
@@ -180,19 +181,24 @@ export default async function ListingsPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
         />
       )}
+
+      {/* Compact dusk PageHero — matches the /gta page identity and gives the
+          site's #1 commercial page the same premium brand treatment as every
+          other major page. The h1 lives inside PageHero so the exact money
+          keyword "investment properties for sale mississauga" is preserved for
+          search engines while appearing in a visually premium context. */}
+      <PageHero
+        compact
+        eyebrow="Mississauga · Live MLS Data"
+        title="Investment Properties for Sale in Mississauga"
+        subtitle="Every active listing scored for cash flow, cap rate, and ROI — free to browse."
+      />
+
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-navy">
-            Investment Properties for Sale in Mississauga
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
-          </p>
           {/* text-slate-400 measured 2.56:1 on white for this 12px caption —
-              fails AA. slate-500 (4.76:1) is the token already used correctly
-              for the two inline terms right below it; the surrounding prose
-              had just never been raised to match. */}
-          <p className="mt-1 text-xs text-slate-500">
+              fails AA. slate-500 (4.76:1) passes. */}
+          <p className="text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
@@ -215,8 +221,8 @@ export default async function ListingsPage() {
             </Link>
           </p>
           {/* Region switcher — Mississauga is the flagship default, but any GTA
-              city is one tap away (routes to the /gta?city= pages). */}
-          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
+              city is one tap away. */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <RegionSwitcher current="mississauga" />
             <span className="text-xs text-slate-500">
               Now covering the whole GTA — switch to Toronto, Brampton, Oakville, Hamilton &amp; more.
