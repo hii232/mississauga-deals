@@ -37,6 +37,25 @@ export const metadata = {
   alternates: {
     canonical: '/',
   },
+  // Without these, the homepage inherits the root layout's generic openGraph/
+  // twitter blocks — "MississaugaInvestor.ca — Mississauga Real Estate
+  // Investment Deals" — instead of the more specific page title. Next.js
+  // REPLACES (not merges) the root layout twitter object when a layout segment
+  // defines its own openGraph, so both must be declared together.
+  openGraph: {
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Mississauga Investment Properties — Scored for Cash Flow' }],
+    title: 'Mississauga Investment Properties — Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    url: 'https://www.mississaugainvestor.ca/',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mississauga Investment Properties — Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // ─────────────────────────────────────────────
