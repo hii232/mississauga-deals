@@ -165,6 +165,16 @@ function HamzaTakeTab({ listing }) {
   );
 }
 
+// The maintenance reserve is the greater of a % of rent and 1%/yr of property
+// value, so labelling the row "Maintenance (8%)" printed a percentage the
+// number often wasn't — on an expensive freehold the figure shown was the value
+// floor, and dragging the % slider left it unchanged. Name whichever term won.
+function maintenanceLabel(basis, maintenancePct) {
+  return basis === 'value'
+    ? `Maintenance (${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of value/yr)`
+    : `Maintenance (${maintenancePct}% of rent)`;
+}
+
 function MortgageTab({ listing }) {
   const [downPct, setDownPct] = useState(DEFAULT_ASSUMPTIONS.downPaymentPercent);
   const [rate, setRate] = useState(DEFAULT_ASSUMPTIONS.annualInterestRate);
@@ -260,7 +270,7 @@ function MortgageTab({ listing }) {
           {calc.condoFee > 0 ? (
             <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={calc.condoFee} />
           ) : (
-            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+            <BreakdownRow label={maintenanceLabel(calc.maintenanceBasis, maintenancePct)} value={calc.maintenance} />
           )}
           <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={calc.vacancy} />
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={calc.management} />}
@@ -309,6 +319,7 @@ function CapRateTab({ listing }) {
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
       monthlyCondoFee: listing.condoFee || 0,
+      price: listing.price,
     });
     const capRate = calculateCapRate(noiResult.noi, listing.price);
     const grm = calculateGRM(listing.price, listing.estimatedRent);
@@ -352,7 +363,7 @@ function CapRateTab({ listing }) {
           {calc.annualOpExCondoFee > 0 ? (
             <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={Math.round(calc.annualOpExCondoFee)} annual negative />
           ) : (
-            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+            <BreakdownRow label={maintenanceLabel(calc.maintenanceBasis, maintenancePct)} value={Math.round(calc.annualOpExMaintenance)} annual negative />
           )}
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={Math.round(calc.annualOpExManagement)} annual negative />}
           <div className="border-t border-slate-300 pt-2">
@@ -1117,6 +1128,7 @@ function PrintCashFlowReport({ listing }) {
     vacancyPct: da.vacancyPercent,
     managementPct: da.managementPercent,
     monthlyCondoFee: listing.condoFee || 0,
+    price: listing.price,
   });
   const capRate = calculateCapRate(noi.noi, listing.price);
   const coc = calculateCashOnCash(
@@ -1176,7 +1188,7 @@ function PrintCashFlowReport({ listing }) {
               {cf.condoFee > 0 ? (
                 <tr><td style={S.td}>{listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'}</td><td style={S.tdNeg}>−${cf.condoFee.toLocaleString()}</td></tr>
               ) : (
-                <tr><td style={S.td}>Maintenance ({da.maintenancePercent}%)</td><td style={S.tdNeg}>−${cf.maintenance.toLocaleString()}</td></tr>
+                <tr><td style={S.td}>{maintenanceLabel(cf.maintenanceBasis, da.maintenancePercent)}</td><td style={S.tdNeg}>−${cf.maintenance.toLocaleString()}</td></tr>
               )}
               <tr><td style={S.td}>Vacancy ({da.vacancyPercent}%)</td><td style={S.tdNeg}>−${cf.vacancy.toLocaleString()}</td></tr>
               <tr style={S.sep}>
@@ -1197,7 +1209,7 @@ function PrintCashFlowReport({ listing }) {
               {noi.annualOpExCondoFee > 0 ? (
                 <tr><td style={S.td}>{listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'}</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExCondoFee).toLocaleString()}</td></tr>
               ) : (
-                <tr><td style={S.td}>Maintenance ({da.maintenancePercent}%)</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExMaintenance).toLocaleString()}</td></tr>
+                <tr><td style={S.td}>{maintenanceLabel(noi.maintenanceBasis, da.maintenancePercent)}</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExMaintenance).toLocaleString()}</td></tr>
               )}
               <tr style={S.sep}>
                 <td style={{ ...S.td, ...S.bold, paddingTop: '4px', color: '#1B2A4A' }}>Annual NOI</td>
@@ -1231,7 +1243,7 @@ function PrintCashFlowReport({ listing }) {
       {/* Footer */}
       <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '9px', fontSize: '9px', color: '#64748B' }}>
         <p style={{ margin: '0 0 3px' }}>
-          <strong>Assumptions:</strong> {da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr amort · Canadian semi-annual compounding · ${da.monthlyInsurance}/mo insurance · {da.maintenancePercent}% maintenance reserve · {da.vacancyPercent}% vacancy · rent estimated from neighbourhood MLS comps. All figures are estimates — verify with a licensed professional before making an investment decision.
+          <strong>Assumptions:</strong> {da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr amort · Canadian semi-annual compounding · ${da.monthlyInsurance}/mo insurance · maintenance reserve = greater of {da.maintenancePercent}% of rent or {da.maintenanceValueFloorPercent}% of value/yr (condo fee replaces it) · {da.vacancyPercent}% vacancy · rent estimated from neighbourhood MLS comps. All figures are estimates — verify with a licensed professional before making an investment decision.
         </p>
         <p style={{ margin: 0 }}>Prepared by Hamza Nouman · RECO-registered Investor Specialist · 647-609-1289 · hamza@nouman.ca · MississaugaInvestor.ca</p>
       </div>

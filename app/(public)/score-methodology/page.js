@@ -39,7 +39,7 @@ const SCORE_FAQ = [
       `${DEFAULT_ASSUMPTIONS.annualInterestRate}% mortgage rate (5-year fixed, Canadian semi-annual compounding), ` +
       `${DEFAULT_ASSUMPTIONS.amortizationYears}-year amortization, ` +
       `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month insurance, ` +
-      `${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent maintenance reserve (or 1% of value, whichever is greater), ` +
+      `${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent maintenance reserve (or ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of value, whichever is greater), ` +
       `${DEFAULT_ASSUMPTIONS.vacancyPercent}% vacancy allowance, and ` +
       `${DEFAULT_ASSUMPTIONS.managementPercent}% property management (assumes self-managed). ` +
       `Property tax uses the actual listed tax when available, otherwise the municipal residential rate.`,
@@ -219,7 +219,7 @@ export default function ScoreMethodologyPage() {
                   ['Amortization', `${DEFAULT_ASSUMPTIONS.amortizationYears} years`],
                   ['Property tax', 'Actual listed tax when available; otherwise the municipal residential rate (e.g., Mississauga ~0.84% of price)'],
                   ['Insurance', `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month`],
-                  ['Maintenance reserve', `Greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or 1% of property value per year`],
+                  ['Maintenance reserve', `Greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of property value per year (a condo fee replaces it)`],
                   ['Vacancy allowance', `${DEFAULT_ASSUMPTIONS.vacancyPercent}% of gross rent`],
                   ['Property management', `${DEFAULT_ASSUMPTIONS.managementPercent}% (assumes self-managed)`],
                   ['Closing costs (in cash-on-cash)', 'Land transfer tax + $3,000 legal/title/misc. Toronto and its amalgamated districts also pay the municipal land transfer tax, which is included for those listings.'],
