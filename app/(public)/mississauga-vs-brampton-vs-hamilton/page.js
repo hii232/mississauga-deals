@@ -204,11 +204,11 @@ export default function CityComparisonPage() {
             <span className="block font-heading font-semibold text-sm text-navy">Mississauga</span>
             <span className="mt-1 block text-xs font-semibold text-accent">See listings →</span>
           </Link>
-          <Link href="/gta?city=Brampton" className="rounded-xl border border-slate-200 bg-white p-4 text-center no-underline transition-all hover:border-accent/30 hover:shadow-md">
+          <Link href="/gta/brampton" className="rounded-xl border border-slate-200 bg-white p-4 text-center no-underline transition-all hover:border-accent/30 hover:shadow-md">
             <span className="block font-heading font-semibold text-sm text-navy">Brampton</span>
             <span className="mt-1 block text-xs font-semibold text-accent">See listings →</span>
           </Link>
-          <Link href="/gta?city=Hamilton" className="rounded-xl border border-slate-200 bg-white p-4 text-center no-underline transition-all hover:border-accent/30 hover:shadow-md">
+          <Link href="/gta/hamilton" className="rounded-xl border border-slate-200 bg-white p-4 text-center no-underline transition-all hover:border-accent/30 hover:shadow-md">
             <span className="block font-heading font-semibold text-sm text-navy">Hamilton</span>
             <span className="mt-1 block text-xs font-semibold text-accent">See listings →</span>
           </Link>

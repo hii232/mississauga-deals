@@ -3,12 +3,12 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { HOOD_DATA, HOOD_RENTS, LRT_CORRIDOR_HOODS, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { calculateCashFlow, estimateRent } from '@/lib/cash-flow-engine';
-import { fmtK } from '@/lib/utils/format';
+import { fmtK, slugifyPlace } from '@/lib/utils/format';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import InlineCTA from '@/components/ui/inline-cta';
 import { PageHero } from '@/components/layout/page-hero';
 
-const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
+const slugify = slugifyPlace;
 
 const SLUG_TO_HOOD = Object.fromEntries(
   Object.keys(HOOD_DATA).map((name) => [slugify(name), name])
@@ -313,7 +313,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
 
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3 mb-10">
-        <Link href={`/listings?hood=${encodeURIComponent(name)}`} className="btn-primary !px-6 !py-3 text-center no-underline">
+        <Link href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow" className="btn-primary !px-6 !py-3 text-center no-underline">
           View Live Listings in {name} →
         </Link>
         <Link href="/book-call" className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-navy hover:border-navy/30 transition text-center no-underline">
@@ -385,7 +385,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
         lg:hidden because the desktop layout keeps the in-flow CTA in view. */}
     <div className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
       <Link
-        href={`/listings?hood=${encodeURIComponent(name)}`}
+        href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow"
         className="btn-primary flex w-full items-center justify-center !py-3 no-underline"
       >
         View {name} Listings &rarr;

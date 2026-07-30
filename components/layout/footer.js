@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { slugifyPlace } from '@/lib/utils/format';
 
 export default function Footer() {
   return (
@@ -21,7 +22,7 @@ export default function Footer() {
               <p>Cityscape Real Estate Ltd., Brokerage</p>
               <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
               <p>
-                <a href="tel:6476091289" className="text-[#8AB6FF] hover:text-white no-underline">647-609-1289</a>
+                <a href="tel:+16476091289" className="text-[#8AB6FF] hover:text-white no-underline">647-609-1289</a>
                 {' · '}
                 <a href="mailto:hamza@nouman.ca" className="text-[#8AB6FF] hover:text-white no-underline">hamza@nouman.ca</a>
               </p>
@@ -94,7 +95,7 @@ export default function Footer() {
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
               {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Markham', 'Hamilton'].map((c) => (
                 <li key={c}>
-                  <Link href={`/gta?city=${encodeURIComponent(c)}`} className="text-white/70 hover:text-white no-underline transition-colors">{c}</Link>
+                  <Link href={`/gta/${slugifyPlace(c)}`} className="text-white/70 hover:text-white no-underline transition-colors">{c}</Link>
                 </li>
               ))}
               <li>

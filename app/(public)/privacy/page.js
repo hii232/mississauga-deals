@@ -131,7 +131,7 @@ export default function PrivacyPage() {
             <p>Cityscape Real Estate Ltd., Brokerage</p>
             <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
             <p>
-              Phone: <a href="tel:6476091289" className="text-accent hover:underline">647-609-1289</a>
+              Phone: <a href="tel:+16476091289" className="text-accent hover:underline">647-609-1289</a>
             </p>
             <p>
               Email: <a href="mailto:hamza@nouman.ca" className="text-accent hover:underline">hamza@nouman.ca</a>

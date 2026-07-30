@@ -250,7 +250,7 @@ export default function NeighbourhoodsPage() {
                   Investment Guide
                 </Link>
                 <Link
-                  href={`/listings?hood=${encodeURIComponent(name)}`}
+                  href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow"
                   className="block text-center rounded-lg bg-cloud py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
                 >
                   View Listings

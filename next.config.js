@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Suppress the `X-Powered-By: Next.js` response header. It advertises the
+  // framework (and therefore which CVEs to try) to anyone reading response
+  // headers, and buys nothing in return. Flagged by the Seobility audit under
+  // server-configuration hardening.
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {

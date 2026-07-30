@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import { SidebarEmailCapture } from '@/components/blog/sidebar-email-capture';
 import InlineCTA from '@/components/ui/inline-cta';
+import ShareButtons from '@/components/ui/share-buttons';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
@@ -364,6 +365,14 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
+            {/* Share sits above the newsletter CTA, not below it: a reader who
+                has finished the article is at peak intent, and the CTA is the
+                conversion ask we do not want to push further down the page. */}
+            <ShareButtons
+              url={`/blog/${params.slug}`}
+              title={post.title}
+              className="mt-10 border-t border-slate-200 pt-6"
+            />
             <SkylineStrip className="mt-12 h-10 w-full" tone="#1B2A4A" opacity={0.1} />
             <InlineCTA variant="newsletter" className="mt-6" />
           </article>

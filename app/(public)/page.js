@@ -4,7 +4,7 @@ import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
-import { fmtK } from '@/lib/utils/format';
+import { fmtK, slugifyPlace } from '@/lib/utils/format';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroEmailCapture } from '@/components/home/hero-email-capture';
@@ -447,7 +447,13 @@ function HowItWorks() {
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="section-title mb-3">How It Works</h2>
-          <p className="section-subtitle mx-auto">Three steps to finding your next investment property</p>
+          {/* Reinforces the h1 ("Mississauga Investment Property Finder") in
+              body copy. The Seobility audit flagged "finder" as appearing in
+              the h1 and nowhere else on the page — the heading and the content
+              were not corroborating each other. This section subtitle is
+              unconditional (no feed dependency), so the term is always present
+              even when the live-stats hooks above are hidden. */}
+          <p className="section-subtitle mx-auto">Three steps to finding your next investment property with the Mississauga deal finder</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map(({ num, Scene, title, desc }) => (
@@ -835,10 +841,17 @@ export default async function HomePage() {
               {/* Popular Neighbourhoods */}
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 <span className="text-white/40 text-xs">Popular:</span>
+                {/* Point at the static neighbourhood guide, not the
+                    ?hood= filter view. Every one of these six has a real
+                    /neighbourhoods/[slug] page (HOOD_DATA drives both this
+                    list and that route's generateStaticParams), and the guide
+                    carries its own email capture plus a link on into the
+                    filtered listings — so this loses no browsing path while
+                    giving the crawler a static, indexable destination. */}
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
                     key={hood}
-                    href={`/listings?hood=${encodeURIComponent(hood)}`}
+                    href={`/neighbourhoods/${slugifyPlace(hood)}`}
                     className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
                   >
                     {hood}
@@ -945,7 +958,7 @@ export default async function HomePage() {
                 {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton'].map((c) => (
                   <Link
                     key={c}
-                    href={`/gta?city=${encodeURIComponent(c)}`}
+                    href={`/gta/${slugifyPlace(c)}`}
                     className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
                   >
                     {c}
