@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
@@ -39,7 +40,7 @@ function TopPickCard({ listing, photo, isRegistered }) {
       {/* Photo */}
       <div className="relative h-36 w-full overflow-hidden">
         {photo ? (
-          <img src={photo} alt={listing.address} className="h-full w-full object-cover" loading="lazy" />
+          <Image src={photo} alt={listing.address} fill sizes="280px" className="object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

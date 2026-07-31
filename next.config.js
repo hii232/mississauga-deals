@@ -27,6 +27,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.supabase.co',
       },
+      {
+        // Auto-blog cover photos (app/api/auto-blog stores urls.regular)
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
     unoptimized: false,
   },

@@ -126,6 +126,16 @@ export default async function BlogPostPage({ params }) {
     year: 'numeric', month: 'long', day: 'numeric',
   });
 
+  // The cover is the LCP element on blog posts. Route it through the Next
+  // image optimizer only when the host is whitelisted in next.config.js
+  // remotePatterns (Supabase storage, ampre, Unsplash). Generated
+  // /api/blog-cover PNGs (own dynamic route) and any admin-pasted host that
+  // isn't whitelisted pass through unoptimized — the optimizer would 400 them.
+  const coverUrl = blogCoverUrl(post);
+  const coverOptimizable =
+    /^https:\/\/([a-z0-9-]+\.)*(supabase\.co|ampre\.ca|repliers\.io)\//i.test(coverUrl) ||
+    coverUrl.startsWith('https://images.unsplash.com/');
+
   const related = await fetchRelatedPosts(post.slug, post.category);
   const googleRating = await fetchGoogleRating();
   // Detect if this post covers a topic that has a dedicated investor-guide page
@@ -248,13 +258,14 @@ export default async function BlogPostPage({ params }) {
                 load, so the LCP image causes zero layout shift — previously the
                 unsized w-full img pushed the whole article down when it loaded.
                 Unsplash covers (variable landscape aspects) crop consistently. */}
-            <img
-              src={blogCoverUrl(post)}
+            <Image
+              src={coverUrl}
               alt={post.title}
               width={1200}
               height={630}
-              fetchPriority="high"
-              decoding="async"
+              priority
+              sizes="(min-width: 768px) 768px, 100vw"
+              unoptimized={!coverOptimizable}
               className="w-full aspect-[1200/630] object-cover rounded-xl mb-8 shadow-md"
             />
 
