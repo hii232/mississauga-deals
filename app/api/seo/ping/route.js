@@ -56,11 +56,18 @@ export async function POST(request) {
       const listings = data.listings || data || [];
 
       // Only submit fresh listings — the processed API exposes days on
-      // market, not raw MLS timestamps
+      // market, not raw MLS timestamps.
+      // `dom >= 1` matters: 0 means the feed gave no age at all
+      // (lib/listings/market-timing.js), and `dom <= 3` alone accepted it. So
+      // while DOM was withheld on every active listing, this submitted the
+      // first 100 rows of the feed to IndexNow on every run as "new" —
+      // repeatedly re-pinging the same unchanged URLs, which is exactly the
+      // behaviour IndexNow asks publishers not to exhibit. Now only listings
+      // with a real 1–3 day age are submitted.
       const newUrls = listings
         .filter((l) => {
-          const dom = l.dom ?? l.daysOnMarket;
-          return typeof dom === 'number' && dom <= 3;
+          const dom = Number(l.dom ?? l.daysOnMarket);
+          return Number.isFinite(dom) && dom >= 1 && dom <= 3;
         })
         .map((l) => `https://www.mississaugainvestor.ca/listings/${l.ListingKey || l.id}`)
         .slice(0, 100); // IndexNow limit: 10,000, but keep reasonable

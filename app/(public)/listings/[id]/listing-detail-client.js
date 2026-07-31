@@ -1717,8 +1717,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   the card's signal — the gated tab shows the slider-adjusted
                   value, which is always revealed on signup. */}
               {(() => {
+                // "New" is an UPPER bound on age, so it needs the exact feed
+                // DOM (0 = unknown). "Motivated" is a LOWER bound, so the
+                // provable floor is the right evidence — and matches both the
+                // card badge and the MOTIVATED filter chip.
                 const isNew = listing.dom >= 1 && listing.dom <= 7;
-                const isMotivated = listing.dom >= 45;
+                const isMotivated = Math.max(listing.domFloor || 0, listing.dom || 0) >= 45;
                 const hasDrop = listing.priceDrop > 0;
                 const cashFlows = listing.cashFlow > 0;
                 const hasLegal = listing.basementTier === 'legal';
