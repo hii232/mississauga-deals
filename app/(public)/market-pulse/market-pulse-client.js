@@ -9,9 +9,9 @@ import InlineCTA from '@/components/ui/inline-cta';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { AuthGate } from '@/components/ui/auth-gate';
 
-export default function MarketPulsePage() {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
+export function MarketPulseClient({ initialStats = null }) {
+  const [stats, setStats] = useState(initialStats);
+  const [loading, setLoading] = useState(!initialStats);
   const [recentSales, setRecentSales] = useState([]);
   const [salesStats, setSalesStats] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -21,7 +21,13 @@ export default function MarketPulsePage() {
     setIsAuthenticated(registered);
   }, []);
 
+  // The server component now fetches /api/market-stats and hands the payload in
+  // as initialStats, so first paint already carries every number (and every CTA
+  // and capture form — the loading gate below used to hide ALL of them). This
+  // client fetch is the fallback for the one case that remains: the server
+  // fetch failed or timed out and initialStats came through null.
   useEffect(() => {
+    if (initialStats) return;
     async function load() {
       try {
         // Hard 10s budget. A cold /api/market-stats recompute can take 60-90s
@@ -42,7 +48,7 @@ export default function MarketPulsePage() {
       }
     }
     load();
-  }, []);
+  }, [initialStats]);
 
   // Individual sold prices + addresses are VOW-restricted TRREB data — skip
   // the fetch entirely while gated (matches /recent-sales and listing-detail).
