@@ -1,3 +1,7 @@
+// Blog redirect list shared with app/sitemap.js (which excludes these slugs —
+// a sitemap must not submit URLs that redirect away) via one CJS module.
+const { BLOG_REDIRECTS } = require('./lib/blog/canonical-overrides');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Suppress the `X-Powered-By: Next.js` response header. It advertises the
@@ -59,33 +63,10 @@ const nextConfig = {
   // `permanent: true` emits a 308, which search engines consolidate link
   // equity through identically to a 301 — the historical distinction (301 vs
   // 302) is what matters for SEO, not 301 specifically.
+  // The list itself lives in lib/blog/canonical-overrides.js so the sitemap
+  // excludes exactly the slugs redirected here.
   async redirects() {
-    return [
-      {
-        source: '/blog/mississauga-rental-property-insurance-2026-complete-guide',
-        destination: '/rental-property-insurance-mississauga',
-        permanent: true,
-      },
-      {
-        source: '/blog/investment-property-mortgages-in-mississauga-2026-complete-guide',
-        destination: '/mortgage-calculator',
-        permanent: true,
-      },
-      // Two literally identical-title posts under different auto-generated
-      // slugs — the clearest duplicate of the five evidenced clusters.
-      // Redirected into the canonical (unsuffixed) slug, which is the older
-      // and already-indexed of the three.
-      {
-        source: '/blog/cap-rate-vs-cash-flow-vs-roi-mississauga-investment-guide-2026-mp850elg',
-        destination: '/blog/cap-rate-vs-cash-flow-vs-roi-mississauga-investment-guide-2026',
-        permanent: true,
-      },
-      {
-        source: '/blog/cap-rate-vs-cash-flow-vs-roi-mississauga-investment-guide-2026-mq5050pt',
-        destination: '/blog/cap-rate-vs-cash-flow-vs-roi-mississauga-investment-guide-2026',
-        permanent: true,
-      },
-    ];
+    return BLOG_REDIRECTS;
   },
 };
 

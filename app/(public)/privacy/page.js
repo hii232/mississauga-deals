@@ -14,6 +14,15 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Privacy Policy | MississaugaInvestor.ca' }],
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a page
+  // defines its own openGraph — without this the page shares text-only on
+  // X/Twitter/Slack/iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Privacy Policy',
+    description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function PrivacyPage() {

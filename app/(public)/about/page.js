@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { CityscapePanorama } from '@/components/art/cityscape';
 import Link from 'next/link';
-import { PersonJsonLd, ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { ProfilePageJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating } from '@/lib/google-rating';
 import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
 import InlineCTA from '@/components/ui/inline-cta';
@@ -72,7 +72,10 @@ export default async function AboutPage() {
 
   return (
     <>
-      <PersonJsonLd />
+      {/* PersonJsonLd is NOT rendered here — the root layout (app/layout.js)
+          already emits it on every page, and duplicating the Person node made
+          /about ship two identical Person schemas. ProfilePage's mainEntity
+          references the shared @id, so nothing is lost. */}
       <ProfilePageJsonLd />
       <BreadcrumbJsonLd items={breadcrumbs} />
 

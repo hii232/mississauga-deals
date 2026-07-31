@@ -12,47 +12,13 @@ import { blogCoverUrl } from '@/lib/blog-cover';
 import { sanitizePost, sanitizeBlogText } from '@/lib/blog/sanitize-content';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
+// Canonical overrides live in lib/blog/canonical-overrides.js — shared with
+// app/sitemap.js (which must EXCLUDE these slugs: a sitemap entry is a
+// canonical claim, and these posts' canonicals point elsewhere) and
+// next.config.js, so the lists can't drift.
+import { getCanonicalOverride } from '@/lib/blog/canonical-overrides';
 
 export const revalidate = 60;
-
-// When a blog post covers the same topic as a dedicated investor-guide page,
-// point its canonical at the dedicated page so Google consolidates search
-// authority there rather than splitting it between the two URLs.
-// Measured problem (2026-07-26 GSC): the dedicated /rental-property-insurance-
-// mississauga page sat at position 55 while a blog post on the same topic held
-// position 12 — the purpose-built, conversion-optimised page was losing to the
-// site's own auto-generated post.
-// Keys are substrings that appear in the blog slug; values are the absolute
-// canonical URL of the dedicated page.
-const CANONICAL_OVERRIDES = [
-  {
-    slugContains: 'rental-property-insurance',
-    canonicalUrl: 'https://www.mississaugainvestor.ca/rental-property-insurance-mississauga',
-    path: '/rental-property-insurance-mississauga',
-    label: 'Rental Property Insurance in Mississauga',
-    note: 'Our dedicated guide covers building, liability, and loss-of-rent coverage — plus where to get a quote from an Ontario broker.',
-  },
-  {
-    slugContains: 'investment-property-mortgage',
-    canonicalUrl: 'https://www.mississaugainvestor.ca/mortgage-calculator',
-    path: '/mortgage-calculator',
-    label: 'Income Property Mortgage Calculator',
-    note: 'Run live payment, CMHC, and stress-test calculations with our interactive tool.',
-  },
-  {
-    slugContains: 'rent-vs-buy',
-    canonicalUrl: 'https://www.mississaugainvestor.ca/rent-vs-buy-mississauga',
-    path: '/rent-vs-buy-mississauga',
-    label: 'Rent vs Buy in Mississauga — Interactive Calculator',
-    note: 'Find your real break-even point with our calculator using Canadian semi-annual compounding and Ontario land-transfer tax.',
-  },
-];
-
-/** Returns the override object if this slug matches a known duplicate topic,
- *  or null if the blog post is the sole coverage of its topic. */
-function getCanonicalOverride(slug) {
-  return CANONICAL_OVERRIDES.find(({ slugContains }) => slug.includes(slugContains)) ?? null;
-}
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY

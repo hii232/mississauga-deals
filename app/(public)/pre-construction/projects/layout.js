@@ -1,9 +1,13 @@
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: 'GTA Pre-Construction Projects — Condos & Townhomes Across the GTA | Hamza Nouman',
+  // `absolute` opts out of the root "| MississaugaInvestor.ca" template — the
+  // plain string version ran ~105 chars once the brand was appended, so Google
+  // truncated it in every SERP. Description kept under 155 chars for the same
+  // reason.
+  title: { absolute: 'GTA Pre-Construction Projects — Condos & Townhomes' },
   description:
-    'Browse 80+ pre-construction condos and townhomes across the GTA — Mississauga, Toronto, Brampton, Vaughan, Oakville, Markham, Hamilton & more. Get VIP pricing, floor plans, and first access through Hamza Nouman.',
+    'Browse 80+ pre-construction condos and townhomes across the GTA. Investor-focused picks with VIP pricing, floor plans, and first access.',
   alternates: { canonical: '/pre-construction/projects' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)

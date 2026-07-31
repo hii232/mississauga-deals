@@ -21,9 +21,15 @@
 # internals stay blocked. /_next/image is the image optimizer — allowed so
 # optimized images stay eligible for Google Images as raw <img> tags migrate
 # to next/image.
+# /api/blog-cover is the generated og:image + Article JSON-LD image for every
+# blog post without a stored cover (see lib/blog-cover.js). `Disallow: /api/`
+# alone blocked Googlebot-Image from fetching it, killing article thumbnail /
+# rich-result eligibility for most of the blog — same most-specific-rule-wins
+# technique as the /_next/static/ carve-out below.
 User-agent: *
 Allow: /
 Disallow: /api/
+Allow: /api/blog-cover
 Disallow: /admin/
 Disallow: /admin.html
 Disallow: /_next/

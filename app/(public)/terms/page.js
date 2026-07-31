@@ -14,6 +14,15 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Terms of Service | MississaugaInvestor.ca' }],
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a page
+  // defines its own openGraph — without this the page shares text-only on
+  // X/Twitter/Slack/iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms of Service',
+    description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function TermsPage() {

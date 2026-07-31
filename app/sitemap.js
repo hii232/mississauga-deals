@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { CITY_COPY, cityToSlug } from '@/app/(public)/gta/page';
 import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { isNonCanonicalBlogSlug } from '@/lib/blog/canonical-overrides';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
@@ -226,12 +227,19 @@ export default async function sitemap() {
         .select('slug, updated_at')
         .eq('published', true);
       if (posts) {
-        blogPages = posts.map((p) => ({
-          url: `${BASE}/blog/${p.slug}`,
-          ...(p.updated_at || p.created_at ? { lastModified: p.updated_at || p.created_at } : {}),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        }));
+        blogPages = posts
+          // A sitemap entry is a canonical claim. Skip posts that 308-redirect
+          // away (next.config.js) or whose rel=canonical points at a dedicated
+          // page (CANONICAL_OVERRIDES) — submitting them tells Google "index
+          // this URL" while the URL itself says "I'm not the real one". Both
+          // lists live in lib/blog/canonical-overrides.js so they can't drift.
+          .filter((p) => !isNonCanonicalBlogSlug(p.slug))
+          .map((p) => ({
+            url: `${BASE}/blog/${p.slug}`,
+            ...(p.updated_at || p.created_at ? { lastModified: p.updated_at || p.created_at } : {}),
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          }));
       }
     }
   } catch (err) {

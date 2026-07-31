@@ -345,6 +345,29 @@ export default function ScoreMethodologyPage() {
           </ul>
         </section>
 
+        {/* FAQ section — the FAQJsonLd above requires this content to be
+            visible on-page (Google FAQPage policy: schema-only Q&A that the
+            visitor can't see is ineligible for rich results and can draw a
+            manual action). Renders SCORE_FAQ verbatim — same accordion
+            pattern as /guides. */}
+        <section className="not-prose mt-10" aria-label="Common questions about the deal score">
+          <h2 className="font-heading font-bold text-xl text-navy mb-6">Common Questions</h2>
+          <div className="space-y-4">
+            {SCORE_FAQ.map((item) => (
+              <details
+                key={item.question}
+                className="group rounded-xl border border-slate-200 bg-white open:border-accent/30 open:shadow-sm transition-all"
+              >
+                <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 font-heading font-semibold text-sm text-navy list-none [&::-webkit-details-marker]:hidden">
+                  <span>{item.question}</span>
+                  <span className="shrink-0 text-accent text-lg leading-none group-open:rotate-45 transition-transform duration-200" aria-hidden="true">+</span>
+                </summary>
+                <p className="px-5 pb-5 text-sm leading-relaxed text-slate-600">{item.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         {/* Bottom Disclaimer */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mt-8">
           <p className="text-[11px] text-gray-500 leading-relaxed">

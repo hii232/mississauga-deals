@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { FAQJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
-
-const BASE = 'https://www.mississaugainvestor.ca';
 
 const FAQ_DATA = [
   {
@@ -99,12 +97,8 @@ export default function FAQPage() {
   return (
     <>
       <FAQJsonLd items={allItems} />
-      <BreadcrumbJsonLd
-        items={[
-          { name: 'Home', url: `${BASE}/` },
-          { name: 'FAQ', url: `${BASE}/faq` },
-        ]}
-      />
+      {/* BreadcrumbList is emitted by app/(public)/faq/layout.js (server) —
+          rendering it here too made the page ship the schema twice. */}
 
       {/* Hero */}
       <PageHero
