@@ -33,6 +33,13 @@ export function generateStaticParams() {
 
 export const dynamicParams = false;
 
+// ISR for the baked listings. Without this the 28 city pages were generated
+// exactly once at build time — and because fetchGtaListings' old headers()
+// call threw during prerender (swallowed by its catch), what got baked was an
+// EMPTY listings array, permanently: no revalidate meant the empty shells
+// never healed. 300s matches the feed fetch's own cache window.
+export const revalidate = 300;
+
 export async function generateMetadata({ params }) {
   const city = slugToCity(params.city);
   if (!city) return {};

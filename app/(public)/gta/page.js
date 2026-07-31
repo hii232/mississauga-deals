@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { headers } from 'next/headers';
 import { permanentRedirect } from 'next/navigation';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
@@ -260,10 +259,18 @@ export async function fetchGtaListings(city) {
   // SSR content and not having it.
   const timeoutMs = 25000;
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
-    const origin = `${isLocal ? 'http' : 'https'}://${host}`;
+    // Origin WITHOUT request APIs. The old `headers()` call here marked every
+    // consumer dynamic — and because this try/catch swallowed the
+    // DynamicServerError that headers() throws during prerender, all 28
+    // /gta/[city] SSG pages were silently baked with `{ listings: [] }`:
+    // permanently empty server HTML on the exact landing pages the sitemap
+    // submits at priority 0.7, with no revalidate to ever heal them. Same
+    // headers()-kills-ISR bug class fixed on the homepage and listing detail
+    // (measured 56s TTFB there); VERCEL-gated so local `next start` cannot
+    // point at the live domain.
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     const qs = city ? `&city=${encodeURIComponent(city)}` : '';
     // Shared feed fetch — see lib/listings/fetch-feed.js.
     const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', { pages: 1, qs, timeoutMs });

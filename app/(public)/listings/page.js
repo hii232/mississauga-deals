@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { headers } from 'next/headers';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -90,19 +89,19 @@ export const metadata = {
 // so a feed hiccup degrades to the old behaviour rather than an error page.
 async function fetchInitialListings() {
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    // Local hosts appear as BOTH "localhost:3000" and "127.0.0.1:3000"; matching
-    // only the former built an https:// URL against a plain-http dev server, the
-    // TLS error hit the catch, and the page silently fell back to an empty
-    // server render — which looked exactly like SSR not working at all.
-    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
-    const proto = isLocal ? 'http' : 'https';
+    // Origin WITHOUT request APIs: the old headers() call here marked the
+    // route dynamic, which silently disabled this file's own
+    // `revalidate = 600` — the primary money page paid full SSR + feed fetch
+    // on every request, crawls included. VERCEL-gated (not NODE_ENV) so local
+    // `next start` cannot point at the live domain.
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
     // /gta and the homepage. One page of 100 — the grid renders 30 cards and
     // the ItemList uses 20, so a second page was pure payload. See the helper
     // for why this replaced a page-local fetch with a long-lived cache entry.
-    const { listings: rawRows, first: data } = await fetchFeedPages(`${proto}://${host}`, '/api/listings', { pages: 1 });
+    const { listings: rawRows, first: data } = await fetchFeedPages(origin, '/api/listings', { pages: 1 });
     if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const rows = processListings(rawRows);
     // browsableTotal excludes the commercial/lease rows the site never shows —

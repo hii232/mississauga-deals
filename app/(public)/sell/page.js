@@ -8,6 +8,10 @@ import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
+// ISR: primary lead-capture page; nothing request-dependent. Without this the
+// page rendered dynamically on every hit once the stats helper used headers().
+export const revalidate = 3600;
+
 export const metadata = {
   // Title targets the dominant seller query — "what is my home worth" — which
   // is how most Mississauga homeowners begin the selling journey. The H1 and

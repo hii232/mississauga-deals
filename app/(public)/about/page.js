@@ -7,6 +7,10 @@ import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed
 import InlineCTA from '@/components/ui/inline-cta';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
+// ISR: nothing here is request-dependent — the live count fetch carries its
+// own revalidate. Without this the page rendered dynamically on every hit.
+export const revalidate = 3600;
+
 export const metadata = {
   title: { absolute: 'About Hamza Nouman — Mississauga Investment REALTOR®' },
   description:
