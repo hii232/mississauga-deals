@@ -202,7 +202,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               Price Drop -{Math.round(listing.priceDrop)}%
             </span>
           )}
-          {listing.dom >= 45 && (
+          {/* The provable floor, matching the MOTIVATED filter chip's rule
+              (filter-utils.js). Raw `dom` disagreed with the chip: the chip
+              returns listings on domFloor >= 45, so a card could be IN the
+              motivated result set, print "60+" in its own DOM cell, and still
+              show no Motivated badge. The floor is a lower bound, which is
+              exactly the evidence an "on market 45+ days" claim needs. */}
+          {Math.max(listing.domFloor || 0, listing.dom || 0) >= 45 && (
             <span className="rounded-full bg-gold/90 px-2 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm">
               Motivated
             </span>

@@ -39,6 +39,29 @@ export function computeBelowMarketCutoff(listings) {
   return Math.min(vals[idx], -3);
 }
 
+// ── Days-on-market accessors ──
+// Two DIFFERENT numbers, and the difference decides which claims are legal:
+//
+//   domExact(l) — the feed's own days-on-market. 0 = UNKNOWN, never "listed
+//     today" (lib/listings/market-timing.js). The only value that supports an
+//     "at MOST N days" claim ("New", a DOM range's upper bound).
+//   domFloorOf(l) — provable LOWER bound (feed DOM, or how long we have been
+//     seeing the listing ourselves). Supports "at LEAST N days" claims
+//     (Motivated, longest-first sorting). It cannot support an upper bound:
+//     a floor of 10 is equally consistent with a real 10 or a real 300.
+//
+// Both return 0 for "nothing known", so every caller must check for 0 rather
+// than letting it fall through as a small number.
+export function domExact(l) {
+  const d = Number(l?.dom ?? l?.daysOnMarket);
+  return Number.isFinite(d) && d > 0 ? d : 0;
+}
+
+export function domFloorOf(l) {
+  const f = Number(l?.domFloor);
+  return Math.max(Number.isFinite(f) && f > 0 ? f : 0, domExact(l));
+}
+
 // ── Default Filter State ──
 export const DEFAULT_FILTERS = {
   search: '',
@@ -66,10 +89,16 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Dupl
 export const STRATEGY_CHIPS = [
   { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
   { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate 5% or above — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
-  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => (l.domFloor ?? l.dom) >= 45 }, // floor = provable minimum, so 45+ is only ever claimed when true
-  { key: 'brrr', label: 'BRRR', tooltip: 'Below assessed value with renovation potential — good for Buy Rehab Rent Refinance strategy', filter: (l) => (l.domFloor ?? l.dom) >= 60 && l.priceDrop >= 5 },
+  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => domFloorOf(l) >= 45 }, // floor = provable minimum, so 45+ is only ever claimed when true
+  // Tooltip used to read "Below assessed value with renovation potential",
+  // which describes a filter this chip has never applied — it tests time on
+  // market and the size of the price cut, not assessed value. Now it states
+  // the actual rule, so an investor can judge the result set against it.
+  { key: 'brrr', label: 'BRRR', tooltip: 'On market 60+ days AND already cut 5%+ — a seller with room to negotiate on a value-add buy', filter: (l) => domFloorOf(l) >= 60 && l.priceDrop >= 5 },
   { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
-  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => l.dom >= 1 && l.dom <= 3 }, // dom 0 = unknown, not new — without the >=1 this chip matched every listing whose age the feed withholds
+  // Exact DOM only, never the floor: "within 3 days" is an UPPER bound, and a
+  // lower bound cannot establish one. dom 0 = unknown, not new.
+  { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => { const d = domExact(l); return d >= 1 && d <= 3; } },
   { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
   { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
   { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
@@ -85,8 +114,14 @@ export const SORT_OPTIONS = [
   { key: 'caprate', label: 'Cap Rate (Highest Yield)', fn: (a, b) => b.capRate - a.capRate },
   { key: 'price', label: 'Price (Low to High)', fn: (a, b) => a.price - b.price },
   { key: 'priceDesc', label: 'Price (High to Low)', fn: (a, b) => b.price - a.price },
-  { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => (b.domFloor ?? b.dom) - (a.domFloor ?? a.dom) },
-  { key: 'domNew', label: 'DOM (Newest First)', fn: (a, b) => (a.domFloor ?? a.dom) - (b.domFloor ?? b.dom) },
+  { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => domFloorOf(b) - domFloorOf(a) },
+  // Unknown age (0) must sort LAST here, not first. Ascending on a raw
+  // 0-means-unknown value put every listing whose age the feed withholds at
+  // the very top of "Newest First" — presenting no-data listings as the
+  // freshest inventory on the page, on the sort an investor uses precisely to
+  // find what just came to market. Harmless while every listing was 0 (the
+  // sort was a no-op); wrong the moment real DOM started flowing beside them.
+  { key: 'domNew', label: 'DOM (Newest First)', fn: (a, b) => (domFloorOf(a) || Infinity) - (domFloorOf(b) || Infinity) },
   { key: 'drop', label: 'Price Drop (Biggest Cuts)', fn: (a, b) => b.priceDrop - a.priceDrop },
   { key: 'rent', label: 'Rent (Highest)', fn: (a, b) => b.estimatedRent - a.estimatedRent },
   { key: 'coc', label: 'CoC Return', fn: (a, b) => b.cashOnCash - a.cashOnCash },
@@ -265,9 +300,24 @@ export function applyFilters(listings, filters) {
   // Deal score
   if (filters.minDealScore !== null) result = result.filter((l) => l.hamzaScore >= filters.minDealScore);
 
-  // DOM range
+  // DOM range. Split by which bound is in play, because the two bounds need
+  // different evidence:
+  //   - a MAX ("under 30 days") is an upper-bound claim, so it needs the exact
+  //     feed DOM. The old test used raw `l.dom`, where 0 = unknown, so every
+  //     listing of unknown age passed any range starting at 0 — a card reading
+  //     "45+ DOM" would sit inside a "max 30 days" result set.
+  //   - a MIN only ("60+ days") is satisfied by the provable floor, so a
+  //     listing we have watched for 60 days still qualifies even when the feed
+  //     withholds its DOM.
   if (filters.domRange[0] > 0 || filters.domRange[1] < 365) {
-    result = result.filter((l) => l.dom >= filters.domRange[0] && l.dom <= filters.domRange[1]);
+    const [dMin, dMax] = filters.domRange;
+    result = result.filter((l) => {
+      if (dMax < 365) {
+        const exact = domExact(l);
+        return exact >= 1 && exact >= dMin && exact <= dMax;
+      }
+      return domFloorOf(l) >= dMin;
+    });
   }
 
   // Neighbourhoods

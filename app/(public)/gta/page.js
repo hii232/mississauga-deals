@@ -57,57 +57,69 @@ export function cityToSlug(city) {
 
 // All cities we support in the GTA mega-menu (must match header.js GTA_GROUPS).
 // Exported so the sitemap and gta/[city]/page.js can reference each city.
+// `place` is the one genuinely city-specific clause each page gets: the named
+// communities, transit line or landmark that actually distinguishes this
+// municipality from its 27 siblings. It is deliberately QUALITATIVE — real
+// place names, GO/subway lines, geography, institutions — and contains no
+// statistic, price or count, because nothing on this page can source one.
+// (Rents, tax and market figures come from lib/constants.js and the feed;
+// they are never restated here.) `sub` below is composed from it.
 export const CITY_COPY = {
   'Toronto': { h1: 'Toronto Investment Properties', sub: 'Active listings across Toronto, Etobicoke, North York, Scarborough, East York & York', region: 'City of Toronto' },
-  'Brampton': { h1: 'Brampton Investment Properties', sub: 'Active Brampton listings — cash flow, cap rate, and deal score analysis', region: 'Peel Region' },
-  'Caledon': { h1: 'Caledon Investment Properties', sub: 'Active Caledon listings — scored and analyzed', region: 'Peel Region' },
-  'Oakville': { h1: 'Oakville Investment Properties', sub: 'Active Oakville listings — scored and analyzed', region: 'Halton Region' },
-  'Burlington': { h1: 'Burlington Investment Properties', sub: 'Active Burlington listings — scored and analyzed', region: 'Halton Region' },
-  'Milton': { h1: 'Milton Investment Properties', sub: 'Active Milton listings — scored and analyzed', region: 'Halton Region' },
-  'Halton Hills': { h1: 'Halton Hills Investment Properties', sub: 'Active Halton Hills listings — scored and analyzed', region: 'Halton Region' },
-  'Georgetown': { h1: 'Georgetown Investment Properties', sub: 'Active Georgetown listings — scored and analyzed', region: 'Halton Region' },
-  'Vaughan': { h1: 'Vaughan Investment Properties', sub: 'Active Vaughan listings — scored and analyzed', region: 'York Region' },
-  'Richmond Hill': { h1: 'Richmond Hill Investment Properties', sub: 'Active Richmond Hill listings — scored and analyzed', region: 'York Region' },
-  'Markham': { h1: 'Markham Investment Properties', sub: 'Active Markham listings — scored and analyzed', region: 'York Region' },
-  'Aurora': { h1: 'Aurora Investment Properties', sub: 'Active Aurora listings — scored and analyzed', region: 'York Region' },
-  'Newmarket': { h1: 'Newmarket Investment Properties', sub: 'Active Newmarket listings — scored and analyzed', region: 'York Region' },
-  'King': { h1: 'King Investment Properties', sub: 'Active King listings — scored and analyzed', region: 'York Region' },
-  'Pickering': { h1: 'Pickering Investment Properties', sub: 'Active Pickering listings — scored and analyzed', region: 'Durham Region' },
-  'Ajax': { h1: 'Ajax Investment Properties', sub: 'Active Ajax listings — scored and analyzed', region: 'Durham Region' },
-  'Whitby': { h1: 'Whitby Investment Properties', sub: 'Active Whitby listings — scored and analyzed', region: 'Durham Region' },
-  'Oshawa': { h1: 'Oshawa Investment Properties', sub: 'Active Oshawa listings — scored and analyzed', region: 'Durham Region' },
-  'Clarington': { h1: 'Clarington Investment Properties', sub: 'Active Clarington listings — scored and analyzed', region: 'Durham Region' },
-  'Etobicoke': { h1: 'Etobicoke Investment Properties', sub: 'Active Etobicoke listings — scored and analyzed', region: 'City of Toronto' },
-  'North York': { h1: 'North York Investment Properties', sub: 'Active North York listings — scored and analyzed', region: 'City of Toronto' },
-  'Scarborough': { h1: 'Scarborough Investment Properties', sub: 'Active Scarborough listings — scored and analyzed', region: 'City of Toronto' },
-  'East York': { h1: 'East York Investment Properties', sub: 'Active East York listings — scored and analyzed', region: 'City of Toronto' },
-  'York': { h1: 'York Investment Properties', sub: 'Active York listings — scored and analyzed', region: 'City of Toronto' },
-  'Hamilton': { h1: 'Hamilton Investment Properties', sub: 'Active Hamilton listings — scored and analyzed', region: 'City of Hamilton' },
-  'Stoney Creek': { h1: 'Stoney Creek Investment Properties', sub: 'Active Stoney Creek listings — scored and analyzed', region: 'City of Hamilton' },
-  'Dundas': { h1: 'Dundas Investment Properties', sub: 'Active Dundas listings — scored and analyzed', region: 'City of Hamilton' },
-  'Ancaster': { h1: 'Ancaster Investment Properties', sub: 'Active Ancaster listings — scored and analyzed', region: 'City of Hamilton' },
+  'Brampton': { h1: 'Brampton Investment Properties', region: 'Peel Region', place: 'across Bramalea, Springdale, Heart Lake and Mount Pleasant' },
+  'Caledon': { h1: 'Caledon Investment Properties', region: 'Peel Region', place: 'in Bolton, Caledon East and the villages north of Brampton' },
+  'Oakville': { h1: 'Oakville Investment Properties', region: 'Halton Region', place: 'from Bronte and Kerr Village to Glen Abbey and Uptown Core' },
+  'Burlington': { h1: 'Burlington Investment Properties', region: 'Halton Region', place: 'from Aldershot and the waterfront to Alton Village' },
+  'Milton': { h1: 'Milton Investment Properties', region: 'Halton Region', place: 'below the Niagara Escarpment, on the Milton GO line' },
+  'Halton Hills': { h1: 'Halton Hills Investment Properties', region: 'Halton Region', place: 'in Georgetown, Acton and Glen Williams' },
+  'Georgetown': { h1: 'Georgetown Investment Properties', region: 'Halton Region', place: 'in the Town of Halton Hills, on the Kitchener GO line' },
+  'Vaughan': { h1: 'Vaughan Investment Properties', region: 'York Region', place: 'from Woodbridge, Maple and Thornhill to the VMC subway hub' },
+  'Richmond Hill': { h1: 'Richmond Hill Investment Properties', region: 'York Region', place: 'along the Yonge Street corridor and up into Oak Ridges' },
+  'Markham': { h1: 'Markham Investment Properties', region: 'York Region', place: 'from Unionville to the Highway 7 tech corridor' },
+  'Aurora': { h1: 'Aurora Investment Properties', region: 'York Region', place: 'around Yonge and Wellington, on the Barrie GO line' },
+  'Newmarket': { h1: 'Newmarket Investment Properties', region: 'York Region', place: 'near historic Main Street and Southlake hospital' },
+  'King': { h1: 'King Investment Properties', region: 'York Region', place: 'in King City, Nobleton and Schomberg, on the Oak Ridges Moraine' },
+  'Pickering': { h1: 'Pickering Investment Properties', region: 'Durham Region', place: 'around Pickering Town Centre and Lakeshore East GO' },
+  'Ajax': { h1: 'Ajax Investment Properties', region: 'Durham Region', place: 'between the Ajax GO station and the Lake Ontario waterfront' },
+  'Whitby': { h1: 'Whitby Investment Properties', region: 'Durham Region', place: 'from Brooklin down to the Whitby GO station and the harbour' },
+  'Oshawa': { h1: 'Oshawa Investment Properties', region: 'Durham Region', place: 'near Ontario Tech University and the GM Oshawa assembly plant' },
+  'Clarington': { h1: 'Clarington Investment Properties', region: 'Durham Region', place: 'in Bowmanville, Courtice, Newcastle and Orono' },
+  'Etobicoke': { h1: 'Etobicoke Investment Properties', region: 'City of Toronto', place: 'from Mimico and Humber Bay Shores out to Kipling station' },
+  'North York': { h1: 'North York Investment Properties', region: 'City of Toronto', place: 'along the Yonge and Sheppard subway lines' },
+  'Scarborough': { h1: 'Scarborough Investment Properties', region: 'City of Toronto', place: 'from the Bluffs to Agincourt and Malvern' },
+  'East York': { h1: 'East York Investment Properties', region: 'City of Toronto', place: 'around Leaside, the Danforth and Thorncliffe Park' },
+  'York': { h1: 'York Investment Properties', region: 'City of Toronto', place: 'around Weston, Mount Dennis and the Eglinton West corridor' },
+  'Hamilton': { h1: 'Hamilton Investment Properties', region: 'City of Hamilton', place: 'from the North End and lower city up onto the Mountain' },
+  'Stoney Creek': { h1: 'Stoney Creek Investment Properties', region: 'City of Hamilton', place: 'east of Hamilton, below and atop the escarpment' },
+  'Dundas': { h1: 'Dundas Investment Properties', region: 'City of Hamilton', place: 'in the Dundas Valley at the west end of Hamilton' },
+  'Ancaster': { h1: 'Ancaster Investment Properties', region: 'City of Hamilton', place: 'on the escarpment above Hamilton, around the old village' },
 };
 
-// 27 of these 28 `sub` strings above were "Active {city} listings — scored and
-// analyzed" — the SAME five words with only the city name swapped, used as the
-// meta description, OG/Twitter description AND the visible hero subtitle on
-// every one of those pages. That is the near-duplicate-content pattern Google's
-// own guidance warns hurts indexing, and it wasted the one real, city-specific
-// fact these pages already have on hand: the municipal property tax rate
-// CityInvestorNotes states in prose lower on the same page. Rebuilding `sub`
-// from `region` + the real researched rate (read from the SAME table the
-// cash-flow engine uses — never restated by hand) makes all 27 genuinely
-// distinct instead of templated, and ties the description to this site's
-// actual differentiator (real per-city tax, not a generic listing blurb).
-// Toronto keeps its own hand-written aggregate copy (it names 5 sub-areas,
-// which is already unique and would be redundant to regenerate).
+// These 27 `sub` strings were templated twice over. First they were all
+// "Active {city} listings — scored and analyzed"; an earlier pass rebuilt them
+// as "Active {city} listings in {region} — cash flow, cap rate and deal score
+// costed with {city}'s {rate}% property tax", which swapped in a REAL figure
+// but still left 27 descriptions identical apart from a city name, a region
+// and a percentage — and byte-identical for the five Toronto districts (all
+// 0.63%) and the three Hamilton communities (all 1.26%), since those share
+// their parent city's rate. Used as the meta description, the OG/Twitter
+// description AND the visible hero subtitle, that is the near-duplicate,
+// doorway-shaped pattern Google's guidance warns about, on the exact 27 URLs
+// the sitemap submits at priority 0.7.
+//
+// Now the distinguishing content leads: each page opens with its own `place`
+// clause (real communities/transit/geography, above), and the tax rate — still
+// read from the SAME table the cash-flow engine uses, never restated by hand —
+// follows as the differentiator. A city without its own researched rate (King)
+// gets no rate rather than a fabricated one. Toronto keeps its hand-written
+// aggregate copy: it already names five sub-areas and is unique as written.
 Object.keys(CITY_COPY).forEach((city) => {
-  if (city === 'Toronto') return;
   const copy = CITY_COPY[city];
+  if (!copy.place) return;
   const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
   copy.sub = rate
-    ? `Active ${city} listings in ${copy.region} — cash flow, cap rate and deal score costed with ${city}'s ${(rate * 100).toFixed(2)}% property tax.`
-    : `Active ${city} listings in ${copy.region} — cash flow, cap rate and deal score analysis for investors.`;
+    ? `Active ${city} listings ${copy.place} — deal scores, cash flow and cap rates costed at ${(rate * 100).toFixed(2)}% property tax.`
+    : `Active ${city} listings ${copy.place} — every listing scored for cash flow, cap rate and deal quality.`;
 });
 
 // Server-rendered, genuinely per-city content for the 28 indexable
@@ -129,7 +141,7 @@ export function CityInvestorNotes({ city, copy }) {
   const faqItems = [];
   faqItems.push({
     question: `What investment metrics does MississaugaInvestor.ca show for ${city} properties?`,
-    answer: `Each ${city} listing includes a Deal Score (1–10), estimated monthly cash flow, cap rate, and cash-on-cash return. All figures use a 20% down payment, the Bank of Canada 5-year stress-test rate, and ${city}'s ${rate ? `${(rate * 100).toFixed(2)}%` : 'actual'} municipal property tax rate — costs most listing sites leave out. ${city} is part of ${copy.region}.`,
+    answer: `Each ${city} listing includes a Deal Score (1–10), estimated monthly cash flow, cap rate, and cash-on-cash return. All figures use a 20% down payment, the Bank of Canada 5-year stress-test rate, and ${city}'s ${rate ? `${(rate * 100).toFixed(2)}%` : 'actual'} municipal property tax rate — costs most listing sites leave out. ${city} is part of ${copy.region}${copy.place ? `, and the listings here run ${copy.place}` : ''}.`,
   });
   if (rate) {
     faqItems.push({
@@ -151,7 +163,8 @@ export function CityInvestorNotes({ city, copy }) {
       <section className="mt-10 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
       <h2 className="font-heading text-lg font-bold text-navy">Investing in {city}</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        {city} is part of {copy.region}.{' '}
+        {city} is part of {copy.region}
+        {copy.place ? <> — listings here run {copy.place}</> : null}.{' '}
         {rate ? (
           <>
             Cash flow, cap rate and deal score here are costed with {city}&rsquo;s{' '}
@@ -165,7 +178,10 @@ export function CityInvestorNotes({ city, copy }) {
             including property tax, insurance and maintenance as monthly costs.
           </>
         )}{' '}
-        Rents are estimated per city, so a {city} listing is not scored on Mississauga rent assumptions.
+        {/* "an Oshawa/Ajax/Aurora/Ancaster/East York listing", not "a Oshawa listing" — five of the
+            28 city names start with a vowel and read as a typo without the article agreeing. */}
+        Rents are estimated per city, so {/^[AEIOU]/.test(city) ? 'an' : 'a'} {city} listing is not scored on
+        Mississauga rent assumptions.
       </p>
 
       {siblings.length > 0 && (
