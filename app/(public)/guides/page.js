@@ -93,7 +93,7 @@ export default function GuidesIndexPage() {
       <PageHero
         compact
         eyebrow={`Mississauga · Investing · ${YEAR}`}
-        title="Real Estate Investor Guides"
+        title="Mississauga Real Estate Investor Guides"
         subtitle="Straight-talking guides for Mississauga and GTA investors — real numbers, no fluff, each one links straight to the tools and listings so you can act on it."
       />
 

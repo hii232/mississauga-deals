@@ -105,8 +105,8 @@ export default function HSTRebatePage() {
             </span>
           </div>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Save Up to <span className="text-accent">$130,000</span> on
-            <br />New Homes in Ontario
+            Ontario HST Rebate: Save Up to
+            <br /><span className="text-accent">$130,000</span> on New Homes
           </h1>
           <p className="text-white/70 text-base md:text-lg max-w-2xl mx-auto mb-8">
             The Ontario government has introduced a new HST rebate on new residential properties.

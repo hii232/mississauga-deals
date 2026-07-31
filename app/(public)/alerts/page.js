@@ -212,7 +212,7 @@ export default function AlertsPage() {
     <>
       <PageHero
         eyebrow="Never miss a deal"
-        title="Deal Alerts"
+        title="Free Mississauga Deal Alerts"
         subtitle="Get notified the moment a property matching your criteria hits the market — scored and analyzed, straight to your inbox."
         align="center"
         compact

@@ -267,6 +267,10 @@ export default async function ListingsPage() {
             <Link href="/neighbourhoods" className="font-medium text-accent no-underline hover:text-accent-dark">
               Mississauga neighbourhood guides
             </Link>
+            . Shortlisted a few properties?{' '}
+            <Link href="/compare" className="font-medium text-accent no-underline hover:text-accent-dark">
+              Compare them side-by-side
+            </Link>
             .
           </p>
         </section>

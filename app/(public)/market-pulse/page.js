@@ -132,7 +132,7 @@ export default function MarketPulsePage() {
         <PageHero
           compact
           eyebrow="Live market data"
-          title="Market Pulse"
+          title="Mississauga Housing Market — Prices & Trends"
           subtitle="Mississauga market snapshot — live MLS data blended with TRREB Market Watch"
         />
         <div className="max-w-7xl mx-auto px-4 py-16">
@@ -155,7 +155,7 @@ export default function MarketPulsePage() {
     <PageHero
       compact
       eyebrow="Live market data"
-      title="Market Pulse"
+      title="Mississauga Housing Market — Prices & Trends"
       subtitle={`Mississauga market snapshot — live MLS data blended with TRREB Market Watch${stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}`}
     />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

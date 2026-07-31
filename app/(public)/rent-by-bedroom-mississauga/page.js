@@ -5,6 +5,7 @@ import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
 import { RelatedGuides } from '@/components/ui/related-guides';
 import { HOOD_RENTS } from '@/lib/constants';
+import { slugifyPlace } from '@/lib/utils/format';
 
 const YEAR = new Date().getFullYear();
 
@@ -68,6 +69,9 @@ const RENT_FAQ = [
     question: 'How much does a 2-bedroom apartment rent for in Mississauga?',
     answer:
       'It varies a lot by neighbourhood. Across the 24 neighbourhoods this site tracks, the typical range runs from the low $2,500s in the most affordable areas up to $3,200+ near the waterfront and downtown core, with a city-wide average in between. The table on this page shows the current average, lowest and highest by bedroom count — sort by the neighbourhood guides for a specific area’s number.',
+    // Rendered under the visible answer only — FAQJsonLd ignores this field,
+    // so no HTML ever leaks into the JSON-LD answer string.
+    link: { href: '/neighbourhoods', label: 'Browse all neighbourhood guides →' },
   },
   {
     question: 'Which Mississauga neighbourhood has the lowest rent?',
@@ -142,10 +146,16 @@ export default function RentByBedroomPage() {
                   <td className="px-4 py-3 font-semibold text-navy">{row.label}</td>
                   <td className="px-4 py-3 text-slate-600">${row.avg.toLocaleString()}/mo</td>
                   <td className="px-4 py-3 text-slate-600">
-                    ${row.low.rent.toLocaleString()}/mo <span className="text-slate-500">({row.low.hood})</span>
+                    ${row.low.rent.toLocaleString()}/mo{' '}
+                    <span className="text-slate-500">
+                      (<Link href={`/neighbourhoods/${slugifyPlace(row.low.hood)}`} className="hover:text-accent underline decoration-slate-300 underline-offset-2 transition-colors">{row.low.hood}</Link>)
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-slate-600">
-                    ${row.high.rent.toLocaleString()}/mo <span className="text-slate-500">({row.high.hood})</span>
+                    ${row.high.rent.toLocaleString()}/mo{' '}
+                    <span className="text-slate-500">
+                      (<Link href={`/neighbourhoods/${slugifyPlace(row.high.hood)}`} className="hover:text-accent underline decoration-slate-300 underline-offset-2 transition-colors">{row.high.hood}</Link>)
+                    </span>
                   </td>
                 </tr>
               ))}
@@ -154,9 +164,8 @@ export default function RentByBedroomPage() {
         </div>
         <p className="text-xs text-slate-500 mb-10">
           Estimates from this site&apos;s own per-neighbourhood rent model, the same figures used to score every listing
-          &mdash; not a guarantee for any specific unit. Periodically checked against real, recently-leased MLS
-          comparables (see IMPROVEMENT_BACKLOG.md for the most recent evidence pass); condition, parking and exact
-          location move the number for a real property.
+          &mdash; not a guarantee for any specific unit. Figures are periodically recalibrated against real,
+          recently-leased MLS comparables; condition, parking and exact location move the number for a real property.
         </p>
 
         <InlineCTA variant="newsletter" className="mb-10" />
@@ -167,6 +176,11 @@ export default function RentByBedroomPage() {
             <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
               <h3 className="font-heading font-semibold text-sm text-navy mb-1.5">{qa.question}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{qa.answer}</p>
+              {qa.link && (
+                <Link href={qa.link.href} className="mt-2 inline-block text-xs font-medium text-accent hover:text-accent-dark no-underline">
+                  {qa.link.label}
+                </Link>
+              )}
             </div>
           ))}
         </div>

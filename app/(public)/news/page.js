@@ -49,7 +49,7 @@ export default async function NewsPage() {
       <PageHero
         compact
         eyebrow="Live market news"
-        title="Real Estate Intelligence"
+        title="GTA Real Estate News & Market Intelligence"
         subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports — curated for investors and updated continuously."
       />
       <NewsClient articles={articles} sources={sources} topics={topics} />

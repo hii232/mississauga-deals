@@ -156,7 +156,7 @@ export default async function BlogPage({ searchParams }) {
       <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63] pt-16 pb-28 md:pt-20 md:pb-36">
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
           <h1 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3">
-            Investment Insights
+            Mississauga Real Estate Investment Insights
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
             Expert analysis, neighbourhood guides, and strategies for Mississauga real estate investors

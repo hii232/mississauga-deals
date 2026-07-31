@@ -143,7 +143,7 @@ export default function PreConstructionPage() {
       <PageHero
         compact
         eyebrow="Pre-construction VIP"
-        title="Pre-Construction VIP Access"
+        title="Pre-Construction Condos Mississauga — VIP Access"
         subtitle="Exclusive first access to new Mississauga developments — plus save up to $130K with the Ontario HST rebate."
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

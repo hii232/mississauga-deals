@@ -71,7 +71,7 @@ function OverviewTab({ listing }) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Key Facts</h3>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Key Facts</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {facts.map((f) => (
             <div key={f.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -132,7 +132,7 @@ function OverviewTab({ listing }) {
       </div>
       {listing.remarks && (
         <div>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h2>
           <p className="text-sm leading-relaxed text-navy/80">{listing.remarks}</p>
         </div>
       )}
@@ -1060,9 +1060,9 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
       {/* Comparable Sales Used */}
       {ev.comps && ev.comps.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
             Comparable Sales Used ({ev.comps.length})
-          </h3>
+          </h2>
           <div className="space-y-2">
             {ev.comps.map((comp, i) => (
               <div key={i} className="rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-between">
@@ -1150,7 +1150,9 @@ function PrintCashFlowReport({ listing }) {
       <div style={{ borderBottom: '2px solid #1B2A4A', paddingBottom: '10px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2563EB', margin: '0 0 2px' }}>MississaugaInvestor.ca</p>
-          <h1 style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 3px' }}>{listing.address}</h1>
+          {/* Not an h1 — this print-only block is always in the DOM, and two h1s
+              per page is an SEO defect. Same inline styles, so print is unchanged. */}
+          <p style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 3px' }}>{listing.address}</p>
           <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>
             {listing.subType || listing.type} · {listing.beds}bd/{listing.baths}ba
             {listing.sqft > 0 ? ` · ${listing.sqftApproximate ? '~' : ''}${listing.sqft.toLocaleString()} sqft` : ''}
@@ -1591,7 +1593,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
               )}
 
               {/* Address & Price */}
-              <h1 className="font-heading text-xl font-bold text-navy">{listing.address}</h1>
+              {/* Mirror the metadata title (layout.js): "address, city" so the h1
+                  matches the "address + Mississauga" query form these pages win. */}
+              <h1 className="font-heading text-xl font-bold text-navy">
+                {listing.address}
+                {listing.city ? `, ${listing.city}` : ', Mississauga'}
+              </h1>
               {HOOD_DATA[listing.neighbourhood] ? (
                 <p className="mt-1 text-sm text-muted">
                   <Link
