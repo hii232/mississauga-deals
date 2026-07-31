@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { fmtK, fmtNum } from '@/lib/utils/format';
+import { computeScreenerMetrics, resolveScreenerMetrics } from '@/lib/listings/screener-metrics';
 
 // ── Animated Counter Hook ──
 // Starts AT the target, not 0: this dashboard is server-rendered (the target
@@ -60,8 +61,13 @@ function formatValue(val, fmt) {
 }
 
 // ── Opportunity Stat Card (Row 1) ──
+// value === null means "not known yet" — see PARTIAL_SET_WITHHELD in
+// lib/listings/screener-metrics.js. It renders a skeleton, never a number: a
+// placeholder costs a visitor a second of patience, a wrong headline costs the
+// lead. The tile keeps its exact box so nothing shifts when the figure lands.
 function OpportunityStat({ label, value, format, subtitle, color, delay }) {
-  const animatedVal = useCountUp(value, 600);
+  const pending = value === null || value === undefined;
+  const animatedVal = useCountUp(pending ? 0 : value, 600);
   const displayVal = formatValue(animatedVal, format);
 
   const colorMap = {
@@ -83,10 +89,19 @@ function OpportunityStat({ label, value, format, subtitle, color, delay }) {
         <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500 mb-0.5">
           {label}
         </p>
-        <p className={`font-mono text-xl font-bold tracking-tight ${c.text}`}>
-          {displayVal}
-        </p>
-        <p className="text-[10px] text-slate-500">{subtitle}</p>
+        {/* h-7 == the text-xl line box below it, so the figure landing does not
+            nudge the card. Matters most at 375px, where these tiles are two to
+            a row and any reflow moves the whole dashboard. */}
+        {pending ? (
+          <div className="flex h-7 items-center" aria-hidden="true">
+            <div className="h-[18px] w-16 animate-pulse rounded bg-slate-100" />
+          </div>
+        ) : (
+          <p className={`font-mono text-xl font-bold tracking-tight ${c.text}`}>
+            {displayVal}
+          </p>
+        )}
+        <p className="text-[10px] text-slate-500">{pending ? 'analyzing…' : subtitle}</p>
       </div>
     </div>
   );
@@ -94,6 +109,7 @@ function OpportunityStat({ label, value, format, subtitle, color, delay }) {
 
 // ── Context Stat Card (Row 2) ──
 function ContextStat({ label, value, format, icon, delay }) {
+  const pending = value === null || value === undefined;
   return (
     <div
       className="flex items-center gap-2.5 rounded-md bg-slate-50/80 px-3 py-2 transition-colors duration-150 hover:bg-slate-100/80 opacity-0 animate-fadeUp"
@@ -104,21 +120,34 @@ function ContextStat({ label, value, format, icon, delay }) {
         <p className="text-[10px] font-semibold uppercase tracking-[0.05em] text-slate-500">
           {label}
         </p>
-        <p className="font-mono text-sm font-bold text-navy truncate">
-          {formatValue(value, format)}
-        </p>
+        {pending ? (
+          <div className="flex h-5 items-center" aria-hidden="true">
+            <div className="h-3 w-12 animate-pulse rounded bg-slate-200" />
+          </div>
+        ) : (
+          <p className="font-mono text-sm font-bold text-navy truncate">
+            {formatValue(value, format)}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 // ── Main Component ──
-export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
+// analysisComplete: the container has finished loading EVERY page of the feed,
+//   so `listings` is the whole market (or the user's filtered slice of it).
+//   It is an explicit signal, not `listings.length < marketTotal` — that
+//   comparison is false forever the moment any filter is applied, so it could
+//   never have distinguished "still loading" from "narrowed to 40 results".
+// loadedCount: rows loaded so far, BEFORE filtering — the honest progress
+//   numerator for the "N of M analyzed" chip.
+// summary: whole-market aggregate computed server-side over the entire feed
+//   (see /api/market-stats). Present only when no filters are active, because
+//   it describes the whole market and nothing narrower.
+export function DealScreener({ listings, loading = false, marketTotal = 0, analysisComplete = true, loadedCount = 0, summary = null }) {
   const [soldStats, setSoldStats] = useState(null);
   const [showPortfolio, setShowPortfolio] = useState(false);
-  // True while the background pages are still streaming in — i.e. the stats
-  // below summarise a subset, not the whole market.
-  const stillLoading = marketTotal > 0 && listings.length < marketTotal;
 
   // Fetch sold market stats — SCOPED to the page's city so a GTA page doesn't
   // show Mississauga sold data. /listings → Mississauga; /gta?city=X → that
@@ -140,42 +169,26 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
       .catch(() => {});
   }, []);
 
-  const metrics = useMemo(() => {
-    if (!listings.length) {
-      return {
-        total: 0, avgPrice: 0, avgScore: 0, avgDom: 0, avgRent: 0,
-        avgCf: 0, avgCoc: 0, bestCf: 0, bestCap: 0, cfPlusCount: 0,
-        priceDropCount: 0, suites: 0,
-      };
-    }
+  // Aggregate of what is actually loaded. Shared with the server-side
+  // whole-market summary so the two can never disagree about the same market.
+  const loadedMetrics = useMemo(() => computeScreenerMetrics(listings), [listings]);
 
-    const sum = (fn) => listings.reduce((acc, l) => acc + fn(l), 0);
-    const avg = (fn) => sum(fn) / listings.length;
-    // Average only non-zero values to avoid skewing from missing data
-    const avgNonZero = (fn) => {
-      const valid = listings.filter((l) => fn(l) > 0);
-      return valid.length ? valid.reduce((acc, l) => acc + fn(l), 0) / valid.length : 0;
-    };
-    const cfPlusListings = listings.filter((l) => l.cashFlow > 0);
-    const bestCfListing = listings.reduce((best, l) => l.cashFlow > best.cashFlow ? l : best);
-    const bestCapListing = listings.reduce((best, l) => l.capRate > best.capRate ? l : best);
-    const priceDropCount = listings.filter((l) => l.priceDrop > 0).length;
-
-    return {
-      total: listings.length,
-      avgPrice: avgNonZero((l) => l.price),
-      avgScore: avgNonZero((l) => l.hamzaScore),
-      avgDom: avgNonZero((l) => l.dom),
-      avgRent: avgNonZero((l) => l.estimatedRent),
-      avgCf: avg((l) => l.cashFlow),
-      avgCoc: avg((l) => l.cashOnCash),
-      bestCf: bestCfListing.cashFlow,
-      bestCap: bestCapListing.capRate,
-      cfPlusCount: cfPlusListings.length,
-      priceDropCount,
-      suites: listings.filter((l) => l.hasSuite).length,
-    };
-  }, [listings]);
+  // …and then the decision about what may be PRESENTED. See
+  // lib/listings/screener-metrics.js — on an incomplete set the set-dependent
+  // figures either come from the server's whole-market aggregate or are
+  // withheld entirely (null → skeleton). Nothing final-looking is ever shown
+  // for a partial sample.
+  const { metrics, state } = useMemo(
+    () => resolveScreenerMetrics(loadedMetrics, { analysisComplete, summary }),
+    [loadedMetrics, analysisComplete, summary]
+  );
+  const stillLoading = state !== 'complete';
+  // In 'market' state every tile describes the whole market, so the chip must
+  // quote the SAME population — quoting loaded-so-far beside market-wide tiles
+  // would put two counts for one fact on one bar.
+  const progressLabel = state === 'partial' && marketTotal > 0
+    ? `${loadedCount.toLocaleString()} of ${marketTotal.toLocaleString()} analyzed`
+    : `${metrics.total.toLocaleString()} analyzed`;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm">
@@ -197,10 +210,15 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
 
           {listings.length > 0 && (
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
-                <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
-                {metrics.suites.toLocaleString()} suites
-              </span>
+              {/* A count over the loaded slice, so it is withheld on a partial
+                  set exactly like the tiles below — it read "12 suites" and
+                  then "180 suites" on the same page load. */}
+              {metrics.suites !== null && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
+                  <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
+                  {metrics.suites.toLocaleString()} suites
+                </span>
+              )}
               {/* The server renders only the FIRST page of inventory (the rest
                   streams in client-side), so this used to read "198 analyzed"
                   in the HTML — which is what a crawler, and any audit tool that
@@ -210,9 +228,7 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
                   true coverage figure is in the server-rendered markup. */}
               <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono font-medium text-white/80">
                 <span className={`h-1 w-1 rounded-full bg-accent${stillLoading ? ' animate-pulse' : ''}`} />
-                {stillLoading
-                  ? `${metrics.total.toLocaleString()} of ${marketTotal.toLocaleString()} analyzed`
-                  : `${metrics.total.toLocaleString()} analyzed`}
+                {progressLabel}
               </span>
             </div>
           )}
@@ -223,7 +239,10 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
           plain message when filters match nothing ── */}
       {listings.length === 0 ? (
         <div className="px-4 py-4">
-          {loading ? (
+          {/* "No deals match your current filters" is itself a claim about the
+              whole market, and it is false while the market is still arriving —
+              a filter that matches 40 listings matches none of the first 30. */}
+          {loading || !analysisComplete ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 animate-pulse">
               {[0, 1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="h-16 rounded-lg bg-slate-100" />
@@ -271,7 +290,9 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
             color="green"
             delay={180}
           />
-          {metrics.priceDropCount > 0 && (
+          {/* null (unknown) still renders — as a skeleton. Only a KNOWN zero
+              hides the tile, which is the pre-existing behaviour. */}
+          {(metrics.priceDropCount === null || metrics.priceDropCount > 0) && (
             <OpportunityStat
               label="Price Drops"
               value={metrics.priceDropCount}
@@ -338,19 +359,23 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
         {/* PORTFOLIO ANALYTICS — Collapsible, shows avg CF and avg CoC (the negative numbers) */}
         {showPortfolio && (
           <div className="rounded-lg border border-slate-100 bg-slate-50/50 p-3 space-y-2">
+            {/* The heading claims "Full Dataset" — so it may only say that
+                once there IS a full dataset. */}
             <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-              Portfolio Analytics — Full Dataset Averages
+              {state === 'partial'
+                ? 'Portfolio Analytics — still analyzing the market'
+                : 'Portfolio Analytics — Full Dataset Averages'}
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center">
                 <p className="text-[10px] uppercase text-slate-500 font-medium">Avg Cash Flow</p>
-                <p className={`font-mono text-sm font-bold ${metrics.avgCf >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                  {formatValue(metrics.avgCf, 'cfPlain')}/mo
+                <p className={`font-mono text-sm font-bold ${metrics.avgCf === null ? 'text-slate-400' : metrics.avgCf >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {metrics.avgCf === null ? '—' : `${formatValue(metrics.avgCf, 'cfPlain')}/mo`}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-[10px] uppercase text-slate-500 font-medium">Avg CoC Return</p>
-                <p className={`font-mono text-sm font-bold ${metrics.avgCoc >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                <p className={`font-mono text-sm font-bold ${metrics.avgCoc === null ? 'text-slate-400' : metrics.avgCoc >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {Number.isFinite(metrics.avgCoc) ? metrics.avgCoc.toFixed(1) + '%' : '—'}
                 </p>
               </div>
@@ -360,7 +385,7 @@ export function DealScreener({ listings, loading = false, marketTotal = 0 }) {
               </div>
               <div className="text-center">
                 <p className="text-[10px] uppercase text-slate-500 font-medium">Legal Suites</p>
-                <p className="font-mono text-sm font-bold text-navy">{metrics.suites.toLocaleString()}</p>
+                <p className="font-mono text-sm font-bold text-navy">{metrics.suites === null ? '—' : metrics.suites.toLocaleString()}</p>
               </div>
             </div>
           </div>

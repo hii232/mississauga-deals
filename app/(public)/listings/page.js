@@ -135,18 +135,26 @@ async function fetchInitialListings() {
     // /about and 2,591 here — three live numbers for one fact. feedTotal keeps
     // driving the pagination math; only the CLAIM is unified.
     let displayTotal = feedTotal;
+    // The SAME response also carries a whole-market Deal Screener aggregate,
+    // computed server-side over the entire active feed. Free here — this fetch
+    // already happens — and it is what lets the dashboard print correct
+    // CF+/best-cap/best-cash-flow/price-drop figures in the first paint
+    // instead of ~25 client round trips later. Null when the feed came back
+    // short; the dashboard then shows skeletons rather than a partial answer.
+    let summary = null;
     try {
       const ms = await fetch(`${origin}/api/market-stats`, { next: { revalidate: 300 } });
       if (ms.ok) {
         const stats = await ms.json();
         if (Number(stats.activeCount) > 0) displayTotal = Number(stats.activeCount);
+        if (stats.screener) summary = stats.screener;
       }
     } catch {}
     // data.pages is the API's OWN page count from the raw @odata.count.
     // Re-deriving it client-side from the post-filter browsableTotal computed
     // 13 where the truth was 14 — page 14's listings were permanently
     // unreachable (measured on production: real $2.8M-$4M listings lived there).
-    return { listings: rows, total: feedTotal, displayTotal, pages: Number(data.pages) || 0 };
+    return { listings: rows, total: feedTotal, displayTotal, pages: Number(data.pages) || 0, summary };
   } catch (err) {
     // MUST log. This catch previously swallowed silently, and when a stale
     // `${proto}://${host}` reference survived the headers()→origin refactor it
@@ -156,7 +164,7 @@ async function fetchInitialListings() {
     // not catch it either: the feed fetch fails first there and returns early,
     // so the faulty line never executes at build time.
     console.error('listings SSR: initial fetch failed —', err);
-    return { listings: [], total: 0, displayTotal: 0, pages: 0 };
+    return { listings: [], total: 0, displayTotal: 0, pages: 0, summary: null };
   }
 }
 
@@ -190,7 +198,7 @@ function buildItemList(listings) {
 }
 
 export default async function ListingsPage() {
-  const { listings, total, displayTotal, pages } = await fetchInitialListings();
+  const { listings, total, displayTotal, pages, summary } = await fetchInitialListings();
   const itemList = buildItemList(listings);
 
   return (
@@ -262,6 +270,7 @@ export default async function ListingsPage() {
             initialTotal={total}
             initialPages={pages}
             displayTotal={displayTotal}
+            initialSummary={summary}
             apiEndpoint="/api/listings"
           />
         </Suspense>

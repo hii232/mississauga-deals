@@ -246,6 +246,22 @@ export function countActiveFilters(filters) {
   return count;
 }
 
+// ── Is this the whole set? ──
+// True when applyFilters would return every listing handed to it (only the
+// SORT differs, which reorders but never removes). Callers use this to decide
+// whether a whole-market aggregate still describes what is on screen — the
+// moment any filter narrows the set, it does not.
+//
+// Deliberately checks the three membership filters countActiveFilters ignores
+// (search text, property type, strategy chips) as well as its twelve.
+export function hasNoActiveFilters(filters) {
+  if (!filters) return false;
+  if ((filters.search || '').trim()) return false;
+  if (filters.propertyType !== 'All') return false;
+  if ((filters.activeStrategies || []).length > 0) return false;
+  return countActiveFilters(filters) === 0;
+}
+
 // ── Apply All Filters ──
 export function applyFilters(listings, filters) {
   let result = [...listings];

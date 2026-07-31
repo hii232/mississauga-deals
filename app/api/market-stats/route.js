@@ -3,6 +3,8 @@ import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 import { headers } from 'next/headers';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
+import { processListings } from '@/lib/listings/process-listings';
+import { computeScreenerMetrics } from '@/lib/listings/screener-metrics';
 
 export const dynamic = 'force-dynamic';
 
@@ -195,10 +197,36 @@ async function fetchLiveListingStats(baseUrl) {
       Object.entries(staleByNeighbourhood).sort((a, b) => b[1] - a[1])
     );
 
+    // ── Whole-market Deal Screener aggregate ──
+    // This function ALREADY holds every active row; underwriting them costs one
+    // pass and no extra upstream request, and the result is cached for a day.
+    //
+    // Why it matters: /listings streams the feed into the browser ~100 rows at
+    // a time, and its dashboard used to compute "CF+ deals", "best cap", "best
+    // cash flow" and "price drops" over whatever had arrived — publishing "0
+    // cash flowing deals · best cash flow -$278/mo" at 30 of 2,493 rows, which
+    // settled to "1 · +$41/mo" seconds later. Handing the page a correct
+    // whole-market answer up front removes the lie AND the wait: the numbers
+    // are right in the server-rendered HTML instead of ~25 round trips later.
+    //
+    // Withheld below a 95% fill for the same reason the tiles are: a max or a
+    // count over 85% of the market is not the market's max or count. The
+    // consumer falls back to skeletons, which is honest.
+    let screener = null;
+    if (fillRatio >= 0.95) {
+      try {
+        const deals = processListings(raw);
+        if (deals.length > 0) screener = computeScreenerMetrics(deals);
+      } catch (err) {
+        console.error('market-stats: screener aggregate failed —', err);
+      }
+    }
+
     return {
       activeCount: count, feedTotal, fillRatio, avgDOM, medianDOM, avgPrice, avgPrices,
       staleCount, stalePct, staleWithPriceCut,
       staleByNeighbourhood: staleByNeighbourhoodSorted,
+      screener,
     };
   } catch {
     return null;
@@ -315,6 +343,10 @@ export async function GET() {
     // substitution in its caption, so there it is disclosed, not disguised.)
     avgPrice: liveListings?.avgPrice || null,
     avgPrices,
+    // Whole-market Deal Screener aggregate (or null on a short fill) — see
+    // fetchLiveListingStats. Consumed by the /listings server render so the
+    // dashboard's set-dependent tiles are correct at first paint.
+    screener: liveListings?.screener ?? null,
     salesToListRatio,
     avgSoldPrice: soldStats?.avgSoldPrice || 0,
     avgSoldDOM: soldStats?.avgDOM || 0,

@@ -11,7 +11,7 @@ import { DealScreener } from './deal-screener';
 import { ListingGrid } from './listing-grid';
 import { ListingTable } from './listing-table';
 import { InvestorFilters } from './investor-filters';
-import { DEFAULT_FILTERS, applyFilters, serializeFilters, deserializeFilters } from './filter-utils';
+import { DEFAULT_FILTERS, applyFilters, serializeFilters, deserializeFilters, hasNoActiveFilters } from './filter-utils';
 
 const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap), {
   ssr: false,
@@ -164,7 +164,14 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods, city: cityProp = '' }) {
+// initialSummary: a whole-market Deal Screener aggregate computed server-side
+// over the ENTIRE active feed (/api/market-stats already walks it, so this
+// costs no extra request — the /listings server render fetches that endpoint
+// anyway). It lets the dashboard state correct market-wide figures from the
+// first paint instead of publishing whatever the first 30 rows happen to say.
+// Absent (GTA pages, or a feed that came back short) simply means the
+// set-dependent tiles stay skeletons until the load finishes.
+export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods, city: cityProp = '', initialSummary = null }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -181,6 +188,10 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   const [isLoading, setIsLoading] = useState(initialListings.length === 0);
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  // Every page of the feed is in. Until this flips, the Deal Screener must not
+  // present any max/count over `listings` as a settled figure — see
+  // lib/listings/screener-metrics.js for the measured damage that caused.
+  const [analysisComplete, setAnalysisComplete] = useState(false);
 
   const [photoMap, setPhotoMap] = useState({});
 
@@ -339,12 +350,13 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   // Either way, remaining pages load in the background and get appended.
   useEffect(() => {
     let cancelled = false;
+    setAnalysisComplete(false);
     async function fetchRemaining() {
       try {
         const { processListings } = await import('@/lib/listings/process-listings');
         const cityQs = cityParam ? '&city=' + encodeURIComponent(cityParam) : '';
 
-        let page1Raw = [];
+        let page1Processed = [];
         let totalPages;
 
         if (initialListings.length === 0) {
@@ -356,13 +368,13 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
             return;
           }
           const data = await res.json();
-          page1Raw = data.listings || data || [];
+          page1Processed = processListings(data.listings || data || []);
           totalPages = data.pages || 1;
 
           if (!cancelled) {
             setLoadError(false);
             setIsLoading(false);
-            if (page1Raw.length > 0) setListings(processListings(page1Raw));
+            if (page1Processed.length > 0) setListings(page1Processed);
           }
         } else {
           // SSR already gave us page 1 (processed) — work out how many more
@@ -374,41 +386,109 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           totalPages = initialPages > 0 ? initialPages : initialTotal > 0 ? Math.ceil(initialTotal / 200) : 1;
         }
 
-        // Fetch remaining pages in parallel batches, appending as they arrive
+        // Whichever base we started from — SSR's already-processed rows, or
+        // this run's own page 1. Processed exactly ONCE now: the old code
+        // re-ran processListings(page1Raw) inside every merge, re-underwriting
+        // the same 100 listings once per batch on a cold start.
+        const base = initialListings.length > 0 ? initialListings : page1Processed;
+
+        // ── Background-load the rest of the inventory ──
         if (totalPages > 1 && !cancelled) {
           // 100 pages × 100 rows: the feed page size halved (media-expand
           // cap), so the page budget doubles to keep the same ~10k-listing
           // background coverage on the GTA hub. /listings needs ~26.
           const maxPages = Math.min(totalPages, 100);
-          const batchSize = 5;
-          const allExtraRaw = [];
 
-          for (let batchStart = 2; batchStart <= maxPages && !cancelled; batchStart += batchSize) {
-            const batch = [];
-            for (let p = batchStart; p < batchStart + batchSize && p <= maxPages; p++) {
-              batch.push(
-                fetch(apiEndpoint + '?limit=100&page=' + p + cityQs)
-                  .then(r => r.ok ? r.json() : null)
-                  .then(pg => pg?.listings || [])
-                  .catch(() => [])
-              );
-            }
-            const results = await Promise.all(batch);
-            for (const r of results) allExtraRaw.push(...r);
+          // A worker POOL, not fixed waves. The old loop awaited a whole batch
+          // of five before requesting the next five, so the slowest page in
+          // each batch held up every request behind it and the number of
+          // in-flight requests drained to zero between batches — 25 pages cost
+          // five full round trips of the SLOWEST page each. A pool keeps
+          // CONCURRENCY requests in flight continuously instead. Peak
+          // concurrency is essentially unchanged (5 → 6, matching the
+          // server-side batch size documented in lib/listings/fetch-feed.js),
+          // so this does NOT enlarge the burst the upstream feed sees; it just
+          // stops the pipeline idling between waves.
+          const CONCURRENCY = 6;
+          const pageRows = new Array(maxPages + 1); // processed rows, one slot per page
+          const failed = [];
+          let nextPage = 2;
+          let flushedTo = 1;    // highest page whose rows are on screen
+          let lastFlush = 0;
 
-            if (!cancelled && allExtraRaw.length > 0) {
-              const processedExtra = processListings(allExtraRaw);
-              // Merge with whichever base we started from — SSR's already-
-              // processed rows, or this run's own freshly-processed page 1 —
-              // and drop any listing pages 2+ happen to repeat (dedupe key
-              // matches process-listings' own address+price dedupe).
-              const base = initialListings.length > 0 ? initialListings : processListings(page1Raw);
-              const seen = new Set(base.map((l) => l.address + '|' + l.price));
-              const merged = base.concat(processedExtra.filter((l) => !seen.has(l.address + '|' + l.price)));
-              setListings(merged);
+          // Rebuild the visible list from the contiguous run of pages that have
+          // landed. Contiguous, not "whatever finished", so page order — and
+          // therefore the rendered order — is byte-identical to the old
+          // sequential-batch behaviour even though the fetches complete out of
+          // order.
+          const flush = (force) => {
+            if (cancelled) return;
+            while (flushedTo + 1 <= maxPages && pageRows[flushedTo + 1] !== undefined) flushedTo++;
+            const now = Date.now();
+            // Coalesce: one re-render every ~250ms rather than one per page.
+            if (!force && now - lastFlush < 250) return;
+            lastFlush = now;
+            // Dedupe key matches process-listings' own address+price dedupe.
+            const seen = new Set(base.map((l) => l.address + '|' + l.price));
+            const merged = [...base];
+            for (let p = 2; p <= flushedTo; p++) {
+              for (const l of pageRows[p] || []) {
+                const key = l.address + '|' + l.price;
+                if (seen.has(key)) continue;
+                seen.add(key);
+                merged.push(l);
+              }
             }
+            if (merged.length > base.length) setListings(merged);
+          };
+
+          // Each page is underwritten ONCE, as it arrives. The old code re-ran
+          // processListings over the whole accumulated array on every batch —
+          // ~7,500 listings' worth of mortgage/NOI/cap-rate/score math for a
+          // 2,500-listing market, all of it on the phone's main thread, and it
+          // grew quadratically with the GTA hub's 100 pages. Now it is linear.
+          // Nothing about the per-listing calculation changes: the same
+          // function, over the same rows, in the same order.
+          const loadPage = async (p) => {
+            try {
+              const r = await fetch(apiEndpoint + '?limit=100&page=' + p + cityQs);
+              if (!r.ok) throw new Error('page ' + p);
+              const pg = await r.json();
+              pageRows[p] = processListings(pg?.listings || []);
+              return true;
+            } catch {
+              pageRows[p] = null;
+              return false;
+            }
+          };
+
+          const worker = async () => {
+            while (!cancelled) {
+              const p = nextPage++;
+              if (p > maxPages) return;
+              if (!(await loadPage(p))) failed.push(p);
+              flush(false);
+            }
+          };
+          await Promise.all(
+            Array.from({ length: Math.min(CONCURRENCY, maxPages - 1) }, () => worker())
+          );
+
+          // One retry for pages that dropped. These used to be swallowed
+          // silently and lost for the whole session — a dropped page is ~100
+          // listings missing from the counts, the map and the filters, with
+          // nothing to say so. Sequential, so a retry storm can't hammer the
+          // feed.
+          for (const p of failed) {
+            if (cancelled) break;
+            await loadPage(p);
           }
+          flush(true);
         }
+
+        // Every page that was going to arrive has arrived. Only now may the
+        // Deal Screener present counts and maxima over this set as final.
+        if (!cancelled) setAnalysisComplete(true);
       } catch {
         if (!cancelled) { setIsLoading(false); setLoadError(true); }
       }
@@ -428,6 +508,9 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   }, []);
 
   const filtered = useMemo(() => applyFilters(listings, filters), [listings, filters]);
+  // Sorting reorders the set but never changes its membership, so it does not
+  // disqualify the whole-market summary.
+  const unfiltered = useMemo(() => hasNoActiveFilters(filters), [filters]);
 
   // Store filtered listing IDs in localStorage for prev/next navigation on detail page
   useEffect(() => {
@@ -449,7 +532,18 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           so one crawl never reads different totals on different pages;
           initialTotal (the feed's own browsable count) is the fallback and
           still drives the pagination math. */}
-      <DealScreener listings={filtered} loading={isLoading} marketTotal={displayTotal || initialTotal} />
+      {/* analysisComplete/loadedCount/summary: see deal-screener.js. The
+          server summary describes the WHOLE market, so it is only handed over
+          while no filter narrows the set — the moment a filter is on, the only
+          honest answer for an unfinished load is a skeleton. */}
+      <DealScreener
+        listings={filtered}
+        loading={isLoading}
+        marketTotal={displayTotal || initialTotal}
+        analysisComplete={analysisComplete}
+        loadedCount={listings.length}
+        summary={unfiltered ? initialSummary : null}
+      />
 
       {/* Top Picks — highest-scored CF+ deals */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
