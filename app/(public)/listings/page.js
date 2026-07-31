@@ -17,7 +17,20 @@ import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 // ListingsContainer keeps ALL its interactivity — it takes these rows as
 // initialListings and skips its own fetch when they are present, so filters,
 // sorting, the map and the gate behave exactly as before.
-export const revalidate = 600;
+// DYNAMIC, deliberately — do not "fix" this back to ISR without re-reading
+// this comment. The 2026-07-31 audit correctly found that a headers() call was
+// silently disabling this file's `revalidate = 600`, and replacing it with the
+// SITE_URL constant did turn real ISR on. On production that made the money
+// page WORSE, measured: the Vercel build cannot reach the site's own
+// /api/listings while building, so the prerender baked with zero listings, and
+// the page then sat at CDN `cache=HIT` with no serverless invocation at all —
+// 50 minutes after deploy it was still serving that empty HTML, 0 cards and no
+// ItemList schema, where the pre-release dynamic render had served both.
+// An empty highest-value commercial page is a far worse outcome than paying a
+// server render per request, which is what this page did for months.
+// The SITE_URL fix below is kept (it is correct and removes the local
+// `next start` trap); only the caching mode reverts.
+export const dynamic = 'force-dynamic';
 
 // Buying-side questions for the money page. Deliberately DISTINCT from the
 // /faq set (which covers the product, the deal score and Hamza) so the two
@@ -116,7 +129,7 @@ async function fetchInitialListings() {
     // driving the pagination math; only the CLAIM is unified.
     let displayTotal = feedTotal;
     try {
-      const ms = await fetch(`${proto}://${host}/api/market-stats`, { next: { revalidate: 300 } });
+      const ms = await fetch(`${origin}/api/market-stats`, { next: { revalidate: 300 } });
       if (ms.ok) {
         const stats = await ms.json();
         if (Number(stats.activeCount) > 0) displayTotal = Number(stats.activeCount);
@@ -127,7 +140,15 @@ async function fetchInitialListings() {
     // 13 where the truth was 14 — page 14's listings were permanently
     // unreachable (measured on production: real $2.8M-$4M listings lived there).
     return { listings: rows, total: feedTotal, displayTotal, pages: Number(data.pages) || 0 };
-  } catch {
+  } catch (err) {
+    // MUST log. This catch previously swallowed silently, and when a stale
+    // `${proto}://${host}` reference survived the headers()→origin refactor it
+    // threw a ReferenceError on every production render — the money page
+    // served zero server-rendered cards and zero ItemList schema for 50
+    // minutes with NOTHING in the logs to say why. The env-less build could
+    // not catch it either: the feed fetch fails first there and returns early,
+    // so the faulty line never executes at build time.
+    console.error('listings SSR: initial fetch failed —', err);
     return { listings: [], total: 0, displayTotal: 0, pages: 0 };
   }
 }
