@@ -14,6 +14,15 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Terms of Service | MississaugaInvestor.ca' }],
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a page
+  // defines its own openGraph — without this the page shares text-only on
+  // X/Twitter/Slack/iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms of Service',
+    description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function TermsPage() {
@@ -160,7 +169,7 @@ export default function TermsPage() {
             <p>Cityscape Real Estate Ltd., Brokerage</p>
             <p>885 Plymouth Dr UNIT 2, Mississauga, ON L5V 0B5</p>
             <p>
-              Phone: <a href="tel:6476091289" className="text-accent hover:underline">647-609-1289</a>
+              Phone: <a href="tel:+16476091289" className="text-accent hover:underline">647-609-1289</a>
             </p>
             <p>
               Email: <a href="mailto:hamza@nouman.ca" className="text-accent hover:underline">hamza@nouman.ca</a>

@@ -8,15 +8,23 @@ import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed
 
 const BASE = 'https://www.mississaugainvestor.ca';
 
+// ISR: primary lead-capture page; nothing request-dependent. Without this the
+// page rendered dynamically on every hit once the stats helper used headers().
+export const revalidate = 3600;
+
 export const metadata = {
-  title: { absolute: 'Sell Your Home in Mississauga — Free Valuation' },
+  // Title targets the dominant seller query — "what is my home worth" — which
+  // is how most Mississauga homeowners begin the selling journey. The H1 and
+  // body copy then convert that visitor into a valuation request.
+  title: { absolute: 'What Is My Mississauga Home Worth? Free Home Valuation' },
   description:
-    'Sell your Mississauga home for the most: a free, data-backed valuation plus precise pricing, professional marketing and hard negotiation. No obligation.',
+    'Find out what your Mississauga home is worth: a free, data-backed valuation from a licensed agent who tracks every active listing. No obligation, no pressure.',
   keywords: [
+    'what is my home worth mississauga',
+    'what is my house worth mississauga',
+    'mississauga home valuation',
     'sell my house mississauga',
     'sell my home mississauga',
-    'mississauga home valuation',
-    'what is my home worth mississauga',
     'sell home for top dollar mississauga',
     'best listing agent mississauga',
     'mississauga listing agent',
@@ -24,10 +32,16 @@ export const metadata = {
   alternates: { canonical: '/sell' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Sell Your Home in Mississauga — Sell for Top Dollar' }],
-    title: 'Sell Your Home in Mississauga — Sell for Top Dollar',
-    description: 'A free, data-backed home valuation and a full-service plan to net you the most — precise pricing, professional marketing, and expert negotiation.',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Free Mississauga Home Valuation — MississaugaInvestor.ca' }],
+    title: 'What Is My Mississauga Home Worth? Free Home Valuation',
+    description: 'A free, data-backed home valuation from a licensed Mississauga agent — real comparable sales, not an online estimate. No obligation.',
     url: `${BASE}/sell`,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'What Is My Mississauga Home Worth? Free Home Valuation',
+    description: 'Free home valuation from a licensed Mississauga agent — real comparable sales, not an algorithm.',
+    images: ['/opengraph-image'],
   },
 };
 
@@ -66,6 +80,14 @@ const agentServiceSchema = {
 // contradicting itself in its own copy.
 function buildSellFaq(propertiesAnalyzed) {
   return [
+  {
+    // Placed first so it directly answers the title-tag query. The answer is
+    // DEFINITIONAL (explains what drives value) rather than quoting a figure,
+    // because a figure in schema can be shown by Google long after prices move.
+    question: 'What is my Mississauga home worth?',
+    answer:
+      `Your home's value depends on four things: what comparable homes in your area actually sold for in the last 90 days, what similar homes are listed for right now (your competition), your home's specific features (size, layout, condition, secondary-suite potential), and current buyer demand in your neighbourhood. An online estimate uses only the first two and ignores the rest — which is why the same Zestimate or HouseSigma figure can be $50,000–$100,000 off. A free CMA from Hamza uses all four, sourced from real MLS data and a walkthrough of your specific home.`,
+  },
   {
     question: 'How do you sell my home for the most?',
     answer:
@@ -162,7 +184,7 @@ export default async function SellPage() {
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: `${BASE}/` },
-          { name: 'Sell Your Home', url: `${BASE}/sell` },
+          { name: 'Free Home Valuation', url: `${BASE}/sell` },
         ]}
       />
       <FAQJsonLd items={SELL_FAQ} />

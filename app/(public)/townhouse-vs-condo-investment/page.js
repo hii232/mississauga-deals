@@ -25,6 +25,12 @@ export const metadata = {
     description: 'How condo fees, land, appreciation, cash flow and tenant demand compare for townhouse vs condo investing in Mississauga and the GTA.',
     url: 'https://www.mississaugainvestor.ca/townhouse-vs-condo-investment',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Townhouse or Condo: Which Is the Better Investment? (${YEAR})`,
+    description: 'How condo fees, land, appreciation, cash flow and tenant demand compare for townhouse vs condo investing in Mississauga and the GTA.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest, general comparison — no fabricated price/appreciation figures. The

@@ -1,15 +1,22 @@
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
 import MarkdownRenderer from '@/components/blog/markdown-renderer';
 import { SidebarEmailCapture } from '@/components/blog/sidebar-email-capture';
 import InlineCTA from '@/components/ui/inline-cta';
+import ShareButtons from '@/components/ui/share-buttons';
 import { ArticleJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import Link from 'next/link';
 import { blogCoverUrl } from '@/lib/blog-cover';
 import { sanitizePost, sanitizeBlogText } from '@/lib/blog/sanitize-content';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
+// Canonical overrides live in lib/blog/canonical-overrides.js — shared with
+// app/sitemap.js (which must EXCLUDE these slugs: a sitemap entry is a
+// canonical claim, and these posts' canonicals point elsewhere) and
+// next.config.js, so the lists can't drift.
+import { getCanonicalOverride } from '@/lib/blog/canonical-overrides';
 
 export const revalidate = 60;
 
@@ -30,6 +37,13 @@ export async function generateMetadata({ params }) {
 
   if (!post) return { title: 'Post Not Found' };
   post = sanitizePost(post);
+
+  // If this post covers the same topic as a dedicated investor-guide page,
+  // point its canonical there so Google consolidates SEO authority on the
+  // purpose-built, conversion-optimised page instead of splitting it.
+  const override = getCanonicalOverride(post.slug);
+  const canonicalUrl = override?.canonicalUrl
+    ?? `https://www.mississaugainvestor.ca/blog/${post.slug}`;
 
   return {
     title: post.title,
@@ -65,7 +79,7 @@ export async function generateMetadata({ params }) {
       images: [blogCoverUrl(post, true)],
     },
     alternates: {
-      canonical: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
+      canonical: canonicalUrl,
     },
   };
 }
@@ -112,8 +126,22 @@ export default async function BlogPostPage({ params }) {
     year: 'numeric', month: 'long', day: 'numeric',
   });
 
+  // The cover is the LCP element on blog posts. Route it through the Next
+  // image optimizer only when the host is whitelisted in next.config.js
+  // remotePatterns (Supabase storage, ampre, Unsplash). Generated
+  // /api/blog-cover PNGs (own dynamic route) and any admin-pasted host that
+  // isn't whitelisted pass through unoptimized — the optimizer would 400 them.
+  const coverUrl = blogCoverUrl(post);
+  const coverOptimizable =
+    /^https:\/\/([a-z0-9-]+\.)*(supabase\.co|ampre\.ca|repliers\.io)\//i.test(coverUrl) ||
+    coverUrl.startsWith('https://images.unsplash.com/');
+
   const related = await fetchRelatedPosts(post.slug, post.category);
   const googleRating = await fetchGoogleRating();
+  // Detect if this post covers a topic that has a dedicated investor-guide page
+  // so we can render a "see the interactive version" notice and apply the
+  // canonical override in metadata.
+  const override = getCanonicalOverride(post.slug);
 
   return (
     <>
@@ -166,10 +194,47 @@ export default async function BlogPostPage({ params }) {
       <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
           <article>
+            {/* Dedicated-guide notice — shown only on blog posts that cover the
+                same topic as a purpose-built investor guide page. Points readers
+                to the interactive/conversion-optimised version and reinforces the
+                canonical signal we emit in <head>. Subtle: accent tint, not a
+                full-width banner, so it doesn't compete with the H1 or author
+                box. */}
+            {override && (
+              <div className="flex items-start gap-3 p-4 mb-6 rounded-xl bg-accent/8 border border-accent/20">
+                <svg
+                  className="w-5 h-5 mt-0.5 flex-shrink-0 text-accent"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  {/* information-circle (Heroicons outline) */}
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-[13px] font-semibold text-navy leading-snug">
+                    We also have a dedicated interactive guide:{' '}
+                    <Link href={override.path} className="underline text-accent hover:text-accent-dark">
+                      {override.label}
+                    </Link>
+                  </p>
+                  <p className="text-[12px] text-muted mt-0.5">{override.note}</p>
+                </div>
+              </div>
+            )}
+
             {/* Author Box — TOP of article */}
             <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
-              <div className="w-14 h-14 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                HN
+              <div className="relative w-14 h-14 flex-shrink-0">
+                <Image
+                  src="/images/hamza-headshot.jpg"
+                  alt="Hamza Nouman, Investment Property Specialist"
+                  fill
+                  sizes="56px"
+                  className="rounded-full object-cover object-top"
+                />
               </div>
               <div>
                 <p className="font-heading font-bold text-navy text-sm">Hamza Nouman</p>
@@ -193,13 +258,14 @@ export default async function BlogPostPage({ params }) {
                 load, so the LCP image causes zero layout shift — previously the
                 unsized w-full img pushed the whole article down when it loaded.
                 Unsplash covers (variable landscape aspects) crop consistently. */}
-            <img
-              src={blogCoverUrl(post)}
+            <Image
+              src={coverUrl}
               alt={post.title}
               width={1200}
               height={630}
-              fetchPriority="high"
-              decoding="async"
+              priority
+              sizes="(min-width: 768px) 768px, 100vw"
+              unoptimized={!coverOptimizable}
               className="w-full aspect-[1200/630] object-cover rounded-xl mb-8 shadow-md"
             />
 
@@ -207,8 +273,19 @@ export default async function BlogPostPage({ params }) {
 
             {/* End-of-post booking CTA */}
             <div className="mt-12 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-navy rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-4 border-2 border-white/20">
-                HN
+              {/* Exclusive offer note — gold chip, sufficient contrast on navy */}
+              <div className="inline-flex items-center gap-1.5 mb-5">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-gold">Exclusive:</span>
+                <span className="text-[10px] text-white/75">First month&apos;s mortgage on us when you close</span>
+              </div>
+              <div className="relative w-16 h-16 mx-auto mb-4">
+                <Image
+                  src="/images/hamza-headshot.jpg"
+                  alt="Hamza Nouman, Investment Specialist"
+                  fill
+                  sizes="64px"
+                  className="rounded-full object-cover object-top border-2 border-white/20"
+                />
               </div>
               <h3 className="font-heading text-xl font-bold text-white mb-2">
                 Need help with this topic?
@@ -219,15 +296,21 @@ export default async function BlogPostPage({ params }) {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
                   href="/book-call"
-                  className="btn-primary !px-6 no-underline text-center"
+                  className="btn-primary !px-6 no-underline text-center inline-flex items-center gap-2"
                 >
-                  📅 Book Free Call
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Free Call
                 </Link>
                 <a
                   href="tel:+16476091289"
-                  className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center"
+                  className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center inline-flex items-center gap-2"
                 >
-                  📞 647-609-1289
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  647-609-1289
                 </a>
               </div>
               {googleRating && (
@@ -259,6 +342,14 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
+            {/* Share sits above the newsletter CTA, not below it: a reader who
+                has finished the article is at peak intent, and the CTA is the
+                conversion ask we do not want to push further down the page. */}
+            <ShareButtons
+              url={`/blog/${params.slug}`}
+              title={post.title}
+              className="mt-10 border-t border-slate-200 pt-6"
+            />
             <SkylineStrip className="mt-12 h-10 w-full" tone="#1B2A4A" opacity={0.1} />
             <InlineCTA variant="newsletter" className="mt-6" />
           </article>
@@ -284,20 +375,28 @@ export default async function BlogPostPage({ params }) {
               <div className="rounded-xl border border-gray-200 p-5 bg-white">
                 <p className="font-heading font-bold text-navy text-sm mb-3">Talk to Hamza</p>
                 <a href="tel:+16476091289" className="flex items-center justify-center gap-2 border border-gray-200 rounded-lg py-2.5 text-sm font-semibold text-navy no-underline hover:border-navy/30 transition mb-2">
-                  📞 647-609-1289
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  647-609-1289
                 </a>
                 {/* bg-emerald-500 measured 2.54:1 for white text — the same
                     AA failure fixed on the homepage badges this morning,
                     recurring here on a real conversion CTA on the site's
                     top-traffic page type. emerald-700 = 5.48:1. */}
                 <Link href="/book-call" className="flex items-center justify-center gap-2 bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold no-underline hover:bg-emerald-800 transition">
-                  📅 Book Free Call
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Book Free Call
                 </Link>
               </div>
 
               {/* First Month Offer */}
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
-                <span className="text-[10px] font-bold text-emerald-600">EXCLUSIVE OFFER</span>
+                {/* text-emerald-600 on bg-accent/5 measured ~2.2:1 — fails AA.
+                    accent-dark (#1D4ED8) on white/near-white = 7.1:1, passes. */}
+                <span className="text-[10px] font-bold text-accent-dark">EXCLUSIVE OFFER</span>
                 <p className="text-sm font-semibold text-navy mt-1 leading-snug">
                   Close with Hamza — First Month&apos;s Mortgage On Us
                 </p>

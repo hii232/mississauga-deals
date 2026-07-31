@@ -4,6 +4,7 @@ import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
 import { RelatedGuides } from '@/components/ui/related-guides';
+import RentVsBuyCalculator from '@/components/tools/rent-vs-buy-calculator';
 
 const YEAR = new Date().getFullYear();
 
@@ -24,10 +25,16 @@ export const metadata = {
     description: 'How rates, prices, closing costs, and time horizon decide rent vs buy in Mississauga — plus a free break-even calculator.',
     url: 'https://www.mississaugainvestor.ca/rent-vs-buy-mississauga',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Rent vs Buy in Mississauga (${YEAR})`,
+    description: 'How rates, prices, closing costs, and time horizon decide rent vs buy in Mississauga — plus a free break-even calculator.',
+    images: ['/opengraph-image'],
+  },
 };
 
-// Honest, general guidance — no fabricated break-even figures. Specific numbers
-// come from the (audited) mortgage calculator, which readers are sent to.
+// Honest, general guidance — no fabricated break-even figures. The interactive
+// calculator below runs the math live in the browser with verified Canadian logic.
 const RVB_FAQ = [
   {
     question: `Is it better to rent or buy in Mississauga in ${YEAR}?`,
@@ -99,12 +106,12 @@ export default function RentVsBuyMississaugaPage() {
             climbing. A horizon of roughly <strong>five or more years</strong> usually favours buying, but your real
             break-even depends on price, down payment, and rate. The honest answer is to model your own numbers.
           </p>
-          <Link
-            href="/mortgage-calculator"
+          <a
+            href="#rvb-calculator"
             className="btn-primary !px-6 !py-2.5 no-underline text-sm inline-block mt-4"
           >
-            Run your break-even in the free calculator →
-          </Link>
+            Run your break-even ↓
+          </a>
         </div>
 
         {/* Factors */}
@@ -116,6 +123,11 @@ export default function RentVsBuyMississaugaPage() {
               <p className="text-xs text-slate-600 leading-relaxed">{f.body}</p>
             </div>
           ))}
+        </div>
+
+        {/* Interactive break-even calculator */}
+        <div id="rvb-calculator">
+          <RentVsBuyCalculator />
         </div>
 
         {/* Inline email capture — convert the reader who isn't ready to browse yet */}
@@ -154,7 +166,7 @@ export default function RentVsBuyMississaugaPage() {
 
         <RelatedGuides current="/rent-vs-buy-mississauga" />
       </div>
-      <StickyMobileCTA href="/mortgage-calculator" label="Run Your Numbers — Free" />
+      <StickyMobileCTA href="#rvb-calculator" label="Run Break-Even Calculator ↓" />
     </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { fmtK } from '@/lib/utils/format';
@@ -188,8 +189,13 @@ export default function NeighbourhoodsPage() {
               {/* Image / scene header */}
               <div className="relative h-40 overflow-hidden">
                 {photo ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={photo} alt={`${name}, Mississauga`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <Image
+                    src={photo}
+                    alt={`${name}, Mississauga`}
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 ) : (
                   <NeighbourhoodScene name={name} className="h-full w-full transition-transform duration-500 group-hover:scale-105" />
                 )}
@@ -250,7 +256,7 @@ export default function NeighbourhoodsPage() {
                   Investment Guide
                 </Link>
                 <Link
-                  href={`/listings?hood=${encodeURIComponent(name)}`}
+                  href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow"
                   className="block text-center rounded-lg bg-cloud py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
                 >
                   View Listings

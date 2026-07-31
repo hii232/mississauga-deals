@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { headers } from 'next/headers';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
+import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
@@ -72,6 +72,12 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Properties for Sale in Mississauga' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Investment Properties for Sale in Mississauga',
+    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Loads instantly with skeletons, then fetches client-side progressively.
@@ -83,19 +89,19 @@ export const metadata = {
 // so a feed hiccup degrades to the old behaviour rather than an error page.
 async function fetchInitialListings() {
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    // Local hosts appear as BOTH "localhost:3000" and "127.0.0.1:3000"; matching
-    // only the former built an https:// URL against a plain-http dev server, the
-    // TLS error hit the catch, and the page silently fell back to an empty
-    // server render — which looked exactly like SSR not working at all.
-    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
-    const proto = isLocal ? 'http' : 'https';
+    // Origin WITHOUT request APIs: the old headers() call here marked the
+    // route dynamic, which silently disabled this file's own
+    // `revalidate = 600` — the primary money page paid full SSR + feed fetch
+    // on every request, crawls included. VERCEL-gated (not NODE_ENV) so local
+    // `next start` cannot point at the live domain.
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
     // /gta and the homepage. One page of 100 — the grid renders 30 cards and
     // the ItemList uses 20, so a second page was pure payload. See the helper
     // for why this replaced a page-local fetch with a long-lived cache entry.
-    const { listings: rawRows, first: data } = await fetchFeedPages(`${proto}://${host}`, '/api/listings', { pages: 1 });
+    const { listings: rawRows, first: data } = await fetchFeedPages(origin, '/api/listings', { pages: 1 });
     if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const rows = processListings(rawRows);
     // browsableTotal excludes the commercial/lease rows the site never shows —
@@ -174,19 +180,24 @@ export default async function ListingsPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }}
         />
       )}
+
+      {/* Compact dusk PageHero — matches the /gta page identity and gives the
+          site's #1 commercial page the same premium brand treatment as every
+          other major page. The h1 lives inside PageHero so the exact money
+          keyword "investment properties for sale mississauga" is preserved for
+          search engines while appearing in a visually premium context. */}
+      <PageHero
+        compact
+        eyebrow="Mississauga · Live MLS Data"
+        title="Investment Properties for Sale in Mississauga"
+        subtitle="Every active listing scored for cash flow, cap rate, and ROI — free to browse."
+      />
+
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-navy">
-            Investment Properties for Sale in Mississauga
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Every active Mississauga listing scored and analyzed for cash flow, cap rate, and ROI.
-          </p>
           {/* text-slate-400 measured 2.56:1 on white for this 12px caption —
-              fails AA. slate-500 (4.76:1) is the token already used correctly
-              for the two inline terms right below it; the surrounding prose
-              had just never been raised to match. */}
-          <p className="mt-1 text-xs text-slate-500">
+              fails AA. slate-500 (4.76:1) passes. */}
+          <p className="text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
             <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
@@ -203,10 +214,14 @@ export default async function ListingsPage() {
             <Link href="/rent-by-bedroom-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
               Rent by bedroom
             </Link>
+            <span aria-hidden="true" className="text-slate-400"> · </span>
+            <Link href="/legal-second-unit-mississauga" className="font-medium text-accent hover:text-accent-dark no-underline">
+              Legal second unit guide
+            </Link>
           </p>
           {/* Region switcher — Mississauga is the flagship default, but any GTA
-              city is one tap away (routes to the /gta?city= pages). */}
-          <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
+              city is one tap away. */}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <RegionSwitcher current="mississauga" />
             <span className="text-xs text-slate-500">
               Now covering the whole GTA — switch to Toronto, Brampton, Oakville, Hamilton &amp; more.
@@ -251,6 +266,10 @@ export default async function ListingsPage() {
             , or compare areas in the{' '}
             <Link href="/neighbourhoods" className="font-medium text-accent no-underline hover:text-accent-dark">
               Mississauga neighbourhood guides
+            </Link>
+            . Shortlisted a few properties?{' '}
+            <Link href="/compare" className="font-medium text-accent no-underline hover:text-accent-dark">
+              Compare them side-by-side
             </Link>
             .
           </p>

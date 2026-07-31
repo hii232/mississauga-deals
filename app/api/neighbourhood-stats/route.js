@@ -44,7 +44,14 @@ export async function GET() {
     });
     if (raw.length === 0) return NextResponse.json({ stats: {} });
 
-    return NextResponse.json({ stats: computeHoodStats(processListings(raw)) });
+    // s-maxage lets the Vercel Edge CDN serve cached neighbourhood stats for
+    // 10 minutes — matching the underlying feed revalidate window — so the
+    // 30-page feed walk runs at most once per 10-minute window, not on every
+    // request from the 24 neighbourhood guide pages and homepage cards.
+    return NextResponse.json(
+      { stats: computeHoodStats(processListings(raw)) },
+      { headers: { 'Cache-Control': `s-maxage=${revalidate}, stale-while-revalidate=${revalidate}` } }
+    );
   } catch {
     return NextResponse.json({ stats: {} });
   }

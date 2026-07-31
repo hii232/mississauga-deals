@@ -25,6 +25,12 @@ export const metadata = {
     description: 'What landlord insurance covers, why it differs from a homeowner policy, and what drives the cost for a Mississauga rental.',
     url: 'https://www.mississaugainvestor.ca/rental-property-insurance-mississauga',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Rental Property Insurance in Mississauga (${YEAR})`,
+    description: 'What landlord insurance covers, why it differs from a homeowner policy, and what drives the cost for a Mississauga rental.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest, general guidance only — no fabricated premiums, coverage limits, or

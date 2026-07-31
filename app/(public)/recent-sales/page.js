@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { headers } from 'next/headers';
 import { RecentSalesClient } from './recent-sales-client';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { fmtK } from '@/lib/utils/format';
 
 const YEAR = new Date().getFullYear();
@@ -17,11 +17,12 @@ const YEAR = new Date().getFullYear();
 // prices", so it needs real numbers even before someone registers.
 async function fetchMarketSnapshot() {
   try {
-    const h = await headers();
-    const host = h.get('host') || 'www.mississaugainvestor.ca';
-    const isLocal = /^(localhost|127\.0\.0\.1|\[::1\])(:|$)/.test(host);
-    const proto = isLocal ? 'http' : 'https';
-    const res = await fetch(`${proto}://${host}/api/market-stats`, { next: { revalidate: 3600 } });
+    // Origin WITHOUT request APIs: headers() here forced the page dynamic on
+    // every request. VERCEL-gated so local `next start` stays on localhost.
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
+    const res = await fetch(`${origin}/api/market-stats`, { next: { revalidate: 3600 } });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -63,6 +64,10 @@ const SOLD_FAQ = [
       'Start with sales of the same property type and bedroom count in the same neighbourhood within the last few months, then adjust for the obvious differences — finished basement, parking, lot, condition, renovation. Look at both the sold prices and how long each took to sell. On this site every active listing page also shows nearby closed sales alongside its cash-flow and cap-rate analysis, so you can judge price and return together.',
   },
 ];
+
+// ISR: the market snapshot fetch below carries its own revalidate; the sales
+// table is client-fetched. Hourly matches the snapshot cache window.
+export const revalidate = 3600;
 
 export const metadata = {
   title: { absolute: `Mississauga Sold Prices ${YEAR} — Recent Home Sales` },
@@ -189,6 +194,7 @@ export default async function RecentSalesPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-10">
         <InlineCTA variant="newsletter" />
       </div>
+      <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>
   );
 }

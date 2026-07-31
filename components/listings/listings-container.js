@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { fmtK, fmtNum, pct1 } from '@/lib/utils/format';
@@ -34,12 +35,12 @@ function TopPickCard({ listing, photo, isRegistered }) {
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className="relative flex-shrink-0 w-[280px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:shadow-lg hover:scale-[1.02] no-underline"
+      className="relative flex-shrink-0 w-[280px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-accent/30 hover:shadow-lg no-underline"
     >
       {/* Photo */}
       <div className="relative h-36 w-full overflow-hidden">
         {photo ? (
-          <img src={photo} alt={listing.address} className="h-full w-full object-cover" loading="lazy" />
+          <Image src={photo} alt={listing.address} fill sizes="280px" className="object-cover" />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -108,7 +109,10 @@ function TopPicks({ listings, photoMap, isRegistered }) {
     <div className="relative">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-base">🏆</span>
+          {/* trophy icon — CLAUDE.md prohibits emoji in code */}
+          <svg className="h-4 w-4 flex-none text-gold" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
+          </svg>
           <h3 className="text-sm font-bold text-navy uppercase tracking-wide">Top Picks</h3>
           <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
             Best Cash Flowing Deals
@@ -160,7 +164,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
   );
 }
 
-export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods }) {
+export function ListingsContainer({ initialListings, initialTotal = 0, initialPages = 0, displayTotal = 0, apiEndpoint = '/api/listings', popularHoods, city: cityProp = '' }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -180,24 +184,30 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
   const [photoMap, setPhotoMap] = useState({});
 
-  // Read city from URL (set by GTA mega-menu). Backend filters to that city when present.
-  const cityParam = searchParams.get('city') || '';
-  // Region scope for saved searches: a specific city on /gta?city=X, the
-  // whole-GTA sentinel on the /gta hub, else the Mississauga flagship feed.
+  // Read city from URL (set by GTA mega-menu) or from the `city` prop.
+  // The prop is used on path-segment pages (/gta/[city]) where no ?city= is
+  // present in the URL — the city is in the pathname, not the query string.
+  const cityFromUrl = searchParams.get('city') || '';
+  const cityParam = cityProp || cityFromUrl;
+  // Region scope for saved searches: a specific city on /gta/[city] or
+  // /gta?city=X, the whole-GTA sentinel on the /gta hub, else Mississauga.
   const searchCity = cityParam || (apiEndpoint.includes('gta') ? 'GTA' : 'Mississauga');
 
   // Sync filters to URL (so back button restores exact filter state).
-  // Preserve ?city=X so filter edits on a city-scoped page don't wipe the scope.
+  // Preserve ?city=X when the city came from a query param (legacy /gta?city=
+  // URLs redirect to /gta/[city], but this keeps the URL sync safe if ever
+  // called from a non-redirected context). Do NOT add ?city= when the city
+  // lives in the pathname — the path already carries it.
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
     const qs = serializeFilters(filters);
     const params = new URLSearchParams(qs);
-    if (cityParam) params.set('city', cityParam);
+    if (cityFromUrl) params.set('city', cityFromUrl);
     const final = params.toString();
     const newUrl = pathname + (final ? '?' + final : '');
     router.replace(newUrl, { scroll: false });
-  }, [filters, pathname, router, cityParam]);
+  }, [filters, pathname, router, cityFromUrl]);
 
   // Save scroll position before navigating away (restored on back)
   useEffect(() => {

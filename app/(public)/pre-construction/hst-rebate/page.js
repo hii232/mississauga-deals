@@ -43,6 +43,16 @@ export const metadata = {
       'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',
     url: 'https://www.mississaugainvestor.ca/pre-construction/hst-rebate',
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a page
+  // defines its own openGraph — without this the HST rebate page shares
+  // text-only on X/Twitter/Slack/iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
+    description:
+      'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',
+    images: ['/opengraph-image'],
+  },
 };
 
 function SavingsTier({ range, rebate, effective, highlight }) {
@@ -95,8 +105,8 @@ export default function HSTRebatePage() {
             </span>
           </div>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white leading-tight mb-4">
-            Save Up to <span className="text-accent">$130,000</span> on
-            <br />New Homes in Ontario
+            Ontario HST Rebate: Save Up to
+            <br /><span className="text-accent">$130,000</span> on New Homes
           </h1>
           <p className="text-white/70 text-base md:text-lg max-w-2xl mx-auto mb-8">
             The Ontario government has introduced a new HST rebate on new residential properties.

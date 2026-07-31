@@ -4,6 +4,7 @@ import { getSupabaseAdmin, getBroadcastRecipients } from '@/lib/emails/audience'
 import { buildMotivatedSellersEmail } from '@/lib/emails/motivated-sellers-email';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
+import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
 
 // 300, not 60: fetchRadar calls /api/market-stats with cache:'no-store', and a
 // cold recompute of that route can take 60-90s when the feed upstream is slow.
@@ -28,17 +29,8 @@ const SITE_URL =
     ? 'http://localhost:3000'
     : 'https://www.mississaugainvestor.ca';
 
-// ── Auth: cron Bearer, admin header, or ?key= (so a human can trigger the draft
-// from a browser). The actual send needs the HMAC token from the draft email. ──
-function isAuthorized(request, searchParams) {
-  const bearer = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && bearer === `Bearer ${process.env.CRON_SECRET}`) return true;
-  const adminKey = request.headers.get('x-admin-key');
-  if (process.env.ADMIN_SECRET && adminKey === process.env.ADMIN_SECRET) return true;
-  const key = searchParams?.get('key');
-  if (key && (key === process.env.ADMIN_SECRET || key === process.env.CRON_SECRET)) return true;
-  return false;
-}
+// Auth: cron Bearer, admin header, or ?key= — see lib/api-auth.js requireBroadcast.
+// The actual send needs the HMAC approval token from the draft email.
 
 function approvalToken() {
   if (!process.env.CRON_SECRET) return 'dev';
@@ -172,8 +164,9 @@ export async function GET(request) {
 
     // ?preview=1 — render the email itself, send nothing. Open in dev; authed in prod.
     if (searchParams.get('preview') === '1') {
-      if (process.env.NODE_ENV !== 'development' && !isAuthorized(request, searchParams)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (process.env.NODE_ENV !== 'development') {
+        const authErr = requireBroadcast(request, searchParams);
+        if (authErr) return authErr;
       }
       let { radar } = await fetchRadar().catch(() => ({ radar: null }));
       if (!radar) radar = SAMPLE_RADAR;
@@ -187,9 +180,8 @@ export async function GET(request) {
 
     // ?count=1 — how many contacts this broadcast would reach right now.
     if (searchParams.get('count') === '1') {
-      if (!isAuthorized(request, searchParams)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+      const authErr = requireBroadcast(request, searchParams);
+      if (authErr) return authErr;
       const supabase = getSupabaseAdmin();
       const recipients = await getBroadcastRecipients(supabase);
       return NextResponse.json({ recipients: recipients.length });
@@ -219,15 +211,35 @@ export async function GET(request) {
     }
 
     // Default (authed) — email the DRAFT (with approval button) to the approver only.
-    if (!isAuthorized(request, searchParams)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authErr = requireBroadcast(request, searchParams);
+    if (authErr) return authErr;
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({ error: 'Resend API key not configured' }, { status: 500 });
     }
     const supabase = getSupabaseAdmin();
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
+    }
+    // Self-disarm: the daily cron keeps triggering this draft path after the
+    // campaign has gone out, which would mail Hamza an [APPROVE] draft every
+    // day forever. If broadcast_sends already records this campaign as sent,
+    // skip drafting entirely. Read-only; if the table is missing we draft as
+    // before.
+    try {
+      const { data: sent } = await supabase
+        .from('broadcast_sends')
+        .select('campaign_key')
+        .eq('campaign_key', CAMPAIGN)
+        .maybeSingle();
+      if (sent) {
+        return NextResponse.json({
+          alreadySent: true,
+          campaign: CAMPAIGN,
+          note: 'Campaign already sent — no draft emailed. Remove the cron entry in vercel.json when convenient.',
+        });
+      }
+    } catch {
+      // table missing — proceed with the draft
     }
     const { radar, reason } = await fetchRadar();
     if (!radar) {
@@ -254,7 +266,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error('Motivated-sellers broadcast (GET) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -320,6 +332,6 @@ export async function POST(request) {
     );
   } catch (err) {
     console.error('Motivated-sellers broadcast (POST) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { getSupabaseAdmin, getBroadcastRecipients } from '@/lib/emails/audience'
 import { buildAnnouncementEmail } from '@/lib/emails/announcement-email';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
+import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -17,17 +18,8 @@ const APPROVER =
   process.env.LEAD_NOTIFICATION_EMAIL ||
   'hamza@nouman.ca';
 
-// ── Auth: cron Bearer, admin header, or ?key= (so a human can trigger the draft
-// from a browser). The actual send needs the HMAC token from the draft email. ──
-function isAuthorized(request, searchParams) {
-  const bearer = request.headers.get('authorization');
-  if (process.env.CRON_SECRET && bearer === `Bearer ${process.env.CRON_SECRET}`) return true;
-  const adminKey = request.headers.get('x-admin-key');
-  if (process.env.ADMIN_SECRET && adminKey === process.env.ADMIN_SECRET) return true;
-  const key = searchParams?.get('key');
-  if (key && (key === process.env.ADMIN_SECRET || key === process.env.CRON_SECRET)) return true;
-  return false;
-}
+// Auth: cron Bearer, admin header, or ?key= — see lib/api-auth.js requireBroadcast.
+// The actual send needs the HMAC approval token from the draft email.
 
 function approvalToken() {
   if (!process.env.CRON_SECRET) return 'dev';
@@ -135,8 +127,9 @@ export async function GET(request) {
 
     // ?preview=1 — render the email itself, send nothing. Open in dev; authed in prod.
     if (searchParams.get('preview') === '1') {
-      if (process.env.NODE_ENV !== 'development' && !isAuthorized(request, searchParams)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      if (process.env.NODE_ENV !== 'development') {
+        const authErr = requireBroadcast(request, searchParams);
+        if (authErr) return authErr;
       }
       let posts = await fetchLatestPosts(getSupabaseAdmin());
       if (!posts.length) posts = SAMPLE_POSTS;
@@ -150,9 +143,8 @@ export async function GET(request) {
 
     // ?count=1 — how many contacts this broadcast would reach right now.
     if (searchParams.get('count') === '1') {
-      if (!isAuthorized(request, searchParams)) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+      const authErr = requireBroadcast(request, searchParams);
+      if (authErr) return authErr;
       const supabase = getSupabaseAdmin();
       const recipients = await getBroadcastRecipients(supabase);
       return NextResponse.json({ recipients: recipients.length });
@@ -182,9 +174,8 @@ export async function GET(request) {
     }
 
     // Default (authed) — email the DRAFT (with approval button) to the approver only.
-    if (!isAuthorized(request, searchParams)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authErr = requireBroadcast(request, searchParams);
+    if (authErr) return authErr;
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({ error: 'Resend API key not configured' }, { status: 500 });
     }
@@ -210,7 +201,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error('Announcement broadcast (GET) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -267,6 +258,6 @@ export async function POST(request) {
     );
   } catch (err) {
     console.error('Announcement broadcast (POST) error:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

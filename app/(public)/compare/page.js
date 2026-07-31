@@ -7,6 +7,7 @@ import { fmtK, fmtNum, fmtCurrency, pct1 } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
+import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
 const HERO = {
   eyebrow: 'Side-by-side analysis',
@@ -20,8 +21,8 @@ const METRICS = [
   { key: 'type', label: 'Type', format: (v) => v || 'N/A' },
   { key: 'beds', label: 'Beds', format: (v) => v ?? '--' },
   { key: 'baths', label: 'Baths', format: (v) => v ?? '--' },
-  { key: 'sqft', label: 'Sq Ft', format: (v) => v > 0 ? v.toLocaleString() : 'N/A' },
-  { key: 'pricePerSqFt', label: '$/SqFt', format: (v) => v > 0 ? '$' + v : 'N/A', best: 'low' },
+  { key: 'sqft', label: 'Sq Ft', format: (v, l) => v > 0 ? (l?.sqftApproximate ? '~' : '') + v.toLocaleString() : 'N/A' },
+  { key: 'pricePerSqFt', label: '$/SqFt', format: (v, l) => v > 0 ? (l?.sqftApproximate ? '~$' : '$') + v : 'N/A', best: 'low' },
   { key: 'dom', label: 'Days on Market', format: (v) => (v >= 1 ? `${v} days` : '—'), best: 'high' }, // 0 = unknown, never "0 days"
   { key: 'hamzaScore', label: 'Deal Score', format: (v) => `${v}/10`, best: 'high' },
   { key: 'estimatedRent', label: 'Est. Monthly Rent', format: (v) => fmtCurrency(v) + '/mo', best: 'high' },
@@ -275,7 +276,7 @@ export default function ComparePage() {
                               style={metric.key === 'hamzaScore' ? { color: scoreColorHex(val) } : undefined}
                             >
                               <span className={isBest ? 'relative' : ''}>
-                                {metric.format(val)}
+                                {metric.format(val, l)}
                                 {isBest && (
                                   <span className="ml-1.5 inline-block h-1.5 w-1.5 rounded-full bg-success" />
                                 )}
@@ -342,6 +343,7 @@ export default function ComparePage() {
           page had no capture path. */}
       <InlineCTA variant="alerts" className="mt-12" />
       </div>
+      <StickyMobileCTA href="/listings" label="Browse More Listings" />
     </>
   );
 }

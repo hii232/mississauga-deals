@@ -22,6 +22,10 @@ export async function GET(request) {
   const category = (searchParams.get('category') || '').slice(0, 40);
   const [c1, c2] = PALETTES[category.toLowerCase()] || PALETTES.default;
 
+  // The image is fully deterministic from (title, category) query params, so
+  // a 24-hour CDN cache is safe. Every blog post social share re-uses the same
+  // URL; without caching, each Twitter/Facebook card scrape generates a fresh
+  // edge function invocation for an identical result.
   return new ImageResponse(
     (
       <div
@@ -97,6 +101,10 @@ export async function GET(request) {
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    {
+      width: 1200,
+      height: 630,
+      headers: { 'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600' },
+    }
   );
 }

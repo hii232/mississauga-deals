@@ -1,10 +1,11 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { GOOGLE_REVIEWS, HOOD_DATA, HOOD_OUTLOOK_AS_OF, PLATFORM_STATS } from '@/lib/constants';
 import { formatLiveCount } from '@/lib/listings/properties-analyzed';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
-import { fmtK } from '@/lib/utils/format';
+import { fmtK, slugifyPlace } from '@/lib/utils/format';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 import { HeroSearch } from '@/components/home/hero-search';
 import { HeroEmailCapture } from '@/components/home/hero-email-capture';
@@ -36,6 +37,25 @@ export const metadata = {
   description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — with free weekly deal alerts. Investor analysis by Hamza Nouman, RECO licensed.',
   alternates: {
     canonical: '/',
+  },
+  // Without these, the homepage inherits the root layout's generic openGraph/
+  // twitter blocks — "MississaugaInvestor.ca — Mississauga Real Estate
+  // Investment Deals" — instead of the more specific page title. Next.js
+  // REPLACES (not merges) the root layout twitter object when a layout segment
+  // defines its own openGraph, so both must be declared together.
+  openGraph: {
+    // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Mississauga Investment Properties — Scored for Cash Flow' }],
+    title: 'Mississauga Investment Properties — Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    url: 'https://www.mississaugainvestor.ca/',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mississauga Investment Properties — Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    images: ['/opengraph-image'],
   },
 };
 
@@ -174,7 +194,12 @@ async function fetchTopDeals() {
     // site can make — Hamza's read, and the data supports it.
     const cfPlusCount = processed.filter((l) => Number.isFinite(l.cashFlow) && l.cashFlow > 0).length;
 
-    return { deals: top, photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
+    // slimForSSR before returning: the deal objects are serialized into the
+    // page payload as client-component props, and each carried its FULL
+    // photos + images arrays (~40 signed URLs each) while HomeDealCards reads
+    // ONLY photoMap — measured at ~337KB of dead photo URLs in the homepage
+    // HTML. Same cure /listings already uses; every computed number is kept.
+    return { deals: slimForSSR(top, 4), photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
   } catch {
     return { deals: [], photoMap: {}, totalCount: 0, hoodStats: {}, cfPlusCount: null };
   }
@@ -220,8 +245,14 @@ function HeroDealCard({ deal, photo }) {
     >
       <div className="relative h-40 overflow-hidden bg-navy/10">
         {photo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={photo} alt={deal.address} fetchPriority="high" decoding="async" width={300} height={160} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <Image
+            src={photo}
+            alt={deal.address}
+            fill
+            sizes="(min-width: 1024px) 300px, 0px"
+            priority
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-navy to-accent/40">
             <svg viewBox="0 0 24 24" className="h-10 w-10 text-white/40" fill="currentColor"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z" /></svg>
@@ -423,7 +454,13 @@ function HowItWorks() {
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h2 className="section-title mb-3">How It Works</h2>
-          <p className="section-subtitle mx-auto">Three steps to finding your next investment property</p>
+          {/* Reinforces the h1 ("Mississauga Investment Property Finder") in
+              body copy. The Seobility audit flagged "finder" as appearing in
+              the h1 and nowhere else on the page — the heading and the content
+              were not corroborating each other. This section subtitle is
+              unconditional (no feed dependency), so the term is always present
+              even when the live-stats hooks above are hidden. */}
+          <p className="section-subtitle mx-auto">Three steps to finding your next investment property with the Mississauga deal finder</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {steps.map(({ num, Scene, title, desc }) => (
@@ -811,10 +848,17 @@ export default async function HomePage() {
               {/* Popular Neighbourhoods */}
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 <span className="text-white/40 text-xs">Popular:</span>
+                {/* Point at the static neighbourhood guide, not the
+                    ?hood= filter view. Every one of these six has a real
+                    /neighbourhoods/[slug] page (HOOD_DATA drives both this
+                    list and that route's generateStaticParams), and the guide
+                    carries its own email capture plus a link on into the
+                    filtered listings — so this loses no browsing path while
+                    giving the crawler a static, indexable destination. */}
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
                     key={hood}
-                    href={`/listings?hood=${encodeURIComponent(hood)}`}
+                    href={`/neighbourhoods/${slugifyPlace(hood)}`}
                     className="text-xs text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-full px-3 py-1 no-underline transition-colors"
                   >
                     {hood}
@@ -921,7 +965,7 @@ export default async function HomePage() {
                 {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton'].map((c) => (
                   <Link
                     key={c}
-                    href={`/gta?city=${encodeURIComponent(c)}`}
+                    href={`/gta/${slugifyPlace(c)}`}
                     className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-navy no-underline transition hover:border-accent/40 hover:text-accent"
                   >
                     {c}

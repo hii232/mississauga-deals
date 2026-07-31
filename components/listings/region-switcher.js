@@ -35,7 +35,7 @@ export function RegionSwitcher({ current = 'mississauga', className = '' }) {
     const v = e.target.value;
     if (v === 'mississauga') router.push('/listings');
     else if (v === 'all-gta') router.push('/gta');
-    else router.push('/gta?city=' + encodeURIComponent(v));
+    else router.push('/gta/' + v.toLowerCase().replace(/\s+/g, '-'));
   }
 
   return (

@@ -25,6 +25,12 @@ export const metadata = {
     description: 'What makes a rental cash-flow positive at today\'s rates, and how to filter Mississauga/GTA listings already scored for positive cash flow.',
     url: 'https://www.mississaugainvestor.ca/cash-flow-positive-properties-ontario',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Cash Flow Positive Properties in Ontario (${YEAR})`,
+    description: "What makes a rental cash-flow positive at today's rates, and how to filter Mississauga/GTA listings already scored for positive cash flow.",
+    images: ['/opengraph-image'],
+  },
 };
 
 // Honest content: cash-flow-positive single units are genuinely hard at current
@@ -45,6 +51,7 @@ const CF_FAQ = [
     question: 'Do I need a basement suite to cash flow in the GTA?',
     answer:
       'Not always, but a legal second suite is the most common way a Mississauga property flips from slightly negative to positive, because it adds a second rent against the same mortgage. Multi-unit properties (duplex to fourplex) work the same way at larger scale. Without extra units, reaching positive usually means a larger down payment or buying below market. Every listing here flags legal-suite and suite-potential properties so you can spot the candidates quickly.',
+    link: { href: '/legal-second-unit-mississauga', label: 'Legal second unit guide →' },
   },
   {
     question: 'How do you calculate whether a listing is cash flow positive?',
@@ -57,6 +64,7 @@ const LEVERS = [
   {
     title: 'A second suite',
     body: 'A legal (or potential) basement suite adds a second rent against the same mortgage — the most common path from slightly negative to positive in Mississauga.',
+    link: { href: '/legal-second-unit-mississauga', label: 'Legal second unit guide →' },
   },
   {
     title: 'Multiple units',
@@ -117,6 +125,11 @@ export default function CashFlowPositivePage() {
             <div key={l.title} className="rounded-xl border border-slate-200 bg-white p-5">
               <h3 className="font-heading font-semibold text-sm text-navy mb-1.5">{l.title}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{l.body}</p>
+              {l.link && (
+                <Link href={l.link.href} className="mt-2 inline-block text-xs font-medium text-accent hover:text-accent-dark no-underline">
+                  {l.link.label}
+                </Link>
+              )}
             </div>
           ))}
         </div>
@@ -131,6 +144,11 @@ export default function CashFlowPositivePage() {
             <div key={qa.question} className="rounded-xl border border-slate-200 bg-white p-5">
               <h3 className="font-heading font-semibold text-sm text-navy mb-1.5">{qa.question}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">{qa.answer}</p>
+              {qa.link && (
+                <Link href={qa.link.href} className="mt-2 inline-block text-xs font-medium text-accent hover:text-accent-dark no-underline">
+                  {qa.link.label}
+                </Link>
+              )}
             </div>
           ))}
         </div>

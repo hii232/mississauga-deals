@@ -1,9 +1,71 @@
 import Link from 'next/link';
 import { PageHero } from '@/components/layout/page-hero';
-import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
+import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 const BASE = 'https://www.mississaugainvestor.ca';
+
+// FAQ items mirror the visible h2/h3 content on this page.
+// Answers are sourced from the same DEFAULT_ASSUMPTIONS constants used in the
+// assumptions table — changing the engine automatically keeps the schema correct.
+const SCORE_FAQ = [
+  {
+    question: 'What is a deal score on MississaugaInvestor.ca?',
+    answer:
+      'Every property listed on MississaugaInvestor.ca receives a deal score from 1 to 10. ' +
+      'The score represents the estimated investment return potential of the property based on its ' +
+      'current asking price, estimated rental income, and standard investment metrics used by real ' +
+      'estate investors. A higher score means stronger expected cash flow and investment returns at ' +
+      'today\'s mortgage rates.',
+  },
+  {
+    question: 'How is the deal score calculated?',
+    answer:
+      'The deal score is a weighted combination of five investment factors: ' +
+      'Cash Flow Analysis (35% weight) — estimated monthly rental income minus mortgage, taxes, ' +
+      'insurance, maintenance, and vacancy; ' +
+      'Yield / Cap Rate (25% weight) — net operating income divided by property price; ' +
+      'Cash-on-Cash Return (15% weight) — annual cash flow divided by total cash invested including ' +
+      'down payment, land transfer tax, and closing costs; ' +
+      'Value Assessment (10% weight) — gross rent multiplier plus bonuses for longer days on market ' +
+      'and price reductions; ' +
+      'Market Signals (15% weight) — basement suite potential, transit access, and school quality.',
+  },
+  {
+    question: 'What assumptions does the cash flow calculation use?',
+    answer:
+      `The model uses a fixed set of assumptions applied identically to every listing: ` +
+      `${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down payment (investment-property minimum), ` +
+      `${DEFAULT_ASSUMPTIONS.annualInterestRate}% mortgage rate (5-year fixed, Canadian semi-annual compounding), ` +
+      `${DEFAULT_ASSUMPTIONS.amortizationYears}-year amortization, ` +
+      `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month insurance, ` +
+      `${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent maintenance reserve (or ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of value, whichever is greater), ` +
+      `${DEFAULT_ASSUMPTIONS.vacancyPercent}% vacancy allowance, and ` +
+      `${DEFAULT_ASSUMPTIONS.managementPercent}% property management (assumes self-managed). ` +
+      `Property tax uses the actual listed tax when available, otherwise the municipal residential rate.`,
+  },
+  {
+    question: 'What do the different deal score ranges mean?',
+    answer:
+      'Deal scores are grouped into four tiers: ' +
+      '8.0 or above is a Strong Deal — the property shows above-average cash flow and investment metrics; ' +
+      '6.5 to 7.9 is a Good Deal — solid investment fundamentals at current market prices; ' +
+      '5.0 to 6.4 is Average — typical for the current Mississauga market; ' +
+      'below 5.0 is Below Average — cash flow is negative or very thin at the listed price. ' +
+      'A low investment score does not mean the property is undesirable — it means the asking price ' +
+      'produces lower investor returns at today\'s rates.',
+  },
+  {
+    question: 'What are the limitations of the deal score?',
+    answer:
+      'Deal scores have several important limitations: they are based on estimated rental income, ' +
+      'not actual rents; property condition, renovation costs, and maintenance requirements are not ' +
+      'factored in; neighbourhood desirability and appreciation potential are not measured; scores ' +
+      'assume standard financing and may not reflect your specific mortgage rate; and this is not an ' +
+      'appraisal or broker price opinion. Always conduct independent due diligence and consult ' +
+      'professionals before making any investment decision.',
+  },
+];
 
 export const metadata = {
   title: { absolute: 'How the Deal Score Works — Methodology & Sources' },
@@ -21,6 +83,12 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works — Methodology & Sources' }],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'How the Deal Score Works — Methodology & Sources',
+    description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function ScoreMethodologyPage() {
@@ -32,6 +100,7 @@ export default function ScoreMethodologyPage() {
           { name: 'How the Deal Score Works', url: `${BASE}/score-methodology` },
         ]}
       />
+      <FAQJsonLd items={SCORE_FAQ} />
       <PageHero
         compact
         eyebrow="Methodology"
@@ -150,7 +219,7 @@ export default function ScoreMethodologyPage() {
                   ['Amortization', `${DEFAULT_ASSUMPTIONS.amortizationYears} years`],
                   ['Property tax', 'Actual listed tax when available; otherwise the municipal residential rate (e.g., Mississauga ~0.84% of price)'],
                   ['Insurance', `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month`],
-                  ['Maintenance reserve', `Greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or 1% of property value per year`],
+                  ['Maintenance reserve', `Greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of property value per year (a condo fee replaces it)`],
                   ['Vacancy allowance', `${DEFAULT_ASSUMPTIONS.vacancyPercent}% of gross rent`],
                   ['Property management', `${DEFAULT_ASSUMPTIONS.managementPercent}% (assumes self-managed)`],
                   ['Closing costs (in cash-on-cash)', 'Land transfer tax + $3,000 legal/title/misc. Toronto and its amalgamated districts also pay the municipal land transfer tax, which is included for those listings.'],
@@ -274,6 +343,29 @@ export default function ScoreMethodologyPage() {
             <li>This is not an appraisal or broker price opinion.</li>
             <li>Always conduct your own due diligence and consult professionals before investing.</li>
           </ul>
+        </section>
+
+        {/* FAQ section — the FAQJsonLd above requires this content to be
+            visible on-page (Google FAQPage policy: schema-only Q&A that the
+            visitor can't see is ineligible for rich results and can draw a
+            manual action). Renders SCORE_FAQ verbatim — same accordion
+            pattern as /guides. */}
+        <section className="not-prose mt-10" aria-label="Common questions about the deal score">
+          <h2 className="font-heading font-bold text-xl text-navy mb-6">Common Questions</h2>
+          <div className="space-y-4">
+            {SCORE_FAQ.map((item) => (
+              <details
+                key={item.question}
+                className="group rounded-xl border border-slate-200 bg-white open:border-accent/30 open:shadow-sm transition-all"
+              >
+                <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 font-heading font-semibold text-sm text-navy list-none [&::-webkit-details-marker]:hidden">
+                  <span>{item.question}</span>
+                  <span className="shrink-0 text-accent text-lg leading-none group-open:rotate-45 transition-transform duration-200" aria-hidden="true">+</span>
+                </summary>
+                <p className="px-5 pb-5 text-sm leading-relaxed text-slate-600">{item.answer}</p>
+              </details>
+            ))}
+          </div>
         </section>
 
         {/* Bottom Disclaimer */}

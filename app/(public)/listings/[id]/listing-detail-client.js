@@ -71,7 +71,7 @@ function OverviewTab({ listing }) {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Key Facts</h3>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">Key Facts</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {facts.map((f) => (
             <div key={f.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -132,7 +132,7 @@ function OverviewTab({ listing }) {
       </div>
       {listing.remarks && (
         <div>
-          <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h3>
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Remarks</h2>
           <p className="text-sm leading-relaxed text-navy/80">{listing.remarks}</p>
         </div>
       )}
@@ -144,7 +144,17 @@ function HamzaTakeTab({ listing }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
       <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-sm font-bold text-white">H</div>
+        {/* Real headshot — matches the neighbourhood guide and blog-post author
+            box treatments; 32×32 here to match the tab's compact header */}
+        <div className="relative h-8 w-8 flex-shrink-0">
+          <Image
+            src="/images/hamza-headshot.jpg"
+            alt="Hamza Nouman"
+            fill
+            sizes="32px"
+            className="rounded-full object-cover object-top"
+          />
+        </div>
         <div>
           <p className="text-sm font-semibold text-navy">Hamza&apos;s Take</p>
           <p className="text-xs text-muted">Investment Perspective</p>
@@ -153,6 +163,16 @@ function HamzaTakeTab({ listing }) {
       <p className="text-sm leading-relaxed text-navy/80">{listing.hamzaNotes || 'Analysis pending for this property.'}</p>
     </div>
   );
+}
+
+// The maintenance reserve is the greater of a % of rent and 1%/yr of property
+// value, so labelling the row "Maintenance (8%)" printed a percentage the
+// number often wasn't — on an expensive freehold the figure shown was the value
+// floor, and dragging the % slider left it unchanged. Name whichever term won.
+function maintenanceLabel(basis, maintenancePct) {
+  return basis === 'value'
+    ? `Maintenance (${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of value/yr)`
+    : `Maintenance (${maintenancePct}% of rent)`;
 }
 
 function MortgageTab({ listing }) {
@@ -250,7 +270,7 @@ function MortgageTab({ listing }) {
           {calc.condoFee > 0 ? (
             <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={calc.condoFee} />
           ) : (
-            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={calc.maintenance} />
+            <BreakdownRow label={maintenanceLabel(calc.maintenanceBasis, maintenancePct)} value={calc.maintenance} />
           )}
           <BreakdownRow label={`Vacancy (${vacancyPct}%)`} value={calc.vacancy} />
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={calc.management} />}
@@ -299,6 +319,7 @@ function CapRateTab({ listing }) {
       monthlyInsurance: insurance,
       maintenancePct, vacancyPct, managementPct,
       monthlyCondoFee: listing.condoFee || 0,
+      price: listing.price,
     });
     const capRate = calculateCapRate(noiResult.noi, listing.price);
     const grm = calculateGRM(listing.price, listing.estimatedRent);
@@ -342,7 +363,7 @@ function CapRateTab({ listing }) {
           {calc.annualOpExCondoFee > 0 ? (
             <BreakdownRow label={listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'} value={Math.round(calc.annualOpExCondoFee)} annual negative />
           ) : (
-            <BreakdownRow label={`Maintenance (${maintenancePct}%)`} value={Math.round(calc.annualOpExMaintenance)} annual negative />
+            <BreakdownRow label={maintenanceLabel(calc.maintenanceBasis, maintenancePct)} value={Math.round(calc.annualOpExMaintenance)} annual negative />
           )}
           {managementPct > 0 && <BreakdownRow label={`Management (${managementPct}%)`} value={Math.round(calc.annualOpExManagement)} annual negative />}
           <div className="border-t border-slate-300 pt-2">
@@ -1039,9 +1060,9 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
       {/* Comparable Sales Used */}
       {ev.comps && ev.comps.length > 0 && (
         <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
             Comparable Sales Used ({ev.comps.length})
-          </h3>
+          </h2>
           <div className="space-y-2">
             {ev.comps.map((comp, i) => (
               <div key={i} className="rounded-lg border border-slate-200 bg-white p-3 flex items-center justify-between">
@@ -1073,6 +1094,161 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
         Estimated value is calculated using a weighted average of comparable sold properties in the area,
         weighted by recency, bedroom/bathroom similarity, and postal proximity. Not an appraisal.
       </p>
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────
+//  Print-only cash-flow report
+//  Hidden on screen (hidden class); visible only when the browser prints.
+//  Uses DEFAULT_ASSUMPTIONS — the same starting values as the interactive
+//  sliders, so the printed numbers match what a visitor sees when they open
+//  the Mortgage / Cap Rate tabs fresh.
+// ──────────────────────────────────────────
+function PrintCashFlowReport({ listing }) {
+  const da = DEFAULT_ASSUMPTIONS;
+  const cfOpts = {
+    downPct: da.downPaymentPercent,
+    rate: da.annualInterestRate,
+    amortYears: da.amortizationYears,
+    annualPropertyTax: listing.annualPropertyTax || null,
+    city: listing.neighbourhood,
+    monthlyInsurance: da.monthlyInsurance,
+    maintenancePct: da.maintenancePercent,
+    vacancyPct: da.vacancyPercent,
+    managementPct: da.managementPercent,
+    monthlyCondoFee: listing.condoFee || 0,
+  };
+  const cf = calculateCashFlow(listing.price, listing.estimatedRent, cfOpts);
+  const closing = getClosingCosts(listing.price, da.downPaymentPercent, listing.city || listing.neighbourhood);
+  const noi = calculateNOI(listing.estimatedRent, {
+    annualPropertyTax: listing.annualPropertyTax || Math.round(listing.price * 0.0084),
+    monthlyInsurance: da.monthlyInsurance,
+    maintenancePct: da.maintenancePercent,
+    vacancyPct: da.vacancyPercent,
+    managementPct: da.managementPercent,
+    monthlyCondoFee: listing.condoFee || 0,
+    price: listing.price,
+  });
+  const capRate = calculateCapRate(noi.noi, listing.price);
+  const coc = calculateCashOnCash(
+    cf.cashFlow * 12, listing.price, da.downPaymentPercent,
+    listing.city || listing.neighbourhood
+  );
+  const today = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const S = { /* inline-style helpers for print — Tailwind classes are inert in print: context for some values */
+    h2: { fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #CBD5E1', paddingBottom: '4px', marginBottom: '8px', marginTop: 0 },
+    td: { padding: '2px 0', color: '#64748B' },
+    tdR: { textAlign: 'right' },
+    tdNeg: { textAlign: 'right', color: '#DC2626' },
+    sep: { borderTop: '1px solid #CBD5E1' },
+    bold: { fontWeight: 700 },
+  };
+  return (
+    <div className="hidden print:block" style={{ fontFamily: 'system-ui,sans-serif', fontSize: '11px', color: '#1B2A4A' }}>
+      {/* Header */}
+      <div style={{ borderBottom: '2px solid #1B2A4A', paddingBottom: '10px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2563EB', margin: '0 0 2px' }}>MississaugaInvestor.ca</p>
+          {/* Not an h1 — this print-only block is always in the DOM, and two h1s
+              per page is an SEO defect. Same inline styles, so print is unchanged. */}
+          <p style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 3px' }}>{listing.address}</p>
+          <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>
+            {listing.subType || listing.type} · {listing.beds}bd/{listing.baths}ba
+            {listing.sqft > 0 ? ` · ${listing.sqftApproximate ? '~' : ''}${listing.sqft.toLocaleString()} sqft` : ''}
+          </p>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 2px' }}>${listing.price.toLocaleString()}</p>
+          <p style={{ fontSize: '9px', color: '#64748B', margin: 0 }}>Cash-Flow Report · {today}</p>
+        </div>
+      </div>
+      {/* Key metrics */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '10px', marginBottom: '14px' }}>
+        {[
+          { label: 'Cap Rate', val: `${capRate}%` },
+          { label: 'Monthly Cash Flow', val: fmtNum(cf.cashFlow) },
+          { label: 'Estimated Rent', val: `$${listing.estimatedRent.toLocaleString()}/mo` },
+          { label: 'Cash-on-Cash', val: `${coc}%` },
+        ].map(({ label, val }) => (
+          <div key={label} style={{ border: '1px solid #E2E8F0', borderRadius: '5px', padding: '7px', textAlign: 'center' }}>
+            <p style={{ fontSize: '9px', color: '#64748B', margin: '0 0 2px' }}>{label}</p>
+            <p style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{val}</p>
+          </div>
+        ))}
+      </div>
+      {/* Monthly breakdown + NOI side by side */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '18px', marginBottom: '14px' }}>
+        <div>
+          <h2 style={S.h2}>Monthly ({da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr)</h2>
+          <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr><td style={S.td}>Gross Rent</td><td style={S.tdR}>+${listing.estimatedRent.toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Mortgage</td><td style={S.tdNeg}>−${cf.mortgage.toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Property Tax</td><td style={S.tdNeg}>−${cf.propTax.toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Insurance</td><td style={S.tdNeg}>−${cf.insurance.toLocaleString()}</td></tr>
+              {cf.condoFee > 0 ? (
+                <tr><td style={S.td}>{listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'}</td><td style={S.tdNeg}>−${cf.condoFee.toLocaleString()}</td></tr>
+              ) : (
+                <tr><td style={S.td}>{maintenanceLabel(cf.maintenanceBasis, da.maintenancePercent)}</td><td style={S.tdNeg}>−${cf.maintenance.toLocaleString()}</td></tr>
+              )}
+              <tr><td style={S.td}>Vacancy ({da.vacancyPercent}%)</td><td style={S.tdNeg}>−${cf.vacancy.toLocaleString()}</td></tr>
+              <tr style={S.sep}>
+                <td style={{ ...S.td, ...S.bold, paddingTop: '4px', color: '#1B2A4A' }}>Cash Flow</td>
+                <td style={{ ...S.tdR, ...S.bold, color: cf.cashFlow >= 0 ? '#15803D' : '#DC2626' }}>{fmtNum(cf.cashFlow)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h2 style={S.h2}>Annual NOI &amp; Cap Rate (All-Cash)</h2>
+          <table style={{ width: '100%', fontSize: '10px', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr><td style={S.td}>Gross Rent</td><td style={S.tdR}>+${Math.round(noi.annualGrossRent).toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Vacancy ({da.vacancyPercent}%)</td><td style={S.tdNeg}>−${Math.round(noi.annualVacancyLoss).toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Property Tax</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExPropertyTax).toLocaleString()}</td></tr>
+              <tr><td style={S.td}>Insurance</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExInsurance).toLocaleString()}</td></tr>
+              {noi.annualOpExCondoFee > 0 ? (
+                <tr><td style={S.td}>{listing.condoFeeEstimated ? 'Condo Fee (est.)' : 'Condo Fee'}</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExCondoFee).toLocaleString()}</td></tr>
+              ) : (
+                <tr><td style={S.td}>{maintenanceLabel(noi.maintenanceBasis, da.maintenancePercent)}</td><td style={S.tdNeg}>−${Math.round(noi.annualOpExMaintenance).toLocaleString()}</td></tr>
+              )}
+              <tr style={S.sep}>
+                <td style={{ ...S.td, ...S.bold, paddingTop: '4px', color: '#1B2A4A' }}>Annual NOI</td>
+                <td style={{ ...S.tdR, ...S.bold }}>${Math.round(noi.noi).toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td style={{ ...S.td, ...S.bold, color: '#1B2A4A' }}>Cap Rate</td>
+                <td style={{ ...S.tdR, ...S.bold }}>{capRate}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Closing costs */}
+      <div style={{ marginBottom: '14px' }}>
+        <h2 style={S.h2}>Cash Required to Close</h2>
+        <table style={{ width: '48%', fontSize: '10px', borderCollapse: 'collapse' }}>
+          <tbody>
+            <tr><td style={{ ...S.td, width: '70%' }}>Down Payment ({da.downPaymentPercent}%)</td><td style={S.tdR}>${closing.downPayment.toLocaleString()}</td></tr>
+            <tr><td style={S.td}>Ontario Land Transfer Tax</td><td style={S.tdR}>${closing.ltt.toLocaleString()}</td></tr>
+            {closing.municipalLtt > 0 && <tr><td style={S.td}>Toronto Municipal LTT</td><td style={S.tdR}>${closing.municipalLtt.toLocaleString()}</td></tr>}
+            <tr><td style={S.td}>Legal &amp; Title Insurance</td><td style={S.tdR}>${closing.legalAndTitle.toLocaleString()}</td></tr>
+            <tr><td style={S.td}>Inspection &amp; Misc</td><td style={S.tdR}>${closing.inspectionMisc.toLocaleString()}</td></tr>
+            <tr style={S.sep}>
+              <td style={{ ...S.td, ...S.bold, paddingTop: '4px', color: '#1B2A4A' }}>Total Cash Required</td>
+              <td style={{ ...S.tdR, ...S.bold }}>${closing.totalCashRequired.toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '9px', fontSize: '9px', color: '#64748B' }}>
+        <p style={{ margin: '0 0 3px' }}>
+          <strong>Assumptions:</strong> {da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr amort · Canadian semi-annual compounding · ${da.monthlyInsurance}/mo insurance · maintenance reserve = greater of {da.maintenancePercent}% of rent or {da.maintenanceValueFloorPercent}% of value/yr (condo fee replaces it) · {da.vacancyPercent}% vacancy · rent estimated from neighbourhood MLS comps. All figures are estimates — verify with a licensed professional before making an investment decision.
+        </p>
+        <p style={{ margin: 0 }}>Prepared by Hamza Nouman · RECO-registered Investor Specialist · 647-609-1289 · hamza@nouman.ca · MississaugaInvestor.ca</p>
+      </div>
     </div>
   );
 }
@@ -1365,10 +1541,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
         ]}
       />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 w-full">
-        {/* Navigation: Back + Prev/Next */}
-        <ListingNav currentId={params.id} />
+        {/* Navigation: Back + Prev/Next — hidden in print (report has its own header) */}
+        <div className="print:hidden">
+          <ListingNav currentId={params.id} />
+        </div>
 
-        <div className="grid gap-6 lg:grid-cols-5">
+        <div className="grid gap-6 lg:grid-cols-5 print:hidden">
           {/* Left Column: Photos */}
           <div className="lg:col-span-3 min-w-0">
             <PhotoGallery photos={listing.photos} listingId={listing.id} address={listing.address} />
@@ -1415,7 +1593,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
               )}
 
               {/* Address & Price */}
-              <h1 className="font-heading text-xl font-bold text-navy">{listing.address}</h1>
+              {/* Mirror the metadata title (layout.js): "address, city" so the h1
+                  matches the "address + Mississauga" query form these pages win. */}
+              <h1 className="font-heading text-xl font-bold text-navy">
+                {listing.address}
+                {listing.city ? `, ${listing.city}` : ', Mississauga'}
+              </h1>
               {HOOD_DATA[listing.neighbourhood] ? (
                 <p className="mt-1 text-sm text-muted">
                   <Link
@@ -1523,6 +1706,67 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 )}
               </div>
 
+              {/* Investor signal badges — mirrors the listing-card photo overlay
+                  row so investors get the same at-a-glance read when they land
+                  directly on the detail page (the most common path from SEO and
+                  shared links). Uses opaque colours instead of /90 translucent:
+                  these render on white, not over a photo, so the lighter tints
+                  would fail WCAG AA — emerald-700 5.5:1, amber-700 5.0:1,
+                  accent 5.2:1 all pass on white with white text.
+                  cashFlow is from processListings (default assumptions), matching
+                  the card's signal — the gated tab shows the slider-adjusted
+                  value, which is always revealed on signup. */}
+              {(() => {
+                const isNew = listing.dom >= 1 && listing.dom <= 7;
+                const isMotivated = listing.dom >= 45;
+                const hasDrop = listing.priceDrop > 0;
+                const cashFlows = listing.cashFlow > 0;
+                const hasLegal = listing.basementTier === 'legal';
+                const hasSuite = listing.basementTier === 'potential';
+                const hasLrt = listing.lrtAccess;
+                if (!isNew && !isMotivated && !hasDrop && !cashFlows && !hasLegal && !hasSuite && !hasLrt) return null;
+                return (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {isNew && (
+                      <span className="flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/80" aria-hidden="true" />
+                        New Listing
+                      </span>
+                    )}
+                    {isMotivated && (
+                      <span className="rounded-full bg-amber-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Motivated Seller
+                      </span>
+                    )}
+                    {hasDrop && (
+                      <span className="rounded-full bg-amber-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Price Drop -{Math.round(listing.priceDrop)}%
+                      </span>
+                    )}
+                    {cashFlows && (
+                      <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Cash Flowing
+                      </span>
+                    )}
+                    {hasLegal && (
+                      <span className="rounded-full bg-emerald-700 px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Legal Suite
+                      </span>
+                    )}
+                    {hasSuite && (
+                      <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        Suite Potential
+                      </span>
+                    )}
+                    {hasLrt && (
+                      <span className="rounded-full bg-accent px-2.5 py-1 text-[10px] font-bold uppercase text-white">
+                        LRT Corridor
+                      </span>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* Key Metrics */}
               {!isGated ? (
                 <>
@@ -1591,8 +1835,9 @@ export default function PropertyDetailClient({ initialListing = null }) {
           </div>
         </div>
 
-        {/* Investment Analysis — titled section w/ dusk skyline divider */}
-        <div className="mt-10">
+        {/* Investment Analysis — titled section w/ dusk skyline divider.
+            Hidden in print: the PrintCashFlowReport below replaces this. */}
+        <div className="mt-10 print:hidden">
           <div className="mb-4 flex items-center gap-3">
             <h2 className="whitespace-nowrap font-heading text-lg font-bold text-navy sm:text-xl">
               Investment Analysis
@@ -1696,12 +1941,59 @@ export default function PropertyDetailClient({ initialListing = null }) {
             )}
           </div>
         </div>
+
+        {/* Print-only cash-flow report — replaces the interactive UI when the
+            visitor prints or saves as PDF. Invisible on screen. */}
+        <PrintCashFlowReport listing={listing} />
+
+        {/* Cash-Flow Report PDF — lead magnet (section 1c-B)
+            For unregistered visitors: email capture (unlocks this AND all the
+            gated analysis tabs in one go — no need to hit two separate gates).
+            For registered visitors: one-click print / Save as PDF. */}
+        <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 sm:p-6 print:hidden">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="font-heading text-base font-semibold text-navy">
+                Get the Full Cash-Flow Report
+              </h3>
+              <p className="mt-1 text-sm text-muted">
+                A one-page PDF: cap rate, cash flow, mortgage breakdown, NOI and total cash to close — all assumptions in one printable summary.
+              </p>
+            </div>
+            {isGated ? (
+              <div className="w-full sm:w-72 flex-shrink-0">
+                <InlineEmailCapture
+                  id="report-download-email"
+                  source="Listing — Cash Flow Report PDF"
+                  tone="light"
+                  stack
+                  listing={leadListing}
+                  buttonLabel="Get Report — Free"
+                  note="Also unlocks cap rate, sold comps & mortgage detail."
+                  onCaptured={unlock}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => window.print()}
+                className="flex flex-shrink-0 items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dark"
+                aria-label="Print this cash-flow report or save it as a PDF"
+              >
+                <svg aria-hidden="true" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                </svg>
+                Print / Save as PDF
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Mobile sticky primary CTA — one clear action, always reachable.
-          z-[150] keeps it under the cookie banner (z-[200]) until consent. */}
+          z-[150] keeps it under the cookie banner (z-[200]) until consent.
+          Hidden in print: the sticky bar overlaps the report on paper. */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 backdrop-blur px-4 pt-2.5 lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 backdrop-blur px-4 pt-2.5 lg:hidden print:hidden"
         style={{ paddingBottom: 'calc(0.625rem + env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-center gap-2.5">

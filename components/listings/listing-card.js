@@ -5,6 +5,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
+import { HOOD_DATA } from '@/lib/constants';
+
+const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // A malformed listing (missing/NaN derived number) must NEVER crash the card and
 // blank the whole listings grid. Format defensively; show a dash, never NaN.
@@ -106,14 +109,22 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
       {/* Photo — links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
-          <Image
-            src={photo}
-            alt={photoAlt(listing)}
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            priority={priority}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-          />
+          <>
+            {/* Shimmer under the image while it loads. A cold TRREB photo can
+                take seconds (or, under upstream throttle, much longer), and
+                until now the card sat on flat white — which reads as broken.
+                The Image renders on top and simply covers this when painted;
+                no state, no layout shift. */}
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
+            <Image
+              src={photo}
+              alt={photoAlt(listing)}
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              priority={priority}
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -234,12 +245,37 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         </div>
 
         {/* Bed/bath/type */}
-        <div className="mb-2 flex items-center gap-3 text-xs text-slate-500">
+        <div className="mb-1 flex items-center gap-3 text-xs text-slate-500">
           <span>{listing.beds} bed</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span>{listing.baths} bath</span>
           <span className="h-1 w-1 rounded-full bg-slate-300" />
           <span className="capitalize">{listing.type}</span>
+        </div>
+
+        {/* Neighbourhood — linked to the investment guide for Mississauga hoods,
+            plain text for GTA cities without a guide. The listing detail page
+            already links here; matching that pattern on the card passes link
+            equity from /listings (the site's highest-traffic page) to the 24
+            established neighbourhood guide pages. */}
+        <div className="mb-2 text-[10px] text-slate-500">
+          {listing.neighbourhood && listing.neighbourhood !== listing.city
+            ? (HOOD_DATA[listing.neighbourhood] ? (
+                <Link
+                  href={`/neighbourhoods/${slugify(listing.neighbourhood)}`}
+                  className="hover:text-accent transition-colors"
+                  title={`${listing.neighbourhood} investment guide`}
+                >
+                  {listing.neighbourhood}
+                </Link>
+              ) : listing.neighbourhood)
+            : null}
+          {listing.neighbourhood && listing.neighbourhood !== listing.city && listing.city && (
+            <span>, {listing.city}</span>
+          )}
+          {(!listing.neighbourhood || listing.neighbourhood === listing.city) && listing.city && (
+            <span>{listing.city}</span>
+          )}
         </div>
 
         {/* The rent assumption every metric below is derived from. Hidden, a

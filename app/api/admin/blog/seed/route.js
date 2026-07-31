@@ -82,7 +82,7 @@ export async function POST(request) {
       .select('slug, title');
 
     if (insertErr) {
-      return NextResponse.json({ error: 'Insert failed: ' + insertErr.message }, { status: 500 });
+      return NextResponse.json({ error: 'Database insert failed' }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -91,6 +91,7 @@ export async function POST(request) {
       note: 'Re-running is safe — existing slugs are skipped, never overwritten.',
     });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Blog seed error:', err);
+    return NextResponse.json({ error: 'Seed failed' }, { status: 500 });
   }
 }

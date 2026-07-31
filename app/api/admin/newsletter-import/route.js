@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { requireCronOrAdmin } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 // A real list is hundreds of rows: a chunked existence lookup, batched
@@ -14,14 +15,6 @@ export const maxDuration = 60;
 //   { "contacts": [{ "email": "a@b.com", "name": "Ann" }, ...] }
 // or raw CSV text (Content-Type: text/csv) with an email column, e.g. a
 // MailerLite export — the header row is used to find email/name columns.
-
-function isAuthorized(request) {
-  const adminKey = request.headers.get('x-admin-key');
-  if (adminKey && process.env.ADMIN_SECRET && adminKey === process.env.ADMIN_SECRET) return true;
-  const auth = request.headers.get('authorization');
-  if (auth && process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) return true;
-  return false;
-}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -123,9 +116,8 @@ function contactsFromCsv(text) {
 
 export async function POST(request) {
   try {
-    if (!isAuthorized(request)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const authErr = requireCronOrAdmin(request);
+    if (authErr) return authErr;
 
     const supabase =
       process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY

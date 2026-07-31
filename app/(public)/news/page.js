@@ -1,6 +1,7 @@
-import Link from 'next/link';
 import { fetchAllFeeds, getSources, getTopics } from '@/lib/news/fetch-feeds';
 import { NewsClient } from './news-client';
+import { PageHero } from '@/components/layout/page-hero';
+import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 const TITLE = 'GTA Real Estate News & Market Intelligence for Investors';
 const DESCRIPTION =
@@ -30,10 +31,28 @@ export const metadata = {
 // slows TTFB/LCP (a Core Web Vitals cost) and needlessly hammers the sources.
 export const revalidate = 1800;
 
+const BASE = 'https://www.mississaugainvestor.ca';
+
 export default async function NewsPage() {
   const articles = await fetchAllFeeds();
   const sources = getSources();
   const topics = getTopics();
 
-  return <NewsClient articles={articles} sources={sources} topics={topics} />;
+  return (
+    <div className="min-h-screen bg-cloud">
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: `${BASE}/` },
+          { name: 'GTA Real Estate News', url: `${BASE}/news` },
+        ]}
+      />
+      <PageHero
+        compact
+        eyebrow="Live market news"
+        title="GTA Real Estate News & Market Intelligence"
+        subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports — curated for investors and updated continuously."
+      />
+      <NewsClient articles={articles} sources={sources} topics={topics} />
+    </div>
+  );
 }

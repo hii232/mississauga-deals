@@ -11,6 +11,17 @@ export const metadata = {
       'Mississauga neighbourhoods ranked for real estate investment — rent yields, average prices, cap rates, and market temperature.',
     url: 'https://www.mississaugainvestor.ca/neighbourhoods',
   },
+  // Next.js REPLACES (not merges) the root layout twitter object when a
+  // layout segment defines its own openGraph, so the /neighbourhoods index
+  // page lost the root twitter card. This restores summary_large_image for
+  // shares to X/Twitter, Slack and iMessage.
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Best Neighbourhoods to Invest in Mississauga (2026)',
+    description:
+      'Mississauga neighbourhoods ranked for real estate investment — rent yields, average prices, cap rates, and market temperature.',
+    images: ['/opengraph-image'],
+  },
 };
 
 // Metadata only. This layout wraps [slug] as well, so anything rendered

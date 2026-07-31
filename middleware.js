@@ -12,6 +12,16 @@ export async function middleware(request) {
     return supabaseResponse;
   }
 
+  // No Supabase auth cookie (sb-<project-ref>-auth-token[.N]) means there is
+  // no session to refresh — the vast majority of traffic (anonymous visitors,
+  // crawlers). Skip the client + network round-trip entirely for those.
+  const hasSupabaseAuthCookie = request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith('sb-'));
+  if (!hasSupabaseAuthCookie) {
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
       getAll() {

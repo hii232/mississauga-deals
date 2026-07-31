@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { HOOD_DATA, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
-import { CITY_COPY } from '@/app/(public)/gta/page';
+import { CITY_COPY, cityToSlug } from '@/app/(public)/gta/page';
 import { fetchFeedPages } from '@/lib/listings/fetch-feed';
+import { isNonCanonicalBlogSlug } from '@/lib/blog/canonical-overrides';
 
 // Regenerate sitemap every 6 hours
 export const revalidate = 21600;
@@ -87,6 +88,7 @@ export default async function sitemap() {
     { url: `${BASE}/rental-property-insurance-mississauga`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/mississauga-vs-brampton-vs-hamilton`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/rent-by-bedroom-mississauga`, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/legal-second-unit-mississauga`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/faq`, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/blog`, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${BASE}/guides`, changeFrequency: 'weekly', priority: 0.7 },
@@ -115,11 +117,12 @@ export default async function sitemap() {
     priority: 0.75,
   }));
 
-  // ── GTA city pages (/gta?city=X) — each has a unique title/description +
-  // self-canonical, but is only linked from the mega-menu, so list them here
-  // for discovery/indexing (targets "{City} investment properties"). ──
+  // ── GTA city pages (/gta/[city]) — path-segment URLs so Google treats each
+  // as a genuinely distinct page with its own canonical (previously these were
+  // /gta?city=X query-param variants, which Google consolidated into /gta and
+  // reported as "Duplicate, Google chose different canonical than user"). ──
   const gtaCityPages = Object.keys(CITY_COPY).map((city) => ({
-    url: `${BASE}/gta?city=${encodeURIComponent(city)}`,
+    url: `${BASE}/gta/${cityToSlug(city)}`,
     lastModified: now,
     changeFrequency: 'daily',
     priority: 0.7,
@@ -224,12 +227,19 @@ export default async function sitemap() {
         .select('slug, updated_at')
         .eq('published', true);
       if (posts) {
-        blogPages = posts.map((p) => ({
-          url: `${BASE}/blog/${p.slug}`,
-          ...(p.updated_at || p.created_at ? { lastModified: p.updated_at || p.created_at } : {}),
-          changeFrequency: 'weekly',
-          priority: 0.7,
-        }));
+        blogPages = posts
+          // A sitemap entry is a canonical claim. Skip posts that 308-redirect
+          // away (next.config.js) or whose rel=canonical points at a dedicated
+          // page (CANONICAL_OVERRIDES) — submitting them tells Google "index
+          // this URL" while the URL itself says "I'm not the real one". Both
+          // lists live in lib/blog/canonical-overrides.js so they can't drift.
+          .filter((p) => !isNonCanonicalBlogSlug(p.slug))
+          .map((p) => ({
+            url: `${BASE}/blog/${p.slug}`,
+            ...(p.updated_at || p.created_at ? { lastModified: p.updated_at || p.created_at } : {}),
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          }));
       }
     }
   } catch (err) {

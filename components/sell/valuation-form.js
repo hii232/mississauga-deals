@@ -18,7 +18,7 @@ const PROPERTY_TYPES = [
 const GOALS = [
   { value: '', label: 'What are you looking for?' },
   { value: 'sell-now', label: 'I want to sell for the most' },
-  { value: 'valuation', label: 'Just want to know what it’s worth' },
+  { value: 'valuation', label: "Just want to know what it's worth" },
   { value: 'planning', label: 'Planning ahead — exploring options' },
 ];
 
@@ -87,7 +87,11 @@ export function ValuationForm({ id }) {
   if (success) {
     return (
       <div id={id} className="card p-8 text-center scroll-mt-24">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-3xl">🏡</div>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success/10">
+          <svg aria-hidden="true" className="h-7 w-7 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+          </svg>
+        </div>
         <h2 className="font-heading font-bold text-xl text-navy mb-2">Your home valuation is on the way</h2>
         <p className="text-sm text-muted leading-relaxed max-w-sm mx-auto mb-6">
           Hamza will prepare a data-backed valuation of your home and a plan to sell it for the most, then follow up
@@ -112,49 +116,124 @@ export function ValuationForm({ id }) {
         <div role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">{error}</div>
       )}
 
+      {/* Progressive-disclosure form — mirrors the /pre-construction VIP form pattern.
+          Only the 3 required fields (name / email / address) are visible on open;
+          the qualifying selects (phone / type / goal / timeline) sit in a native
+          <details> so the submit button sits above the fold at 375px. A single POST
+          fires regardless of whether the disclosure is open — no lead can be stranded
+          mid-flow, and all four optional fields still submit when visible. */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Primary fields — always visible */}
         <div>
-          <label htmlFor="sv-name" className="mb-1 block text-sm font-medium text-navy">Name <span className="text-red-400">*</span></label>
-          <input id="sv-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder="Your full name" className={inputCls} autoComplete="name" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="sv-email" className="mb-1 block text-sm font-medium text-navy">Email <span className="text-red-400">*</span></label>
-            <input id="sv-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="you@example.com" className={inputCls} autoComplete="email" />
-          </div>
-          <div>
-            <label htmlFor="sv-phone" className="mb-1 block text-sm font-medium text-navy">Phone</label>
-            <input id="sv-phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="647-XXX-XXXX" className={inputCls} autoComplete="tel" />
-          </div>
-        </div>
-        <div>
-          <label htmlFor="sv-address" className="mb-1 block text-sm font-medium text-navy">Property Address <span className="text-red-400">*</span></label>
-          <input id="sv-address" name="address" type="text" required value={form.address} onChange={handleChange} placeholder="123 Main Street, Mississauga ON" className={inputCls} />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="sv-type" className="mb-1 block text-sm font-medium text-navy">Property Type</label>
-            <select id="sv-type" name="propertyType" value={form.propertyType} onChange={handleChange} className={inputCls}>
-              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="sv-goal" className="mb-1 block text-sm font-medium text-navy">Your goal</label>
-            <select id="sv-goal" name="goal" value={form.goal} onChange={handleChange} className={inputCls}>
-              {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
-            </select>
-          </div>
+          <label htmlFor="sv-name" className="mb-1 block text-sm font-medium text-navy">
+            Name <span className="text-red-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="sv-name"
+            name="name"
+            type="text"
+            required
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Your full name"
+            className={inputCls}
+            autoComplete="name"
+          />
         </div>
         <div>
-          <label htmlFor="sv-timeline" className="mb-1 block text-sm font-medium text-navy">Timeline to Sell</label>
-          <select id="sv-timeline" name="timeline" value={form.timeline} onChange={handleChange} className={inputCls}>
-            {SELL_TIMELINES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
+          <label htmlFor="sv-email" className="mb-1 block text-sm font-medium text-navy">
+            Email <span className="text-red-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="sv-email"
+            name="email"
+            type="email"
+            required
+            value={form.email}
+            onChange={handleChange}
+            placeholder="you@example.com"
+            className={inputCls}
+            autoComplete="email"
+          />
         </div>
-        <button type="submit" disabled={loading} className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60">
+        <div>
+          <label htmlFor="sv-address" className="mb-1 block text-sm font-medium text-navy">
+            Property Address <span className="text-red-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="sv-address"
+            name="address"
+            type="text"
+            required
+            value={form.address}
+            onChange={handleChange}
+            placeholder="123 Main Street, Mississauga ON"
+            className={inputCls}
+            autoComplete="street-address"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
+        >
           {loading ? 'Submitting…' : 'Get My Free Home Valuation'}
         </button>
-        <p className="text-[11px] text-muted text-center">100% free · No obligation · Sell when you’re ready</p>
+
+        {/* Optional qualifying fields — collapsed by default */}
+        <details className="group">
+          <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-dark [&::-webkit-details-marker]:hidden">
+            <svg
+              aria-hidden="true"
+              className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+            Tell us more — helps Hamza prepare your valuation (optional)
+          </summary>
+          <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+            <div>
+              <label htmlFor="sv-phone" className="mb-1 block text-sm font-medium text-navy">Phone</label>
+              <input
+                id="sv-phone"
+                name="phone"
+                type="tel"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="647-XXX-XXXX"
+                className={inputCls}
+                autoComplete="tel"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="sv-type" className="mb-1 block text-sm font-medium text-navy">Property Type</label>
+                <select id="sv-type" name="propertyType" value={form.propertyType} onChange={handleChange} className={inputCls}>
+                  {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="sv-goal" className="mb-1 block text-sm font-medium text-navy">Your goal</label>
+                <select id="sv-goal" name="goal" value={form.goal} onChange={handleChange} className={inputCls}>
+                  {GOALS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="sv-timeline" className="mb-1 block text-sm font-medium text-navy">Timeline to Sell</label>
+              <select id="sv-timeline" name="timeline" value={form.timeline} onChange={handleChange} className={inputCls}>
+                {SELL_TIMELINES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </div>
+          </div>
+        </details>
+
+        <p className="text-[11px] text-muted text-center">100% free · No obligation · Sell when you're ready</p>
       </form>
     </div>
   );

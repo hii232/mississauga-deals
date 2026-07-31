@@ -1,11 +1,14 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { HOOD_DATA, HOOD_RENTS, LRT_CORRIDOR_HOODS, HOOD_OUTLOOK_AS_OF } from '@/lib/constants';
 import { calculateCashFlow, estimateRent } from '@/lib/cash-flow-engine';
-import { fmtK } from '@/lib/utils/format';
+import { fmtK, slugifyPlace } from '@/lib/utils/format';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import InlineCTA from '@/components/ui/inline-cta';
+import { PageHero } from '@/components/layout/page-hero';
 
-const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
+const slugify = slugifyPlace;
 
 const SLUG_TO_HOOD = Object.fromEntries(
   Object.keys(HOOD_DATA).map((name) => [slugify(name), name])
@@ -75,15 +78,21 @@ export async function generateMetadata({ params }) {
       description,
       url: `https://www.mississaugainvestor.ca/neighbourhoods/${params.slug}`,
     },
+    // Next.js REPLACES (not merges) the root layout twitter object when a page
+    // defines its own openGraph, so every neighbourhood guide without an
+    // explicit twitter block loses the root card and shares text-only on
+    // X/Twitter/Slack/iMessage. Per-page title and description ensure each of
+    // the 24 guides shows a relevant card preview rather than the generic root.
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: ['/opengraph-image'],
+    },
   };
 }
 
 const TREND_LABEL = { hot: 'Hot Market', warm: 'Steady Market', cool: 'Buyer-Friendly' };
-const TREND_COLOR = {
-  hot: 'bg-red-50 text-red-600 border-red-100',
-  warm: 'bg-amber-50 text-amber-700 border-amber-100',
-  cool: 'bg-blue-50 text-blue-600 border-blue-100',
-};
 
 // Pillar posts that cover specific neighbourhoods in depth. Keys must match
 // HOOD_DATA names exactly. Every hood page also links the city-wide ranking.
@@ -152,7 +161,6 @@ export default async function NeighbourhoodGuidePage({ params }) {
 
   return (
     <>
-    <div className="max-w-3xl mx-auto px-4 pt-12 pb-28 lg:pb-12">
       <BreadcrumbJsonLd
         items={[
           { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -162,8 +170,17 @@ export default async function NeighbourhoodGuidePage({ params }) {
       />
       <FAQJsonLd items={faqs} />
 
+      <PageHero
+        compact
+        eyebrow={TREND_LABEL[d.trend]}
+        title={`${name} Investment Guide`}
+        subtitle={`Prices, rents, yield, and cash flow for real estate investors in ${name}, Mississauga.`}
+      />
+
+      <div className="max-w-3xl mx-auto px-4 pt-8 pb-28 lg:pb-12">
+
       {/* Breadcrumb */}
-      <nav className="text-xs text-muted mb-6">
+      <nav className="text-xs text-muted mb-4">
         <Link href="/" className="no-underline text-muted hover:text-navy">Home</Link>
         {' / '}
         <Link href="/neighbourhoods" className="no-underline text-muted hover:text-navy">Neighbourhoods</Link>
@@ -171,21 +188,12 @@ export default async function NeighbourhoodGuidePage({ params }) {
         <span className="text-navy font-medium">{name}</span>
       </nav>
 
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <h1 className="font-heading font-bold text-3xl text-navy">{name} Investment Guide</h1>
-        <span className={`text-[10px] font-bold uppercase rounded-full px-2.5 py-1 border ${TREND_COLOR[d.trend]}`}>
-          {TREND_LABEL[d.trend]}
-        </span>
-      </div>
-      <p className="text-sm text-muted mb-8">
-        Prices, rents, yield, and cash flow for real estate investors in {name}, Mississauga.
-        {isLive && (
-          <span className="ml-2 inline-flex items-center gap-1 align-middle text-[11px] font-medium text-emerald-600">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Price, DOM &amp; yield live from active listings
-          </span>
-        )}
-      </p>
+      {isLive && (
+        <p className="mb-6 flex items-center gap-1 text-[11px] font-medium text-emerald-600">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+          Price, DOM &amp; yield live from active listings
+        </p>
+      )}
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
@@ -209,9 +217,26 @@ export default async function NeighbourhoodGuidePage({ params }) {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY, inventory &amp; scores</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
-      {/* Hamza's take */}
+      {/* Hamza's take — headshot added to match the blog-post author-box
+          treatment (2026-07-28) for trust and attribution on each of the
+          24 neighbourhood guides. White/60 credential line is the same
+          opacity as the blog sidebar's "Licensed by RECO" line. */}
       <div className="bg-navy rounded-xl p-5 mb-8">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-accent mb-1.5">Hamza&apos;s Take</p>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="relative h-10 w-10 flex-shrink-0">
+            <Image
+              src="/images/hamza-headshot.jpg"
+              alt="Hamza Nouman"
+              fill
+              sizes="40px"
+              className="rounded-full object-cover object-top"
+            />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-accent leading-tight">Hamza&apos;s Take</p>
+            <p className="text-[10px] text-white/60 leading-tight mt-0.5">REALTOR® · Investment Specialist · Cityscape Real Estate</p>
+          </div>
+        </div>
         <p className="text-sm text-white/90 leading-relaxed italic">&ldquo;{d.note}&rdquo;</p>
       </div>
 
@@ -288,7 +313,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
 
       {/* CTAs */}
       <div className="flex flex-col sm:flex-row gap-3 mb-10">
-        <Link href={`/listings?hood=${encodeURIComponent(name)}`} className="btn-primary !px-6 !py-3 text-center no-underline">
+        <Link href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow" className="btn-primary !px-6 !py-3 text-center no-underline">
           View Live Listings in {name} →
         </Link>
         <Link href="/book-call" className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-navy hover:border-navy/30 transition text-center no-underline">
@@ -306,6 +331,12 @@ export default async function NeighbourhoodGuidePage({ params }) {
           </div>
         ))}
       </div>
+
+      {/* Inline email capture. Placed after the FAQ (not before — the CTA
+          row already serves ready-to-act visitors) to convert the more
+          deliberate reader who worked through data + FAQ but isn't yet
+          ready to browse or book. One component, all 24 hood guides. */}
+      <InlineCTA variant="newsletter" className="mb-10" />
 
       {/* Deep-dive reading — pillar posts covering this hood specifically,
           plus the ranking that puts it in context. Internal links from these
@@ -354,7 +385,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
         lg:hidden because the desktop layout keeps the in-flow CTA in view. */}
     <div className="fixed bottom-0 left-0 right-0 z-[150] border-t border-slate-200 bg-white/95 px-4 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden">
       <Link
-        href={`/listings?hood=${encodeURIComponent(name)}`}
+        href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow"
         className="btn-primary flex w-full items-center justify-center !py-3 no-underline"
       >
         View {name} Listings &rarr;

@@ -5,6 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, formatAddress } from '@/lib/utils/format';
+import { HOOD_DATA } from '@/lib/constants';
+
+// Matches the pattern used on neighbourhood cards and the listing detail page.
+const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // A malformed deal (missing/NaN derived number) must NEVER crash a card and
 // blank the whole homepage deal section. Format defensively — dash, never NaN.
@@ -53,14 +57,20 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
     >
       <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
         {photo ? (
-          <Image
-            src={photo}
-            alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`}
-            fill
-            sizes="(min-width: 1024px) 25vw, 50vw"
-            priority={priority}
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-          />
+          <>
+            {/* Shimmer under the image while it loads — same treatment as the
+                /listings cards: a cold TRREB photo on flat white reads as
+                broken; covered by the Image the moment it paints. */}
+            <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
+            <Image
+              src={photo}
+              alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`}
+              fill
+              sizes="(min-width: 1024px) 25vw, 50vw"
+              priority={priority}
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
             <svg className="h-8 w-8 sm:h-12 sm:w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -117,7 +127,17 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
       </div>
       <div className="p-2.5 sm:p-4">
         <p className="text-xs sm:text-sm font-semibold text-navy truncate">{formatAddress(deal.address)}</p>
-        <p className="text-[10px] sm:text-xs text-muted truncate">{deal.neighbourhood || deal.city}</p>
+        {deal.neighbourhood && HOOD_DATA[deal.neighbourhood] ? (
+          <Link
+            href={`/neighbourhoods/${slugify(deal.neighbourhood)}`}
+            className="block text-[10px] sm:text-xs text-muted truncate hover:text-accent transition-colors"
+            title={`${deal.neighbourhood} investment guide`}
+          >
+            {deal.neighbourhood}
+          </Link>
+        ) : (
+          <p className="text-[10px] sm:text-xs text-muted truncate">{deal.neighbourhood || deal.city}</p>
+        )}
         <div className="flex items-center gap-2 mt-0.5">
           <p className="text-base sm:text-lg font-bold text-navy">{fmtK(deal.price)}</p>
           <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-navy/70">
