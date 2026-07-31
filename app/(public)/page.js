@@ -127,11 +127,28 @@ async function fetchTopDeals() {
     // Fetch all pages for an accurate total via the shared feed fetch —
     // this sat on its own fetch with revalidate 3600, so the homepage kept
     // serving hour-old (or, across deploys, DAYS-old) feed data after every
-    // fix. See lib/listings/fetch-feed.js. timeoutMs 5000 bounds the whole
-    // walk (~5 batches) to ~30s worst case: regeneration happens off the
-    // request path now, but build-time prerender still has a hard 60s
-    // budget and must never be blown by a slow upstream (see #68's lesson).
-    const { listings: raw, first: data } = await fetchFeedPages(SITE_URL, '/api/listings', { pages: 999, timeoutMs: 5000 });
+    // fix. See lib/listings/fetch-feed.js.
+    //
+    // TWO budgets, deliberately. Page 1 gets 15s, the extra pages keep 5s.
+    // A single 5s budget produced the 2026-07-31 failure: page 1 timed out
+    // against a healthy-but-cold /api/listings and the whole Top Deals
+    // section rendered EMPTY, because losing page 1 returns no rows at all
+    // while losing extra pages only trims the tail (a 22/25-page fill still
+    // ranks four deals fine).
+    //
+    // Worst case, unchanged in shape and still inside the 60s build-prerender
+    // budget that #68 taught us not to blow:
+    //   page 1        15s
+    //   + 5 batches x 5s (25 extra pages, BATCH=6)   25s
+    //   + top-4 photo fetches (parallel, 5s each)     5s
+    //   = 45s, with fetchLiveStats (8s) running in PARALLEL, not after.
+    // Regeneration is off the request path (ISR, revalidate 300), so this
+    // budget is only ever spent by a background regenerate or a build.
+    const { listings: raw, first: data } = await fetchFeedPages(SITE_URL, '/api/listings', {
+      pages: 999,
+      timeoutMs: 5000,
+      firstPageTimeoutMs: 15000,
+    });
     if (!data) return { deals: [], photoMap: {}, totalCount: 0 };
 
     const processed = processListings(raw);
