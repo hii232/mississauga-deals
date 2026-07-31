@@ -17,19 +17,26 @@ import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
 // ListingsContainer keeps ALL its interactivity — it takes these rows as
 // initialListings and skips its own fetch when they are present, so filters,
 // sorting, the map and the gate behave exactly as before.
-// DYNAMIC, deliberately — do not "fix" this back to ISR without re-reading
-// this comment. The 2026-07-31 audit correctly found that a headers() call was
-// silently disabling this file's `revalidate = 600`, and replacing it with the
-// SITE_URL constant did turn real ISR on. On production that made the money
-// page WORSE, measured: the Vercel build cannot reach the site's own
-// /api/listings while building, so the prerender baked with zero listings, and
-// the page then sat at CDN `cache=HIT` with no serverless invocation at all —
-// 50 minutes after deploy it was still serving that empty HTML, 0 cards and no
-// ItemList schema, where the pre-release dynamic render had served both.
-// An empty highest-value commercial page is a far worse outcome than paying a
-// server render per request, which is what this page did for months.
-// The SITE_URL fix below is kept (it is correct and removes the local
-// `next start` trap); only the caching mode reverts.
+// DYNAMIC, deliberately — do not "fix" this back to ISR without reading this.
+//
+// The 2026-07-31 audit correctly found that a headers() call was silently
+// disabling this file's `revalidate = 600`, and the SITE_URL constant turned
+// real ISR on. Measured consequence on production: the Vercel build cannot
+// reach the site's own /api/listings while building, so the first prerender
+// baked with ZERO listings — 12 minutes after deploy this page served 0 cards
+// and no ItemList schema.
+//
+// ISR did eventually heal it (20 listings ~50 min post-deploy), so the empty
+// window was temporary, not permanent. It is still not good enough here: a
+// deploy leaves the site's highest-value commercial page empty for crawlers
+// for tens of minutes, every deploy, and the healed render was measurably
+// thinner than a dynamic one (2 vs 33 cap-rate figures in the HTML for 20 vs
+// 30 listings). Rendering per request costs a server render — which is what
+// this page did for months — and guarantees full inventory on every crawl
+// with no cold window.
+//
+// The SITE_URL fix below is kept: it is correct independent of caching mode
+// and removes the local `next start` trap.
 export const dynamic = 'force-dynamic';
 
 // Buying-side questions for the money page. Deliberately DISTINCT from the
