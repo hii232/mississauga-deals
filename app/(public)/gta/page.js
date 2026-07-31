@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { permanentRedirect } from 'next/navigation';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR, SSR_CARD_ROWS } from '@/lib/listings/fetch-feed';
 import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
@@ -273,7 +273,30 @@ export async function fetchGtaListings(city) {
       (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     const qs = city ? `&city=${encodeURIComponent(city)}` : '';
     // Shared feed fetch — see lib/listings/fetch-feed.js.
-    const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', { pages: 1, qs, timeoutMs });
+    //
+    // limit = SSR_CARD_ROWS (30), not the default 100. This fetch was asking
+    // for 100 rows and then handing exactly 30 to slimForSSR — 70 rows of pure
+    // waste on the single call that was blowing its 25s budget. Runtime logs
+    // showed `fetch-feed: /api/listings-gta page 1 failed (TimeoutError)` on
+    // essentially every /gta/[city] regeneration, so all 28 city pages baked
+    // their hero/FAQ/schema with ZERO server-rendered listings (real visitors
+    // still got them from the client fetch — an SEO gap, not a broken page).
+    // Row count is the lever that matters here: the Media $expand returns
+    // roughly 5 CDN size-variants per photo, so the payload is dominated by
+    // media rows and falls with $top more or less linearly — a 100-row GTA
+    // page drags ~18k media rows, 30 rows drags ~5.4k. Nothing rendered
+    // changes: the server paints 30 cards either way, `total`/`browsableTotal`
+    // come from the upstream $count (independent of $top), and the client
+    // container still background-fetches the full feed on mount and replaces
+    // this slice. The alternative — making the city pages fully dynamic — was
+    // rejected: it would risk this timeout on EVERY request, not one per five
+    // minutes.
+    const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', {
+      pages: 1,
+      qs,
+      timeoutMs,
+      limit: SSR_CARD_ROWS,
+    });
     if (!data) return { listings: [], total: 0 };
     // browsableTotal excludes the commercial/lease rows the site never shows.
     return { listings: processListings(raw), total: Number(data.browsableTotal ?? data.total) || 0 };
