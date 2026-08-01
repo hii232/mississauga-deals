@@ -7,6 +7,7 @@ import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast } from '@/lib/api-auth';
 import { selfOrigin } from '@/lib/emails/self-origin';
+import { acquireSendLock, probeSendLock, BROADCAST_SENDS_SQL } from '@/lib/emails/broadcast-guard';
 
 // Composing hits BOTH /api/listings and /api/market-stats with no-store; a cold
 // recompute of either can take 60-90s when the upstream feed is slow.
@@ -16,12 +17,14 @@ export const dynamic = 'force-dynamic';
 // Dated campaign id. Powers the approval token AND the broadcast_sends
 // idempotency guard, so this send can happen at most once.
 //
-// NOTE: unlike the one-off campaigns, this format is designed to REPEAT — the
-// picks change every week. A recurring version must mint a NEW key per send
-// (e.g. offer-picks-2026-W32) rather than reusing this one, and must not be put
-// on a cron until the broadcast_sends table is confirmed to exist in Supabase.
-// Without that table the guard silently no-ops and a repeated draft can be
-// approved twice, which is exactly how the same email reaches the list twice.
+// NOTE: this format is designed to repeat — the picks change every week — but
+// each edition must mint a NEW dated key (e.g. offer-picks-2026-W32).
+//
+// A daily cron (vercel.json) mails the approver a fresh draft until the
+// campaign sends; after the send, the broadcast_sends row turns the cron into
+// a silent no-op (remove the entry when convenient). The cron cannot cause a
+// duplicate: the send is FAIL-CLOSED on broadcast_sends — if the lock row
+// cannot be written, the approve step refuses instead of sending unprotected.
 const CAMPAIGN = 'offer-picks-2026-08-01';
 
 // The email's primary CTA is "just reply to this email — it comes straight to
@@ -155,7 +158,7 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 </head><body><div class="card">${body}</div></body></html>`;
 }
 
-function approvalBanner(count, data, origin) {
+function approvalBanner(count, data, origin, guardReady) {
   // Built from the origin actually serving this request — a draft generated on
   // a preview deployment must approve on THAT preview, not on production.
   const url = `${origin}/api/broadcast/offer-picks?approve=1&t=${approvalToken()}`;
@@ -168,6 +171,7 @@ function approvalBanner(count, data, origin) {
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
     <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
     <div style="font-family:system-ui,sans-serif;font-size:12px;color:#92400E;margin-bottom:8px;">This is exactly what your <strong>${count}</strong> contact${count === 1 ? '' : 's'} will receive. Nothing sends until you click below.</div>
+    ${guardReady ? '' : `<div style="font-family:system-ui,sans-serif;font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin:0 0 8px;text-align:left;">&#9888; Duplicate-send protection is NOT active &mdash; the broadcast_sends table is missing in Supabase, and the send button below will REFUSE until it exists. Fix first: Supabase &rarr; SQL Editor &rarr; paste &amp; run:<pre style="background:#0F172A;color:#E2E8F0;padding:10px;border-radius:6px;font-size:11px;line-height:1.5;overflow:auto;margin:8px 0 0;">${BROADCAST_SENDS_SQL}</pre></div>`}
     <div style="font-family:system-ui,sans-serif;font-size:11px;color:#92400E;text-align:left;line-height:1.7;margin-bottom:8px;">
       <strong>Check these three before sending — your name is on the offer numbers:</strong><br>${lines}
     </div>
@@ -284,21 +288,16 @@ export async function GET(request) {
     if (!supabase) {
       return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
     }
-    try {
-      const { data: already } = await supabase
-        .from('broadcast_sends')
-        .select('campaign_key')
-        .eq('campaign_key', CAMPAIGN)
-        .maybeSingle();
-      if (already) {
-        return NextResponse.json({
-          alreadySent: true,
-          campaign: CAMPAIGN,
-          note: 'Campaign already sent — no draft emailed.',
-        });
-      }
-    } catch {
-      // table missing — proceed with the draft
+    // Draft-time probe: self-disarm if already sent, and detect a missing
+    // guard table NOW so the draft can warn (with the fix inline) instead of
+    // letting the approver discover it at the send refusal.
+    const probe = await probeSendLock(supabase, CAMPAIGN);
+    if (probe.alreadySent) {
+      return NextResponse.json({
+        alreadySent: true,
+        campaign: CAMPAIGN,
+        note: 'Campaign already sent — no draft emailed.',
+      });
     }
     const { data, reason } = await fetchPicks(selfOrigin(request));
     if (!data) {
@@ -309,7 +308,7 @@ export async function GET(request) {
     }
     const recipients = await getBroadcastRecipients(supabase);
     const { html } = buildOfferPicksEmail({ email: APPROVER, name: 'Hamza', data });
-    const draftHtml = approvalBanner(recipients.length, data, selfOrigin(request)) + html;
+    const draftHtml = approvalBanner(recipients.length, data, selfOrigin(request), probe.guardReady) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] This week's picks — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
@@ -320,6 +319,8 @@ export async function GET(request) {
       success: ok,
       mode: 'draft-for-approval',
       draftSentTo: APPROVER,
+      guardReady: probe.guardReady,
+      ...(probe.guardReady ? {} : { warning: 'broadcast_sends missing — the send will refuse until the migration runs. The draft explains the fix.' }),
       recipients: recipients.length,
       picks: data.picks.map((p) => ({
         address: p.listing.address, ask: p.listing.price,
@@ -360,18 +361,25 @@ export async function POST(request) {
       );
     }
 
-    try {
-      const { error: guardErr } = await supabase
-        .from('broadcast_sends')
-        .insert({ campaign_key: CAMPAIGN, approved_by: APPROVER });
-      if (guardErr && (guardErr.code === '23505' || /duplicate/i.test(guardErr.message || ''))) {
-        return new Response(
-          htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
-          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
-      }
-    } catch {
-      // table missing — proceed without the idempotency guard
+    // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
+    // when broadcast_sends was missing — and the table was in fact missing,
+    // which is how this database got the same campaign twice. The mass-send
+    // now happens ONLY if the lock row was actually written.
+    const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
+    if (lock.outcome === 'duplicate') {
+      return new Response(
+        htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
+        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
+    if (lock.outcome !== 'acquired') {
+      return new Response(
+        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+         <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
+         <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
+         <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
     }
 
     const recipients = await getBroadcastRecipients(supabase);

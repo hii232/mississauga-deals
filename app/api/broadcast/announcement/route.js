@@ -6,6 +6,7 @@ import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
 import { selfOrigin } from '@/lib/emails/self-origin';
+import { acquireSendLock, probeSendLock, BROADCAST_SENDS_SQL } from '@/lib/emails/broadcast-guard';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -233,20 +234,25 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email infrastructure not configured' }, { status: 500 });
     }
 
-    // One send per campaign. Uses broadcast_sends (unique campaign_key) when the
-    // table exists; proceeds without the guard if it doesn't.
-    try {
-      const { error: guardErr } = await supabase
-        .from('broadcast_sends')
-        .insert({ campaign_key: CAMPAIGN, approved_by: APPROVER });
-      if (guardErr && (guardErr.code === '23505' || /duplicate/i.test(guardErr.message || ''))) {
-        return new Response(
-          htmlPage('Already sent', '<h1>This announcement was already sent</h1><p>No duplicate emails went out.</p>'),
-          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
-      }
-    } catch {
-      // table missing — proceed without the idempotency guard
+    // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
+    // when broadcast_sends was missing — and the table was in fact missing,
+    // which is how this database got the same campaign twice. The mass-send
+    // now happens ONLY if the lock row was actually written.
+    const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
+    if (lock.outcome === 'duplicate') {
+      return new Response(
+        htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
+        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
+    if (lock.outcome !== 'acquired') {
+      return new Response(
+        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+         <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
+         <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
+         <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
     }
 
     const recipients = await getBroadcastRecipients(supabase);
