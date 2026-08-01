@@ -6,6 +6,7 @@ import { pickDeals, validatePicks } from '@/lib/emails/offer-picks-data';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast } from '@/lib/api-auth';
+import { selfOrigin } from '@/lib/emails/self-origin';
 
 // Composing hits BOTH /api/listings and /api/market-stats with no-store; a cold
 // recompute of either can take 60-90s when the upstream feed is slow.
@@ -28,11 +29,6 @@ const APPROVER =
   process.env.LEAD_NOTIFICATION_EMAIL ||
   'hamza@nouman.ca';
 
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
-
 function approvalToken() {
   if (!process.env.CRON_SECRET) return 'dev';
   return createHmac('sha256', process.env.CRON_SECRET)
@@ -47,10 +43,10 @@ function approvalToken() {
 // in lib/emails/offer-picks-data.js, which is unit-tested — this function only
 // fetches and hands off, so the numbers a subscriber sees are the ones the
 // tests cover.
-async function fetchPicks() {
+async function fetchPicks(origin) {
   const [listRes, statsRes] = await Promise.all([
-    fetch(`${SITE_URL}/api/listings?city=Mississauga&limit=200&sort=dom`, { cache: 'no-store' }),
-    fetch(`${SITE_URL}/api/market-stats`, { cache: 'no-store' }),
+    fetch(`${origin}/api/listings?city=Mississauga&limit=200&sort=dom`, { cache: 'no-store' }),
+    fetch(`${origin}/api/market-stats`, { cache: 'no-store' }),
   ]);
   if (!listRes.ok) return { data: null, reason: `listings returned ${listRes.status}` };
   if (!statsRes.ok) return { data: null, reason: `market-stats returned ${statsRes.status}` };
@@ -145,8 +141,10 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 </head><body><div class="card">${body}</div></body></html>`;
 }
 
-function approvalBanner(count, data) {
-  const url = `${SITE_URL}/api/broadcast/offer-picks?approve=1&t=${approvalToken()}`;
+function approvalBanner(count, data, origin) {
+  // Built from the origin actually serving this request — a draft generated on
+  // a preview deployment must approve on THAT preview, not on production.
+  const url = `${origin}/api/broadcast/offer-picks?approve=1&t=${approvalToken()}`;
   const lines = data.picks.map((p) =>
     `${p.listing.address} — ask $${Math.round(p.listing.price).toLocaleString('en-CA')}, `
     + `open $${Math.round(p.offer.offer).toLocaleString('en-CA')} (${p.offer.pctOfAsk}%), `
@@ -205,7 +203,7 @@ export async function GET(request) {
         });
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       }
-      const { data, reason } = await fetchPicks().catch((e) => ({ data: null, reason: String(e) }));
+      const { data, reason } = await fetchPicks(selfOrigin(request)).catch((e) => ({ data: null, reason: String(e) }));
       if (!data) {
         // No sample fallback here, unlike the aggregate campaigns. This email
         // names real addresses and tells someone what to bid on them; inventing
@@ -279,7 +277,7 @@ export async function GET(request) {
     } catch {
       // table missing — proceed with the draft
     }
-    const { data, reason } = await fetchPicks();
+    const { data, reason } = await fetchPicks(selfOrigin(request));
     if (!data) {
       return NextResponse.json(
         { error: 'Picks unavailable or failed validation — not drafting', detail: reason },
@@ -288,7 +286,7 @@ export async function GET(request) {
     }
     const recipients = await getBroadcastRecipients(supabase);
     const { html } = buildOfferPicksEmail({ email: APPROVER, name: 'Hamza', data });
-    const draftHtml = approvalBanner(recipients.length, data) + html;
+    const draftHtml = approvalBanner(recipients.length, data, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] This week's picks — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
@@ -330,7 +328,7 @@ export async function POST(request) {
     // Re-fetch and re-validate BEFORE the idempotency guard burns the one shot
     // this campaign gets. Listings go stale fast — a property sold since the
     // draft must not be mailed out with an offer number attached.
-    const { data, reason } = await fetchPicks();
+    const { data, reason } = await fetchPicks(selfOrigin(request));
     if (!data) {
       return new Response(
         htmlPage('Not sent', `<h1>Send blocked — picks failed validation</h1><p>${reason || 'Live listings or the TRREB anchors were unavailable.'} Nothing was sent.</p>`),

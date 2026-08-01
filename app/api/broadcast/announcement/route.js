@@ -5,6 +5,7 @@ import { buildAnnouncementEmail } from '@/lib/emails/announcement-email';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
+import { selfOrigin } from '@/lib/emails/self-origin';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -89,8 +90,10 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 }
 
 // ── Draft banner prepended to the announcement when it's sent for approval ──
-function approvalBanner(count) {
-  const url = `https://www.mississaugainvestor.ca/api/broadcast/announcement?approve=1&t=${approvalToken()}`;
+function approvalBanner(count, origin) {
+  // Origin comes from the request being served, so a draft raised on a
+  // preview deployment approves on that preview instead of 404ing on prod.
+  const url = `${origin}/api/broadcast/announcement?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
     <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
@@ -186,7 +189,7 @@ export async function GET(request) {
     const recipients = await getBroadcastRecipients(supabase);
     const posts = await fetchLatestPosts(supabase);
     const { html } = buildAnnouncementEmail({ email: APPROVER, name: 'Hamza', posts });
-    const draftHtml = approvalBanner(recipients.length) + html;
+    const draftHtml = approvalBanner(recipients.length, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] Announcement email — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,

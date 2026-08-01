@@ -5,6 +5,7 @@ import { buildMotivatedSellersEmail } from '@/lib/emails/motivated-sellers-email
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
+import { selfOrigin } from '@/lib/emails/self-origin';
 
 // 300, not 60: fetchRadar calls /api/market-stats with cache:'no-store', and a
 // cold recompute of that route can take 60-90s when the feed upstream is slow.
@@ -23,11 +24,6 @@ const APPROVER =
   process.env.NEWSLETTER_APPROVER_EMAIL ||
   process.env.LEAD_NOTIFICATION_EMAIL ||
   'hamza@nouman.ca';
-
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
 
 // Auth: cron Bearer, admin header, or ?key= — see lib/api-auth.js requireBroadcast.
 // The actual send needs the HMAC approval token from the draft email.
@@ -50,8 +46,8 @@ function approvalToken() {
 // zero DOM, etc.), the send REFUSES rather than mailing the whole database a
 // wrong number — a wrong number is the worst bug on this site, and in an email
 // it can't even be hotfixed.
-async function fetchRadar() {
-  const res = await fetch(`${SITE_URL}/api/market-stats`, { cache: 'no-store' });
+async function fetchRadar(origin) {
+  const res = await fetch(`${origin}/api/market-stats`, { cache: 'no-store' });
   if (!res.ok) return { radar: null, reason: `market-stats returned ${res.status}` };
   const stats = await res.json();
   const radar = {
@@ -125,8 +121,9 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 }
 
 // ── Draft banner prepended to the email when it's sent for approval ──
-function approvalBanner(count, radar) {
-  const url = `${SITE_URL}/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}`;
+function approvalBanner(count, radar, origin) {
+  // Origin comes from the request being served — see lib/emails/self-origin.js.
+  const url = `${origin}/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
     <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
@@ -168,7 +165,7 @@ export async function GET(request) {
         const authErr = requireBroadcast(request, searchParams);
         if (authErr) return authErr;
       }
-      let { radar } = await fetchRadar().catch(() => ({ radar: null }));
+      let { radar } = await fetchRadar(selfOrigin(request)).catch(() => ({ radar: null }));
       if (!radar) radar = SAMPLE_RADAR;
       const { html } = buildMotivatedSellersEmail({
         email: 'preview@example.com',
@@ -241,7 +238,7 @@ export async function GET(request) {
     } catch {
       // table missing — proceed with the draft
     }
-    const { radar, reason } = await fetchRadar();
+    const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return NextResponse.json(
         { error: 'Radar numbers unavailable or implausible — not drafting', detail: reason },
@@ -250,7 +247,7 @@ export async function GET(request) {
     }
     const recipients = await getBroadcastRecipients(supabase);
     const { html } = buildMotivatedSellersEmail({ email: APPROVER, name: 'Hamza', radar });
-    const draftHtml = approvalBanner(recipients.length, radar) + html;
+    const draftHtml = approvalBanner(recipients.length, radar, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] Motivated Seller Radar — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
@@ -288,7 +285,7 @@ export async function POST(request) {
 
     // The numbers the whole list receives are re-verified NOW, before the
     // idempotency guard burns the one shot this campaign gets.
-    const { radar, reason } = await fetchRadar();
+    const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return new Response(
         htmlPage('Not sent', `<h1>Send blocked — radar numbers unavailable</h1><p>${reason || 'The live stats endpoint did not return plausible numbers.'} Nothing was sent; try again once /api/market-stats is healthy.</p>`),
