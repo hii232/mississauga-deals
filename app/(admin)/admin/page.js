@@ -169,8 +169,22 @@ export default function AdminDashboard() {
       {/* Import subscribers — CSV upload into the leads database */}
       <ImportSubscribers />
 
-      {/* Announcement broadcast — one-click send of the platform-launch email */}
-      <AnnouncementBroadcast />
+      {/* Broadcast campaigns — each emails Hamza a draft; nothing reaches the
+          list until he clicks the approval button inside that draft. */}
+      <div className="space-y-4">
+        <BroadcastPanel
+          endpoint="/api/broadcast/announcement"
+          icon="📣"
+          title="Announcement Broadcast"
+          blurb="Send the platform-launch email to your whole database"
+        />
+        <BroadcastPanel
+          endpoint="/api/broadcast/offer-gap"
+          icon="📊"
+          title="The Offer Gap"
+          blurb="What Mississauga sellers actually accepted last month, by property type — the TRREB sale-to-list spread (detached took 96% of ask, freehold townhouses got 101%)"
+        />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Recent Leads */}
@@ -272,12 +286,17 @@ export default function AdminDashboard() {
   );
 }
 
-// One-click send of the platform-launch announcement email to the whole
-// database. Uses the admin key already in context (same x-admin-key the rest of
-// the dashboard uses), so there's no URL/secret fiddling. Clicking only emails
-// Hamza a DRAFT — the actual send to contacts still requires the token button
-// inside that draft, so this button can never blast the list by itself.
-function AnnouncementBroadcast() {
+// One-click DRAFT trigger for a broadcast campaign. Uses the admin key already
+// in context (same x-admin-key the rest of the dashboard uses), so there's no
+// URL/secret fiddling. Clicking only emails Hamza a DRAFT — the actual send to
+// contacts still requires the HMAC token button inside that draft, so this
+// button can never blast the list by itself. That two-step is the whole safety
+// model and it must survive any future edit here.
+//
+// Parameterised over `endpoint` so a new campaign is a new <BroadcastPanel/>
+// rather than a copy of this component; every campaign route exposes the same
+// ?count=1 / draft-GET contract.
+function BroadcastPanel({ endpoint, icon, title, blurb }) {
   const { adminKey } = useAdmin();
   const [count, setCount] = useState(null);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
@@ -285,17 +304,17 @@ function AnnouncementBroadcast() {
 
   useEffect(() => {
     if (!adminKey) return;
-    fetch('/api/broadcast/announcement?count=1', { headers: { 'x-admin-key': adminKey } })
+    fetch(`${endpoint}?count=1`, { headers: { 'x-admin-key': adminKey } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => { if (d && typeof d.recipients === 'number') setCount(d.recipients); })
       .catch(() => {});
-  }, [adminKey]);
+  }, [adminKey, endpoint]);
 
   async function sendDraft() {
     if (!adminKey || status === 'sending' || status === 'sent') return;
     setStatus('sending');
     try {
-      const res = await fetch('/api/broadcast/announcement', { headers: { 'x-admin-key': adminKey } });
+      const res = await fetch(endpoint, { headers: { 'x-admin-key': adminKey } });
       const data = await res.json();
       if (res.ok && data.success) { setStatus('sent'); setResult(data); }
       else { setStatus('error'); setResult(data); }
@@ -311,9 +330,9 @@ function AnnouncementBroadcast() {
     <div className="bg-[#141B2D] border border-accent/20 rounded-xl p-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-white">📣 Announcement Broadcast</h2>
+          <h2 className="text-sm font-bold text-white">{icon} {title}</h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
-            Send the platform-launch email to your whole database
+            {blurb}
             {count != null ? ` — ${count.toLocaleString()} contact${count === 1 ? '' : 's'}` : ''}.
             It emails <span className="text-white/80">you</span> a draft first — nothing reaches your
             contacts until you open it and click <span className="text-white/80">&ldquo;Review &amp; Send&rdquo;</span>.
