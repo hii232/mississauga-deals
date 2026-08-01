@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
+import { cityAliases } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 // 60, not 30: production error clusters show this route's own 30s ceiling
@@ -21,7 +22,11 @@ const GTA_CITIES = [
   'Oakville', 'Burlington', 'Milton',
   'Hamilton',
   'Barrie',
-  'Halton Hills',
+  // Both of the Town of Halton Hills' names — see CITY_ALIAS_GROUPS in
+  // lib/constants.js. Only one of them is TREB's label and we cannot see which
+  // from outside production, so asking for one alone risks the hub feed
+  // silently containing none of that town's listings.
+  'Halton Hills', 'Georgetown',
 ];
 
 // Toronto uses sub-area codes in TREB (e.g. "Toronto C01", "Toronto E05")
@@ -48,7 +53,9 @@ const CITY_RENT_TIER = {
   'Aurora': 1.0, 'Newmarket': 0.95, 'Whitby': 0.95, 'Ajax': 0.95,
   'Pickering': 1.0, 'Milton': 0.95, 'Hamilton': 0.85, 'Oshawa': 0.80,
   'Barrie': 0.85, 'Brampton': 0.90, 'Caledon': 0.95,
-  'Halton Hills': 0.95,
+  // One town, both of its names (CITY_ALIAS_GROUPS in lib/constants.js), so
+  // neither label can fall through to the 0.90 unknown-city default below.
+  'Halton Hills': 0.95, 'Georgetown': 0.95,
 };
 
 function estimateRent(price, beds, city, type) {
@@ -112,7 +119,15 @@ export async function GET(request) {
       if (cityParam.toLowerCase() === 'toronto') {
         filters.push(TORONTO_FILTER);
       } else {
-        filters.push("City eq '" + cityParam + "'");
+        // Ask for every name this municipality can appear under. Only
+        // Halton Hills/Georgetown has more than one (lib/constants.js), and it
+        // matters: /gta/georgetown used to send City eq 'Georgetown' — a name
+        // the board may not use at all — so that page could match zero rows,
+        // while /gta/halton-hills matched rows it then displayed as Georgetown.
+        // Asking for both makes each page correct under either board label.
+        const names = cityAliases(cityParam);
+        const clause = names.map((c) => "City eq '" + c + "'").join(' or ');
+        filters.push(names.length > 1 ? '(' + clause + ')' : clause);
       }
     } else {
       // Include all GTA cities + all Toronto sub-areas
@@ -162,11 +177,21 @@ export async function GET(request) {
       const price = l.ListPrice || 0;
       const beds = l.BedroomsTotal || 0;
       const rawCity = l.City || 'Toronto';
-      // Normalize: Toronto sub-areas (Toronto C01, Toronto E05) → Toronto
-      // Halton Hills → Georgetown
-      const city = rawCity.startsWith('Toronto') ? 'Toronto'
-        : rawCity === 'Halton Hills' ? 'Georgetown'
-        : rawCity;
+      // Normalize Toronto sub-areas (Toronto C01, Toronto E05) → Toronto. That
+      // one is legitimate: the request uses startswith(City,'Toronto'), so the
+      // rows and the label describe the same set.
+      //
+      // Every other municipality now keeps the board's own name. This line
+      // also relabelled 'Halton Hills' as 'Georgetown', which broke three
+      // things at once: the relabel ran BEFORE estimateRent, so those listings
+      // were priced with the 0.90 unknown-city tier instead of 0.95 (rent, and
+      // therefore cash flow, cap rate, cash-on-cash and Deal Score, understated
+      // — a 3-bed detached at $999k came out at $3,000/mo instead of $3,100);
+      // the /gta/halton-hills page displayed all of its listings as Georgetown,
+      // collapsing Acton and Glen Williams under that name too; and it hid the
+      // fact that /gta/georgetown was querying a city name the board may not
+      // use. The request now asks for both names instead (see above).
+      const city = rawCity.startsWith('Toronto') ? 'Toronto' : rawCity;
       const type = mapType(l.PropertySubType, l.PropertyType);
       const rent = estimateRent(price, beds, city, type);
       const drop = l.OriginalListPrice && l.OriginalListPrice > price
