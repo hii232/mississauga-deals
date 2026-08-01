@@ -70,10 +70,15 @@ async function fetchLiveListingStats(baseUrl) {
     // PRE-FIX cached rows: avgDOM read 75 and every neighbourhood read
     // "Mississauga" while the live feed had long been fixed. One shared fetch
     // path means the stats and the pages can never read different data again.
+    // nomedia=1: a pure aggregate — this file computes counts, averages, the
+    // radar and the screener summary, and reads no photo from any row. The
+    // Media $expand is the dominant cost of a feed request, so asking for it
+    // on a 25-page walk was buying ~450k media rows to throw all of them away.
     const { listings: raw, first } = await fetchFeedPages(baseUrl, '/api/listings', {
       pages: 999,
       revalidate: 3600,
       timeoutMs: 25000,
+      qs: '&nomedia=1',
     });
 
     if (raw.length === 0) return null;
