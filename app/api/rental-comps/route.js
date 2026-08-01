@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,7 +143,7 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1, fsa 
 
   const cityFilter = city.toLowerCase() === 'toronto'
     ? "startswith(City, 'Toronto')"
-    : `City eq '${city}'`;
+    : `City eq '${odataStr(city)}'`;
   const filters = [
     "(StandardStatus eq 'Closed' or StandardStatus eq 'Leased')",
     cityFilter,
@@ -200,7 +201,7 @@ async function fetchLeaseComps(city, type, beds, months = 12, bedRange = 1, fsa 
 async function fetchActiveRentals(city, type, beds) {
   const cityFilter = city.toLowerCase() === 'toronto'
     ? "startswith(City, 'Toronto')"
-    : `City eq '${city}'`;
+    : `City eq '${odataStr(city)}'`;
   const filters = [
     "StandardStatus eq 'Active'",
     cityFilter,

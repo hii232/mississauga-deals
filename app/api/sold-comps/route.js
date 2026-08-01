@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,7 +55,7 @@ export async function GET(request) {
       if (city.toLowerCase() === 'toronto') {
         filters.push("startswith(City, 'Toronto')");
       } else {
-        filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+        filters.push("City eq '" + odataStr(city) + "'");
       }
 
       // Similar property type (handle compound types like "Condo Townhouse")
@@ -108,7 +109,7 @@ export async function GET(request) {
 
       // Narrow by postal code prefix (first 3 chars = FSA) for area proximity
       if (postalPrefix && postalPrefix.length >= 3) {
-        filters.push("startswith(PostalCode, '" + postalPrefix.substring(0, 3).replace(/'/g, "''") + "')");
+        filters.push("startswith(PostalCode, '" + odataStr(postalPrefix.substring(0, 3)) + "')");
       }
 
       // Exclude commercial/lease/rentals
@@ -157,7 +158,7 @@ export async function GET(request) {
     if (items.length === 0) {
       const cityFilter = city.toLowerCase() === 'toronto'
         ? "startswith(City, 'Toronto')"
-        : "City eq '" + city.replace(/'/g, "''") + "'";
+        : "City eq '" + odataStr(city) + "'";
       const broadFilters = [
         "StandardStatus eq 'Closed'",
         cityFilter,

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr } from '@/lib/listings/odata';
 
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
@@ -30,12 +31,15 @@ async function resolvePhotos(ids) {
 
   // Fetch one photo — try ResourceRecordKey first (fastest), then ListingKey
   async function fetchOne(id) {
-    const safeId = id.replace(/'/g, "''");
+    // odataStr alone left the $filter itself un-encoded, so an `&` in an id could
+    // still append query parameters — encode the finished clause too.
+    const safeId = odataStr(id);
 
     // Method 1: ResourceRecordKey filter (most reliable for AMPRE)
     try {
       const r = await fetch(
-        BASE + "/Media?$filter=ResourceRecordKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL",
+        BASE + '/Media?$filter=' + encodeURIComponent("ResourceRecordKey eq '" + safeId + "'")
+          + '&$orderby=Order asc&$top=1&$select=MediaURL',
         { headers: hdrs, signal: AbortSignal.timeout(PER_QUERY_TIMEOUT_MS) }
       );
       if (r.ok) {
@@ -48,7 +52,8 @@ async function resolvePhotos(ids) {
     // Method 2: ListingKey filter (fallback)
     try {
       const r = await fetch(
-        BASE + "/Media?$filter=ListingKey eq '" + safeId + "'&$orderby=Order asc&$top=1&$select=MediaURL",
+        BASE + '/Media?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'")
+          + '&$orderby=Order asc&$top=1&$select=MediaURL',
         { headers: hdrs, signal: AbortSignal.timeout(PER_QUERY_TIMEOUT_MS) }
       );
       if (r.ok) {

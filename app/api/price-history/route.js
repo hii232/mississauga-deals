@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,17 +23,17 @@ export async function GET(request) {
     // Build filter to find all listings at this address (any status)
     const filters = [];
     if (streetNumber) {
-      filters.push("StreetNumber eq '" + streetNumber.replace(/'/g, "''") + "'");
+      filters.push("StreetNumber eq '" + odataStr(streetNumber) + "'");
     }
-    filters.push("contains(StreetName, '" + streetName.replace(/'/g, "''") + "')");
+    filters.push("contains(StreetName, '" + odataStr(streetName) + "')");
     // Toronto sub-areas in TREB: "Toronto W03", "Toronto C01", etc.
     if (city.toLowerCase() === 'toronto') {
       filters.push("startswith(City, 'Toronto')");
     } else {
-      filters.push("City eq '" + city.replace(/'/g, "''") + "'");
+      filters.push("City eq '" + odataStr(city) + "'");
     }
     if (unit) {
-      filters.push("UnitNumber eq '" + unit.replace(/'/g, "''") + "'");
+      filters.push("UnitNumber eq '" + odataStr(unit) + "'");
     }
 
     // OnMarketDate / ListingContractDate / OriginalEntryTimestamp are the toxic

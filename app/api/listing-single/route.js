@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr, odataKey } from '@/lib/listings/odata';
 import { computeDaysOnMarket, computeDaysSinceUpdate, computeDomFloor, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { probeSupportedFields } from '@/lib/listings/ampre-fields';
 
@@ -69,7 +70,10 @@ export async function GET(request) {
   }
 
   try {
-    const safeId = id.replace(/'/g, "''");
+    const safeId = odataStr(id);
+    // The entity-key attempts below put the id in the URL PATH, outside the
+    // encoded $filter, so it needs percent-encoding on top of the OData escape.
+    const pathId = odataKey(id);
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
     // Ask the feed what this token may select (memoised 1h) and use ALL of it —
     // byte-identical field surface to the listings feeds, so the numbers
@@ -103,8 +107,8 @@ export async function GET(request) {
     // Each approach is tried WITH the Media expand first, then without, so a
     // rejected expand costs only the photos rather than the whole listing.
     const attempts = [
-      BASE + "/Property('" + safeId + "')?" + sel + EXPAND,
-      BASE + "/Property('" + safeId + "')?" + sel,
+      BASE + "/Property('" + pathId + "')?" + sel + EXPAND,
+      BASE + "/Property('" + pathId + "')?" + sel,
       BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'") + '&' + sel + EXPAND + '&$top=1',
       BASE + '/Property?$filter=' + encodeURIComponent("ListingKey eq '" + safeId + "'") + '&' + sel + '&$top=1',
       // Some IDs are a ListingId rather than a ListingKey.
