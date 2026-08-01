@@ -122,6 +122,96 @@ Object.keys(CITY_COPY).forEach((city) => {
     : `Active ${city} listings ${copy.place} — every listing scored for cash flow, cap rate and deal quality.`;
 });
 
+// Region display order for the hub's city directory. Any region that appears
+// in CITY_COPY but is missing here still renders — appended after these — so a
+// new region can never silently drop its cities out of the directory.
+const REGION_ORDER = [
+  'City of Toronto',
+  'Peel Region',
+  'Halton Region',
+  'York Region',
+  'Durham Region',
+  'City of Hamilton',
+];
+
+/**
+ * Crawlable directory of every city page, on the /gta hub.
+ *
+ * The hub already DECLARES all 28 city pages in its ItemList JSON-LD, but it
+ * linked only the nine hero chips: measured on the built hub HTML, 9 anchors
+ * against 28 schema URLs. Structured data is not a crawl path — anchors are.
+ * The nineteen unlinked pages included the five Toronto districts and three
+ * Hamilton communities, whose only inbound links anywhere on the site were the
+ * sibling lists on their own parent-city page (the header mega-menu renders
+ * its links only while `open`, so they are absent from server HTML, and the
+ * footer carries six cities). Those same eight pages served zero listings
+ * until hours ago (73ff2e3); now that they hold real inventory, they should be
+ * reachable from the hub that advertises them rather than sitting three clicks
+ * deep behind a dropdown.
+ *
+ * Groups are derived from CITY_COPY.region — the same object the ItemList and
+ * the sitemap iterate — so the visible list cannot drift from either.
+ */
+export function GtaMarketDirectory() {
+  const regions = Object.keys(CITY_COPY).map((c) => CITY_COPY[c].region);
+  const ordered = [
+    ...REGION_ORDER,
+    ...[...new Set(regions)].filter((r) => !REGION_ORDER.includes(r)),
+  ];
+  const groups = ordered
+    .map((region) => ({
+      region,
+      cities: Object.keys(CITY_COPY).filter((c) => CITY_COPY[c].region === region),
+    }))
+    .filter((g) => g.cities.length > 0);
+
+  return (
+    <section className="mt-12">
+      <h2 className="font-heading text-xl font-bold text-navy">
+        Investment properties by GTA municipality
+      </h2>
+      <p className="mt-1 text-sm text-slate-600">
+        Every market this site scores — {Object.keys(CITY_COPY).length} city and district pages, each with
+        its own listings, municipal property tax rate and cash-flow analysis.
+      </p>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {groups.map((g) => (
+          <div key={g.region} className="rounded-xl border border-slate-200 bg-white p-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+              {g.region}
+            </h3>
+            <ul className="mt-2 space-y-1 text-sm">
+              {/* Mississauga is in Peel but has its own flagship page, not a
+                  /gta/[city] one — a Peel list without it reads as an omission. */}
+              {g.region === 'Peel Region' && (
+                <li>
+                  <Link
+                    href="/listings"
+                    className="font-medium text-accent no-underline hover:text-accent-dark"
+                  >
+                    Mississauga
+                  </Link>
+                  <span className="text-xs text-slate-400"> · main listings</span>
+                </li>
+              )}
+              {g.cities.map((c) => (
+                <li key={c}>
+                  <Link
+                    href={`/gta/${cityToSlug(c)}`}
+                    className="font-medium text-accent no-underline hover:text-accent-dark"
+                  >
+                    {c}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // Server-rendered, genuinely per-city content for the 28 indexable
 // /gta?city= pages. Before this, everything below each page's h1 + one-line
 // subtitle was byte-identical across all 28 (the listings themselves are
@@ -494,6 +584,9 @@ export default async function GtaListingsPage({ searchParams }) {
           />
         </Suspense>
         {copy && <CityInvestorNotes city={city} copy={copy} />}
+
+        {/* Hub-only: the crawlable counterpart to the ItemList schema above. */}
+        {!city && <GtaMarketDirectory />}
 
         {/* Server-rendered FAQ section — required for FAQPage schema (Google
             mandates the answers be visible on the page, not only in JSON-LD).
