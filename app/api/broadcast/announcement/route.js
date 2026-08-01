@@ -5,6 +5,8 @@ import { buildAnnouncementEmail } from '@/lib/emails/announcement-email';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
+import { selfOrigin } from '@/lib/emails/self-origin';
+import { acquireSendLock, probeSendLock, BROADCAST_SENDS_SQL } from '@/lib/emails/broadcast-guard';
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
@@ -12,6 +14,14 @@ export const dynamic = 'force-dynamic';
 // One-off campaign id. Powers the approval token + the "already sent" guard, so
 // the whole database can never be double-mailed.
 const CAMPAIGN = 'platform-launch';
+
+// Both of these emails invite a reply ("just reply to this email — it comes
+// straight to me"). Without reply_to that is false: replies hit the
+// notifications@ from-address instead of Hamza.
+const REPLY_TO =
+  process.env.REPLY_TO_EMAIL ||
+  process.env.LEAD_NOTIFICATION_EMAIL ||
+  'hamza@nouman.ca';
 
 const APPROVER =
   process.env.NEWSLETTER_APPROVER_EMAIL ||
@@ -69,6 +79,7 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      reply_to: REPLY_TO,
       headers: {
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -89,8 +100,10 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 }
 
 // ── Draft banner prepended to the announcement when it's sent for approval ──
-function approvalBanner(count) {
-  const url = `https://www.mississaugainvestor.ca/api/broadcast/announcement?approve=1&t=${approvalToken()}`;
+function approvalBanner(count, origin) {
+  // Origin comes from the request being served, so a draft raised on a
+  // preview deployment approves on that preview instead of 404ing on prod.
+  const url = `${origin}/api/broadcast/announcement?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
     <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
@@ -186,7 +199,7 @@ export async function GET(request) {
     const recipients = await getBroadcastRecipients(supabase);
     const posts = await fetchLatestPosts(supabase);
     const { html } = buildAnnouncementEmail({ email: APPROVER, name: 'Hamza', posts });
-    const draftHtml = approvalBanner(recipients.length) + html;
+    const draftHtml = approvalBanner(recipients.length, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] Announcement email — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
@@ -221,20 +234,25 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email infrastructure not configured' }, { status: 500 });
     }
 
-    // One send per campaign. Uses broadcast_sends (unique campaign_key) when the
-    // table exists; proceeds without the guard if it doesn't.
-    try {
-      const { error: guardErr } = await supabase
-        .from('broadcast_sends')
-        .insert({ campaign_key: CAMPAIGN, approved_by: APPROVER });
-      if (guardErr && (guardErr.code === '23505' || /duplicate/i.test(guardErr.message || ''))) {
-        return new Response(
-          htmlPage('Already sent', '<h1>This announcement was already sent</h1><p>No duplicate emails went out.</p>'),
-          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
-      }
-    } catch {
-      // table missing — proceed without the idempotency guard
+    // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
+    // when broadcast_sends was missing — and the table was in fact missing,
+    // which is how this database got the same campaign twice. The mass-send
+    // now happens ONLY if the lock row was actually written.
+    const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
+    if (lock.outcome === 'duplicate') {
+      return new Response(
+        htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
+        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
+    if (lock.outcome !== 'acquired') {
+      return new Response(
+        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+         <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
+         <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
+         <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
     }
 
     const recipients = await getBroadcastRecipients(supabase);

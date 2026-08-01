@@ -5,6 +5,8 @@ import { buildMotivatedSellersEmail } from '@/lib/emails/motivated-sellers-email
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast, isBroadcastAuthorized } from '@/lib/api-auth';
+import { selfOrigin } from '@/lib/emails/self-origin';
+import { acquireSendLock, probeSendLock, BROADCAST_SENDS_SQL } from '@/lib/emails/broadcast-guard';
 
 // 300, not 60: fetchRadar calls /api/market-stats with cache:'no-store', and a
 // cold recompute of that route can take 60-90s when the feed upstream is slow.
@@ -19,15 +21,18 @@ export const dynamic = 'force-dynamic';
 // the radar campaign is a NEW campaign key, not a blocked duplicate.
 const CAMPAIGN = 'motivated-sellers-2026-07';
 
+// Both of these emails invite a reply ("just reply to this email — it comes
+// straight to me"). Without reply_to that is false: replies hit the
+// notifications@ from-address instead of Hamza.
+const REPLY_TO =
+  process.env.REPLY_TO_EMAIL ||
+  process.env.LEAD_NOTIFICATION_EMAIL ||
+  'hamza@nouman.ca';
+
 const APPROVER =
   process.env.NEWSLETTER_APPROVER_EMAIL ||
   process.env.LEAD_NOTIFICATION_EMAIL ||
   'hamza@nouman.ca';
-
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
 
 // Auth: cron Bearer, admin header, or ?key= — see lib/api-auth.js requireBroadcast.
 // The actual send needs the HMAC approval token from the draft email.
@@ -50,8 +55,8 @@ function approvalToken() {
 // zero DOM, etc.), the send REFUSES rather than mailing the whole database a
 // wrong number — a wrong number is the worst bug on this site, and in an email
 // it can't even be hotfixed.
-async function fetchRadar() {
-  const res = await fetch(`${SITE_URL}/api/market-stats`, { cache: 'no-store' });
+async function fetchRadar(origin) {
+  const res = await fetch(`${origin}/api/market-stats`, { cache: 'no-store' });
   if (!res.ok) return { radar: null, reason: `market-stats returned ${res.status}` };
   const stats = await res.json();
   const radar = {
@@ -105,6 +110,7 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      reply_to: REPLY_TO,
       headers: {
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -125,8 +131,9 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 }
 
 // ── Draft banner prepended to the email when it's sent for approval ──
-function approvalBanner(count, radar) {
-  const url = `${SITE_URL}/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}`;
+function approvalBanner(count, radar, origin) {
+  // Origin comes from the request being served — see lib/emails/self-origin.js.
+  const url = `${origin}/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
     <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
@@ -168,7 +175,7 @@ export async function GET(request) {
         const authErr = requireBroadcast(request, searchParams);
         if (authErr) return authErr;
       }
-      let { radar } = await fetchRadar().catch(() => ({ radar: null }));
+      let { radar } = await fetchRadar(selfOrigin(request)).catch(() => ({ radar: null }));
       if (!radar) radar = SAMPLE_RADAR;
       const { html } = buildMotivatedSellersEmail({
         email: 'preview@example.com',
@@ -241,7 +248,7 @@ export async function GET(request) {
     } catch {
       // table missing — proceed with the draft
     }
-    const { radar, reason } = await fetchRadar();
+    const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return NextResponse.json(
         { error: 'Radar numbers unavailable or implausible — not drafting', detail: reason },
@@ -250,7 +257,7 @@ export async function GET(request) {
     }
     const recipients = await getBroadcastRecipients(supabase);
     const { html } = buildMotivatedSellersEmail({ email: APPROVER, name: 'Hamza', radar });
-    const draftHtml = approvalBanner(recipients.length, radar) + html;
+    const draftHtml = approvalBanner(recipients.length, radar, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] Motivated Seller Radar — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
@@ -288,7 +295,7 @@ export async function POST(request) {
 
     // The numbers the whole list receives are re-verified NOW, before the
     // idempotency guard burns the one shot this campaign gets.
-    const { radar, reason } = await fetchRadar();
+    const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return new Response(
         htmlPage('Not sent', `<h1>Send blocked — radar numbers unavailable</h1><p>${reason || 'The live stats endpoint did not return plausible numbers.'} Nothing was sent; try again once /api/market-stats is healthy.</p>`),
@@ -296,20 +303,25 @@ export async function POST(request) {
       );
     }
 
-    // One send per campaign. Uses broadcast_sends (unique campaign_key) when the
-    // table exists; proceeds without the guard if it doesn't.
-    try {
-      const { error: guardErr } = await supabase
-        .from('broadcast_sends')
-        .insert({ campaign_key: CAMPAIGN, approved_by: APPROVER });
-      if (guardErr && (guardErr.code === '23505' || /duplicate/i.test(guardErr.message || ''))) {
-        return new Response(
-          htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
-          { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-        );
-      }
-    } catch {
-      // table missing — proceed without the idempotency guard
+    // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
+    // when broadcast_sends was missing — and the table was in fact missing,
+    // which is how this database got the same campaign twice. The mass-send
+    // now happens ONLY if the lock row was actually written.
+    const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
+    if (lock.outcome === 'duplicate') {
+      return new Response(
+        htmlPage('Already sent', '<h1>This campaign was already sent</h1><p>No duplicate emails went out.</p>'),
+        { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
+    }
+    if (lock.outcome !== 'acquired') {
+      return new Response(
+        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+         <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
+         <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
+         <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
+        { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      );
     }
 
     const recipients = await getBroadcastRecipients(supabase);
