@@ -144,10 +144,17 @@ export default async function sitemap() {
     // own set of Data Cache entries with their own staleness, which is the
     // split-brain that had the sitemap regenerate with ZERO listing URLs
     // while the pages were serving fresh rows.
+    // nomedia=1: this branch reads ListingKey and modificationTimestamp and
+    // nothing else — the photos it was paying for were never even looked at.
+    // The Media $expand is the dominant cost of a feed request, and losing
+    // page 1 to a timeout is what leaves the sitemap with ZERO listing URLs.
+    // (image-sitemap.xml is the one feed consumer that DOES need photos and
+    // is deliberately left alone.)
     const { listings: allListings } = await fetchFeedPages(baseUrl, '/api/listings', {
       pages: LISTING_PAGE_BUDGET,
       revalidate: 3600,
       timeoutMs: FETCH_TIMEOUT_MS,
+      qs: '&nomedia=1',
     });
 
     {
@@ -191,11 +198,12 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    // Same shared fetch as the Mississauga branch above.
+    // Same shared fetch as the Mississauga branch above, nomedia and all.
     const { listings: all } = await fetchFeedPages(baseUrl, '/api/listings-gta', {
       pages: LISTING_PAGE_BUDGET,
       revalidate: 3600,
       timeoutMs: FETCH_TIMEOUT_MS,
+      qs: '&nomedia=1',
     });
 
     {

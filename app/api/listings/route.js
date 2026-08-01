@@ -94,7 +94,16 @@ export async function GET(request) {
     const tail = '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    const result = await fetchWithFieldTiers(base, tail, TOK);
+    // nomedia=1 — for callers that AGGREGATE this feed rather than paint it.
+    // The homepage walks all ~25 pages to rank its top 4 deals and count the
+    // cash-flow-positive listings, then fetches photos for just those 4 by id
+    // (HomeDealCards reads only that photoMap, never row.photos). Every media
+    // row in the other ~2,500 listings is paid for and thrown away — and the
+    // Media $expand is the dominant cost of a feed request, ~5 CDN
+    // size-variants per photo. Same switch /api/listings-gta already exposes.
+    // Defaults to media ON, so nothing changes for any existing caller.
+    const wantsMedia = searchParams.get('nomedia') !== '1';
+    const result = await fetchWithFieldTiers(base, tail, TOK, { media: wantsMedia });
     if (result.error) {
       return NextResponse.json(
         { error: result.error, detail: result.detail },

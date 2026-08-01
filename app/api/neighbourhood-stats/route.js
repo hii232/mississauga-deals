@@ -41,6 +41,9 @@ export async function GET() {
       // 10s, not 25: pages fetch in batches of 6 (5 batches for 30 pages), and
       // the worst case must fit inside maxDuration — 5 x 10s = 50s < 60s.
       timeoutMs: 10000,
+      // nomedia=1: per-hood avg price / DOM / yield only — no photo is read
+      // from these rows, and the Media $expand is the dominant request cost.
+      qs: '&nomedia=1',
     });
     if (raw.length === 0) return NextResponse.json({ stats: {} });
 

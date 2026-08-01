@@ -5,7 +5,7 @@ import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
-import { fetchFeedPages, slimForSSR } from '@/lib/listings/fetch-feed';
+import { fetchFeedPages, slimForSSR, SSR_CARD_ROWS } from '@/lib/listings/fetch-feed';
 
 // SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
 // the listings themselves were fetched client-side, so Googlebot received an
@@ -118,10 +118,31 @@ async function fetchInitialListings() {
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
-    // /gta and the homepage. One page of 100 — the grid renders 30 cards and
-    // the ItemList uses 20, so a second page was pure payload. See the helper
-    // for why this replaced a page-local fetch with a long-lived cache entry.
-    const { listings: rawRows, first: data } = await fetchFeedPages(origin, '/api/listings', { pages: 1 });
+    // /gta and the homepage.
+    //
+    // limit: SSR_CARD_ROWS (30), not the 100 this used to ask for. The grid
+    // renders 30 cards and the ItemList uses 20, so rows 31-100 were always
+    // discarded by slimForSSR — but they were NOT free: the Media $expand
+    // returns ~5 CDN size-variants per photo, so a 100-row page drags roughly
+    // 18k media rows across the wire and the cost scales linearly with rows.
+    //
+    // Measured on production 2026-08-01, all three pages served by the same
+    // helper against the same deployment in the same minute:
+    //   /gta       limit=SSR_CARD_ROWS, 24.5k-row GTA feed  -> 30 listings, ItemList present
+    //   /listings  limit=100,           2.5k-row Mssga feed -> 0 listings, no ItemList
+    //   /          limit=100 x 25 pages                     -> 0 deals ("Top Deals" empty)
+    // The page querying the LARGER feed was the one that worked, so the feed
+    // size is not the variable — the per-page media payload is. Runtime log
+    // for the two failures: `fetch-feed: /api/listings page 1 failed
+    // (TimeoutError) after 8000ms` (and 15000ms on the homepage).
+    //
+    // 30 rows is the configuration already proven live by /gta, which is why
+    // it is preferred here over dropping media entirely: the cards keep their
+    // server-rendered photos, so the LCP image is still in the HTML.
+    const { listings: rawRows, first: data } = await fetchFeedPages(origin, '/api/listings', {
+      pages: 1,
+      limit: SSR_CARD_ROWS,
+    });
     if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const rows = processListings(rawRows);
     // browsableTotal excludes the commercial/lease rows the site never shows —
@@ -150,11 +171,23 @@ async function fetchInitialListings() {
         if (stats.screener) summary = stats.screener;
       }
     } catch {}
-    // data.pages is the API's OWN page count from the raw @odata.count.
-    // Re-deriving it client-side from the post-filter browsableTotal computed
-    // 13 where the truth was 14 — page 14's listings were permanently
-    // unreachable (measured on production: real $2.8M-$4M listings lived there).
-    return { listings: rows, total: feedTotal, displayTotal, pages: Number(data.pages) || 0, summary };
+    // initialPages is consumed by ListingsContainer to background-load the
+    // REST of the feed, and it pages at limit=100 (see its fetch calls). It is
+    // therefore a page count AT 100 ROWS — which is what `data.pages` used to
+    // be only because this fetch also asked for 100.
+    //
+    // Now that the SSR fetch asks for 30, `data.pages` is ceil(total/30): the
+    // container would walk ~84 pages at 100 rows each, 59 of them past the end
+    // of the feed. Recomputed here at the container's own page size, using the
+    // API's own formula (Math.ceil(total / limit), app/api/listings/route.js).
+    //
+    // From data.total — the RAW @odata.count — not browsableTotal. Deriving it
+    // from the post-filter count computed 13 where the truth was 14, and
+    // page 14's listings were permanently unreachable (measured on production:
+    // real $2.8M-$4M listings lived there).
+    const CLIENT_PAGE_ROWS = 100;
+    const pages = Math.ceil((Number(data.total) || 0) / CLIENT_PAGE_ROWS) || 0;
+    return { listings: rows, total: feedTotal, displayTotal, pages, summary };
   } catch (err) {
     // MUST log. This catch previously swallowed silently, and when a stale
     // `${proto}://${host}` reference survived the headers()→origin refactor it

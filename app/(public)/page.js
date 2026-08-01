@@ -144,10 +144,24 @@ async function fetchTopDeals() {
     //   = 45s, with fetchLiveStats (8s) running in PARALLEL, not after.
     // Regeneration is off the request path (ISR, revalidate 300), so this
     // budget is only ever spent by a background regenerate or a build.
+    // nomedia=1: this walk ranks deals and counts rows — it never renders a
+    // photo from them. The top 4 get their images from the per-id /api/photos
+    // calls below, and HomeDealCards reads ONLY that photoMap. So every media
+    // row in ~2,500 listings was pure cost, and the Media $expand is the
+    // dominant cost of a feed request (~5 CDN size-variants per photo).
+    //
+    // That cost is what emptied this section. Measured on production
+    // 2026-08-01: "Top Investment Deals" rendered zero cards, runtime log
+    // `fetch-feed: /api/listings page 1 failed (TimeoutError) after 15000ms`,
+    // while /gta — same helper, same deployment, a feed ~10x larger, but only
+    // 30 rows per page — rendered its 30 listings fine in the same minute.
+    // Raising the budget again would only make visitors wait longer for the
+    // same oversized payload; not asking for the photos removes it.
     const { listings: raw, first: data } = await fetchFeedPages(SITE_URL, '/api/listings', {
       pages: 999,
       timeoutMs: 5000,
       firstPageTimeoutMs: 15000,
+      qs: '&nomedia=1',
     });
     if (!data) return { deals: [], photoMap: {}, totalCount: 0 };
 
