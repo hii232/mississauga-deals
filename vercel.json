@@ -28,6 +28,10 @@
     {
       "path": "/api/warm/photos",
       "schedule": "7,37 * * * *"
+    },
+    {
+      "path": "/api/gta-screener",
+      "schedule": "13,43 * * * *"
     }
   ]
 }
