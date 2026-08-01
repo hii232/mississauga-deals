@@ -179,10 +179,10 @@ export default function AdminDashboard() {
           blurb="Send the platform-launch email to your whole database"
         />
         <BroadcastPanel
-          endpoint="/api/broadcast/offer-gap"
-          icon="📊"
-          title="The Offer Gap"
-          blurb="What Mississauga sellers actually accepted last month, by property type — the TRREB sale-to-list spread (detached took 96% of ask, freehold townhouses got 101%)"
+          endpoint="/api/broadcast/offer-picks"
+          icon="🏠"
+          title="This Week's Picks"
+          blurb="Three real Mississauga listings where the seller has reason to negotiate, each with the price to open at and why. Check the three addresses in the draft before sending — your name is on the offer numbers"
         />
       </div>
 
