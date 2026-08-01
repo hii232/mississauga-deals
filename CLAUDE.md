@@ -34,7 +34,13 @@ The site exists to **generate investor leads and convert them**. In priority ord
 The monthly sold/volume/YoY figures in `app/api/market-stats/route.js` are **transcribed by hand** from TRREB's Market Watch PDF. TRREB publishes no API or feed, so nothing refreshes them automatically — they once sat five months stale while the market pages, weekly newsletter and every auto-generated blog post quoted them as current.
 
 - TRREB releases each month's report in the first few days of the following month (June 2026 → released 3 Jul 2026): https://trreb.ca/market-data/market-watch/
-- To refresh: Hamza uploads the PDF; extract with `pypdf` in a venv (`extraction_mode='layout'` — the default mode scrambles columns). Mississauga rows are on page 3 (all types) and the per-type pages (7 detached, 9 semi, 11 Att/Row/Townhouse, 13 condo townhouse, 15 condo apartment); GTA summary and economic indicators are on page 1.
+- To refresh: Hamza uploads the PDF, then run **`scripts/trreb-extract.py`** — it reads every Mississauga row and prints them already shaped like the literals in `market-stats/route.js`, so the only manual step is pasting.
+  ```
+  python3 -m venv .venv && ./.venv/bin/pip install pypdf
+  ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2607.pdf
+  ```
+  It exits non-zero and refuses to print a paste block if anything fails to verify. **Do not transcribe past a refusal** — it means the PDF's layout moved and the numbers may be landing under the wrong property type.
+- Doing it by hand instead: use `pypdf` with `extraction_mode='layout'` (the default scrambles columns). Mississauga rows are on page 3 (all types) and the per-type pages (7 detached, 9 semi, 11 Att/Row/Townhouse, 13 condo townhouse, 15 condo apartment); GTA summary and economic indicators are on page 1. **Those page numbers are a hint, not a contract** — page 5 is a year-to-date summary that also carries a Mississauga row, so counting Mississauga-bearing pages in order silently maps detached figures onto semis. The script identifies each page by matching its TRREB-wide sales total against the per-type totals on page 2 rather than trusting position; do the same if you work by hand.
 - Update `tRREBMonth` **and** `tRREBAsOf` together, plus the `disclaimer` string.
 - `tRREBFreshness()` derives `tRREBMonthsBehind` / `tRREBIsStale` / `tRREBRefreshNote` from `tRREBAsOf`. Stale = 2+ months behind (a one-month lag is normal). The admin dashboard shows a "Need new market data" banner when stale, and a monthly Routine pings Hamza on the 5th.
 - **Never estimate, scrape or interpolate these numbers.** If a figure isn't in the report, omit it or leave it clearly labelled as approximate. Market Watch publishes no per-municipality YoY — the per-type `yoy` values are GTA-wide and must stay labelled as such.
