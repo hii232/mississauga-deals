@@ -321,6 +321,41 @@ export async function fetchGtaListings(city) {
   }
 }
 
+/**
+ * The whole-market Deal Screener aggregate for this page's scope, or null.
+ *
+ * Reads the CACHED /api/gta-screener body — one GTA feed walk, grouped by city
+ * (lib/listings/gta-screener.js) — so /gta and /gta/[city] can state correct
+ * market-wide CF+/best-cap/best-cash-flow/price-drop figures at first paint
+ * instead of showing skeletons for the whole background load, the way
+ * /listings has done since the Mississauga aggregate landed.
+ *
+ * Every failure path returns null, and null means skeletons — today's
+ * behaviour. That includes: a cold cache (the 4s abort fires long before the
+ * walk could finish; the ISR render must never wait on it), an incomplete
+ * walk, and any city the walk cannot cover honestly. Nothing false is ever
+ * substituted for a missing aggregate.
+ */
+export async function fetchGtaScreenerSummary(city) {
+  try {
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
+    const res = await fetch(`${origin}/api/gta-screener`, {
+      // One Data Cache entry shared by the hub and all 28 city renders, so a
+      // rebuild pays this fetch once rather than 29 times.
+      next: { revalidate: 600 },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data?.complete) return null;
+    return (city ? data.cities?.[city] : data.gta) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function GtaListingsPage({ searchParams }) {
   const city = (searchParams?.city || '').trim();
 
@@ -333,7 +368,11 @@ export default async function GtaListingsPage({ searchParams }) {
   }
 
   const copy = CITY_COPY[city]; // always null here since valid cities redirect above
-  const { listings: initialListings, total: initialTotal } = await fetchGtaListings(city);
+  // In PARALLEL — the summary fetch must not add to this render's wall clock.
+  const [{ listings: initialListings, total: initialTotal }, summary] = await Promise.all([
+    fetchGtaListings(city),
+    fetchGtaScreenerSummary(city),
+  ]);
 
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
   const sub = copy
@@ -449,6 +488,7 @@ export default async function GtaListingsPage({ searchParams }) {
           <ListingsContainer
             initialListings={slimForSSR(initialListings)}
             initialTotal={initialTotal}
+            initialSummary={summary}
             apiEndpoint="/api/listings-gta"
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}
           />

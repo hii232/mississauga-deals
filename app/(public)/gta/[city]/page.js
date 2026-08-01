@@ -5,6 +5,7 @@ import {
   CITY_COPY,
   cityToSlug,
   fetchGtaListings,
+  fetchGtaScreenerSummary,
   CityInvestorNotes,
 } from '@/app/(public)/gta/page';
 import { ListingsContainer } from '@/components/listings/listings-container';
@@ -71,8 +72,16 @@ export default async function GtaCityPage({ params }) {
 
   const copy = CITY_COPY[city];
   const slug = params.city;
-  const { listings: initialListings, total: initialTotal } =
-    await fetchGtaListings(city);
+  // In PARALLEL — the summary read must not lengthen an ISR regeneration that
+  // already struggles to land its feed fetch inside the budget.
+  //
+  // `summary` is this CITY's whole-market Deal Screener aggregate, sliced out
+  // of the single grouped GTA feed walk. Null for any city the walk cannot
+  // cover honestly (and on a cold cache), and null keeps today's skeletons.
+  const [{ listings: initialListings, total: initialTotal }, summary] = await Promise.all([
+    fetchGtaListings(city),
+    fetchGtaScreenerSummary(city),
+  ]);
 
   const breadcrumbItems = [
     { name: 'Home', url: 'https://www.mississaugainvestor.ca/' },
@@ -142,6 +151,7 @@ export default async function GtaCityPage({ params }) {
           <ListingsContainer
             initialListings={slimForSSR(initialListings)}
             initialTotal={initialTotal}
+            initialSummary={summary}
             apiEndpoint="/api/listings-gta"
             city={city}
             popularHoods={[

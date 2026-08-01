@@ -125,7 +125,14 @@ export async function GET(request) {
     const tail = '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    const result = await fetchWithFieldTiers(base, tail, TOK);
+    // nomedia=1 — for the whole-feed AGGREGATE walk (lib/listings/gta-screener.js),
+    // never for a rendered page. Photos are the dominant cost of a feed request
+    // and an aggregate reads none of them; the walk is ~245 pages, so carrying
+    // media through it would drag millions of media rows to compute six
+    // numbers. Every other field, and therefore every computed figure, is
+    // unchanged — only `photos`/`images` come back empty.
+    const wantsMedia = searchParams.get('nomedia') !== '1';
+    const result = await fetchWithFieldTiers(base, tail, TOK, { media: wantsMedia });
     if (result.error) {
       return NextResponse.json(
         { error: result.error, detail: result.detail },
