@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
-import { cityAliases } from '@/lib/constants';
+import { cityAliases, citySubarea } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 // 60, not 30: production error clusters show this route's own 30s ceiling
@@ -32,6 +32,28 @@ const GTA_CITIES = [
 // Toronto uses sub-area codes in TREB (e.g. "Toronto C01", "Toronto E05")
 // We use startswith() to capture all Toronto sub-areas
 const TORONTO_FILTER = "startswith(City, 'Toronto')";
+
+// An OData string literal escapes a single quote by doubling it. Every value
+// below reaches $filter through here, because the ?city= param used to be
+// interpolated raw: a name containing a quote rewrote the query instead of
+// being matched, so the caller — not this route — decided which rows the site
+// returned and under which filters.
+const odataStr = (s) => String(s).replace(/'/g, "''");
+
+// $filter clause for one of the amalgamated districts/communities in
+// CITY_SUBAREAS (lib/constants.js has the measurements behind each one).
+// Parent municipality AND the geography that isolates the district, because
+// the board never puts the district's name in City.
+function subareaFilters(def) {
+  const out = [
+    def.parent === 'Toronto' ? TORONTO_FILTER : "City eq '" + odataStr(def.parent) + "'",
+  ];
+  const clauses = def.postalPrefixes
+    ? def.postalPrefixes.map((p) => "startswith(PostalCode,'" + odataStr(p) + "')")
+    : def.communityPrefixes.map((p) => "startswith(CityRegion,'" + odataStr(p) + "')");
+  out.push('(' + clauses.join(' or ') + ')');
+  return out;
+}
 
 function mapType(sub, prop) {
   const s = (sub || '').toLowerCase();
@@ -114,9 +136,18 @@ export async function GET(request) {
 
     // Filter by specific city or default to all GTA cities (excluding Mississauga — that's the main page)
     const cityParam = searchParams.get('city');
+    const subarea = cityParam ? citySubarea(cityParam) : null;
     if (cityParam) {
-      // Toronto filter: use startswith to catch all sub-areas (Toronto C01, Toronto E05, etc.)
-      if (cityParam.toLowerCase() === 'toronto') {
+      if (subarea) {
+        // An amalgamated district or community, not a municipality the board
+        // names. `City eq 'Etobicoke'` (and the seven others) matched ZERO
+        // rows in production, so all eight /gta pages showed no listings at
+        // all; CITY_SUBAREAS in lib/constants.js records what the feed does
+        // carry instead and how it was measured. Rows come back under their
+        // parent city, so no rent tier, tax rate or score changes.
+        for (const f of subareaFilters(subarea)) filters.push(f);
+      } else if (cityParam.toLowerCase() === 'toronto') {
+        // Toronto filter: use startswith to catch all sub-areas (Toronto C01, Toronto E05, etc.)
         filters.push(TORONTO_FILTER);
       } else {
         // Ask for every name this municipality can appear under. Only
@@ -126,12 +157,12 @@ export async function GET(request) {
         // while /gta/halton-hills matched rows it then displayed as Georgetown.
         // Asking for both makes each page correct under either board label.
         const names = cityAliases(cityParam);
-        const clause = names.map((c) => "City eq '" + c + "'").join(' or ');
+        const clause = names.map((c) => "City eq '" + odataStr(c) + "'").join(' or ');
         filters.push(names.length > 1 ? '(' + clause + ')' : clause);
       }
     } else {
       // Include all GTA cities + all Toronto sub-areas
-      const cityFilters = GTA_CITIES.map((c) => "City eq '" + c + "'");
+      const cityFilters = GTA_CITIES.map((c) => "City eq '" + odataStr(c) + "'");
       cityFilters.push(TORONTO_FILTER);
       filters.push('(' + cityFilters.join(' or ') + ')');
     }
