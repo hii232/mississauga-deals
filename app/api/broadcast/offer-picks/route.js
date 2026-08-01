@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import { getSupabaseAdmin, getBroadcastRecipients } from '@/lib/emails/audience';
-import { buildOfferPicksEmail } from '@/lib/emails/offer-picks-email';
+import { buildOfferPicksEmail, buildOfferPicksText } from '@/lib/emails/offer-picks-email';
 import { pickDeals, validatePicks } from '@/lib/emails/offer-picks-data';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
@@ -23,6 +23,16 @@ export const dynamic = 'force-dynamic';
 // Without that table the guard silently no-ops and a repeated draft can be
 // approved twice, which is exactly how the same email reaches the list twice.
 const CAMPAIGN = 'offer-picks-2026-08-01';
+
+// The email's primary CTA is "just reply to this email — it comes straight to
+// me." Without an explicit reply_to that is FALSE: replies land on the
+// from-address (notifications@…), not in Hamza's inbox. For a campaign whose
+// whole conversion mechanism is the reply, that is the difference between
+// leads and silence.
+const REPLY_TO =
+  process.env.REPLY_TO_EMAIL ||
+  process.env.LEAD_NOTIFICATION_EMAIL ||
+  'hamza@nouman.ca';
 
 const APPROVER =
   process.env.NEWSLETTER_APPROVER_EMAIL ||
@@ -110,7 +120,7 @@ const SAMPLE_DATA = {
   ],
 };
 
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, text) {
   html = tagRecipient(html, to);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -123,6 +133,10 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      // Plain-text alternative -> multipart/alternative. HTML-only bodies are a
+      // long-standing spam signal; filters expect a text part.
+      ...(text ? { text } : {}),
+      reply_to: REPLY_TO,
       headers: {
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -171,7 +185,8 @@ async function sendToAll(recipients, data) {
     const results = await Promise.allSettled(
       batch.map(({ email, name }) => {
         const { subject, html } = buildOfferPicksEmail({ email, name, data });
-        return sendEmail(email, subject, html);
+        const text = buildOfferPicksText({ email, name, data });
+        return sendEmail(email, subject, html, text);
       })
     );
     results.forEach((r) => {
@@ -198,9 +213,13 @@ export async function GET(request) {
       // preview an email that tells people what to bid is not acceptable, but
       // an obviously-fake one for checking padding is fine.
       if (searchParams.get('sample') === '1' && process.env.NODE_ENV === 'development') {
-        const { html } = buildOfferPicksEmail({
-          email: 'preview@example.com', name: searchParams.get('name') || '', data: SAMPLE_DATA,
-        });
+        const sargs = { email: 'preview@example.com', name: searchParams.get('name') || '', data: SAMPLE_DATA };
+        if (searchParams.get('text') === '1') {
+          return new Response(buildOfferPicksText(sargs), {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+          });
+        }
+        const { html } = buildOfferPicksEmail(sargs);
         return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
       }
       const { data, reason } = await fetchPicks(selfOrigin(request)).catch((e) => ({ data: null, reason: String(e) }));
@@ -214,11 +233,15 @@ export async function GET(request) {
           { status: 503 }
         );
       }
-      const { html } = buildOfferPicksEmail({
-        email: 'preview@example.com',
-        name: searchParams.get('name') || '',
-        data,
-      });
+      const args = { email: 'preview@example.com', name: searchParams.get('name') || '', data };
+      // ?text=1 renders the plain-text part instead of the HTML, so the half of
+      // the message that spam filters read can actually be reviewed.
+      if (searchParams.get('text') === '1') {
+        return new Response(buildOfferPicksText(args), {
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        });
+      }
+      const { html } = buildOfferPicksEmail(args);
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
@@ -290,7 +313,8 @@ export async function GET(request) {
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] This week's picks — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
-      draftHtml
+      draftHtml,
+      buildOfferPicksText({ email: APPROVER, name: 'Hamza', data })
     );
     return NextResponse.json({
       success: ok,

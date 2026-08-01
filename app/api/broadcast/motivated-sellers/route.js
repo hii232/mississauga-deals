@@ -20,6 +20,14 @@ export const dynamic = 'force-dynamic';
 // the radar campaign is a NEW campaign key, not a blocked duplicate.
 const CAMPAIGN = 'motivated-sellers-2026-07';
 
+// Both of these emails invite a reply ("just reply to this email — it comes
+// straight to me"). Without reply_to that is false: replies hit the
+// notifications@ from-address instead of Hamza.
+const REPLY_TO =
+  process.env.REPLY_TO_EMAIL ||
+  process.env.LEAD_NOTIFICATION_EMAIL ||
+  'hamza@nouman.ca';
+
 const APPROVER =
   process.env.NEWSLETTER_APPROVER_EMAIL ||
   process.env.LEAD_NOTIFICATION_EMAIL ||
@@ -101,6 +109,7 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      reply_to: REPLY_TO,
       headers: {
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
