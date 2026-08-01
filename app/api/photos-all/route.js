@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr, odataKey } from '@/lib/listings/odata';
 
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
@@ -60,16 +61,18 @@ export async function GET(request) {
 
   try {
     // Try ResourceRecordKey first
-    let urls = await fetchMedia("ResourceRecordKey eq '" + id + "'");
+    // Escaped + percent-encoded: ?id= reached both the $filter and the entity
+    // key in the path raw. See lib/listings/odata.js.
+    let urls = await fetchMedia("ResourceRecordKey eq '" + odataStr(id) + "'");
 
     // Fallback: ListingKey
     if (!urls.length) {
-      urls = await fetchMedia("ListingKey eq '" + id + "'");
+      urls = await fetchMedia("ListingKey eq '" + odataStr(id) + "'");
     }
 
     // Fallback: Navigation property
     if (!urls.length) {
-      const navUrl = BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=500&$select=MediaURL,Order";
+      const navUrl = BASE + "/Property('" + odataKey(id) + "')/Media?$orderby=Order asc&$top=500&$select=MediaURL,Order";
       const res = await fetch(navUrl, {
         headers: { Authorization: 'Bearer ' + TOK, Accept: 'application/json' },
       });

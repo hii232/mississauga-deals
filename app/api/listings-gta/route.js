@@ -3,6 +3,9 @@ import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } fro
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 import { cityAliases, citySubarea } from '@/lib/constants';
+// Shared with every other feed route — see lib/listings/odata.js for why the
+// ?city= param must never reach $filter unescaped.
+import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 // 60, not 30: production error clusters show this route's own 30s ceiling
@@ -32,13 +35,6 @@ const GTA_CITIES = [
 // Toronto uses sub-area codes in TREB (e.g. "Toronto C01", "Toronto E05")
 // We use startswith() to capture all Toronto sub-areas
 const TORONTO_FILTER = "startswith(City, 'Toronto')";
-
-// An OData string literal escapes a single quote by doubling it. Every value
-// below reaches $filter through here, because the ?city= param used to be
-// interpolated raw: a name containing a quote rewrote the query instead of
-// being matched, so the caller — not this route — decided which rows the site
-// returned and under which filters.
-const odataStr = (s) => String(s).replace(/'/g, "''");
 
 // $filter clause for one of the amalgamated districts/communities in
 // CITY_SUBAREAS (lib/constants.js has the measurements behind each one).

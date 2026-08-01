@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr } from '@/lib/listings/odata';
 
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
@@ -62,7 +63,7 @@ export async function GET(request) {
       "StandardStatus eq 'Closed'",
       city.toLowerCase() === 'toronto'
         ? "startswith(City, 'Toronto')"
-        : "City eq '" + city.replace(/'/g, "''") + "'",
+        : "City eq '" + odataStr(city) + "'",
       'ListPrice ge 100000',
     ];
     if (typeFilter) narrowFilters.push(typeFilter);
@@ -70,7 +71,7 @@ export async function GET(request) {
       narrowFilters.push('BedroomsTotal ge ' + Math.max(1, beds - 1));
       narrowFilters.push('BedroomsTotal le ' + (beds + 1));
     }
-    if (fsa) narrowFilters.push("startswith(PostalCode, '" + fsa + "')");
+    if (fsa) narrowFilters.push("startswith(PostalCode, '" + odataStr(fsa) + "')");
 
     const narrowUrl = BASE + '/Property?$filter=' + encodeURIComponent(narrowFilters.join(' and '))
       + '&$select=' + encodeURIComponent(sel)
@@ -86,7 +87,7 @@ export async function GET(request) {
         "StandardStatus eq 'Closed'",
         city.toLowerCase() === 'toronto'
           ? "startswith(City, 'Toronto')"
-          : "City eq '" + city.replace(/'/g, "''") + "'",
+          : "City eq '" + odataStr(city) + "'",
         'ListPrice ge 100000',
       ];
       if (typeFilter) broadFilters.push(typeFilter);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
+import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 
@@ -80,7 +81,11 @@ export async function GET(request) {
     if (searchParams.get('maxPrice')) filters.push('ListPrice le ' + parseInt(searchParams.get('maxPrice')));
     if (searchParams.get('beds')) filters.push('BedroomsTotal ge ' + parseInt(searchParams.get('beds')));
     if (searchParams.get('city')) {
-      filters.push("City eq '" + searchParams.get('city') + "'");
+      // Escaped, not raw: the whole filter is one concatenated string, so a
+      // quote in ?city= closed this literal and let the caller append their own
+      // OData — replacing StandardStatus eq 'Active', the $300k floor and the
+      // commercial exclusions above with anything the VOW token can read.
+      filters.push("City eq '" + odataStr(searchParams.get('city')) + "'");
     } else {
       filters.push('(' + CITIES.map((c) => "City eq '" + c + "'").join(' or ') + ')');
     }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { odataStr, odataKey } from '@/lib/listings/odata';
 
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
@@ -13,10 +14,15 @@ export async function GET(request) {
 
   try {
     const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
+    // ?id= used to be dropped into these URLs raw — neither OData-escaped nor
+    // percent-encoded — so a quote rewrote the $filter and an `&` appended
+    // whole query parameters of the caller's choosing. See lib/listings/odata.js.
+    const key = odataKey(id);
+    const idLit = odataStr(id);
 
     // Fast path: navigation property (most reliable, works every time)
     let response = await fetch(
-      BASE + "/Property('" + id + "')/Media?$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+      BASE + "/Property('" + key + "')/Media?$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
       { headers: hdrs }
     );
     let data = response.ok ? await response.json() : null;
@@ -24,7 +30,8 @@ export async function GET(request) {
     // Fallback: ResourceRecordKey
     if (!data?.value?.length) {
       response = await fetch(
-        BASE + "/Media?$filter=ResourceRecordKey eq '" + id + "'&$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+        BASE + '/Media?$filter=' + encodeURIComponent("ResourceRecordKey eq '" + idLit + "'")
+          + '&$orderby=Order asc&$top=' + photoLimit + '&$select=MediaURL,Order',
         { headers: hdrs }
       );
       data = response.ok ? await response.json() : null;
@@ -33,7 +40,8 @@ export async function GET(request) {
     // Fallback: ListingKey
     if (!data?.value?.length) {
       response = await fetch(
-        BASE + "/Media?$filter=ListingKey eq '" + id + "'&$orderby=Order asc&$top=" + photoLimit + "&$select=MediaURL,Order",
+        BASE + '/Media?$filter=' + encodeURIComponent("ListingKey eq '" + idLit + "'")
+          + '&$orderby=Order asc&$top=' + photoLimit + '&$select=MediaURL,Order',
         { headers: hdrs }
       );
       data = response.ok ? await response.json() : null;
