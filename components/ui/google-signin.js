@@ -1,60 +1,146 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { formatPhone, isValidPhone } from '@/lib/phone';
 
 /**
  * Google Sign-In button using Google Identity Services (GSI).
  * Requires NEXT_PUBLIC_GOOGLE_CLIENT_ID env var.
  *
- * On success: decodes the JWT credential, posts lead to /api/lead,
- * sets localStorage, and calls onSuccess with user info.
+ * On success: decodes the JWT credential, posts the lead to /api/lead, sets
+ * localStorage, and calls onSuccess with user info.
+ *
+ * PHONE COLLECTION (`collectPhone`)
+ * ---------------------------------
+ * Google returns name + email and never a phone number, so this was the one
+ * registration path that yielded nothing callable — and the easiest button on
+ * the page to press. With `collectPhone`, a prompt appears after Google
+ * returns and before access is granted.
+ *
+ * The lead is POSTed BEFORE the prompt is shown, so the name and email are
+ * already banked; declining the number costs the number and nothing else.
+ * That ordering is what makes it safe to ask here at all, and it is why the
+ * prompt has a visible skip rather than trapping the visitor — see the same
+ * reasoning in signup-gate-modal.js.
+ *
+ * OFF by default, and deliberately left off on /login: a returning user
+ * signing in should never be interrogated for a field to get back into their
+ * own account. It is enabled on /signup, where asking is legitimate.
  */
-export function GoogleSignIn({ onSuccess, onError, listingId = '', listingAddress = '', listingPrice = '' }) {
+export function GoogleSignIn({
+  onSuccess,
+  onError,
+  listingId = '',
+  listingAddress = '',
+  listingPrice = '',
+  collectPhone = false,
+}) {
   const btnRef = useRef(null);
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
+  // Non-null once Google has returned and we are holding access pending the
+  // phone prompt. Never set when collectPhone is false.
+  const [pending, setPending] = useState(null);
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const finish = useCallback(
+    (userData) => {
+      localStorage.setItem('user_registered', 'true');
+      localStorage.setItem('user_name', userData.name);
+      localStorage.setItem('user_email', userData.email);
+      setPending(null);
+      onSuccess?.(userData);
+    },
+    [onSuccess]
+  );
+
   const handleCredentialResponse = useCallback(
     async (response) => {
+      let userData;
       try {
         // Decode the JWT payload (base64url → JSON)
         const payload = JSON.parse(
           atob(response.credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
         );
 
-        const userData = {
+        userData = {
           name: payload.name || '',
           email: payload.email || '',
           picture: payload.picture || '',
         };
-
-        // Capture the lead — carry the listing the visitor was viewing (if any)
-        // so Hamza's notification shows the property, not just a bare sign-in.
-        await fetch('/api/lead', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: userData.name,
-            email: userData.email,
-            source: 'google-signin',
-            listingId: listingId || undefined,
-            listingAddress: listingAddress || undefined,
-            listingPrice: listingPrice || undefined,
-            timestamp: new Date().toISOString(),
-          }),
-        }).catch(() => {});
-
-        // Mark as registered
-        localStorage.setItem('user_registered', 'true');
-        localStorage.setItem('user_name', userData.name);
-        localStorage.setItem('user_email', userData.email);
-
-        onSuccess?.(userData);
       } catch {
         onError?.('Failed to process Google sign-in.');
+        return;
       }
+
+      // Capture the lead — carry the listing the visitor was viewing (if any)
+      // so Hamza's notification shows the property, not just a bare sign-in.
+      // Fire-and-forget by design: a network hiccup here must not cost the
+      // visitor their sign-in, and the phone prompt below enriches this same
+      // row a moment later anyway.
+      fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          source: 'google-signin',
+          listingId: listingId || undefined,
+          listingAddress: listingAddress || undefined,
+          listingPrice: listingPrice || undefined,
+          timestamp: new Date().toISOString(),
+        }),
+      }).catch(() => {});
+
+      if (collectPhone) {
+        setPhone('');
+        setPhoneError('');
+        setPending(userData);
+        return;
+      }
+      finish(userData);
     },
-    [onSuccess, onError, listingId, listingAddress, listingPrice]
+    [onError, finish, collectPhone, listingId, listingAddress, listingPrice]
   );
+
+  async function submitPhone(e) {
+    e.preventDefault();
+    if (!isValidPhone(phone)) {
+      setPhoneError('Please enter a valid phone number (e.g. 647-361-1234).');
+      return;
+    }
+    setPhoneError('');
+    setSaving(true);
+    // Enriches the row the sign-in just created — /api/lead matches on email
+    // and fills blanks without overwriting anything already stored.
+    try {
+      await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: pending.name,
+          email: pending.email,
+          phone,
+          source: 'google-signin',
+          listingId: listingId || undefined,
+          listingAddress: listingAddress || undefined,
+          listingPrice: listingPrice || undefined,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+    } catch {
+      // The number is worth having, but not at the cost of stranding someone
+      // who already authenticated. Let them through; the lead exists either way.
+    }
+    localStorage.setItem('user_phone', phone);
+    setSaving(false);
+    finish(pending);
+  }
 
   useEffect(() => {
     if (!clientId) return;
@@ -109,5 +195,66 @@ export function GoogleSignIn({ onSuccess, onError, listingId = '', listingAddres
     );
   }
 
-  return <div ref={btnRef} className="w-full" />;
+  return (
+    <>
+      <div ref={btnRef} className="w-full" />
+
+      {/* Rendered through a portal: mounted inside a card with its own stacking
+          context, a plain z-index would paint this under the sticky header —
+          the same trap signup-gate-modal.js documents. */}
+      {pending && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm animate-scaleUp rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-navy">
+              One last thing{pending.name ? `, ${pending.name.split(' ')[0]}` : ''}
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              What&apos;s the best number to reach you at? Hamza texts new deals to
+              investors before they hit the site.
+            </p>
+
+            {phoneError && (
+              <div role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-danger">
+                {phoneError}
+              </div>
+            )}
+
+            <form onSubmit={submitPhone} className="mt-4">
+              <label htmlFor="google-phone" className="mb-1 block text-sm font-medium text-navy">
+                Phone Number
+              </label>
+              <input
+                id="google-phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                autoFocus
+                required
+                value={phone}
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                placeholder="(647) 361-1234"
+                className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+              />
+              <button
+                type="submit"
+                disabled={saving}
+                className="mt-4 w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
+              >
+                {saving ? 'Saving…' : 'Finish & See Deals'}
+              </button>
+            </form>
+
+            <button
+              type="button"
+              onClick={() => finish(pending)}
+              className="mt-2 w-full py-2 text-center text-xs text-slate-500 transition hover:text-slate-700"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
 }

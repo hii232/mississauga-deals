@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CASL_TEXT } from '@/lib/constants';
 import { GoogleSignIn } from '@/components/ui/google-signin';
+import { formatPhone, isValidPhone } from '@/lib/phone';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -28,19 +29,6 @@ export default function SignupPage() {
 
   function updateField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  /* Strip to digits only for validation */
-  function cleanPhone(ph) {
-    return (ph || '').replace(/\D/g, '');
-  }
-
-  function isValidPhone(ph) {
-    const digits = cleanPhone(ph);
-    // Must be 10 digits (Canadian) or 11 starting with 1
-    if (digits.length === 10) return true;
-    if (digits.length === 11 && digits.startsWith('1')) return true;
-    return false;
   }
 
   async function handleSubmit(e) {
@@ -150,6 +138,11 @@ export default function SignupPage() {
         listingId={listingCtx.id}
         listingAddress={listingCtx.address}
         listingPrice={listingCtx.price}
+        // Google hands back name + email only. Without this, the button
+        // directly above a form that REQUIRES a phone number produced accounts
+        // with no number at all — the easier path yielding the weaker lead.
+        // Not set on /login, where a returning user must never be asked.
+        collectPhone
       />
 
       <div className="relative my-6">
@@ -220,20 +213,7 @@ export default function SignupPage() {
             type="tel"
             required
             value={form.phone}
-            onChange={(e) => {
-              // Auto-format as (XXX) XXX-XXXX
-              const digits = e.target.value.replace(/\D/g, '').slice(0, 11);
-              let formatted = digits;
-              if (digits.length >= 7) {
-                const start = digits.length === 11 ? 1 : 0;
-                formatted = `(${digits.slice(start, start + 3)}) ${digits.slice(start + 3, start + 6)}-${digits.slice(start + 6)}`;
-                if (digits.length === 11) formatted = '1 ' + formatted;
-              } else if (digits.length >= 4) {
-                const start = digits.length === 11 ? 1 : 0;
-                formatted = `(${digits.slice(start, start + 3)}) ${digits.slice(start + 3)}`;
-              }
-              updateField('phone', formatted);
-            }}
+            onChange={(e) => updateField('phone', formatPhone(e.target.value))}
             placeholder="(647) 361-1234"
             autoComplete="tel"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
