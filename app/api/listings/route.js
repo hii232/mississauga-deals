@@ -77,6 +77,15 @@ export async function GET(request) {
     filters.push("PropertyType ne 'Business'");
     filters.push("PropertyType ne 'No Building'");
 
+    // multiUnit=1 — only income properties (duplex/triplex/fourplex/multiplex).
+    // A hardcoded eq-list, deliberately: no caller input reaches the OData
+    // string, so there is nothing to escape. Callers must still re-check the
+    // mapped `type` on the rows they get back — if TREB's subtype spelling
+    // ever drifts, this filter returns 0 rows and consumers are built to
+    // refuse on 0 rather than mislabel.
+    if (searchParams.get('multiUnit') === '1') {
+      filters.push("(PropertySubType eq 'Duplex' or PropertySubType eq 'Triplex' or PropertySubType eq 'Fourplex' or PropertySubType eq 'Multiplex')");
+    }
     if (searchParams.get('minPrice')) filters.push('ListPrice ge ' + parseInt(searchParams.get('minPrice')));
     if (searchParams.get('maxPrice')) filters.push('ListPrice le ' + parseInt(searchParams.get('maxPrice')));
     if (searchParams.get('beds')) filters.push('BedroomsTotal ge ' + parseInt(searchParams.get('beds')));
