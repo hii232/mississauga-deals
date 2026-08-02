@@ -108,7 +108,31 @@ async function resendDomain() {
     const list = Array.isArray(body?.data) ? body.data : (Array.isArray(body) ? body : []);
     const match = list.find((d) => d?.name === want) || list[0] || null;
     if (!match) return { ok: false, detail: `No domain found in Resend matching ${want}` };
-    return { ok: true, id: match.id, name: match.name, status: match.status, ...readTracking(match) };
+
+    // The LIST response is a summary (id / name / status) and does not carry
+    // the tracking flags — reading them from here yielded null, which this
+    // route then honestly reported as "unknown" even after a PATCH that Resend
+    // had accepted. The flags live on the per-domain DETAIL endpoint, so fetch
+    // that and prefer it; fall back to whatever the list gave if the detail
+    // call fails, and keep reporting "unknown" rather than guessing if both
+    // come back empty.
+    let tracking = readTracking(match);
+    let source = 'list';
+    try {
+      const dRes = await fetch(`https://api.resend.com/domains/${match.id}`, {
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+        cache: 'no-store',
+      });
+      if (dRes.ok) {
+        const dBody = await dRes.json().catch(() => null);
+        const detail = dBody?.data || dBody;
+        const t = readTracking(detail);
+        if (t.open !== null || t.click !== null) { tracking = t; source = 'detail'; }
+      }
+    } catch {
+      // Detail lookup is best-effort — the list values (or nulls) stand.
+    }
+    return { ok: true, id: match.id, name: match.name, status: match.status, source, ...tracking };
   } catch (e) {
     return { ok: false, detail: String(e?.message || e) };
   }
@@ -174,7 +198,10 @@ export async function GET(request) {
       automatable: domain.ok,
       detail: !domain.ok
         ? (domain.detail || 'could not read domain from Resend')
-        : `${domain.name}: opens ${domain.open === true ? 'ON' : domain.open === false ? 'OFF' : 'unknown'}, clicks ${domain.click === true ? 'ON' : domain.click === false ? 'OFF' : 'unknown'}`,
+        : `${domain.name}: opens ${domain.open === true ? 'ON' : domain.open === false ? 'OFF' : 'unknown'}, clicks ${domain.click === true ? 'ON' : domain.click === false ? 'OFF' : 'unknown'}`
+          + (domain.open === null || domain.click === null
+              ? ' — Resend did not report these flags, so this may already be ON; confirm in Resend → Domains'
+              : ''),
     },
     {
       key: 'guard',
