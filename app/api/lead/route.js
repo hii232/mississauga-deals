@@ -89,6 +89,14 @@ export async function POST(request) {
       if (Object.keys(patch).length) {
         const { error: updateError } = await supabase.from('leads').update(patch).eq('id', existing.id);
         if (updateError) console.error('Lead enrich error:', JSON.stringify(updateError));
+        // Logged on SUCCESS too, mirroring the "Lead saved:" line on the insert
+        // path. The two-step capture posts twice — email first, then name/phone
+        // — and only the first post left a trace, so "did his name actually
+        // land, or did the second post silently no-op?" could not be answered
+        // from the logs at all. Now every lead write says what it wrote.
+        else console.log('Lead enriched:', email.toLowerCase().trim(), Object.keys(patch).join('+'));
+      } else {
+        console.log('Lead seen again (nothing new to store):', email.toLowerCase().trim(), source);
       }
 
       // But still send notification email so Hamza knows about the return visit

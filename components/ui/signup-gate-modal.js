@@ -78,7 +78,41 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       setError('Please enter a valid email.');
       return;
     }
-    // Save email to localStorage immediately (micro-conversion captured)
+
+    // Bank the email SERVER-SIDE before asking for anything else, exactly as
+    // InlineEmailCapture does. This step used to keep the email in localStorage
+    // only and post nothing until step 2 completed or was skipped — so a
+    // visitor who closed the tab at step 2 was lost outright. That gap is why
+    // phone could not safely be made mandatory here: requiring the one field
+    // people most resist, on a form whose abandonment also threw away the
+    // email, would have traded leads for phone numbers. With the email already
+    // stored, refusing the phone costs the enrichment and nothing more.
+    setLoading(true);
+    try {
+      const res = await fetch('/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          source: trigger === 'view-limit' ? 'View Limit' : 'Sign Up',
+          ...leadListing,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      // Never advance on a server rejection (429, 400) — that would show the
+      // profile form for a lead that was never stored.
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+    } catch {
+      setError('Something went wrong. Please try again.');
+      return;
+    } finally {
+      setLoading(false);
+    }
+
     localStorage.setItem('user_email', email);
     localStorage.setItem('user_registered', 'partial');
     setStep(2);
@@ -93,14 +127,15 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       return;
     }
 
-    // Phone is optional here, matching /signup and /api/lead. It used to block
-    // step 2 outright, so a visitor who had already given a real email and name
-    // — on the highest-intent surface on the site, a specific property's
-    // analysis — was turned away over the one field people most resist. Still
-    // validated when supplied, so a typo can't reach Hamza as a dead contact.
+    // Phone is REQUIRED to complete a profile: Hamza works these leads by
+    // phone, and an email-only lead is far less likely to become a client.
+    // This is safe to require now only because handleStep1 posts the email
+    // before this form is ever shown — abandoning here loses the name and
+    // phone, never the lead itself. The "skip" link below stays as the honest
+    // way out, so nobody is trapped in the modal over a field they won't give.
     const digits = phone.replace(/\D/g, '');
-    if (phone && digits.length < 10) {
-      setError('Please enter a valid phone number, or leave it blank.');
+    if (!phone || digits.length < 10) {
+      setError('Please enter a phone number so Hamza can reach you.');
       return;
     }
 
@@ -145,12 +180,11 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   }
 
   function handleSkipStep2() {
-    // They gave email but skipped name/phone — still a real lead. Previously
-    // this only wrote to localStorage, so the email NEVER reached Hamza and the
-    // lead was silently lost. Capture it server-side. (The distinct source is
-    // kept so Hamza can see in admin which leads skipped step 2 — /api/lead no
-    // longer rejects a registration without a phone.) Fire-and-
-    // forget: never block the UI or lose the conversion on a network hiccup.
+    // They gave an email but would not give a phone. The email is already
+    // stored (handleStep1 posts it), so this second post is not what saves the
+    // lead — it exists to record the distinct "(email only)" source so Hamza
+    // can see in admin who declined the profile, and to bank a partially-typed
+    // name. Fire-and-forget: never block the UI on a network hiccup.
     fetch('/api/lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -173,12 +207,15 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   }
 
   return createPortal(
-    // Step 2 normally traps the visitor (email not yet persisted server-side).
-    // When the caller opened us AT step 2 it has already saved the email, so
-    // dismissing costs nothing and refusing to close would just be hostile.
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget && (step === 1 || initialStep === 2)) onClose?.(); }}>
+    // Always dismissible now. Step 2 used to trap the visitor because the email
+    // had not been persisted yet, so letting them out lost the lead. Since
+    // handleStep1 banks the email server-side, there is nothing left to hold
+    // them hostage for — and holding someone in an unclosable modal over a
+    // now-required phone field is exactly how a trustworthy site stops feeling
+    // like one.
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       <div className="relative w-full max-w-md animate-scaleUp rounded-2xl bg-white shadow-2xl overflow-hidden">
-        {step === 2 && initialStep === 2 && (
+        {step === 2 && (
           <button
             type="button"
             onClick={() => onClose?.()}
@@ -230,9 +267,10 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 />
                 <button
                   type="submit"
-                  className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold text-white transition hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  disabled={loading}
+                  className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold text-white transition hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
                 >
-                  Unlock Premium Deals — Free
+                  {loading ? 'One moment…' : 'Unlock Premium Deals — Free'}
                 </button>
               </form>
 
@@ -299,16 +337,17 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-navy">
-                    Phone Number <span className="font-normal text-slate-500">(optional)</span>
+                    Phone Number
                   </label>
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(formatPhone(e.target.value))}
                     placeholder="(647) 361-1234"
+                    required
                     className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
-                  <p className="mt-1 text-[11px] text-slate-500">Add it and Hamza can text you deals before they hit the site</p>
+                  <p className="mt-1 text-[11px] text-slate-500">Hamza texts deals to this number before they hit the site</p>
                 </div>
 
                 <button
