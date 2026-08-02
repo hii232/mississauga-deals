@@ -52,14 +52,24 @@ export default function SignupPage() {
       return;
     }
 
-    // Phone is OPTIONAL — it used to hard-block the site's #1 conversion path
-    // (the homepage hero CTA lands here), and a phone number is the single
-    // most-abandoned field in a signup form: visitors who only want to browse
-    // scored listings gave up rather than hand over a number. It is still
-    // captured and still validated WHEN PROVIDED, so a typo'd number can't
-    // reach Hamza as a dead contact — it just no longer costs the whole lead.
-    if (form.phone && !isValidPhone(form.phone)) {
-      setError('Please enter a valid phone number (e.g. 647-361-1234), or leave it blank.');
+    // Phone is REQUIRED, by Hamza's explicit decision: he works these leads by
+    // phone and an email-only registration is worth far less to him.
+    //
+    // Know the cost being accepted here. Unlike the two-step gate modal — where
+    // the email is POSTed at step 1, so refusing the phone loses only the
+    // enrichment — this page submits everything at once. Nothing is stored
+    // until this handler succeeds, so someone who will not give a number now
+    // registers not at all, and their name and email go with it. That is the
+    // deliberate trade: fewer registrations, all of them callable.
+    //
+    // Still validated for shape, so a typo'd number can't reach Hamza as a
+    // dead contact.
+    if (!form.phone) {
+      setError('Please enter your phone number — it is required to create an account.');
+      return;
+    }
+    if (!isValidPhone(form.phone)) {
+      setError('Please enter a valid phone number (e.g. 647-361-1234).');
       return;
     }
 
@@ -203,11 +213,12 @@ export default function SignupPage() {
 
         <div>
           <label htmlFor="phone" className="mb-1 block text-sm font-medium text-navy">
-            Phone Number <span className="font-normal text-muted">(optional)</span>
+            Phone Number <span className="text-red-600" aria-hidden="true">*</span>
           </label>
           <input
             id="phone"
             type="tel"
+            required
             value={form.phone}
             onChange={(e) => {
               // Auto-format as (XXX) XXX-XXXX
@@ -227,7 +238,7 @@ export default function SignupPage() {
             autoComplete="tel"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
-          <p className="mt-1 text-[11px] text-muted">Add it and we&apos;ll text you when a new deal matches — otherwise we&apos;ll email you.</p>
+          <p className="mt-1 text-[11px] text-muted">We&apos;ll text you when a new deal matches — the best ones go in days, not weeks.</p>
         </div>
 
         <div>
