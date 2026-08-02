@@ -111,6 +111,10 @@ async function sendEmail(to, subject, html) {
       subject,
       html,
       reply_to: REPLY_TO,
+      // Campaign tag — this is what the Resend webhook reads to attribute
+      // opens/clicks to a campaign. Subjects are generated from live data and
+      // change between editions, so they are not a stable key.
+      tags: [{ name: 'campaign', value: CAMPAIGN }],
       headers: {
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',

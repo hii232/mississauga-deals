@@ -169,6 +169,9 @@ export default function AdminDashboard() {
       {/* Import subscribers — CSV upload into the leads database */}
       <ImportSubscribers />
 
+      {/* Campaign performance from Resend webhook events */}
+      <EmailAnalytics />
+
       {/* Broadcast campaigns — each emails Hamza a draft; nothing reaches the
           list until he clicks the approval button inside that draft. */}
       <div className="space-y-4">
@@ -282,6 +285,177 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Campaign performance — delivered / opened / clicked / bounced from Resend
+// webhook events, plus the follow-up list of who actually engaged.
+//
+// Opens are shown but deliberately de-emphasised: Apple Mail Privacy
+// Protection pre-fetches images for Apple Mail users, registering opens nobody
+// performed. Clicks lead, because clicks are real.
+function EmailAnalytics() {
+  const { adminKey } = useAdmin();
+  const [data, setData] = useState(null);
+  const [campaign, setCampaign] = useState('');
+  const [state, setState] = useState('idle'); // idle | loading | ready | error
+
+  useEffect(() => {
+    if (!adminKey) return;
+    setState('loading');
+    const qs = campaign ? `?campaign=${encodeURIComponent(campaign)}` : '';
+    fetch(`/api/admin/email-analytics${qs}`, { headers: { 'x-admin-key': adminKey } })
+      .then((r) => r.json())
+      .then((d) => { setData(d); setState('ready'); })
+      .catch(() => setState('error'));
+  }, [adminKey, campaign]);
+
+  if (!adminKey) return null;
+
+  const Stat = ({ label, value, sub, tone }) => (
+    <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2.5">
+      <div className="text-[10px] font-bold uppercase tracking-wide text-white/40">{label}</div>
+      <div className={`mt-0.5 text-lg font-bold ${tone || 'text-white'}`}>{value}</div>
+      {sub ? <div className="text-[11px] text-white/35">{sub}</div> : null}
+    </div>
+  );
+
+  return (
+    <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-bold text-white">📈 Campaign Performance</h2>
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
+            Live from Resend delivery events — who received it, who opened, who clicked.
+          </p>
+        </div>
+        {data?.campaigns?.length > 1 && (
+          <select
+            value={campaign || data.campaign || ''}
+            onChange={(e) => setCampaign(e.target.value)}
+            className="rounded-lg bg-[#0F172A] border border-white/10 px-3 py-2 text-xs text-white"
+          >
+            {data.campaigns.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
+      </div>
+
+      {state === 'loading' && <div className="mt-4 text-xs text-white/40">Loading…</div>}
+
+      {state === 'ready' && data && !data.ready && (
+        <div className="mt-4 rounded-lg border border-amber-500/25 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-200">
+          {data.needsMigration ? (
+            <>
+              <span className="font-semibold">Two setup steps left.</span>
+              <ol className="mt-2 ml-4 list-decimal space-y-1">
+                <li>Supabase → SQL Editor → run <code>supabase/migrations/create_email_events.sql</code></li>
+                <li>Resend → Webhooks → add <code>https://www.mississaugainvestor.ca/api/webhooks/resend</code>,
+                    select the <code>email.*</code> events, then put the signing secret in
+                    Vercel as <code>RESEND_WEBHOOK_SECRET</code></li>
+              </ol>
+            </>
+          ) : (data.detail || 'Not ready.')}
+        </div>
+      )}
+
+      {state === 'ready' && data?.ready && (
+        <>
+          {data.totalEventsStored === 0 ? (
+            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.02] p-3 text-xs text-white/50">
+              Connected, but no events yet. They start arriving the moment a campaign sends
+              (and only for sends made after the webhook was added in Resend).
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <Stat label="Delivered" value={data.delivered} sub={`of ${data.sent} sent`} />
+                <Stat label="Clicked" value={data.clickedUnique}
+                      sub={data.clickRate != null ? `${data.clickRate}% of delivered` : '—'}
+                      tone="text-green-400" />
+                <Stat label="Opened" value={data.openedUnique}
+                      sub={data.openRate != null ? `${data.openRate}% · inflated` : '—'} />
+                <Stat label="Bounced" value={data.bounced}
+                      sub={data.bounceRate != null ? `${data.bounceRate}%` : '—'}
+                      tone={data.bounced > 0 ? 'text-red-400' : undefined} />
+                <Stat label="Spam reports" value={data.complained}
+                      tone={data.complained > 0 ? 'text-red-400' : undefined} />
+                <Stat label="Total opens" value={data.openedTotal} sub="incl. repeats" />
+              </div>
+
+              {data.bounceRate > 2 && (
+                <div className="mt-3 rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-300">
+                  Bounce rate is {data.bounceRate}% — above 2% starts damaging sender reputation.
+                  Remove these addresses before the next send.
+                </div>
+              )}
+
+              {data.topLinks?.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-bold uppercase tracking-wide text-white/40">Most clicked</div>
+                  <div className="mt-2 space-y-1">
+                    {data.topLinks.slice(0, 5).map((l) => (
+                      <div key={l.link} className="flex items-center justify-between gap-3 text-xs">
+                        <span className="truncate text-white/60">{l.link.replace(/^https?:\/\/[^/]+/, '')}</span>
+                        <span className="shrink-0 font-semibold text-white/80">{l.count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-5">
+                <div className="text-[11px] font-bold uppercase tracking-wide text-white/40">
+                  Follow up with these {data.engaged?.length || 0}
+                </div>
+                <p className="mt-1 text-[11px] text-white/35">
+                  Clickers first — they looked at a specific property.
+                </p>
+                {data.engaged?.length ? (
+                  <div className="mt-2 divide-y divide-white/[0.05] rounded-lg border border-white/[0.06]">
+                    {data.engaged.slice(0, 25).map((p) => (
+                      <div key={p.email} className="flex items-center justify-between gap-3 px-3 py-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-xs font-semibold text-white">
+                            {p.name || p.email}
+                          </div>
+                          <div className="truncate text-[11px] text-white/40">
+                            {p.name ? `${p.email} · ` : ''}
+                            {p.clicks > 0 ? `${p.clicks} click${p.clicks === 1 ? '' : 's'}` : `${p.opens} open${p.opens === 1 ? '' : 's'}`}
+                            {p.links?.length ? ` · ${p.links.length} propert${p.links.length === 1 ? 'y' : 'ies'}` : ''}
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          {p.clicks > 0 && (
+                            <span className="rounded-full bg-green-500/15 border border-green-500/25 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                              CLICKED
+                            </span>
+                          )}
+                          {p.phone && (
+                            <a href={`tel:${p.phone}`}
+                               className="h-7 w-7 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-400 no-underline text-xs"
+                               title="Call">📞</a>
+                          )}
+                          <a href={`mailto:${p.email}`}
+                             className="h-7 w-7 rounded-lg bg-accent/10 border border-accent/20 flex items-center justify-center text-accent no-underline text-xs"
+                             title="Email">✉️</a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 text-xs text-white/35">No opens or clicks recorded yet.</div>
+                )}
+              </div>
+
+              <p className="mt-4 text-[11px] leading-relaxed text-white/30">
+                Open counts are inflated: Apple Mail pre-loads images for its users, which
+                registers an open nobody performed. Clicks and replies are the honest signals.
+              </p>
+            </>
+          )}
+        </>
+      )}
     </div>
   );
 }
