@@ -358,8 +358,12 @@ function AnalyticsSetup() {
     setBusy(false);
   }
 
-  if (!adminKey || !data?.steps || dismissed) return null;
+  const defects = (data?.steps || []).filter((s) => s.defect && !s.done);
+  if (!adminKey || !data?.steps) return null;
   if (data.allDone) return null;
+  // A pending setup step can be hidden for now; a LIVE defect cannot. Alerts
+  // going out unguarded is not something to dismiss off the dashboard.
+  if (dismissed && defects.length === 0) return null;
 
   const Btn = ({ onClick, children, tone }) => (
     <button onClick={onClick} disabled={busy}
@@ -374,28 +378,41 @@ function AnalyticsSetup() {
     <div className="bg-[#141B2D] border border-amber-500/25 rounded-xl p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-sm font-bold text-white">🔧 Finish analytics setup</h2>
+          <h2 className="text-sm font-bold text-white">
+            {defects.length > 0 ? '⚠️ Email setup — action needed' : '🔧 Finish email setup'}
+          </h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
             {data.steps.filter((s) => s.done).length} of {data.steps.length} done.
-            Tracking isn&rsquo;t retroactive — finish this before your next send or that
-            campaign has no open data.
+            {defects.length > 0
+              ? ' One of these is not a pending feature — it is affecting live emails right now.'
+              : ' Tracking isn\u2019t retroactive — finish before your next send or that campaign has no open data.'}
           </p>
         </div>
-        <button onClick={() => setDismissed(true)}
-          className="shrink-0 text-white/30 hover:text-white/60 text-lg leading-none" title="Hide">×</button>
+        {defects.length === 0 && (
+          <button onClick={() => setDismissed(true)}
+            className="shrink-0 text-white/30 hover:text-white/60 text-lg leading-none" title="Hide">×</button>
+        )}
       </div>
 
       <div className="mt-4 space-y-2">
         {data.steps.map((s) => (
           <div key={s.key}
-            className={`rounded-lg border p-3 ${s.done ? 'border-green-500/20 bg-green-500/[0.06]' : 'border-white/[0.08] bg-white/[0.02]'}`}>
+            className={`rounded-lg border p-3 ${
+              s.done ? 'border-green-500/20 bg-green-500/[0.06]'
+                     : s.defect ? 'border-red-500/30 bg-red-500/[0.08]'
+                                : 'border-white/[0.08] bg-white/[0.02]'}`}>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={`text-xs ${s.done ? 'text-green-400' : 'text-white/30'}`}>
-                    {s.done ? '✓' : '○'}
+                  <span className={`text-xs ${s.done ? 'text-green-400' : s.defect ? 'text-red-400' : 'text-white/30'}`}>
+                    {s.done ? '✓' : s.defect ? '!' : '○'}
                   </span>
                   <span className="text-xs font-bold text-white">{s.title}</span>
+                  {s.defect && (
+                    <span className="rounded-full bg-red-500/15 border border-red-500/30 px-2 py-0.5 text-[9px] font-bold text-red-400">
+                      LIVE ISSUE
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 pl-5 text-[11px] leading-relaxed text-white/45 break-words">{s.detail}</div>
                 {!s.done && s.how && (

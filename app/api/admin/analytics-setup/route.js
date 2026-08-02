@@ -35,6 +35,31 @@ CREATE INDEX IF NOT EXISTS email_events_recipient_idx ON email_events (recipient
 CREATE INDEX IF NOT EXISTS email_events_type_idx ON email_events (type);
 CREATE INDEX IF NOT EXISTS email_events_occurred_idx ON email_events (occurred_at DESC);`;
 
+
+// The deal-alert repeat-send guard. NOT analytics — an ACTIVE defect: while
+// this table is absent the daily alert route logs "repeat-send guard
+// unavailable" and sends anyway, so the DOM<=3 "new listing" window lets the
+// same property headline a subscriber's alert up to four days running. That is
+// the one thing the alert product must never do.
+//
+// Differs from supabase/migrations/create_alert_sent_listings.sql in one way,
+// deliberately: that file ends with a bare CREATE POLICY, and Postgres has no
+// CREATE POLICY IF NOT EXISTS — so re-running it errors on an existing policy.
+// DROP POLICY IF EXISTS first makes this safe to paste twice, which matters
+// when it's being pasted on a phone.
+export const ALERT_SENT_LISTINGS_SQL = `CREATE TABLE IF NOT EXISTS alert_sent_listings (
+  email TEXT NOT NULL,
+  listing_id TEXT NOT NULL,
+  sent_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (email, listing_id)
+);
+CREATE INDEX IF NOT EXISTS idx_alert_sent_listings_sent_at
+  ON alert_sent_listings (sent_at);
+ALTER TABLE alert_sent_listings ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role full access on alert_sent_listings" ON alert_sent_listings;
+CREATE POLICY "Service role full access on alert_sent_listings"
+  ON alert_sent_listings FOR ALL USING (true) WITH CHECK (true);`;
+
 const SITE = 'https://www.mississaugainvestor.ca';
 
 function sendingDomain() {
@@ -94,13 +119,28 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [events, sends, domain] = await Promise.all([
+  const [events, sends, alerts, domain] = await Promise.all([
     tableStatus('email_events'),
     tableStatus('broadcast_sends'),
+    tableStatus('alert_sent_listings'),
     resendDomain(),
   ]);
 
   const steps = [
+    {
+      key: 'alert_sent_listings',
+      title: 'Deal-alert repeat guard',
+      done: alerts.ok,
+      manual: true,
+      // Flagged as a live defect rather than a pending setup step: alerts are
+      // going out right now without it.
+      defect: !alerts.ok,
+      how: 'Supabase → SQL Editor → paste & Run',
+      sql: ALERT_SENT_LISTINGS_SQL,
+      detail: alerts.ok
+        ? 'active — subscribers will not be re-sent the same listing'
+        : 'MISSING — daily alerts are sending with no repeat-send guard, so the same listing can headline a subscriber\u2019s alert up to 4 days running',
+    },
     {
       key: 'email_events',
       title: 'Analytics table',
