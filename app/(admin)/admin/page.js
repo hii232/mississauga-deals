@@ -537,7 +537,7 @@ function BroadcastPanel({ endpoint, icon, title, blurb }) {
       )}
       {status === 'error' && (
         <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-xs leading-relaxed text-red-300">
-          Couldn&rsquo;t send the draft{result?.error ? `: ${result.error}` : ''}. Check that your admin key is entered and email (Resend) is configured.
+          Couldn&rsquo;t send the draft{result?.error ? `: ${result.error}` : ''}.{result?.detail ? ` Reason: ${result.detail}.` : ' Check that your admin key is entered and email (Resend) is configured.'}
         </div>
       )}
     </div>
