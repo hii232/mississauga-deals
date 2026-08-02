@@ -187,6 +187,12 @@ export default function AdminDashboard() {
           title="This Week's Picks"
           blurb="Three real Mississauga listings where the seller has reason to negotiate, each with the price to open at and why. Check the three addresses in the draft before sending — your name is on the offer numbers"
         />
+        <BroadcastPanel
+          endpoint="/api/broadcast/multi-unit"
+          icon="✉️"
+          title="Multi-Unit Letter"
+          blurb="A plain typed letter — no design — about the handful of duplexes/triplexes on the market: live counts, the house-hack financing rules, and a reply CTA. No offer numbers by design (TRREB has no multi-unit benchmark)"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
