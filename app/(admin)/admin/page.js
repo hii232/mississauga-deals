@@ -169,6 +169,9 @@ export default function AdminDashboard() {
       {/* Import subscribers — CSV upload into the leads database */}
       <ImportSubscribers />
 
+      {/* Guided setup for the analytics pipeline */}
+      <AnalyticsSetup />
+
       {/* Campaign performance from Resend webhook events */}
       <EmailAnalytics />
 
@@ -290,6 +293,150 @@ export default function AdminDashboard() {
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Guided setup for the email-analytics pipeline.
+//
+// Only exists because three of the four steps live in dashboards this app
+// can't reach. So it does what it CAN: live-checks each step's real status,
+// puts the SQL and the webhook URL one tap from the clipboard (this is used on
+// a phone), and fully automates the one step that has an API — flipping open +
+// click tracking on the Resend domain.
+//
+// Hides itself once everything is green, so a finished setup doesn't sit at
+// the top of the dashboard forever.
+function AnalyticsSetup() {
+  const { adminKey } = useAdmin();
+  const [data, setData] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [copied, setCopied] = useState(null);
+  const [dismissed, setDismissed] = useState(false);
+
+  const load = () => {
+    if (!adminKey) return;
+    fetch('/api/admin/analytics-setup', { headers: { 'x-admin-key': adminKey } })
+      .then((r) => r.json())
+      .then(setData)
+      .catch(() => {});
+  };
+  useEffect(load, [adminKey]);
+
+  async function copy(text, key) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(key);
+      setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setMsg({ tone: 'error', text: 'Copy failed — select the text manually.' });
+    }
+  }
+
+  async function enableTracking() {
+    setBusy(true); setMsg(null);
+    try {
+      const res = await fetch('/api/admin/analytics-setup', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'enable-tracking' }),
+      });
+      const d = await res.json();
+      if (res.ok && d.verified) {
+        setMsg({ tone: 'ok', text: `Open & click tracking are now ON for ${d.domain}.` });
+      } else if (res.ok) {
+        setMsg({ tone: 'error', text: `Resend accepted the change but reports opens=${String(d.openTracking)}, clicks=${String(d.clickTracking)}. Check the domain in Resend.` });
+      } else {
+        setMsg({ tone: 'error', text: `${d.error || 'Failed'}${d.detail ? ` — ${d.detail}` : ''}` });
+      }
+      load();
+    } catch {
+      setMsg({ tone: 'error', text: 'Network error.' });
+    }
+    setBusy(false);
+  }
+
+  if (!adminKey || !data?.steps || dismissed) return null;
+  if (data.allDone) return null;
+
+  const Btn = ({ onClick, children, tone }) => (
+    <button onClick={onClick} disabled={busy}
+      className={`rounded-lg px-3 py-1.5 text-[11px] font-bold transition-colors disabled:opacity-50 ${
+        tone === 'primary' ? 'bg-accent text-white hover:bg-accent-dark'
+                           : 'bg-white/10 text-white/80 hover:bg-white/15'}`}>
+      {children}
+    </button>
+  );
+
+  return (
+    <div className="bg-[#141B2D] border border-amber-500/25 rounded-xl p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-bold text-white">🔧 Finish analytics setup</h2>
+          <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
+            {data.steps.filter((s) => s.done).length} of {data.steps.length} done.
+            Tracking isn&rsquo;t retroactive — finish this before your next send or that
+            campaign has no open data.
+          </p>
+        </div>
+        <button onClick={() => setDismissed(true)}
+          className="shrink-0 text-white/30 hover:text-white/60 text-lg leading-none" title="Hide">×</button>
+      </div>
+
+      <div className="mt-4 space-y-2">
+        {data.steps.map((s) => (
+          <div key={s.key}
+            className={`rounded-lg border p-3 ${s.done ? 'border-green-500/20 bg-green-500/[0.06]' : 'border-white/[0.08] bg-white/[0.02]'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`text-xs ${s.done ? 'text-green-400' : 'text-white/30'}`}>
+                    {s.done ? '✓' : '○'}
+                  </span>
+                  <span className="text-xs font-bold text-white">{s.title}</span>
+                </div>
+                <div className="mt-1 pl-5 text-[11px] leading-relaxed text-white/45 break-words">{s.detail}</div>
+                {!s.done && s.how && (
+                  <div className="mt-1 pl-5 text-[11px] text-white/35">{s.how}</div>
+                )}
+              </div>
+              {!s.done && (
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  {s.sql && (
+                    <Btn onClick={() => copy(s.sql, s.key)}>
+                      {copied === s.key ? 'Copied ✓' : 'Copy SQL'}
+                    </Btn>
+                  )}
+                  {s.url && (
+                    <Btn onClick={() => copy(s.url, `${s.key}-url`)}>
+                      {copied === `${s.key}-url` ? 'Copied ✓' : 'Copy URL'}
+                    </Btn>
+                  )}
+                  {s.automatable && (
+                    <Btn tone="primary" onClick={enableTracking}>
+                      {busy ? 'Turning on…' : 'Turn on for me'}
+                    </Btn>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {msg && (
+        <div className={`mt-3 rounded-lg border p-3 text-xs leading-relaxed ${
+          msg.tone === 'ok' ? 'border-green-500/25 bg-green-500/10 text-green-300'
+                            : 'border-red-500/25 bg-red-500/10 text-red-300'}`}>
+          {msg.text}
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center gap-2">
+        <Btn onClick={load}>Re-check</Btn>
+        <span className="text-[11px] text-white/30">After each step, re-check to confirm.</span>
       </div>
     </div>
   );
