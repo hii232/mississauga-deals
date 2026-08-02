@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { ProofRow } from '@/components/ui/proof-row';
+import { formatPhone, isValidPhone } from '@/lib/phone';
 
 /**
  * Two-step inline signup modal.
@@ -56,20 +57,6 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   }, [open, initialStep, initialEmail]);
 
   if (!open || !mounted) return null;
-
-  function formatPhone(val) {
-    const digits = val.replace(/\D/g, '').slice(0, 11);
-    if (digits.length >= 7) {
-      const s = digits.length === 11 ? 1 : 0;
-      let f = `(${digits.slice(s, s + 3)}) ${digits.slice(s + 3, s + 6)}-${digits.slice(s + 6)}`;
-      if (digits.length === 11) f = '1 ' + f;
-      return f;
-    } else if (digits.length >= 4) {
-      const s = digits.length === 11 ? 1 : 0;
-      return `(${digits.slice(s, s + 3)}) ${digits.slice(s + 3)}`;
-    }
-    return digits;
-  }
 
   async function handleStep1(e) {
     e.preventDefault();
@@ -133,9 +120,15 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     // before this form is ever shown — abandoning here loses the name and
     // phone, never the lead itself. The "skip" link below stays as the honest
     // way out, so nobody is trapped in the modal over a field they won't give.
-    const digits = phone.replace(/\D/g, '');
-    if (!phone || digits.length < 10) {
+    if (!phone) {
       setError('Please enter a phone number so Hamza can reach you.');
+      return;
+    }
+    // Shared validator, not a local "10+ digits" check: that looser rule let an
+    // 11-digit number with a mistyped area code through here while /signup
+    // rejected the same input.
+    if (!isValidPhone(phone)) {
+      setError('Please enter a valid phone number (e.g. 647-361-1234).');
       return;
     }
 
