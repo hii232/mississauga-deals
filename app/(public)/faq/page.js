@@ -104,7 +104,13 @@ export default function FAQPage() {
       <PageHero
         eyebrow="Help Centre"
         title="Frequently Asked Questions"
-        subtitle="Everything you need to know about investing in Mississauga real estate with MississaugaInvestor.ca."
+        // The h1 reads "Frequently Asked Questions" but neither "frequently"
+        // nor "asked" appeared anywhere in the body copy — the same
+        // h1-terms-absent-from-body gap the 2026-07-30 audit flagged on other
+        // pages, on a page that audit never crawled. Reworded to carry both
+        // terms naturally AND to name what the page actually covers, which the
+        // old generic line did not.
+        subtitle="The questions Mississauga investors ask us most frequently — how the deal scores and analysis work, what it's like working with Hamza, and the investment-strategy calls that come up before a first purchase. If yours isn't asked below, send it to me directly."
         align="center"
         compact
       />
