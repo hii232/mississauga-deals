@@ -43,19 +43,48 @@ function approvalToken() {
 // states, and validateMultiUnit refuses the send on anything implausible
 // (including the 0-rows case that means TREB renamed the subtypes).
 async function fetchSnapshot(origin) {
-  const res = await fetch(
-    `${origin}/api/listings?city=Mississauga&multiUnit=1&limit=100&nomedia=1`,
-    { cache: 'no-store' }
-  );
-  if (!res.ok) return { data: null, reason: `listings returned ${res.status}` };
-  const json = await res.json();
+  // Two facts come from two different queries, and mixing them up is exactly
+  // the bug this function shipped with: a query filtered to multiUnit=1
+  // reports the FILTERED count as its total, so using that as "active
+  // listings city-wide" made totalActive ~= the multi-unit count and the
+  // validation rule (totalActive must exceed it) refuse every single draft.
+  // The city-wide total now comes from an unfiltered probe, always.
+  const [probeRes, fastRes] = await Promise.all([
+    fetch(`${origin}/api/listings?city=Mississauga&limit=100&nomedia=1&page=1`, { cache: 'no-store' }),
+    fetch(`${origin}/api/listings?city=Mississauga&multiUnit=1&limit=100&nomedia=1`, { cache: 'no-store' }),
+  ]);
+  if (!probeRes.ok) return { data: null, reason: `listings probe returned ${probeRes.status}` };
+  const probe = await probeRes.json();
+  const totalActive = probe?.browsableTotal || probe?.total || 0;
 
-  const rows = selectMultiUnit(json?.listings || []);
-  const agg = aggregateMultiUnit(rows);
-  // browsableTotal is the post-filter city-wide count the site itself quotes;
-  // fall back to the raw total rather than inventing one.
-  const totalActive = json?.browsableTotal || json?.total || 0;
-  return validateMultiUnit(agg, totalActive);
+  // Fast path: the server-side PropertySubType filter.
+  let rows = [];
+  if (fastRes.ok) {
+    const fast = await fastRes.json();
+    rows = selectMultiUnit(fast?.listings || []);
+  }
+
+  // Fallback: if the eq-list found almost nothing, don't conclude scarcity
+  // from an unverified subtype spelling — walk the whole city feed (nomedia,
+  // same pattern the homepage uses) and trust the mapped `type` instead.
+  // Only after the walk is a low count a real market fact.
+  if (rows.length < 2) {
+    const pages = Math.min(Number(probe?.pages) || 1, 30);
+    const all = [...(probe?.listings || [])];
+    for (let pg = 2; pg <= pages; pg++) {
+      const r = await fetch(
+        `${origin}/api/listings?city=Mississauga&limit=100&nomedia=1&page=${pg}`,
+        { cache: 'no-store' }
+      ).catch(() => null);
+      if (!r || !r.ok) return { data: null, reason: `feed walk failed at page ${pg}/${pages}` };
+      const j = await r.json();
+      all.push(...(j?.listings || []));
+    }
+    // Merge with whatever the fast path found; selectMultiUnit dedupes by id.
+    rows = selectMultiUnit([...rows, ...all]);
+  }
+
+  return validateMultiUnit(aggregateMultiUnit(rows), totalActive);
 }
 
 // Dev-only layout fixture for ?preview=1&sample=1 — aggregate counts only, no
@@ -224,6 +253,7 @@ export async function GET(request) {
     }
     const { data, reason } = await fetchSnapshot(selfOrigin(request));
     if (!data) {
+      console.warn('Multi-unit draft refused:', reason);
       return NextResponse.json(
         { error: 'Snapshot unavailable or failed validation — not drafting', detail: reason },
         { status: 500 }
@@ -277,6 +307,7 @@ export async function POST(request) {
     // this campaign's one shot the moment the lock row is written.
     const { data, reason } = await fetchSnapshot(selfOrigin(request));
     if (!data) {
+      console.warn('Multi-unit send refused:', reason);
       return new Response(
         htmlPage('Not sent', `<h1>Send blocked — snapshot failed validation</h1><p>${reason || 'The live feed did not return a plausible multi-unit snapshot.'} Nothing was sent.</p>`),
         { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
