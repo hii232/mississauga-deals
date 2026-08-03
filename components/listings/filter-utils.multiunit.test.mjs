@@ -65,5 +65,26 @@ for (const t of ['Duplex', 'Triplex', 'Fourplex', 'Multiplex']) {
   check(`${t} is matchable`, got.length === 1);
 }
 
+console.log('\nType buckets must be mutually correct (no substring bleed)');
+// Measured bug: 'semi-detached'.includes('detached') was true, so the Detached
+// filter returned 49 rows on a 99-row production sample of which 11 were semis.
+const MIX = [
+  { id: 'det', type: 'Detached', subType: 'Detached', price: 1200000 },
+  { id: 'semi', type: 'Semi-Detached', subType: 'Semi-Detached', price: 950000 },
+  { id: 'town', type: 'Townhouse', subType: 'Att/Row/Townhouse', price: 850000 },
+  { id: 'ctown', type: 'Townhouse', subType: 'Condo Townhouse', price: 750000 },
+  { id: 'apt', type: 'Condo', subType: 'Condo Apartment', price: 550000 },
+  { id: 'dup', type: 'Duplex', subType: 'Duplex', price: 1400000 },
+];
+const bucket = (t) => applyFilters(MIX, { ...DEFAULT_FILTERS, propertyType: t, priceRange: [0, 4000000] }).map((r) => r.id);
+
+check('Detached returns ONLY the detached', JSON.stringify(bucket('Detached')) === '["det"]', JSON.stringify(bucket('Detached')));
+check('Semi returns ONLY the semi', JSON.stringify(bucket('Semi')) === '["semi"]', JSON.stringify(bucket('Semi')));
+check('Duplex/Multi returns ONLY the duplex', JSON.stringify(bucket('Duplex/Multi')) === '["dup"]', JSON.stringify(bucket('Duplex/Multi')));
+check('Town returns both townhouse forms', JSON.stringify(bucket('Town')) === '["town","ctown"]', JSON.stringify(bucket('Town')));
+// Deliberate, documented overlap: a condo townhouse is genuinely both.
+check('Condo returns the apt AND the condo townhouse', JSON.stringify(bucket('Condo')) === '["ctown","apt"]', JSON.stringify(bucket('Condo')));
+check('All returns everything', bucket('All').length === MIX.length);
+
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'} — ${pass} checks passed, ${failures.length} failed`);
 if (failures.length) { failures.forEach((f) => console.log(`  - ${f}`)); process.exit(1); }
