@@ -5,7 +5,7 @@
 
 // Relative, not '@/': it keeps this module importable by bare node, which is
 // what lets the filters be unit-tested without booting Next.
-import { PROPERTY_TYPE, MULTI_UNIT } from '../../lib/property-types.js';
+import { PROPERTY_TYPE, MULTI_UNIT, DUPLEX_TYPES, TRIPLEX_PLUS_TYPES } from '../../lib/property-types.js';
 
 // ── Power of Sale / Foreclosure Detection ──
 const POS_RE = /\b(power of sale|foreclosure|bank owned|bank[- ]sale|bank repo|lender[- ]owned|estate sale|judicial sale|court[- ]ordered|as[- ]is where[- ]is|sold as[- ]is|no represent|receivership|vesting order|must sell|must be sold|below market|priced to sell|investor alert|handyman|fixer[- ]upper|needs work|as is|tenant occupied|vacant possession)\b/i;
@@ -99,10 +99,25 @@ export const PROPERTY_TYPE_MATCH = {
   Town: [PROPERTY_TYPE.TOWNHOUSE],
   'Condo Town': [PROPERTY_TYPE.CONDO_TOWNHOUSE],
   Condo: [PROPERTY_TYPE.CONDO],
+  // Split by down payment, not by name: an owner-occupied duplex can go 5%
+  // down under CMHC's rules, a triplex/fourplex needs 10%, and 5+ units is
+  // commercial financing. Fourplex and Multiplex ride with Triplex because
+  // Mississauga has zero active fourplexes and two multiplexes — separate
+  // chips would sit empty, which is its own kind of lie.
+  Duplex: DUPLEX_TYPES,
+  'Triplex+': TRIPLEX_PLUS_TYPES,
+
+  // ALL multi-unit in one URL. No chip — the chips split by down payment —
+  // but this is the key the multi-unit email links to, because that email
+  // describes all 11 duplex/triplex/multiplex listings and must land on all
+  // 11. It is also the alias that keeps the already-sent email's links alive:
+  // a shipped email is a permanent URL contract.
   'Duplex/Multi': MULTI_UNIT,
 };
 
-export const PROPERTY_TYPES = ['All', ...Object.keys(PROPERTY_TYPE_MATCH)];
+// The CHIP row. Deliberately not derived from PROPERTY_TYPE_MATCH, which also
+// carries the legacy alias above.
+export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo Town', 'Condo', 'Duplex', 'Triplex+'];
 
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
@@ -196,7 +211,9 @@ export function deserializeFilters(searchParams) {
   const q = searchParams.get('q');
   if (q) f.search = q;
   const type = searchParams.get('type');
-  if (type && PROPERTY_TYPES.includes(type)) f.propertyType = type;
+  // PROPERTY_TYPE_MATCH, not PROPERTY_TYPES: legacy ?type= values have no chip
+  // but must still filter (see the alias above).
+  if (type && PROPERTY_TYPE_MATCH[type]) f.propertyType = type;
   const s = searchParams.get('s');
   if (s) f.activeStrategies = s.split(',').filter((k) => STRATEGY_CHIPS.some((c) => c.key === k));
   const sort = searchParams.get('sort');
