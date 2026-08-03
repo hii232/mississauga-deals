@@ -3,6 +3,13 @@
  * Pure functions — no React dependencies.
  */
 
+// One definition of "multi-unit", shared with the multi-unit email so the site
+// and the email cannot drift apart on what counts. (multi-unit-data.js is
+// dependency-free, so importing it here pulls in nothing else.)
+// Relative, not '@/': it keeps this module importable by bare node, which is
+// what lets the multi-unit filter be unit-tested without booting Next.
+import { MULTI_UNIT_TYPES } from '../../lib/emails/multi-unit-data.js';
+
 // ── Power of Sale / Foreclosure Detection ──
 const POS_RE = /\b(power of sale|foreclosure|bank owned|bank[- ]sale|bank repo|lender[- ]owned|estate sale|judicial sale|court[- ]ordered|as[- ]is where[- ]is|sold as[- ]is|no represent|receivership|vesting order|must sell|must be sold|below market|priced to sell|investor alert|handyman|fixer[- ]upper|needs work|as is|tenant occupied|vacant possession)\b/i;
 
@@ -282,7 +289,12 @@ export function applyFilters(listings, filters) {
     result = result.filter((l) => {
       const t = (l.type + ' ' + (l.subType || '')).toLowerCase();
       const key = filters.propertyType.toLowerCase();
-      if (key === 'duplex/multi') return t.includes('duplex') || t.includes('multi') || t.includes('triplex');
+      // Reuse the SAME type list the multi-unit email counts from, so the site
+      // and the email can never disagree about what "multi-unit" means. The
+      // hand-written test here was `duplex || multi || triplex`, which silently
+      // excluded FOURPLEX — a fourplex would have been invisible under this
+      // filter while the email counted it.
+      if (key === 'duplex/multi') return MULTI_UNIT_TYPES.some((m) => t.includes(m.toLowerCase()));
       return t.includes(key);
     });
   }

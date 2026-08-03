@@ -661,6 +661,8 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           onToggleCompare={toggleCompare}
           photoMap={photoMap}
           isLoading={isLoading}
+          analysisComplete={analysisComplete}
+          loadedCount={listings.length}
           loadError={loadError}
           onRetry={() => { setIsLoading(true); setLoadError(false); setRetryKey((k) => k + 1); }}
           initialPage={initialPage}
@@ -669,6 +671,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
       {view === 'table' && (
         <ListingTable
           listings={filtered}
+          analysisComplete={analysisComplete}
           isRegistered={isRegistered}
           compareIds={compareIds}
           onToggleCompare={toggleCompare}
