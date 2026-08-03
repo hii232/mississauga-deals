@@ -141,7 +141,7 @@ export default function Layout({ children }) {
             browse scored Mississauga listings
           </a>
           ,{' '}
-          <a href="/listings?sort=dom" className="font-medium text-accent no-underline hover:text-accent-dark">
+          <a href="/listings?sort=dom" rel="nofollow" className="font-medium text-accent no-underline hover:text-accent-dark">
             see the longest-sitting listings
           </a>
           ,{' '}

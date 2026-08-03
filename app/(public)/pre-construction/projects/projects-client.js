@@ -376,6 +376,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
                           {/* CTA */}
                           <Link
                             href={`/pre-construction?project=${encodeURIComponent(p.name)}`}
+                            rel="nofollow"
                             className="block w-full text-center py-2.5 rounded-lg bg-navy/5 text-navy text-xs font-semibold hover:bg-accent hover:text-white transition no-underline"
                           >
                             Get VIP Pricing & Floor Plans
