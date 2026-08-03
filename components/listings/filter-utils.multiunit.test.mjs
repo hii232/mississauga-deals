@@ -15,7 +15,8 @@
  * dropped.
  */
 
-import { applyFilters, DEFAULT_FILTERS } from './filter-utils.js';
+import { applyFilters, DEFAULT_FILTERS, PROPERTY_TYPE_MATCH } from './filter-utils.js';
+import { mapType } from '../../lib/property-types.js';
 
 let pass = 0; const failures = [];
 function check(name, cond, detail = '') {
@@ -65,26 +66,60 @@ for (const t of ['Duplex', 'Triplex', 'Fourplex', 'Multiplex']) {
   check(`${t} is matchable`, got.length === 1);
 }
 
-console.log('\nType buckets must be mutually correct (no substring bleed)');
-// Measured bug: 'semi-detached'.includes('detached') was true, so the Detached
-// filter returned 49 rows on a 99-row production sample of which 11 were semis.
+console.log('\nType buckets are DISJOINT — every listing in exactly one');
+// Condo townhouses carry a maintenance fee and freehold townhouses do not, so
+// they are separate buckets. Verified against the live feed: 20/20 rows typed
+// "Condo Townhouse" carry a condo fee; the one "Att/Row/Townhouse" carries none.
 const MIX = [
-  { id: 'det', type: 'Detached', subType: 'Detached', price: 1200000 },
-  { id: 'semi', type: 'Semi-Detached', subType: 'Semi-Detached', price: 950000 },
-  { id: 'town', type: 'Townhouse', subType: 'Att/Row/Townhouse', price: 850000 },
-  { id: 'ctown', type: 'Townhouse', subType: 'Condo Townhouse', price: 750000 },
-  { id: 'apt', type: 'Condo', subType: 'Condo Apartment', price: 550000 },
-  { id: 'dup', type: 'Duplex', subType: 'Duplex', price: 1400000 },
+  { id: 'det',   type: 'Detached',        price: 1200000 },
+  { id: 'semi',  type: 'Semi-Detached',   price: 950000 },
+  { id: 'town',  type: 'Townhouse',       price: 850000 },
+  { id: 'ctown', type: 'Condo Townhouse', price: 750000 },
+  { id: 'apt',   type: 'Condo',           price: 550000 },
+  { id: 'dup',   type: 'Duplex',          price: 1400000 },
+  { id: 'tri',   type: 'Triplex',         price: 1500000 },
+  { id: 'four',  type: 'Fourplex',        price: 1600000 },
+  { id: 'multi', type: 'Multiplex',       price: 1700000 },
 ];
 const bucket = (t) => applyFilters(MIX, { ...DEFAULT_FILTERS, propertyType: t, priceRange: [0, 4000000] }).map((r) => r.id);
 
-check('Detached returns ONLY the detached', JSON.stringify(bucket('Detached')) === '["det"]', JSON.stringify(bucket('Detached')));
-check('Semi returns ONLY the semi', JSON.stringify(bucket('Semi')) === '["semi"]', JSON.stringify(bucket('Semi')));
-check('Duplex/Multi returns ONLY the duplex', JSON.stringify(bucket('Duplex/Multi')) === '["dup"]', JSON.stringify(bucket('Duplex/Multi')));
-check('Town returns both townhouse forms', JSON.stringify(bucket('Town')) === '["town","ctown"]', JSON.stringify(bucket('Town')));
-// Deliberate, documented overlap: a condo townhouse is genuinely both.
-check('Condo returns the apt AND the condo townhouse', JSON.stringify(bucket('Condo')) === '["ctown","apt"]', JSON.stringify(bucket('Condo')));
-check('All returns everything', bucket('All').length === MIX.length);
+check('Detached -> only detached', String(bucket('Detached')) === 'det', String(bucket('Detached')));
+check('Semi -> only semi', String(bucket('Semi')) === 'semi', String(bucket('Semi')));
+check('Town -> FREEHOLD only, no condo town', String(bucket('Town')) === 'town', String(bucket('Town')));
+check('Condo Town -> only the condo townhouse', String(bucket('Condo Town')) === 'ctown', String(bucket('Condo Town')));
+check('Condo -> apartment only, no townhouses', String(bucket('Condo')) === 'apt', String(bucket('Condo')));
+check('Duplex/Multi -> all four income types',
+  String(bucket('Duplex/Multi')) === 'dup,tri,four,multi', String(bucket('Duplex/Multi')));
+check('All -> everything', bucket('All').length === MIX.length);
+
+// The property that makes the whole scheme trustworthy: no double-counting.
+const counted = ['Detached', 'Semi', 'Town', 'Condo Town', 'Condo', 'Duplex/Multi']
+  .flatMap((t) => bucket(t));
+check('buckets are disjoint (no listing in two)', new Set(counted).size === counted.length, String(counted));
+check('buckets are exhaustive (every listing in one)', counted.length === MIX.length, `${counted.length}/${MIX.length}`);
+
+console.log('\nmapType assigns those types from real feed spellings');
+const cases = [
+  ['Detached', 'Residential Freehold', 'Detached'],
+  ['Semi-Detached', 'Residential Freehold', 'Semi-Detached'],
+  ['Att/Row/Townhouse', 'Residential Freehold', 'Townhouse'],
+  ['Condo Townhouse', 'Residential Condo & Other', 'Condo Townhouse'],
+  ['Condo Apartment', 'Residential Condo & Other', 'Condo'],
+  ['Co-op Apartment', 'Residential Condo & Other', 'Condo'],
+  ['Duplex', 'Residential Freehold', 'Duplex'],
+  ['Triplex', 'Residential Freehold', 'Triplex'],
+  ['Fourplex', 'Residential Freehold', 'Fourplex'],
+  ['Multiplex', 'Residential Freehold', 'Multiplex'],
+];
+for (const [sub, prop, want] of cases) {
+  check(`${sub} -> ${want}`, mapType(sub, prop) === want, `got ${mapType(sub, prop)}`);
+}
+// Every type mapType can produce must land in exactly one chip.
+const produced = [...new Set(cases.map(([s2, p2]) => mapType(s2, p2)))];
+for (const t of produced) {
+  const hits = Object.entries(PROPERTY_TYPE_MATCH).filter(([, allowed]) => allowed.includes(t));
+  check(`"${t}" is in exactly one chip`, hits.length === 1, `in ${hits.length}: ${hits.map((h) => h[0])}`);
+}
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'} — ${pass} checks passed, ${failures.length} failed`);
 if (failures.length) { failures.forEach((f) => console.log(`  - ${f}`)); process.exit(1); }

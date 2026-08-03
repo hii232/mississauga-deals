@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { mapType } from '@/lib/property-types';
 import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
@@ -14,18 +15,7 @@ const CITIES = [
   'Erin Mills', 'Churchill Meadows', 'Cooksville', 'Hurontario', 'Meadowvale', 'Malton',
 ];
 
-function mapType(sub, prop) {
-  const s = (sub || '').toLowerCase();
-  const p = (prop || '').toLowerCase();
-  if (s.includes('semi')) return 'Semi-Detached';
-  if (s.includes('att') || s.includes('row') || s.includes('town')) return 'Townhouse';
-  if (p.includes('condo') || s.includes('condo') || s.includes('apt')) return 'Condo';
-  if (s.includes('duplex')) return 'Duplex';
-  if (s.includes('triplex')) return 'Triplex';
-  if (s.includes('fourplex') || s.includes('four-plex') || s.includes('quadruplex')) return 'Fourplex';
-  if (s.includes('multi') || s.includes('multiplex')) return 'Multiplex';
-  return 'Detached';
-}
+// mapType now lives in lib/property-types.js — one rule, imported here.
 
 function estimateRent(price, beds, city, type) {
   // Conservative 2026 GTA rental rates

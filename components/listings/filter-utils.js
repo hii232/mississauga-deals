@@ -3,12 +3,9 @@
  * Pure functions — no React dependencies.
  */
 
-// One definition of "multi-unit", shared with the multi-unit email so the site
-// and the email cannot drift apart on what counts. (multi-unit-data.js is
-// dependency-free, so importing it here pulls in nothing else.)
 // Relative, not '@/': it keeps this module importable by bare node, which is
-// what lets the multi-unit filter be unit-tested without booting Next.
-import { MULTI_UNIT_TYPES } from '../../lib/emails/multi-unit-data.js';
+// what lets the filters be unit-tested without booting Next.
+import { PROPERTY_TYPE, MULTI_UNIT } from '../../lib/property-types.js';
 
 // ── Power of Sale / Foreclosure Detection ──
 const POS_RE = /\b(power of sale|foreclosure|bank owned|bank[- ]sale|bank repo|lender[- ]owned|estate sale|judicial sale|court[- ]ordered|as[- ]is where[- ]is|sold as[- ]is|no represent|receivership|vesting order|must sell|must be sold|below market|priced to sell|investor alert|handyman|fixer[- ]upper|needs work|as is|tenant occupied|vacant possession)\b/i;
@@ -90,7 +87,22 @@ export const DEFAULT_FILTERS = {
 };
 
 // ── Property Types ──
-export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo', 'Duplex/Multi'];
+// Chip label -> the canonical types it selects. HARDCODED and exact: every
+// bucket is disjoint, so a listing appears under one chip and one only.
+// "Condo Town" is its own bucket because a condo townhouse carries a monthly
+// maintenance fee and a freehold townhouse does not — the biggest single
+// difference in carrying cost between them, and the reason lumping them
+// together misrepresents both.
+export const PROPERTY_TYPE_MATCH = {
+  Detached: [PROPERTY_TYPE.DETACHED],
+  Semi: [PROPERTY_TYPE.SEMI],
+  Town: [PROPERTY_TYPE.TOWNHOUSE],
+  'Condo Town': [PROPERTY_TYPE.CONDO_TOWNHOUSE],
+  Condo: [PROPERTY_TYPE.CONDO],
+  'Duplex/Multi': MULTI_UNIT,
+};
+
+export const PROPERTY_TYPES = ['All', ...Object.keys(PROPERTY_TYPE_MATCH)];
 
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
@@ -293,29 +305,14 @@ export function applyFilters(listings, filters) {
 
   // Property type
   if (filters.propertyType !== 'All') {
-    result = result.filter((l) => {
-      const t = (l.type + ' ' + (l.subType || '')).toLowerCase();
-      const key = filters.propertyType.toLowerCase();
-      // Reuse the SAME type list the multi-unit email counts from, so the site
-      // and the email can never disagree about what "multi-unit" means. The
-      // hand-written test here was `duplex || multi || triplex`, which silently
-      // excluded FOURPLEX — a fourplex would have been invisible under this
-      // filter while the email counted it.
-      if (key === 'duplex/multi') return MULTI_UNIT_TYPES.some((m) => t.includes(m.toLowerCase()));
-      // 'Detached' must NOT swallow 'Semi-Detached' — 'semi-detached' contains
-      // the substring 'detached', so the plain includes() test below put every
-      // semi into the Detached bucket. Measured on 99 real production rows:
-      // the Detached filter returned 49, of which 11 (22%) were semis. Both
-      // buckets are now exact on the mapped type, which is a closed set from
-      // mapType() — and mapType's fallback IS 'Detached', so nothing is lost.
-      if (key === 'detached') return l.type === 'Detached';
-      if (key === 'semi') return l.type === 'Semi-Detached';
-      // Town / Condo keep substring matching on purpose: a condo townhouse is
-      // genuinely both, and appears under each — verified as 20 rows that are
-      // type 'Townhouse' with a condo subType.
-      return t.includes(key);
-    });
+    // Equality against a closed set — never a substring test. Substring
+    // matching produced three real bugs: "Detached" swallowing
+    // "Semi-Detached", "Duplex/Multi" silently dropping "Fourplex", and condo
+    // townhouses showing under both Town and Condo.
+    const allowed = PROPERTY_TYPE_MATCH[filters.propertyType];
+    if (allowed) result = result.filter((l) => allowed.includes(l.type));
   }
+
 
   // Strategy filters (AND logic)
   for (const sKey of filters.activeStrategies) {
