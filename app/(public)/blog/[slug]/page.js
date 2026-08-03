@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { getBlogSeoOverride } from '@/lib/blog/seo-overrides';
 import Image from 'next/image';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 import { createClient } from '@supabase/supabase-js';
@@ -45,12 +46,23 @@ export async function generateMetadata({ params }) {
   const canonicalUrl = override?.canonicalUrl
     ?? `https://www.mississaugainvestor.ca/blog/${post.slug}`;
 
+  // Repo-side SEO override. Titles/excerpts are written by the auto-blog
+  // generator into Supabase and cannot be corrected from here — and the
+  // 2026-08-03 Search Console export showed every top page losing clicks to
+  // SERP truncation (the 1,915-impression condo-vs-townhouse post was cut at
+  // "…Which Is Better for Ca", hiding its entire hook). See seo-overrides.js.
+  // The on-page <h1> keeps the stored title; only what Google renders changes.
+  const seo = getBlogSeoOverride(post.slug);
+  const metaTitle = seo?.title || post.title;
+  const metaDescription = seo?.description || post.excerpt
+    || `Read ${post.title} on MississaugaInvestor.ca`;
+
   return {
-    title: post.title,
-    description: post.excerpt || `Read ${post.title} on MississaugaInvestor.ca`,
+    title: metaTitle,
+    description: metaDescription,
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title: metaTitle,
+      description: metaDescription,
       url: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
       type: 'article',
       // Article freshness + authorship signals for social unfurls and search —

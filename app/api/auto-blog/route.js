@@ -377,8 +377,13 @@ function buildDataBlock() {
 const BLOG_POST_SCHEMA = {
   type: 'object',
   properties: {
-    title: { type: 'string', description: '50-70 characters, includes "Mississauga", written for search and curiosity' },
-    excerpt: { type: 'string', description: 'Max 180 characters. A hook, not a summary.' },
+    // <=60 / <=155: Google renders about 60 characters of a title and 155 of a
+    // description, and the spec used to ask for 50-70 and "max 180" — which is
+    // why every top-performing post in the 2026-08-03 Search Console export had
+    // its hook cut off in the SERP. Front-load matters: the tail is what gets
+    // truncated, so the keyword and the payoff must come first.
+    title: { type: 'string', description: 'MAX 60 characters — hard limit, Google truncates beyond it. Includes "Mississauga". Front-load the search term and the hook; do not save the payoff for the end.' },
+    excerpt: { type: 'string', description: 'MAX 155 characters — hard limit, Google truncates beyond it. A hook, not a summary. No percentages or dollar figures: they go stale and Google keeps serving them.' },
     content: { type: 'string', description: 'The full blog post in Markdown, 1300-1800 words' },
     category: {
       type: 'string',
