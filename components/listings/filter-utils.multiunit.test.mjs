@@ -15,7 +15,7 @@
  * dropped.
  */
 
-import { applyFilters, DEFAULT_FILTERS, PROPERTY_TYPE_MATCH } from './filter-utils.js';
+import { applyFilters, DEFAULT_FILTERS, PROPERTY_TYPE_MATCH, PROPERTY_TYPES } from './filter-utils.js';
 import { mapType } from '../../lib/property-types.js';
 
 let pass = 0; const failures = [];
@@ -45,7 +45,7 @@ const EXTRA = [
   { id: 'T', type: 'Townhouse', subType: 'Att/Row/Townhouse', price: 800000 },
 ];
 
-const filters = { ...DEFAULT_FILTERS, propertyType: 'Duplex/Multi', priceRange: [0, 4000000] };
+const filters = { ...DEFAULT_FILTERS, propertyType: 'Duplex/Multi', priceRange: [0, 4000000] }; // the all-multi-unit alias
 const ids = applyFilters([...REAL, ...EXTRA], filters).map((r) => r.id);
 
 console.log('\nDuplex/Multi filter vs the real production set');
@@ -88,13 +88,16 @@ check('Semi -> only semi', String(bucket('Semi')) === 'semi', String(bucket('Sem
 check('Town -> FREEHOLD only, no condo town', String(bucket('Town')) === 'town', String(bucket('Town')));
 check('Condo Town -> only the condo townhouse', String(bucket('Condo Town')) === 'ctown', String(bucket('Condo Town')));
 check('Condo -> apartment only, no townhouses', String(bucket('Condo')) === 'apt', String(bucket('Condo')));
-check('Duplex/Multi -> all four income types',
+check('Duplex -> the duplex only (5% down tier)', String(bucket('Duplex')) === 'dup', String(bucket('Duplex')));
+check('Triplex+ -> triplex, fourplex, multiplex (10% / commercial)',
+  String(bucket('Triplex+')) === 'tri,four,multi', String(bucket('Triplex+')));
+// No chip, but the multi-unit email links to it and must land on ALL of them.
+check('legacy ?type=Duplex/Multi still selects all four',
   String(bucket('Duplex/Multi')) === 'dup,tri,four,multi', String(bucket('Duplex/Multi')));
 check('All -> everything', bucket('All').length === MIX.length);
 
 // The property that makes the whole scheme trustworthy: no double-counting.
-const counted = ['Detached', 'Semi', 'Town', 'Condo Town', 'Condo', 'Duplex/Multi']
-  .flatMap((t) => bucket(t));
+const counted = PROPERTY_TYPES.filter((t) => t !== 'All').flatMap((t) => bucket(t));
 check('buckets are disjoint (no listing in two)', new Set(counted).size === counted.length, String(counted));
 check('buckets are exhaustive (every listing in one)', counted.length === MIX.length, `${counted.length}/${MIX.length}`);
 
@@ -114,12 +117,17 @@ const cases = [
 for (const [sub, prop, want] of cases) {
   check(`${sub} -> ${want}`, mapType(sub, prop) === want, `got ${mapType(sub, prop)}`);
 }
-// Every type mapType can produce must land in exactly one chip.
+// Every type mapType can produce must land in exactly one CHIP. Checked against
+// the chip row, not the match map — the map also holds the deliberate
+// all-multi-unit URL alias, which is a superset and has no chip.
+const CHIPS = PROPERTY_TYPES.filter((t) => t !== 'All');
 const produced = [...new Set(cases.map(([s2, p2]) => mapType(s2, p2)))];
 for (const t of produced) {
-  const hits = Object.entries(PROPERTY_TYPE_MATCH).filter(([, allowed]) => allowed.includes(t));
-  check(`"${t}" is in exactly one chip`, hits.length === 1, `in ${hits.length}: ${hits.map((h) => h[0])}`);
+  const hits = CHIPS.filter((c) => PROPERTY_TYPE_MATCH[c].includes(t));
+  check(`"${t}" is in exactly one chip`, hits.length === 1, `in ${hits.length}: ${hits}`);
 }
+check('the all-multi-unit alias is NOT a chip', !PROPERTY_TYPES.includes('Duplex/Multi'));
+check('every chip has a match rule', CHIPS.every((c) => Array.isArray(PROPERTY_TYPE_MATCH[c])));
 
 console.log(`\n${failures.length ? 'FAILED' : 'PASSED'} — ${pass} checks passed, ${failures.length} failed`);
 if (failures.length) { failures.forEach((f) => console.log(`  - ${f}`)); process.exit(1); }
