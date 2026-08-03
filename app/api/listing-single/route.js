@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { mapType } from '@/lib/property-types';
 import { odataStr, odataKey } from '@/lib/listings/odata';
 import { computeDaysOnMarket, computeDaysSinceUpdate, computeDomFloor, parseLivingAreaRange } from '@/lib/listings/market-timing';
 import { probeSupportedFields } from '@/lib/listings/ampre-fields';
@@ -8,18 +9,7 @@ export const dynamic = 'force-dynamic';
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
-function mapType(sub, prop) {
-  const s = (sub || '').toLowerCase();
-  const p = (prop || '').toLowerCase();
-  if (s.includes('semi')) return 'Semi-Detached';
-  if (s.includes('att') || s.includes('row') || s.includes('town')) return 'Townhouse';
-  if (p.includes('condo') || s.includes('condo') || s.includes('apt')) return 'Condo';
-  if (s.includes('duplex')) return 'Duplex';
-  if (s.includes('triplex')) return 'Triplex';
-  if (s.includes('fourplex') || s.includes('four-plex') || s.includes('quadruplex')) return 'Fourplex';
-  if (s.includes('multi') || s.includes('multiplex')) return 'Multiplex';
-  return 'Detached';
-}
+// mapType now lives in lib/property-types.js — one rule, imported here.
 
 function addr(l) {
   return [l.UnitNumber ? l.UnitNumber + '-' : '', l.StreetNumber || '', l.StreetName || '', l.StreetSuffix || '']
