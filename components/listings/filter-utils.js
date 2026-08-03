@@ -107,7 +107,14 @@ export const STRATEGY_CHIPS = [
   // lower bound cannot establish one. dom 0 = unknown, not new.
   { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => { const d = domExact(l); return d >= 1 && d <= 3; } },
   { key: 'under800', label: '<$800K', tooltip: 'Priced under $800,000', filter: (l) => l.price < 800000 },
-  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Property has or has potential for a legal basement apartment', filter: (l) => /legal basement/i.test(l.remarks || '') },
+  // Reads the SAME basementTier the listing card badges, instead of a private
+  // one-phrase regex. The old filter was /legal basement/ alone, while the
+  // site's LEGAL_SUITE_KEYWORDS recognises seven phrasings ("legal suite",
+  // "registered basement", "legal bsmt", …) — so a listing the card showed as
+  // legal was missed by the filter that exists to find exactly those.
+  // Tooltip also corrected: it promised "or has potential", which is a
+  // DIFFERENT tier (22 of 99 real rows) that this filter has never included.
+  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Remarks state a legal or registered second suite — not merely a separate entrance or finished basement', filter: (l) => l.basementTier === 'legal' },
   { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
   { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work — keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
   { key: 'hightransit', label: 'HIGH TRANSIT', tooltip: 'Transit score 7+ — near GO stations, LRT, major bus routes', filter: (l) => (l.transitScore || 0) >= 7 },
@@ -295,6 +302,17 @@ export function applyFilters(listings, filters) {
       // excluded FOURPLEX — a fourplex would have been invisible under this
       // filter while the email counted it.
       if (key === 'duplex/multi') return MULTI_UNIT_TYPES.some((m) => t.includes(m.toLowerCase()));
+      // 'Detached' must NOT swallow 'Semi-Detached' — 'semi-detached' contains
+      // the substring 'detached', so the plain includes() test below put every
+      // semi into the Detached bucket. Measured on 99 real production rows:
+      // the Detached filter returned 49, of which 11 (22%) were semis. Both
+      // buckets are now exact on the mapped type, which is a closed set from
+      // mapType() — and mapType's fallback IS 'Detached', so nothing is lost.
+      if (key === 'detached') return l.type === 'Detached';
+      if (key === 'semi') return l.type === 'Semi-Detached';
+      // Town / Condo keep substring matching on purpose: a condo townhouse is
+      // genuinely both, and appears under each — verified as 20 rows that are
+      // type 'Townhouse' with a condo subType.
       return t.includes(key);
     });
   }
