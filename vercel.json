@@ -32,6 +32,10 @@
     {
       "path": "/api/broadcast/offer-picks",
       "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/newsletter/weekly",
+      "schedule": "30 15 * * *"
     }
   ]
 }
