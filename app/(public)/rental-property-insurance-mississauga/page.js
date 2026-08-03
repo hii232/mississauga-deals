@@ -62,6 +62,50 @@ const INS_FAQ = [
     answer:
       'Insurance premiums on a rental property are generally treated as a deductible operating expense against rental income, alongside costs like property tax, maintenance, and mortgage interest. Tax treatment depends on your situation, so confirm the specifics with an accountant — this is general information, not tax advice.',
   },
+  // ── Added 2026-08-03 from the Search Console export ────────────────────────
+  // Each of the four below answers a cluster this page ALREADY collects
+  // impressions for but never addressed in the searcher's own words. The page
+  // already ranks #1 for two question-shaped queries ("how to insure a rental
+  // property", "what should i ask an insurance broker before buying rental
+  // ..."), which is the evidence that question coverage is what works here —
+  // not chasing the ~90 generic national terms ("landlord insurance", "home
+  // insurance for rental property") where it sits at position 45-85 against
+  // national insurers and never will.
+  {
+    // Biggest cluster by far: ~15 variants incl. "does home insurance cover
+    // rental property" (pos 70), "homeowners insurance landlord" (63.7),
+    // "rental homeowners insurance" (68.3). Q1 above implies the answer but
+    // never states it in this phrasing.
+    question: 'Does home insurance cover a rental property?',
+    answer:
+      'Generally not once tenants move in. A homeowner policy is underwritten on the assumption that you live there, and insurers commonly restrict or exclude coverage on a tenant-occupied home — which means a claim can be reduced or denied at the worst possible moment. Renting out a property you own usually requires switching to a landlord (rental dwelling) policy, and renting out part of a home you still live in can also change what your policy will pay. Tell your broker how the property is actually occupied before the first tenant moves in, not after a loss.',
+  },
+  {
+    // Tax cluster, in the searcher's words: "can you write off home insurance
+    // on rental property" (67), "can i deduct home insurance on rental
+    // property" (59.5), "is home insurance tax deductible for rental property"
+    // (49), "home insurance rental property tax deductible" (32.7). The
+    // existing tax question says "landlord insurance"; these searchers say
+    // "home insurance", and matching their phrasing is the point.
+    question: 'Can you write off home insurance on a rental property?',
+    answer:
+      'The premium on a property you rent out is generally deductible against that rental income as an operating expense, in the same bucket as property tax, maintenance and mortgage interest. The insurance on your own home is not — and if you rent out only part of your home, the deductible share is usually apportioned to the rented portion. Where exactly the line falls depends on your situation, so have an accountant confirm it. General information, not tax advice.',
+  },
+  {
+    // Wholly uncovered, and the most locally relevant gap: Mississauga's stock
+    // is heavily condo. Queries: "landlord condo insurance" (68), "condo
+    // landlord insurance" (70), "rental condo insurance for landlords" (64).
+    question: 'What insurance does a landlord need for a condo in Mississauga?',
+    answer:
+      'A condo splits the coverage in two. The condominium corporation insures the building itself and common elements through its master policy, so a condo landlord is not insuring the structure. What you insure is your own exposure: liability, the unit\'s improvements and betterments (flooring, cabinetry, anything upgraded beyond the builder standard), your landlord-owned contents, loss of rental income, and — importantly — your share of the corporation\'s deductible if a loss originates in your unit. That last one surprises people, because a water escape from one unit can carry a five-figure corporate deductible. Ask your broker for a condo landlord (rented condominium) policy specifically, and read the corporation\'s status certificate to see what its master policy actually covers.',
+  },
+  {
+    // Already position 1 on this phrasing — expanding it as a first-class
+    // question is the cheapest way to hold and widen that.
+    question: 'What should I ask an insurance broker before buying a rental?',
+    answer:
+      'Ask five things: whether the policy is written for a tenant-occupied property rather than an owner-occupied one; whether loss of rental income is included and for how long; what the water-damage coverage and deductible look like, since that drives most claims; whether the property type, age of roof, wiring and plumbing affect eligibility or price; and — for a condo — how the policy dovetails with the corporation\'s master policy and its deductible. Get the quote before you waive conditions, not after: an unexpected premium or a refusal to insure is far cheaper to discover while you can still walk away.',
+  },
 ];
 
 const COVERAGE = [
