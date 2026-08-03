@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { sendBulk, summarizeBulk } from '@/lib/emails/send-bulk';
 import { createHmac } from 'crypto';
 import { getSupabaseAdmin, getBroadcastRecipients } from '@/lib/emails/audience';
 import { buildMotivatedSellersEmail } from '@/lib/emails/motivated-sellers-email';
@@ -14,6 +15,9 @@ import { acquireSendLock, probeSendLock, BROADCAST_SENDS_SQL } from '@/lib/email
 // went out. 300 is within the plan's Fluid limit and leaves room for the
 // batched send in the POST path too.
 export const maxDuration = 300;
+// Stop starting new sends at 80% of maxDuration so the run always returns a
+// truthful count instead of being killed mid-send.
+const SEND_BUDGET_MS = 240000;
 export const dynamic = 'force-dynamic';
 
 // One-off campaign id. Powers the approval token + the "already sent" guard, so
@@ -121,7 +125,11 @@ async function sendEmail(to, subject, html) {
       },
     }),
   });
-  return res.ok;
+  if (res.ok) return { ok: true, status: res.status };
+  // The status and body used to be discarded (`return res.ok`), which is why a
+  // 429 storm was indistinguishable from a quiet day. Report both.
+  const body = await res.text().catch(() => '');
+  return { ok: false, status: res.status, retryAfter: res.headers.get('retry-after'), body };
 }
 
 // ── Simple styled confirmation/result page ──
@@ -150,22 +158,21 @@ function approvalBanner(count, radar, origin) {
 
 // ── Fan out to the whole list in small batches ──
 async function sendToAll(recipients, radar) {
-  let sent = 0;
-  let failed = 0;
-  for (let i = 0; i < recipients.length; i += 10) {
-    const batch = recipients.slice(i, i + 10);
-    const results = await Promise.allSettled(
-      batch.map(({ email, name }) => {
-        const { subject, html } = buildMotivatedSellersEmail({ email, name, radar });
-        return sendEmail(email, subject, html);
-      })
-    );
-    results.forEach((r) => {
-      if (r.status === 'fulfilled' && r.value) sent++;
-      else failed++;
-    });
-  }
-  return { sent, failed };
+  // Paced + 429-aware. The old loop fired TEN concurrent Resend calls per
+  // batch with no delay and threw away every failure reason, so most of a
+  // ~480-recipient run could be refused with nothing recorded anywhere.
+  // Budget leaves headroom under this route's maxDuration so an over-long run
+  // reports its exact remainder instead of being killed mid-flight.
+  const result = await sendBulk({
+    recipients,
+    budgetMs: SEND_BUDGET_MS,
+    sendOne: ({ email, name }) => {
+      const { subject, html } = buildMotivatedSellersEmail({ email, name, radar });
+      return sendEmail(email, subject, html);
+    },
+  });
+  console.log(`Broadcast ${CAMPAIGN}: ${summarizeBulk(result)}`);
+  return result;
 }
 
 // ── GET: preview · count · approval page · or send the draft to the approver ──
@@ -336,12 +343,14 @@ export async function POST(request) {
       );
     }
 
-    const { sent, failed } = await sendToAll(recipients, radar);
+    const bulk = await sendToAll(recipients, radar);
     return new Response(
       htmlPage(
         'Sent',
-        `<h1>&#127881; Sent to ${sent} contact${sent === 1 ? '' : 's'}</h1>
-         <p>${failed ? `${failed} failed and will show in your Resend logs.` : 'Every email went out successfully.'}</p>
+        `<h1>&#127881; Sent to ${bulk.sent} contact${bulk.sent === 1 ? '' : 's'}</h1>
+         <p>${bulk.failed || bulk.remaining.length
+            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted &mdash; the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
+            : 'Every email went out successfully.'}</p>
          <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
       ),
       { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
