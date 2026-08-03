@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { formatPhone, isValidPhone } from '@/lib/phone';
+import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
 
 /**
  * Google Sign-In button using Google Identity Services (GSI).
@@ -112,6 +112,10 @@ export function GoogleSignIn({
     e.preventDefault();
     if (!isValidPhone(phone)) {
       setPhoneError('Please enter a valid phone number (e.g. 647-361-1234).');
+      return;
+    }
+    if (isFakePhone(phone)) {
+      setPhoneError('Please enter a real phone number Hamza can reach you at.');
       return;
     }
     setPhoneError('');

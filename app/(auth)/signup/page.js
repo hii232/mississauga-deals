@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CASL_TEXT } from '@/lib/constants';
 import { GoogleSignIn } from '@/components/ui/google-signin';
-import { formatPhone, isValidPhone } from '@/lib/phone';
+import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -58,6 +58,13 @@ export default function SignupPage() {
     }
     if (!isValidPhone(form.phone)) {
       setError('Please enter a valid phone number (e.g. 647-361-1234).');
+      return;
+    }
+    // Caught client-side as well as on the server. /api/lead rejects fakes with
+    // a 400, but a mandatory field that bounces back from the network reads as
+    // "the site is broken" rather than "fix this number" — tell them here.
+    if (isFakePhone(form.phone)) {
+      setError('Please enter a real phone number Hamza can reach you at.');
       return;
     }
 
