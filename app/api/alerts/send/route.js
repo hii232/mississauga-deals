@@ -9,6 +9,8 @@ import { tagRecipient } from '@/lib/emails/recipient-token';
 import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { requireCronOrAdmin } from '@/lib/api-auth';
 import { esc, fmtPrice } from '@/lib/emails/email-utils';
+import { getBroadcastRecipients } from '@/lib/emails/audience';
+import { pickDefaultDeals, selectDefaultRecipients } from '@/lib/alerts/default-audience';
 
 const plural = (n, singular, pluralForm = `${singular}s`) => `${n} ${n === 1 ? singular : pluralForm}`;
 
@@ -85,13 +87,11 @@ export async function POST(request) {
       .eq('active', true);
 
     if (searchErr) throw searchErr;
-    if (!searches || searches.length === 0) {
-      return NextResponse.json(
-        dryRun
-          ? { dryRun: true, message: 'No active saved searches — a real run would send 0 emails.', recipients: 0, wouldSend: 0, preview: [] }
-          : { message: 'No active searches', sent: 0 }
-      );
-    }
+    // NO early return on zero saved searches any more: the default audience
+    // (every lead, below) is the majority of recipients — before 2026-08-03
+    // this exit meant "nobody built a saved search" silenced the entire alert
+    // product for 483 captured contacts.
+    const activeSearches = searches || [];
 
     // 2. Fetch current listings — ALL pages. This route used to fetch page 1
     // only (200 rows), so every saved search was matched against ~8% of the
@@ -111,7 +111,7 @@ export async function POST(request) {
     // A GTA feed failure must not kill Mississauga alerts: those searches just
     // match nothing this run, and the error is logged for diagnosis.
     let gtaListings = [];
-    const needsGta = searches.some(
+    const needsGta = activeSearches.some(
       (s) => s.filters && s.filters.city && s.filters.city !== 'Mississauga'
     );
     if (needsGta) {
@@ -127,7 +127,7 @@ export async function POST(request) {
 
     // 3. Group searches by email (one email per user)
     const byEmail = {};
-    for (const search of searches) {
+    for (const search of activeSearches) {
       if (!byEmail[search.email]) {
         byEmail[search.email] = { name: search.name, searches: [] };
       }
@@ -142,21 +142,34 @@ export async function POST(request) {
     // not run) or the query fails, the set stays empty and behavior is
     // exactly the pre-guard behavior — never block the send over dedupe.
     const alreadySent = new Map(); // email -> Set(listing_id)
+    // email -> most recent sent_at (ms). Doubles as the default audience's
+    // frequency cap — the dedupe rows are also a send diary.
+    const lastSentAt = new Map();
+    // The default audience below requires this to be true. For saved-search
+    // owners a guard outage degrades to pre-guard behaviour (fail-open, their
+    // own explicit filters bound what they get); for 480 bare leads it would
+    // mean an uncapped daily blast, so that path fails CLOSED on it.
+    let guardOk = false;
     try {
       const lookback = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      // No .in(email) filter: the audience is now ~500 addresses (URL-length
+      // trouble as a querystring), and housekeeping caps this table at 14 days
+      // of rows anyway — read it all and filter in memory.
       const { data: sentRows, error: sentErr } = await supabase
         .from('alert_sent_listings')
-        .select('email, listing_id')
-        .in('email', Object.keys(byEmail))
+        .select('email, listing_id, sent_at')
         .gte('sent_at', lookback);
       if (sentErr) throw sentErr;
+      guardOk = true;
       for (const row of sentRows || []) {
         if (!alreadySent.has(row.email)) alreadySent.set(row.email, new Set());
         alreadySent.get(row.email).add(row.listing_id);
+        const t = Date.parse(row.sent_at);
+        if (Number.isFinite(t) && t > (lastSentAt.get(row.email) || 0)) lastSentAt.set(row.email, t);
       }
     } catch (err) {
       console.error(
-        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) — sending without dedupe:',
+        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) — saved-search sends continue without dedupe; default-audience sends are SKIPPED:',
         err?.message || err
       );
     }
@@ -321,6 +334,90 @@ export async function POST(request) {
       }
     }
 
+    // ── 6. DEFAULT AUDIENCE: every lead without a saved search ──────────────
+    // (Hamza, 2026-08-03: "point the daily alert at leads".) Until now this
+    // route served only saved_searches — yesterday's run reached exactly ONE
+    // person while 483 captured contacts got nothing. Rules for this group
+    // live in lib/alerts/default-audience.js: deal score >= 8 only, max 6
+    // listings, one email per recipient per 3 days, 120 sends per run, and
+    // NOTHING unless alert_sent_listings is reachable (fail-closed — without
+    // the dedupe diary this would be an uncapped daily blast).
+    const defaultAudience = {
+      guardReady: guardOk,
+      deals: 0, eligible: 0, cooling: 0, capped: 0, sent: 0, failed: 0, skippedReason: null,
+    };
+    const defaultDeals = pickDefaultDeals(allListings);
+    defaultAudience.deals = defaultDeals.length;
+    if (!guardOk) {
+      defaultAudience.skippedReason = 'alert_sent_listings unreachable — fail-closed for the lead audience';
+    } else if (defaultDeals.length === 0) {
+      defaultAudience.skippedReason = 'no fresh listings scoring 8+ today — nothing worth 483 inboxes';
+    } else {
+      const recipients = await getBroadcastRecipients(supabase);
+      const savedEmails = new Set(Object.keys(byEmail).map((e) => String(e).toLowerCase().trim()));
+      const { eligible, cooling, capped } = selectDefaultRecipients(recipients, savedEmails, lastSentAt, Date.now());
+      defaultAudience.eligible = eligible.length;
+      defaultAudience.cooling = cooling;
+      defaultAudience.capped = capped;
+
+      for (const r of eligible) {
+        // Per-recipient dedupe against what THIS person already received.
+        const seen = alreadySent.get(r.email) || new Set();
+        const unseen = defaultDeals.filter((l) => !seen.has(String(l.id)));
+        if (unseen.length === 0) continue;
+
+        if (dryRun) {
+          defaultAudience.sent++; // dry run: counts what WOULD go, sends nothing
+          continue;
+        }
+
+        const html = tagRecipient(
+          buildAlertEmail(unseen, r.name || 'Investor', [], { audience: 'default', email: r.email }),
+          r.email
+        );
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
+            to: r.email,
+            subject: alertSubject(unseen),
+            html,
+            headers: {
+              'List-Unsubscribe': `<${unsubscribeUrl(r.email)}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          }),
+        });
+        if (res.ok) {
+          defaultAudience.sent++;
+          sentCount++;
+          // Record BEFORE anything can interrupt the loop: for this audience a
+          // missed record risks a repeat email, the worse failure.
+          try {
+            const { error: recordErr } = await supabase.from('alert_sent_listings').upsert(
+              unseen.map((l) => ({ email: r.email, listing_id: String(l.id), sent_at: new Date().toISOString() })),
+              { onConflict: 'email,listing_id' }
+            );
+            if (recordErr) throw recordErr;
+          } catch (err) {
+            console.error(`Alerts: could not record default-audience send for ${r.email}:`, err?.message || err);
+          }
+        } else {
+          const detail = await res.text().catch(() => '');
+          defaultAudience.failed++;
+          failures.push({ email: r.email, reason: `HTTP ${res.status}${detail ? ` — ${detail.slice(0, 200)}` : ''}` });
+        }
+      }
+      console.log(
+        `Alerts: default audience — ${defaultAudience.sent} ${dryRun ? 'would be ' : ''}sent of ${eligible.length} eligible ` +
+        `(${cooling} cooling down, ${capped} deferred to next run) from ${defaultDeals.length} qualifying deals.`
+      );
+    }
+
     if (failures.length) {
       console.error(
         `Alerts: ${failures.length} of ${failures.length + sentCount} sends were rejected by Resend. ` +
@@ -351,6 +448,7 @@ export async function POST(request) {
         feedListingCount,
         matchSummary,
         preview,
+        defaultAudience,
       });
     }
 
@@ -384,6 +482,7 @@ export async function POST(request) {
       failed: failures.length,
       feedListingCount,
       matchSummary,
+      defaultAudience,
       // Surfaced so the daily run is self-diagnosing without dashboard access.
       failures: failures.slice(0, 5),
     });
@@ -446,9 +545,17 @@ function rentAssumptionLine(l) {
 }
 
 /**
- * Build HTML email template for deal alerts
+ * Build HTML email template for deal alerts.
+ *
+ * opts.audience === 'default' renders the lead-audience edition: same layout
+ * and figures, but the intro says what this actually is (the day's top-scoring
+ * new listings, not "your saved search") and the footer unsubscribes the
+ * EMAIL via the signed token — these recipients have no saved-search row to
+ * point an ?id= link at. Honesty constraint: never tell someone they have a
+ * saved search they never made.
  */
-function buildAlertEmail(listings, name, searches) {
+function buildAlertEmail(listings, name, searches, opts = {}) {
+  const isDefault = opts.audience === 'default';
   const listingRows = listings
     .map(
       (l) => {
@@ -512,12 +619,14 @@ function buildAlertEmail(listings, name, searches) {
     )
     .join('');
 
-  const unsubLinks = searches
-    .map(
-      (s) =>
-        `<a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?id=${s.id}" style="color: #94A3B8; font-size: 12px;">Unsubscribe</a>`
-    )
-    .join(' · ');
+  const unsubLinks = isDefault
+    ? `<a href="${unsubscribeUrl(opts.email || '')}" style="color: #94A3B8; font-size: 12px;">Unsubscribe</a>`
+    : searches
+        .map(
+          (s) =>
+            `<a href="https://www.mississaugainvestor.ca/api/alerts/unsubscribe?id=${s.id}" style="color: #94A3B8; font-size: 12px;">Unsubscribe</a>`
+        )
+        .join(' · ');
 
   return `<!DOCTYPE html>
 <html>
@@ -526,7 +635,9 @@ function buildAlertEmail(listings, name, searches) {
   <!-- Preheader: the inbox preview snippet. Hidden in the body but shown by the
        client next to the subject — prime open-rate real estate. -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F8FAFC;opacity:0;">
-    ${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search — cash flow, cap rate &amp; deal score on each.
+    ${isDefault
+      ? `Today&rsquo;s top-scoring new ${listings.length === 1 ? 'listing' : 'listings'} — cash flow, cap rate &amp; deal score on each.`
+      : `${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search — cash flow, cap rate &amp; deal score on each.`}
   </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background: #F8FAFC; padding: 32px 16px;">
     <tr>
@@ -556,7 +667,9 @@ function buildAlertEmail(listings, name, searches) {
                 Hi ${esc(name)},
               </div>
               <div style="color: #64748B; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
-                ${listings.length} new investment ${listings.length === 1 ? 'property matches' : 'properties match'} your saved search criteria.
+                ${isDefault
+                  ? `${listings.length === 1 ? 'One listing hit' : `${listings.length} new listings hit`} the market scoring <strong>8+ out of 10</strong> on cash flow, cap rate and value &mdash; the bar only a handful clear each week. Here ${listings.length === 1 ? 'it is' : 'they are'}, best first.`
+                  : `${listings.length} new investment ${listings.length === 1 ? 'property matches' : 'properties match'} your saved search criteria.`}
               </div>
 
               <table width="100%" cellpadding="0" cellspacing="0">
@@ -587,6 +700,10 @@ function buildAlertEmail(listings, name, searches) {
                 885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5<br>
                 647-609-1289 · hamza@nouman.ca
               </div>
+              ${isDefault ? `<div style="color: #94A3B8; font-size: 11px; margin-top: 12px; line-height: 1.5;">
+                You&rsquo;re receiving deal alerts because you signed up at MississaugaInvestor.ca.
+                These go out only when a new listing scores 8+, and never more often than every 3 days.
+              </div>` : ''}
               <div style="margin-top: 16px;">
                 ${unsubLinks}
               </div>

@@ -270,7 +270,7 @@ export function MarketPulseClient({ initialStats = null }) {
           )}
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <Link href="/listings?sort=dom" className="btn-primary !px-6 !py-2.5 text-center no-underline">
+            <Link href="/listings?sort=dom" rel="nofollow" className="btn-primary !px-6 !py-2.5 text-center no-underline">
               See Longest-Sitting Listings
             </Link>
             <p className="text-[11px] text-slate-500 leading-snug">

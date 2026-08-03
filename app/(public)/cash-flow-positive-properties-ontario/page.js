@@ -112,6 +112,7 @@ export default function CashFlowPositivePage() {
           </p>
           <Link
             href="/listings?cf=1&sort=cashflow"
+            rel="nofollow"
             className="btn-primary !px-6 !py-2.5 no-underline text-sm inline-block mt-4"
           >
             See cash-flow-positive listings →
@@ -161,7 +162,7 @@ export default function CashFlowPositivePage() {
             down payment in the free calculator.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link href="/listings?cf=1&sort=cashflow" className="btn-primary !px-6 no-underline text-center">
+            <Link href="/listings?cf=1&sort=cashflow" rel="nofollow" className="btn-primary !px-6 no-underline text-center">
               Cash-Flowing Listings
             </Link>
             <Link

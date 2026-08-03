@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { ProofRow } from '@/components/ui/proof-row';
-import { formatPhone, isValidPhone } from '@/lib/phone';
+import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
 
 /**
  * Two-step inline signup modal.
@@ -129,6 +129,10 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     // rejected the same input.
     if (!isValidPhone(phone)) {
       setError('Please enter a valid phone number (e.g. 647-361-1234).');
+      return;
+    }
+    if (isFakePhone(phone)) {
+      setError('Please enter a real phone number Hamza can reach you at.');
       return;
     }
 

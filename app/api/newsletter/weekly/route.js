@@ -9,6 +9,7 @@ import { sanitizePost } from '@/lib/blog/sanitize-content';
 import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 import { esc, fmtPrice } from '@/lib/emails/email-utils';
+import { probeSendLock, acquireSendLock } from '@/lib/emails/broadcast-guard';
 
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
@@ -734,6 +735,40 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Resend API key not configured' }, { status: 500 });
     }
 
+    // SELF-HEALING: the Monday 14:00 UTC cron silently did not fire on
+    // 2026-07-20 or 2026-07-27 — zero invocations in the logs, so the weekly
+    // channel to ~480 contacts was dead for three weeks with nothing anywhere
+    // to notice. A second, DAILY cron now also hits this route (vercel.json,
+    // 15:30 UTC), and this dedupe makes that safe: the first successful draft
+    // each ISO week takes a `newsletter-draft-<wk>` row in broadcast_sends,
+    // and every later invocation that week skips. If Monday's cron fires, the
+    // daily one is a no-op; if it doesn't, Monday 15:30 (or the next day)
+    // catches it. Probe-then-record rather than fail-closed lock-first: this
+    // path emails ONE person (the approver), so the worst failure is a
+    // duplicate draft to Hamza — while lock-first would burn the week's key on
+    // a draft that then failed to build, recreating the missed-week bug this
+    // exists to fix.
+    const draftWk = weekKey(new Date());
+    const draftKey = `newsletter-draft-${draftWk}`;
+    const probe = await probeSendLock(supabase, draftKey);
+    if (probe.alreadySent) {
+      return NextResponse.json({
+        success: true,
+        mode: 'draft-for-approval',
+        skipped: `Draft for ${draftWk} already sent — the retry cron found nothing to do.`,
+      });
+    }
+    if (!probe.guardReady && new Date().getUTCDay() !== 1) {
+      // Guard table unreachable AND it's not Monday: without dedupe the daily
+      // retry would draft every single day. Keep the retry silent off-Monday
+      // and let the legacy Monday behaviour stand alone.
+      console.error(`Newsletter: draft dedupe unavailable (${probe.detail || 'no detail'}) — daily retry skipped, Monday cron only.`);
+      return NextResponse.json({
+        success: false,
+        skipped: 'Draft dedupe guard unavailable — retry runs only on Mondays until broadcast_sends is reachable.',
+      });
+    }
+
     const data = await prepareSendData(request, supabase);
     const profiles = await getSubscriberProfiles(supabase);
     if (profiles.size === 0) {
@@ -758,6 +793,16 @@ export async function GET(request) {
       `[APPROVE] Mississauga Market Weekly — ${data.dateLabel} (${profiles.size} subscribers waiting)`,
       draftHtml
     );
+
+    // Record the week's draft ONLY after the email actually went out, so a
+    // failed draft leaves the key free for tomorrow's retry.
+    if (ok) {
+      console.log(`Newsletter: draft for ${draftWk} sent to ${APPROVER} (${profiles.size} subscribers waiting)`);
+      const lock = await acquireSendLock(supabase, draftKey, 'cron-draft');
+      if (lock.outcome !== 'acquired' && lock.outcome !== 'duplicate') {
+        console.error('Newsletter: could not record draft dedupe row:', lock.detail || lock.outcome);
+      }
+    }
 
     return NextResponse.json({
       success: ok,

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isValidPhone, isFakePhone, phoneDigits } from '@/lib/phone';
 
 const supabase =
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -42,27 +43,32 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
   }
 
-  // Phone is OPTIONAL on registration signups (it used to be mandatory, which
-  // hard-blocked the site's #1 conversion path — the homepage hero CTA lands
-  // on /signup — over the single most-abandoned field in any signup form).
-  // It is still validated WHENEVER it is supplied, so a typo'd or obviously
-  // fake number can never reach Hamza as a dead contact; it just no longer
-  // costs the entire lead. The client form asks for it prominently and the
-  // signup-gate's email-only fallback can now use the normal registration
-  // path instead of routing around this check.
-  if (source === 'registration' && phone) {
-    const digits = phone.replace(/\D/g, '');
-    // Must be 10 digits or 11 starting with 1 (Canadian format)
-    if (!(digits.length === 10 || (digits.length === 11 && digits.startsWith('1')))) {
-      return NextResponse.json({ error: 'Please enter a valid phone number' }, { status: 400 });
-    }
-    // Block obvious fakes: all same digit, sequential, 555 numbers
-    const area = digits.slice(digits.length - 10, digits.length - 7);
-    const allSame = /^(\d)\1{9}$/.test(digits.slice(-10));
-    const is555 = area === '555' || digits.slice(-7, -4) === '555';
-    if (allSame || is555) {
-      return NextResponse.json({ error: 'Please enter a real phone number' }, { status: 400 });
-    }
+  // Screen a supplied phone on EVERY source, and DROP a bad one rather than
+  // reject the lead.
+  //
+  // Two things were wrong here. The check was gated on
+  // `source === 'registration'`, which was defensible while a number was
+  // optional — someone volunteering one rarely invents it. It stopped being
+  // defensible when a phone became MANDATORY on the signup gate (source
+  // 'Sign Up' / 'View Limit') and after Google Sign-In ('google-signin'):
+  // forcing the field out of a reluctant visitor is exactly what produces
+  // 5555555555, so the two paths most likely to receive a fake number were the
+  // two nothing checked.
+  //
+  // And rejecting outright would have been the wrong cure. Three forms send an
+  // OPTIONAL phone (the quiz, the pre-construction VIP form, the sell
+  // valuation) — a 400 there would throw away a complete lead because a
+  // bonus field was fat-fingered. The email IS the lead; the phone is an
+  // extra. So a number that fails is dropped and the lead is stored without
+  // it, which satisfies both halves: Hamza never gets a number he cannot dial,
+  // and no lead is ever lost over one.
+  //
+  // The three mandatory surfaces reject fakes CLIENT-side before posting, so a
+  // visitor there is told to fix it rather than silently losing the field.
+  let cleanedPhone = phone || null;
+  if (cleanedPhone && (!isValidPhone(cleanedPhone) || isFakePhone(cleanedPhone))) {
+    console.warn('Lead phone rejected (storing lead without it):', source, JSON.stringify(cleanedPhone));
+    cleanedPhone = null;
   }
 
   // If Supabase is configured, check for duplicates and insert
@@ -85,7 +91,7 @@ export async function POST(request) {
       const fullName = name || [firstName, lastName].filter(Boolean).join(' ') || null;
       const patch = {};
       if (fullName && !existing.name) patch.name = fullName;
-      if (phone && !existing.phone) patch.phone = phone;
+      if (cleanedPhone && !existing.phone) patch.phone = cleanedPhone;
       if (Object.keys(patch).length) {
         const { error: updateError } = await supabase.from('leads').update(patch).eq('id', existing.id);
         if (updateError) console.error('Lead enrich error:', JSON.stringify(updateError));
@@ -101,7 +107,7 @@ export async function POST(request) {
 
       // But still send notification email so Hamza knows about the return visit
       if (process.env.RESEND_API_KEY) {
-        sendLeadNotification({ name, email, phone, source: source + ' (returning)', listingId, listingAddress, listingPrice, notes }).catch(() => {});
+        sendLeadNotification({ name, email, phone: cleanedPhone, source: source + ' (returning)', listingId, listingAddress, listingPrice, notes }).catch(() => {});
       }
       return NextResponse.json({ success: true, existing: true, enriched: Object.keys(patch) });
     }
@@ -109,7 +115,7 @@ export async function POST(request) {
     const { error: insertError } = await supabase.from('leads').insert({
       name: name || [firstName, lastName].filter(Boolean).join(' ') || null,
       email: email.toLowerCase().trim(),
-      phone: phone || null,
+      phone: cleanedPhone,
       listing_id: listingId || null,
       listing_address: listingAddress || null,
       listing_price: listingPrice || null,
@@ -120,7 +126,7 @@ export async function POST(request) {
 
     if (insertError) {
       console.error('Lead insert error:', JSON.stringify(insertError));
-      console.error('Lead insert data:', JSON.stringify({ name, email, phone, source }));
+      console.error('Lead insert data:', JSON.stringify({ name, email, phone: cleanedPhone, source }));
       // Still return success so the user can sign up
     } else {
       console.log('Lead saved:', email, source);
@@ -129,7 +135,7 @@ export async function POST(request) {
 
   // Send notification email to Hamza (non-blocking)
   if (process.env.RESEND_API_KEY) {
-    sendLeadNotification({ name, email, phone, source, listingId, listingAddress, listingPrice, notes }).catch((err) =>
+    sendLeadNotification({ name, email, phone: cleanedPhone, source, listingId, listingAddress, listingPrice, notes }).catch((err) =>
       console.error('Email notification failed:', err.message)
     );
   }
@@ -200,7 +206,7 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
           ${notes ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Notes</td><td style="padding:6px 0;font-size:14px;font-style:italic;">${notes}</td></tr>` : ''}
         </table>
         <div style="margin-top:16px;">
-          ${phone ? `<a href="https://wa.me/${phone.replace(/\\D/g, '')}?text=Hi%20${encodeURIComponent(name || '')}%2C%20thanks%20for%20reaching%20out%20on%20MississaugaInvestor.ca!" style="display:inline-block;background:#25D366;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;margin-right:8px;">WhatsApp</a>` : ''}
+          ${phone ? `<a href="https://wa.me/${phoneDigits(phone)}?text=Hi%20${encodeURIComponent(name || '')}%2C%20thanks%20for%20reaching%20out%20on%20MississaugaInvestor.ca!" style="display:inline-block;background:#25D366;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;margin-right:8px;">WhatsApp</a>` : ''}
           <a href="mailto:${email}?subject=Re:%20MississaugaInvestor.ca" style="display:inline-block;background:#1A73E8;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">Reply by Email</a>
         </div>
       </div>
