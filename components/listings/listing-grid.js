@@ -37,7 +37,20 @@ function SkeletonCard() {
   );
 }
 
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage, marketTotal = 0 }) {
+// analysisComplete / loadedCount: `isLoading` only covers the FIRST page — it
+// flips false as soon as SSR's 30 rows exist, while ~24 more pages are still
+// streaming in. A filter matching nothing in that partial pool used to render
+// the confident dead-end "No properties match your filters right now", which
+// is a claim about the whole market made from a fraction of it.
+//
+// This bit hard on multi-unit. The feed is ordered ModificationTimestamp desc
+// and every duplex/triplex/multiplex in Mississauga was last touched 12+ days
+// ago, so they load LAST — filtering to Duplex/Multi in the first seconds
+// reliably showed "no properties" while 11 of them genuinely existed, which is
+// exactly what made the multi-unit email read as a lie.
+//
+// Defaulted to `true` so any other caller keeps today's behaviour.
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage, marketTotal = 0, analysisComplete = true, loadedCount = 0 }) {
   const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [accessVerified, setAccessVerified] = useState(isRegistered);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -125,6 +138,25 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
             <button onClick={onRetry} className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-dark transition">Try Again</button>
             <a href="tel:+16476091289" className="text-sm font-semibold text-navy hover:text-accent no-underline">or call 647-609-1289</a>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Nothing matches YET, but the pool is still arriving — say so instead of
+  // declaring the market empty. Same honesty rule the Deal Screener already
+  // follows: no set-dependent claim until the set is settled.
+  if (listings.length === 0 && !analysisComplete) {
+    return (
+      <div className="flex min-h-[16rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8">
+        <div className="mx-auto max-w-sm text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <p className="mt-3 text-sm font-semibold text-navy">Still scanning the market…</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {loadedCount > 0 && marketTotal > 0
+              ? `${loadedCount.toLocaleString()} of ${marketTotal.toLocaleString()} properties analyzed so far. Matches for this filter may still be loading.`
+              : 'Matches for this filter may still be loading.'}
+          </p>
         </div>
       </div>
     );

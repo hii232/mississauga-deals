@@ -9,12 +9,27 @@ const PAGE_SIZE = 30;
 
 // All listings gated for non-registered users
 
-export function ListingTable({ listings, isRegistered, compareIds, onToggleCompare }) {
+// analysisComplete: see listing-grid.js — the pool streams in over ~24 pages
+// after `isLoading` has already gone false, so a 0-match filter must not claim
+// the market is empty until the set is settled.
+export function ListingTable({ listings, isRegistered, compareIds, onToggleCompare, analysisComplete = true }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [listings]);
+
+  if (listings.length === 0 && !analysisComplete) {
+    return (
+      <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+          <p className="mt-3 text-sm font-semibold text-navy">Still scanning the market…</p>
+          <p className="mt-1 text-xs text-slate-500">Matches for this filter may still be loading.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (listings.length === 0) {
     // Same high-intent lead moment as the grid view — offer a deal alert rather
