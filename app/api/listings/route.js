@@ -235,13 +235,26 @@ export async function GET(request) {
       },
       {
         headers: {
-          // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN
-          // for 24h, which had two nasty effects on a feed labelled "live":
-          // every deploy's data fix stayed INVISIBLE on re-crawls for up to a
-          // day (a re-audit kept reading pre-fix responses and reasonably
-          // concluded nothing was fixed), and each surface's cache aged
-          // differently so the same count read differently page to page.
-          'Cache-Control': 's-maxage=900, stale-while-revalidate=3600',
+          // Fresh ≤1h, but SERVED INSTANTLY for a day. The two numbers do
+          // different jobs and the history here is one of each:
+          //
+          // s-maxage (fresh window) stays SHORT. It was once 86400, which
+          // cached every page URL as-if-fresh for 24h on a feed labelled
+          // "live": deploy fixes stayed invisible on re-crawls for up to a
+          // day, and each surface's cache aged differently so the same count
+          // read differently page to page. 3600 keeps data ≤1h old under
+          // traffic — never re-raise this to a day.
+          //
+          // stale-while-revalidate is the LONG one, and it is what makes the
+          // site load fast. At ~69 pageviews/day the old 3600 window meant a
+          // cached answer was served only if someone else had hit the same
+          // URL within the last 75 minutes — almost never true — so nearly
+          // every visitor paid a live multi-second AMPRE query per page and
+          // the grid filled at crawl speed. 86400 serves the last-known body
+          // instantly to anyone arriving within a day while the CDN refreshes
+          // behind it: the visitor never waits, the refresh still happens,
+          // and a deploy still purges the CDN so fixes appear immediately.
+          'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
           'Access-Control-Allow-Origin': '*',
         },
       }

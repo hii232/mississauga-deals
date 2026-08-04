@@ -83,7 +83,9 @@ export async function GET(request) {
   return NextResponse.json({ photos }, {
     // Cached by the CDN because this is a GET: the first visitor pays the
     // upstream queries, everyone else on the same page slice reads the cache.
-    headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+    // Photos essentially never change while a listing is active, so fresh for
+    // a day and served instantly for a week — same reasoning as /api/photos.
+    headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800' },
   });
 }
 

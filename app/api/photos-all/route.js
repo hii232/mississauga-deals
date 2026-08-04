@@ -92,7 +92,9 @@ export async function GET(request) {
     const photos = dedup(urls);
 
     return NextResponse.json({ photos }, {
-      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+      // Fresh for a day, served instantly for a week — same reasoning as
+      // /api/photos: photos don't change while a listing is active.
+      headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800' },
     });
   } catch {
     return NextResponse.json({ photos: [] });

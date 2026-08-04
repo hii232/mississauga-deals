@@ -36,5 +36,96 @@ Disallow: /_next/
 Allow: /_next/static/
 Allow: /_next/image
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Crawlers that take and never give back.
+#
+# WHY (measured 2026-08-04): six hours of production logs showed 972 requests to
+# /listings/[id] — the top page route on the site by a wide margin, ~20x the
+# homepage. Every entry was a DIFFERENT listing id, spanning all TREB region
+# prefixes (W/C/E/N/S/X), in a steady ~162/hour walk. Nobody browses that way;
+# something is walking the sitemap end to end. The page itself is already as
+# cheap as it can be (ISR at 900s, one upstream call cached to match), so the
+# only lever left is who is allowed to walk it.
+#
+# EVERY GROUP BELOW IS A FULL DISALLOW, AND THAT IS THE ONLY REASON IT IS SAFE
+# TO NAME A BOT HERE. A crawler obeys only its most specific matching group, so
+# adding `User-agent: Googlebot` — even to grant it something — would silently
+# cancel the `*` rules above for the one bot that matters. That exact bug has
+# already been fixed on this file once; see the header comment. Never add a
+# named group for a crawler you want to keep.
+#
+# DELIBERATELY STILL ALLOWED, because they can send a real investor:
+#   Googlebot, Bingbot, Applebot (Siri/Spotlight), DuckDuckBot, Slurp — search.
+#   OAI-SearchBot, ChatGPT-User, PerplexityBot, Claude-User — AI *search*, which
+#     cites and links back. These are not the training crawlers of the same
+#     brands, which is why GPTBot and ClaudeBot appear below and these do not.
+#   Applebot is allowed while Applebot-Extended is blocked: the plain one feeds
+#     Siri and Spotlight, the -Extended suffix is Apple Intelligence training.
+#   Google-Extended is blocked and this costs nothing in Search — it gates
+#     Gemini training only. Indexing and AI Overviews both ride Googlebot.
+
+# SEO/backlink tools. They crawl hard, they send zero visitors, and their whole
+# product is reselling a profile of this site to other people.
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: rogerbot
+Disallow: /
+
+# AI training scrapers. No citation, no link, no referral — the listing data and
+# the analysis around it are the product here, so this is the one crawl class
+# with a clear cost and no upside.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
 Sitemap: https://www.mississaugainvestor.ca/sitemap.xml
 Sitemap: https://www.mississaugainvestor.ca/image-sitemap.xml

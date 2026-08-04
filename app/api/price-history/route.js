@@ -147,7 +147,7 @@ export async function GET(request) {
 
     return NextResponse.json(
       { history, appreciation, count: history.length },
-      { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } }
+      { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } }
     );
   } catch (err) {
     console.error('price-history error:', err);

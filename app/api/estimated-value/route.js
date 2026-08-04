@@ -120,7 +120,11 @@ export async function GET(request) {
         range: null,
         comps: [],
         message: 'Not enough comparable sales data',
-      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } });
+      // SHORT cache, unlike the success path below: this is the empty answer,
+      // and new sales close daily — a long window would freeze "not enough
+      // data" on the panel for a day after the data arrived. Same
+      // empty-heals-fast rule as /api/gta-screener's incomplete branch.
+      }, { headers: { 'Cache-Control': 's-maxage=900, stale-while-revalidate=3600' } });
     }
 
     // Score and weight each comp
@@ -216,7 +220,7 @@ export async function GET(request) {
         sqft: c.sqft,
       })),
     }, {
-      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' },
     });
   } catch (err) {
     console.error('estimated-value error:', err);

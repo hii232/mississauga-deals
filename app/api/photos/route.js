@@ -57,7 +57,13 @@ export async function GET(request) {
     }
 
     return NextResponse.json({ photos }, {
-      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+      // A listing's photos essentially never change while it's active, so this
+      // is the one place "fetch from MLS once a day" is exactly right: fresh
+      // for a day, and served instantly from the CDN for a week beyond that.
+      // Photos are the bulk of upstream media cost — the Media expand returns
+      // ~5 CDN size-variants per photo — and unlike the feeds there is no
+      // count or price here that staleness could misstate.
+      headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800' },
     });
   } catch {
     return NextResponse.json({ photos: [] });
