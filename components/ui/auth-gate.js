@@ -33,6 +33,17 @@ export function AuthGate({ children, isAuthenticated, title, valueLine, source, 
           onCaptured={onUnlock}
         />
       </div>
+      {/* VOW terms acceptance. This gate is what stands between an anonymous
+          visitor and sold/comparable-sale data, and TRREB's VOW rules require
+          a terms-of-use agreement — not just an email — before that data is
+          shown. The substance lives in /terms §5; this is the assent. */}
+      <p className="mt-2 text-[11px] leading-relaxed text-muted">
+        By unlocking you agree to the{' '}
+        <a href="/terms" className="underline hover:text-navy" target="_blank" rel="noopener">
+          Terms of Use
+        </a>
+        , including personal, non-commercial use of MLS&reg; data.
+      </p>
       <ProofRow className="mt-5 border-t border-slate-100 pt-4" />
     </div>
   );

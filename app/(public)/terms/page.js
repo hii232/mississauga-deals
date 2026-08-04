@@ -92,6 +92,22 @@ export default function TermsPage() {
             MLS&reg;, Multiple Listing Service&reg; and the associated logos are owned by CREA and identify the
             quality of services provided by real estate professionals who are members of CREA. Used under license.
           </p>
+          {/* VOW consumer terms. TRREB's Virtual Office Website rules require a
+              terms-of-use agreement with the consumer BEFORE sold/off-market
+              data is displayed to them — gating behind an email alone is not an
+              agreement. Every capture path that unlocks VOW data now links its
+              "by continuing you agree" line here, so this section is the
+              substance that acceptance refers to. */}
+          <p className="mt-3">
+            Certain data on this Website &mdash; including sold prices, price history and comparable-sale
+            records &mdash; is made available through a Virtual Office Website (&ldquo;VOW&rdquo;) feed and is
+            provided for your personal, non-commercial use only, solely to assist you in evaluating properties
+            for potential purchase, sale or lease. By registering for access you agree that you (a) have a
+            bona fide interest in the purchase, sale or lease of real estate, (b) will not copy, redistribute,
+            retransmit, scrape or make any commercial use of the data or any portion of it, and (c) acknowledge
+            that TRREB owns the data and asserts copyright in it. Access to this data may be suspended or
+            terminated if these terms are not respected.
+          </p>
         </section>
 
         <section>

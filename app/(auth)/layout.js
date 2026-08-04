@@ -47,9 +47,13 @@ export default async function AuthLayout({ children }) {
           <h2 className="font-heading text-3xl font-bold leading-tight">
             Invest in Mississauga with the numbers on your side.
           </h2>
+          {/* No subscriber-count claim here on purpose: "thousands of investors"
+              was an invented number (the same class as the fabricated "388"
+              killed on the hero), and advertising a count we can't source is
+              exactly what RECO's misleading-advertising rule prohibits. If a
+              count is ever wanted it must be read live from Supabase. */}
           <p className="mt-3 text-sm leading-relaxed text-white/75">
-            Join thousands of investors who screen deals with real cap rates, cash flow, and
-            comps — not guesswork.
+            Screen deals with real cap rates, cash flow, and comps — not guesswork.
           </p>
 
           <ul className="mt-8 space-y-3">
@@ -85,7 +89,17 @@ export default async function AuthLayout({ children }) {
 
       {/* Form panel */}
       <main className="flex min-h-screen items-center justify-center bg-cloud px-4 py-12">
-        <div className="w-full max-w-md">{children}</div>
+        <div className="w-full max-w-md">
+          {children}
+          {/* RECO registrant identification. The site footer doesn't render on
+              the (auth) layout, and on mobile the brand panel above is hidden
+              entirely — so without this line the signup and login pages carried
+              no registrant or brokerage name at all. Advertising must clearly
+              identify both; "Licensed by RECO" in a trust chip is not that. */}
+          <p className="mt-8 text-center text-xs text-muted">
+            Hamza Nouman, Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage
+          </p>
+        </div>
       </main>
     </div>
   );

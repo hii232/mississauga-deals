@@ -263,6 +263,17 @@ export default function SignupPage() {
         >
           {loading ? 'Creating account...' : 'Create Free Account'}
         </button>
+
+        {/* VOW terms assent — an account unlocks sold/comp data, and TRREB's
+            VOW rules require a terms-of-use agreement before it is shown.
+            Substance in /terms §5; same line as the unlock gates. */}
+        <p className="mt-3 text-center text-xs leading-relaxed text-muted">
+          By creating an account you agree to the{' '}
+          <Link href="/terms" className="underline hover:text-navy" target="_blank">
+            Terms of Use
+          </Link>
+          , including personal, non-commercial use of MLS&reg; data.
+        </p>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
