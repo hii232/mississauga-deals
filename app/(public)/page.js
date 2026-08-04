@@ -702,8 +702,12 @@ function CTASection() {
             Get free access to deal scores, cash flow analysis, and expert insights on every
             Mississauga investment property.
           </p>
+          {/* Inducement ads must carry their material conditions (RECO). This
+              line was the bare claim; the conditions below are the same ones
+              the full band on /book-call and /quiz already states. */}
           <p className="text-emerald-400 text-sm font-semibold mb-8">
-            Close with Hamza — First month&apos;s mortgage on us.
+            Close with Hamza — first month&apos;s mortgage on us, applied as a credit on
+            closing. All investment properties qualify.
           </p>
           <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
             <Link href="/signup" className="w-full rounded-lg bg-[#185FA5] px-10 py-4 text-lg font-bold text-white text-center hover:bg-[#154f8a] transition no-underline shadow-lg">

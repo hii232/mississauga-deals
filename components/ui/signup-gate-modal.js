@@ -274,6 +274,16 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
               <p className="mt-3 text-center text-[11px] text-slate-500">
                 Free forever. No credit card. No spam.
               </p>
+              {/* VOW terms assent — this capture unlocks sold/comp data, and
+                  TRREB's VOW rules require a terms-of-use agreement before
+                  that data is shown. Substance in /terms §5. */}
+              <p className="mt-1 text-center text-[11px] text-slate-500">
+                By continuing you agree to the{' '}
+                <a href="/terms" className="underline hover:text-slate-700" target="_blank" rel="noopener">
+                  Terms of Use
+                </a>
+                , including personal, non-commercial use of MLS&reg; data.
+              </p>
 
               {/* Social proof. This hardcoded "4,000+ Listings Scored", which
                   contradicted the site-wide PLATFORM_STATS figure ("1,800+") by
@@ -297,7 +307,15 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-white">Almost There!</h2>
-              <p className="mt-1 text-sm text-white/60">Complete your profile to get deal alerts & first month&apos;s mortgage on us</p>
+              {/* The old line — "complete your profile to get deal alerts &
+                  first month's mortgage on us" — read as if finishing the form
+                  earned the mortgage credit. The actual condition is closing a
+                  purchase with Hamza, and an inducement ad that hides its
+                  condition is misleading advertising (RECO). State it. */}
+              <p className="mt-1 text-sm text-white/60">
+                Complete your profile to get deal alerts &mdash; and when you close with Hamza,
+                your first month&apos;s mortgage is on us as a credit on closing.
+              </p>
             </div>
 
             <div className="px-8 py-6">
