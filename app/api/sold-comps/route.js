@@ -235,7 +235,7 @@ export async function GET(request) {
     if (debug) result.debug = debugInfo;
 
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' },
+      headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' },
     });
   } catch (err) {
     console.error('sold-comps error:', err);

@@ -84,7 +84,7 @@ export async function GET(request) {
         wholeUnitOnly: whole,
         source: 'lease_comps',
         label: `Based on ${count} ${whole ? 'whole-property ' : ''}leases ${fsa ? 'in this area' : 'across ' + city} in the last 12 months`,
-      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } });
+      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } });
     }
 
     // Try wider search (18 months, +/- 2 beds)
@@ -98,7 +98,7 @@ export async function GET(request) {
         wholeUnitOnly: whole,
         source: 'lease_comps_wide',
         label: `Based on ${count} ${whole ? 'whole-property ' : ''}leases in wider area (last 18 months)`,
-      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } });
+      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } });
     }
 
     // Try TIER 2: Active rental listings
@@ -111,7 +111,7 @@ export async function GET(request) {
         count: activeRentals.length,
         source: 'active_rentals',
         label: `Based on ${activeRentals.length} active rentals ${fsa ? 'in this area' : 'across ' + city} (asking prices, may vary)`,
-      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200' } });
+      }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } });
     }
 
     // No comps found — not cached; empty result could change as new leases close

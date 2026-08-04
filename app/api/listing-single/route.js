@@ -187,11 +187,14 @@ export async function GET(request) {
       { listing },
       {
         headers: {
-          // 15 minutes, matching the feeds. This sat at s-maxage=86400 — the
-          // SAME 24h-cache bug already killed on the feed routes but missed
-          // here, so every detail-page fix stayed invisible on re-visits for
-          // up to a day while the cards updated in 15 minutes.
-          'Cache-Control': 's-maxage=900, stale-while-revalidate=3600',
+          // Fresh ≤1h, served instantly for a day — matching the feeds; see
+          // the split explained in /api/listings. The FRESH window sat at
+          // 86400 once and that was a real bug (detail fixes invisible for a
+          // day while the cards updated in 15 minutes) — it stays ≤1h. The
+          // long stale-while-revalidate is the load-speed side: at this
+          // site's traffic a 3600 SWR window was cold for nearly every
+          // visitor, so each detail view paid a live AMPRE query.
+          'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
           'Access-Control-Allow-Origin': '*',
         },
       }

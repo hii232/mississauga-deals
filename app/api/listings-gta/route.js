@@ -286,13 +286,14 @@ export async function GET(request) {
       { listings, total, browsableTotal, fieldTier, supportedFields, firstSeenTracker, page, limit, pages: Math.ceil(total / limit), timestamp: new Date().toISOString() },
       {
         headers: {
-          // 15 minutes, not a day. s-maxage=86400 cached every page URL at the CDN
-          // for 24h, which had two nasty effects on a feed labelled "live":
-          // every deploy's data fix stayed INVISIBLE on re-crawls for up to a
-          // day (a re-audit kept reading pre-fix responses and reasonably
-          // concluded nothing was fixed), and each surface's cache aged
-          // differently so the same count read differently page to page.
-          'Cache-Control': 's-maxage=900, stale-while-revalidate=3600',
+          // Fresh ≤1h, served instantly for a day. Same split as /api/listings
+          // and for the same reasons — see the comment there. The short number
+          // (freshness) was once 86400 and that WAS a bug: day-stale counts on
+          // a feed labelled live. The long number (stale-while-revalidate) is
+          // what makes loads instant at this site's traffic level, and it
+          // matters MOST here: the GTA client walk fetches up to 100 pages per
+          // visit, and every one of them used to miss a cold CDN.
+          'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400',
           'Access-Control-Allow-Origin': '*',
         },
       }
