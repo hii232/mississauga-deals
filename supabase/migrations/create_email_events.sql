@@ -27,3 +27,7 @@ CREATE INDEX IF NOT EXISTS email_events_campaign_idx ON email_events (campaign);
 CREATE INDEX IF NOT EXISTS email_events_recipient_idx ON email_events (recipient);
 CREATE INDEX IF NOT EXISTS email_events_type_idx ON email_events (type);
 CREATE INDEX IF NOT EXISTS email_events_occurred_idx ON email_events (occurred_at DESC);
+
+-- RLS from day one - this table was born without it and got flagged by the
+-- Supabase security advisor (2026-08-04). No policies: service-role only.
+ALTER TABLE email_events ENABLE ROW LEVEL SECURITY;

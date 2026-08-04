@@ -9,3 +9,7 @@ CREATE TABLE IF NOT EXISTS broadcast_sends (
   approved_by TEXT,
   sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- RLS from day one - this table was born without it and got flagged by the
+-- Supabase security advisor (2026-08-04). No policies: service-role only.
+ALTER TABLE broadcast_sends ENABLE ROW LEVEL SECURITY;

@@ -25,9 +25,7 @@ ALTER TABLE leads ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'new';
 -- RLS policies
 ALTER TABLE lead_activities ENABLE ROW LEVEL SECURITY;
 
--- Service role can do everything
-CREATE POLICY "Service role full access on lead_activities"
-  ON lead_activities
-  FOR ALL
-  USING (true)
-  WITH CHECK (true);
+-- No policies on purpose: all app access uses the service role, which
+-- bypasses RLS. A true/true policy here (the old pattern) had no TO clause
+-- and granted the browser-shipped ANON key full access. See
+-- enable_rls_lockdown.sql.
