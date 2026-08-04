@@ -88,7 +88,7 @@ export async function POST(request) {
     return NextResponse.json({
       published: inserted || [],
       skipped,
-      note: 'Re-running is safe — existing slugs are skipped, never overwritten.',
+      note: 'Re-running is safe - existing slugs are skipped, never overwritten.',
     });
   } catch (err) {
     console.error('Blog seed error:', err);

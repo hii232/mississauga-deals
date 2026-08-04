@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAdmin } from './layout';
 
 function timeAgo(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (diff < 60) return 'just now';
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
   }, []);
 
   // "Are the daily alert emails actually going out?" had no answer inside the
-  // product — it needed the Vercel cron log or the Resend dashboard. Named so
+  // product - it needed the Vercel cron log or the Resend dashboard. Named so
   // the "Run send now" button below can re-fetch after triggering a send,
   // rather than making Hamza reload the page to see whether it worked.
   function loadEmailHealth() {
@@ -133,14 +133,14 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Stale market data — these numbers feed the site, the emails and the blog */}
+      {/* Stale market data - these numbers feed the site, the emails and the blog */}
       {marketFreshness && (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
           <p className="text-sm font-semibold text-amber-300">Need new market data</p>
           <p className="mt-1 text-sm text-amber-200/80">
             TRREB Market Watch figures are {marketFreshness.months} months behind
             {marketFreshness.month ? ` (currently ${marketFreshness.month})` : ''}. These numbers
-            feed the market pages, the weekly email and every blog post — send Claude the latest
+            feed the market pages, the weekly email and every blog post - send Claude the latest
             Market Watch PDF to refresh them.
           </p>
           <a
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Email delivery — the retention engine. Silent failure here is the
+      {/* Email delivery - the retention engine. Silent failure here is the
           worst kind: the site looks fine and nobody hears from us. */}
       <EmailHealthPanel health={emailHealth} adminKey={adminKey} onRefresh={loadEmailHealth} />
 
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
         <StatCard icon="🚨" label="Overdue" value={stats?.overdue || 0} color="red" />
       </div>
 
-      {/* Import subscribers — CSV upload into the leads database */}
+      {/* Import subscribers - CSV upload into the leads database */}
       <ImportSubscribers />
 
       {/* Guided setup for the analytics pipeline */}
@@ -175,7 +175,7 @@ export default function AdminDashboard() {
       {/* Campaign performance from Resend webhook events */}
       <EmailAnalytics />
 
-      {/* Broadcast campaigns — each emails Hamza a draft; nothing reaches the
+      {/* Broadcast campaigns - each emails Hamza a draft; nothing reaches the
           list until he clicks the approval button inside that draft. */}
       <div className="space-y-4">
         <BroadcastPanel
@@ -188,13 +188,13 @@ export default function AdminDashboard() {
           endpoint="/api/broadcast/offer-picks"
           icon="🏠"
           title="This Week's Picks"
-          blurb="Three real Mississauga listings where the seller has reason to negotiate, each with the price to open at and why. Check the three addresses in the draft before sending — your name is on the offer numbers"
+          blurb="Three real Mississauga listings where the seller has reason to negotiate, each with the price to open at and why. Check the three addresses in the draft before sending - your name is on the offer numbers"
         />
         <BroadcastPanel
           endpoint="/api/broadcast/multi-unit"
           icon="✉️"
           title="Multi-Unit Letter"
-          blurb="A plain typed letter — no design — about the handful of duplexes/triplexes on the market: live counts, the house-hack financing rules, and a reply CTA. No offer numbers by design (TRREB has no multi-unit benchmark)"
+          blurb="A plain typed letter - no design - about the handful of duplexes/triplexes on the market: live counts, the house-hack financing rules, and a reply CTA. No offer numbers by design (TRREB has no multi-unit benchmark)"
         />
       </div>
 
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                 <div key={lead.id} className="flex items-center justify-between px-5 py-3 hover:bg-white/[0.02] transition-colors">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-sm font-semibold text-white truncate">{lead.name || '—'}</p>
+                      <p className="text-sm font-semibold text-white truncate">{lead.name || '-'}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${sourceColor(lead.source)}`}>
                         {sourceLabel(lead.source)}
                       </span>
@@ -303,7 +303,7 @@ export default function AdminDashboard() {
 // Only exists because three of the four steps live in dashboards this app
 // can't reach. So it does what it CAN: live-checks each step's real status,
 // puts the SQL and the webhook URL one tap from the clipboard (this is used on
-// a phone), and fully automates the one step that has an API — flipping open +
+// a phone), and fully automates the one step that has an API - flipping open +
 // click tracking on the Resend domain.
 //
 // Hides itself once everything is green, so a finished setup doesn't sit at
@@ -331,7 +331,7 @@ function AnalyticsSetup() {
       setCopied(key);
       setTimeout(() => setCopied(null), 2000);
     } catch {
-      setMsg({ tone: 'error', text: 'Copy failed — select the text manually.' });
+      setMsg({ tone: 'error', text: 'Copy failed - select the text manually.' });
     }
   }
 
@@ -349,7 +349,7 @@ function AnalyticsSetup() {
       } else if (res.ok) {
         setMsg({ tone: 'error', text: `Resend accepted the change but reports opens=${String(d.openTracking)}, clicks=${String(d.clickTracking)}. Check the domain in Resend.` });
       } else {
-        setMsg({ tone: 'error', text: `${d.error || 'Failed'}${d.detail ? ` — ${d.detail}` : ''}` });
+        setMsg({ tone: 'error', text: `${d.error || 'Failed'}${d.detail ? ` - ${d.detail}` : ''}` });
       }
       load();
     } catch {
@@ -379,13 +379,13 @@ function AnalyticsSetup() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-white">
-            {defects.length > 0 ? '⚠️ Email setup — action needed' : '🔧 Finish email setup'}
+            {defects.length > 0 ? '⚠️ Email setup - action needed' : '🔧 Finish email setup'}
           </h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
             {data.steps.filter((s) => s.done).length} of {data.steps.length} done.
             {defects.length > 0
-              ? ' One of these is not a pending feature — it is affecting live emails right now.'
-              : ' Tracking isn\u2019t retroactive — finish before your next send or that campaign has no open data.'}
+              ? ' One of these is not a pending feature - it is affecting live emails right now.'
+              : ' Tracking isn\u2019t retroactive - finish before your next send or that campaign has no open data.'}
           </p>
         </div>
         {defects.length === 0 && (
@@ -459,7 +459,7 @@ function AnalyticsSetup() {
   );
 }
 
-// Campaign performance — delivered / opened / clicked / bounced from Resend
+// Campaign performance - delivered / opened / clicked / bounced from Resend
 // webhook events, plus the follow-up list of who actually engaged.
 //
 // Opens are shown but deliberately de-emphasised: Apple Mail Privacy
@@ -497,7 +497,7 @@ function EmailAnalytics() {
         <div className="min-w-0">
           <h2 className="text-sm font-bold text-white">📈 Campaign Performance</h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
-            Live from Resend delivery events — who received it, who opened, who clicked.
+            Live from Resend delivery events - who received it, who opened, who clicked.
           </p>
         </div>
         {data?.campaigns?.length > 1 && (
@@ -541,12 +541,12 @@ function EmailAnalytics() {
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 <Stat label="Delivered" value={data.delivered} sub={`of ${data.sent} sent`} />
                 <Stat label="Clicked" value={data.clickedUnique}
-                      sub={data.clickRate != null ? `${data.clickRate}% of delivered` : '—'}
+                      sub={data.clickRate != null ? `${data.clickRate}% of delivered` : '-'}
                       tone="text-green-400" />
                 <Stat label="Opened" value={data.openedUnique}
-                      sub={data.openRate != null ? `${data.openRate}% · inflated` : '—'} />
+                      sub={data.openRate != null ? `${data.openRate}% · inflated` : '-'} />
                 <Stat label="Bounced" value={data.bounced}
-                      sub={data.bounceRate != null ? `${data.bounceRate}%` : '—'}
+                      sub={data.bounceRate != null ? `${data.bounceRate}%` : '-'}
                       tone={data.bounced > 0 ? 'text-red-400' : undefined} />
                 <Stat label="Spam reports" value={data.complained}
                       tone={data.complained > 0 ? 'text-red-400' : undefined} />
@@ -555,7 +555,7 @@ function EmailAnalytics() {
 
               {data.bounceRate > 2 && (
                 <div className="mt-3 rounded-lg border border-red-500/25 bg-red-500/10 p-3 text-xs text-red-300">
-                  Bounce rate is {data.bounceRate}% — above 2% starts damaging sender reputation.
+                  Bounce rate is {data.bounceRate}% - above 2% starts damaging sender reputation.
                   Remove these addresses before the next send.
                 </div>
               )}
@@ -579,7 +579,7 @@ function EmailAnalytics() {
                   Follow up with these {data.engaged?.length || 0}
                 </div>
                 <p className="mt-1 text-[11px] text-white/35">
-                  Clickers first — they looked at a specific property.
+                  Clickers first - they looked at a specific property.
                 </p>
                 {data.engaged?.length ? (
                   <div className="mt-2 divide-y divide-white/[0.05] rounded-lg border border-white/[0.06]">
@@ -632,7 +632,7 @@ function EmailAnalytics() {
 
 // One-click DRAFT trigger for a broadcast campaign. Uses the admin key already
 // in context (same x-admin-key the rest of the dashboard uses), so there's no
-// URL/secret fiddling. Clicking only emails Hamza a DRAFT — the actual send to
+// URL/secret fiddling. Clicking only emails Hamza a DRAFT - the actual send to
 // contacts still requires the HMAC token button inside that draft, so this
 // button can never blast the list by itself. That two-step is the whole safety
 // model and it must survive any future edit here.
@@ -663,7 +663,7 @@ function BroadcastPanel({ endpoint, icon, title, blurb }) {
       if (res.ok && data.success) { setStatus('sent'); setResult(data); }
       else { setStatus('error'); setResult(data); }
     } catch {
-      setStatus('error'); setResult({ error: 'Network error — try again.' });
+      setStatus('error'); setResult({ error: 'Network error - try again.' });
     }
   }
 
@@ -677,8 +677,8 @@ function BroadcastPanel({ endpoint, icon, title, blurb }) {
           <h2 className="text-sm font-bold text-white">{icon} {title}</h2>
           <p className="mt-1 max-w-xl text-xs leading-relaxed text-white/50">
             {blurb}
-            {count != null ? ` — ${count.toLocaleString()} contact${count === 1 ? '' : 's'}` : ''}.
-            It emails <span className="text-white/80">you</span> a draft first — nothing reaches your
+            {count != null ? ` - ${count.toLocaleString()} contact${count === 1 ? '' : 's'}` : ''}.
+            It emails <span className="text-white/80">you</span> a draft first - nothing reaches your
             contacts until you open it and click <span className="text-white/80">&ldquo;Review &amp; Send&rdquo;</span>.
           </p>
         </div>
@@ -711,7 +711,7 @@ function BroadcastPanel({ endpoint, icon, title, blurb }) {
 // Upload a subscriber CSV export (MailerLite, Mailchimp, etc.) straight into the
 // leads database via /api/admin/newsletter-import, using the admin key already in
 // context. The endpoint validates emails, dedupes, and skips anyone already in
-// the database or unsubscribed — so re-uploading the same file is safe.
+// the database or unsubscribed - so re-uploading the same file is safe.
 function ImportSubscribers() {
   const { adminKey } = useAdmin();
   const [status, setStatus] = useState('idle'); // idle | uploading | done | error
@@ -736,7 +736,7 @@ function ImportSubscribers() {
       else { setStatus('error'); setResult(data); }
     } catch {
       setStatus('error');
-      setResult({ error: 'Upload failed — try again.' });
+      setResult({ error: 'Upload failed - try again.' });
     }
     e.target.value = ''; // let the same file be re-selected
   }
@@ -785,7 +785,7 @@ function ImportSubscribers() {
 }
 
 // Reads /api/admin/email-health. Every figure shown is evidence the app itself
-// wrote — alert_sent_listings rows are recorded only after Resend accepts —
+// wrote - alert_sent_listings rows are recorded only after Resend accepts -
 // so this is delivery history, not a guess about it.
 function EmailHealthPanel({ health, adminKey, onRefresh }) {
   const [running, setRunning] = useState(false);
@@ -802,17 +802,17 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
   }[health.status] || {};
 
   const a = health.alerts;
-  const fmt = (d) => (d ? new Date(d).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+  const fmt = (d) => (d ? new Date(d).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '-');
 
   // "Check the run output at /api/alerts/send" was an instruction to hit a
-  // URL that requires an auth header no browser address bar can attach —
+  // URL that requires an auth header no browser address bar can attach -
   // useless without a terminal. These run the SAME endpoint Vercel Cron calls
   // (cron-or-admin auth, so the already-signed-in admin session is a valid
   // credential) and show the real response, so "why is this red" gets
   // answered by a tap instead of by guessing.
   //
   // Two separate actions, not one, because the first version of this button
-  // called the live send unconditionally — which is exactly the button Hamza
+  // called the live send unconditionally - which is exactly the button Hamza
   // was right to be wary of tapping: with a real saved search on the account,
   // "just testing it" could have emailed a real subscriber. Preview runs the
   // identical matching logic and touches nothing; only the second, explicitly
@@ -836,14 +836,14 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
 
   async function sendForReal() {
     const n = result?.data?.wouldSend;
-    // NOT result.data.recipients — that now counts every subscriber the dry
+    // NOT result.data.recipients - that now counts every subscriber the dry
     // run evaluated, including ones with nothing to send. An inbox count has
     // to be people who'd actually receive something, or "1 subscriber, 0
     // would send" would confirm-dialog as "emailing 1 real subscriber."
     const who = Array.isArray(result?.data?.preview)
       ? result.data.preview.filter((p) => p.wouldSend > 0).length
       : result?.data?.recipients;
-    // Force a preview first — sending blind, with no idea how many real
+    // Force a preview first - sending blind, with no idea how many real
     // inboxes are about to receive mail, is the exact mistake this button
     // exists to prevent.
     if (result?.data?.dryRun !== true) {
@@ -865,7 +865,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
         headers: { 'x-admin-key': adminKey },
       });
       const data = await res.json().catch(() => ({}));
-      // HTTP 200 covers "sent fine" AND "ran, but Resend rejected every send" —
+      // HTTP 200 covers "sent fine" AND "ran, but Resend rejected every send" -
       // the route reports rejections in the BODY, not the status, so severity
       // has to come from the counts, not res.ok alone. Without this a fully
       // rejected run (the exact failure mode this button exists to catch)
@@ -900,7 +900,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
             type="button"
             onClick={sendForReal}
             disabled={!!running || !adminKey}
-            title="Sends real email to real subscribers — run Preview first"
+            title="Sends real email to real subscribers - run Preview first"
             className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:opacity-50"
           >
             {running === 'send' ? 'Sending…' : 'Send for real'}
@@ -912,9 +912,9 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
       {a && (
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
-            ['Delivered (24h)', a.deliveriesLast24h ?? '—'],
-            ['Delivered (7d)', a.deliveriesLast7d ?? '—'],
-            ['Alert subscribers', a.subscribers ?? '—'],
+            ['Delivered (24h)', a.deliveriesLast24h ?? '-'],
+            ['Delivered (7d)', a.deliveriesLast7d ?? '-'],
+            ['Alert subscribers', a.subscribers ?? '-'],
             ['Last delivery', fmt(a.lastSentAt)],
           ].map(([label, value]) => (
             <div key={label}>
@@ -929,12 +929,12 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
         Sender: {health.config.fromAddress || 'default'}
         {health.config.resendConfigured ? '' : ' · RESEND_API_KEY missing'}
         {/* CRON_SECRET is the single most common reason this stays red: without
-            it Vercel Cron's request is refused (fail-closed, on purpose — an
+            it Vercel Cron's request is refused (fail-closed, on purpose - an
             unauthenticated mass-send is worse than a missed day) and the daily
             job never runs at all. Manual runs via "Run send now" work either
             way, since the admin key authenticates them, but the schedule
             won't fire unnoticed until this is set. */}
-        {health.config.cronSecretSet ? '' : ' · CRON_SECRET not set — the daily schedule cannot run; set it in Vercel → Settings → Environment Variables'}
+        {health.config.cronSecretSet ? '' : ' · CRON_SECRET not set - the daily schedule cannot run; set it in Vercel → Settings → Environment Variables'}
         {health.newsletter?.lastSentAt ? ` · Last weekly newsletter ${fmt(health.newsletter.lastSentAt)}` : ''}
         {' · '}Counts are individual listings delivered, recorded only once Resend accepts the send.
       </p>
@@ -947,7 +947,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
           : 'border-red-500/20 bg-red-500/10 text-red-200'
         }`}>
           <p className="font-semibold">
-            {result.severity === 'preview' ? 'Preview only — no email was sent'
+            {result.severity === 'preview' ? 'Preview only - no email was sent'
               : result.severity === 'ok' ? 'Sent for real'
               : result.severity === 'partial' ? 'Ran, but Resend rejected sends'
               : `Failed (HTTP ${result.status})`}
@@ -962,7 +962,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
               ))}
             </ul>
           )}
-          {/* Per-recipient breakdown of exactly what a real send would contain —
+          {/* Per-recipient breakdown of exactly what a real send would contain -
               proves the matching pipeline works without anything going out. */}
           {typeof result.data.feedListingCount === 'number' && (
             <p className="mt-2 text-blue-300/70">Feed: {result.data.feedListingCount} active listing{result.data.feedListingCount === 1 ? '' : 's'} fetched this run.</p>
@@ -972,7 +972,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
               {result.data.preview.map((p, i) => (
                 <li key={i} className="border-t border-blue-400/15 pt-2 first:border-t-0 first:pt-0">
                   <p className="font-medium text-blue-100">
-                    {p.email} — {p.wouldSend > 0 ? `${p.wouldSend} listing${p.wouldSend === 1 ? '' : 's'}` : 'nothing new'}
+                    {p.email} - {p.wouldSend > 0 ? `${p.wouldSend} listing${p.wouldSend === 1 ? '' : 's'}` : 'nothing new'}
                     {/* matched (before the "is it new" rule) vs wouldSend (after) tells apart
                         "quiet day, all caught up" from "this search's filters match nothing" */}
                     <span className="font-normal text-blue-300/60"> · {p.matched} listing{p.matched === 1 ? '' : 's'} match{p.matched === 1 ? 'es' : ''} the saved filters</span>
@@ -980,7 +980,7 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
                   {p.subject && <p className="text-blue-300/70">&ldquo;{p.subject}&rdquo;</p>}
                   {p.listings?.map((l) => (
                     <p key={l.id} className="text-blue-300/60">
-                      {l.address} — ${Number(l.price).toLocaleString()} · score {l.score?.toFixed?.(1) ?? l.score}
+                      {l.address} - ${Number(l.price).toLocaleString()} · score {l.score?.toFixed?.(1) ?? l.score}
                     </p>
                   ))}
                 </li>

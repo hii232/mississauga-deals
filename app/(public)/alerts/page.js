@@ -6,10 +6,10 @@ import { HOOD_DATA } from '@/lib/constants';
 import { PageHero } from '@/components/layout/page-hero';
 
 // ─────────────────────────────────────────────
-//   SAMPLE ALERT PREVIEW — shown in the right
+//   SAMPLE ALERT PREVIEW - shown in the right
 //   column before a visitor creates their first
 //   alert. Shows the product before asking for
-//   the email — a proven conversion pattern.
+//   the email - a proven conversion pattern.
 //   Clearly labelled "Example"; numbers are
 //   illustrative and not market-current.
 // ─────────────────────────────────────────────
@@ -21,9 +21,9 @@ function SampleAlertPreview() {
         What arrives in your inbox
       </p>
 
-      {/* Sample deal card — dashed border signals "preview / not yet real" */}
+      {/* Sample deal card - dashed border signals "preview / not yet real" */}
       <div className="relative rounded-xl border border-dashed border-slate-300 bg-white p-5 shadow-sm">
-        {/* "Example" badge — top-right, always visible */}
+        {/* "Example" badge - top-right, always visible */}
         <span className="absolute right-3 top-3 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted">
           Example
         </span>
@@ -44,7 +44,7 @@ function SampleAlertPreview() {
         </p>
         <p className="mt-0.5 text-xs text-muted">3-bed · 2-bath · Detached · $879,000</p>
 
-        {/* Key metrics — 3 tiles in a row */}
+        {/* Key metrics - 3 tiles in a row */}
         <div className="mt-4 grid grid-cols-3 gap-2">
           {[
             { label: 'Cap Rate',   value: '4.8%',      cls: 'text-success' },
@@ -58,7 +58,7 @@ function SampleAlertPreview() {
           ))}
         </div>
 
-        {/* Rent assumption — mirrors the real alert email's disclosure line */}
+        {/* Rent assumption - mirrors the real alert email's disclosure line */}
         <p className="mt-3 text-[11px] leading-relaxed text-muted">
           Assumes $3,100/mo rent · 20% down · 5.4% rate
         </p>
@@ -67,9 +67,9 @@ function SampleAlertPreview() {
       {/* Three-bullet value proposition */}
       <ul className="space-y-2.5">
         {[
-          'Matched to your criteria — not every new listing',
+          'Matched to your criteria - not every new listing',
           'Full cap rate, cash flow and deal score included',
-          'Only sent when a real match exists — no daily noise',
+          'Only sent when a real match exists - no daily noise',
         ].map((item) => (
           <li key={item} className="flex items-start gap-2.5 text-sm leading-snug text-slate-600">
             <svg
@@ -141,7 +141,7 @@ export default function AlertsPage() {
 
     setLoading(true);
     try {
-      // Create the actual saved search — this is what the daily alert cron
+      // Create the actual saved search - this is what the daily alert cron
       // matches against. (Previously the form only logged a lead + wrote to
       // localStorage, so the promised alerts could never fire.) Filters go in
       // the canonical client format the cron's applyFilters consumes;
@@ -168,7 +168,7 @@ export default function AlertsPage() {
         throw new Error(data?.error || 'Failed to submit');
       }
 
-      // Lead capture with the human-readable criteria — fire-and-forget (the
+      // Lead capture with the human-readable criteria - fire-and-forget (the
       // subscribe route also captures a lead; /api/lead dedupes by email).
       fetch('/api/lead', {
         method: 'POST',
@@ -213,7 +213,7 @@ export default function AlertsPage() {
       <PageHero
         eyebrow="Never miss a deal"
         title="Free Mississauga Deal Alerts"
-        subtitle="Get notified the moment a property matching your criteria hits the market — scored and analyzed, straight to your inbox."
+        subtitle="Get notified the moment a property matching your criteria hits the market - scored and analyzed, straight to your inbox."
         align="center"
         compact
       />
@@ -242,7 +242,7 @@ export default function AlertsPage() {
               Everything else was already optional (name, and four selects that
               default to "Any"), but presenting six fields to someone who just
               tapped "Get Free Deal Alerts" reads as work. The rest sit one tap
-              away in a native <details> — no step-2 state machine, so the form
+              away in a native <details> - no step-2 state machine, so the form
               still submits in a single POST and a lead can never be stranded
               half-way through. Open it and nothing is lost; ignore it and the
               alert is created for all deals. */}
@@ -376,20 +376,20 @@ export default function AlertsPage() {
               {loading ? 'Creating Alert...' : 'Create Deal Alert'}
             </button>
 
-            {/* Trust signals — expectation-setting next to the capture button */}
+            {/* Trust signals - expectation-setting next to the capture button */}
             <div className="flex items-start gap-2 pt-1">
               <svg className="w-4 h-4 text-success mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
               <p className="text-xs text-muted leading-relaxed">
-                You'll get an email only when a listing matches your criteria — scored and analyzed, no spam.
+                You'll get an email only when a listing matches your criteria - scored and analyzed, no spam.
                 Free forever, unsubscribe in one click, and your email is never shared.
               </p>
             </div>
           </form>
         </div>
 
-        {/* Right column — sample preview before first alert is saved;
+        {/* Right column - sample preview before first alert is saved;
             real alert list once one exists. */}
         <div>
           <h2 className="font-heading font-semibold text-lg text-navy mb-4">

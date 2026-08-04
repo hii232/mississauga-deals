@@ -3,7 +3,7 @@ import { MarketPulseClient } from './market-pulse-client';
 // /market-pulse was 100% client-rendered: every figure on it (avg DOM,
 // sale-to-list, months of inventory, the price-by-type chart, the motivated
 // seller radar, mortgage rates) arrived only after a browser fetch of
-// /api/market-stats, and until that resolved the page held a skeleton — with
+// /api/market-stats, and until that resolved the page held a skeleton - with
 // no inline capture and no sticky CTA on it either. So a crawler saw an h1 and
 // a grey box on the site's main market-data page, and a real visitor on a slow
 // connection saw the same thing for up to ten seconds before any conversion

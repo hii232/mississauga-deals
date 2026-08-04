@@ -23,7 +23,7 @@ export function MarketPulseClient({ initialStats = null }) {
 
   // The server component now fetches /api/market-stats and hands the payload in
   // as initialStats, so first paint already carries every number (and every CTA
-  // and capture form — the loading gate below used to hide ALL of them). This
+  // and capture form - the loading gate below used to hide ALL of them). This
   // client fetch is the fallback for the one case that remains: the server
   // fetch failed or timed out and initialStats came through null.
   useEffect(() => {
@@ -31,7 +31,7 @@ export function MarketPulseClient({ initialStats = null }) {
     async function load() {
       try {
         // Hard 10s budget. A cold /api/market-stats recompute can take 60-90s
-        // when the feed upstream is slow — and this page's loading gate held
+        // when the feed upstream is slow - and this page's loading gate held
         // the ENTIRE page (metrics, CTAs, capture forms) on a skeleton until
         // the fetch resolved, which reads as "the website isn't loading"
         // (reported live by Hamza, 2026-07-27). Every stat below has a
@@ -50,7 +50,7 @@ export function MarketPulseClient({ initialStats = null }) {
     load();
   }, [initialStats]);
 
-  // Individual sold prices + addresses are VOW-restricted TRREB data — skip
+  // Individual sold prices + addresses are VOW-restricted TRREB data - skip
   // the fetch entirely while gated (matches /recent-sales and listing-detail).
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -80,7 +80,7 @@ export function MarketPulseClient({ initialStats = null }) {
   };
 
   // Fallbacks (used only if /api/market-stats is unreachable) mirror TRREB June
-  // 2026 (MW2606) — keep in sync with app/api/market-stats/route.js when a new
+  // 2026 (MW2606) - keep in sync with app/api/market-stats/route.js when a new
   // Market Watch lands, or these go quietly stale the way the Feb ones did.
   const marketMetrics = {
     avgDOM: stats?.mississaugaAvgLDOM || stats?.avgDOM || Math.round(hoodEntries.reduce((s, [, d]) => s + d.avgDOM, 0) / hoodEntries.length),
@@ -101,7 +101,7 @@ export function MarketPulseClient({ initialStats = null }) {
 
   const maxPrice = Math.max(...priceTypes.map((p) => p.value));
 
-  // Mortgage rates — live from the API; fallbacks mirror TRREB June 2026 (MW2606).
+  // Mortgage rates - live from the API; fallbacks mirror TRREB June 2026 (MW2606).
   // The fixed rates are Bank of Canada POSTED rates, which run well above the
   // discounted rate a borrower is actually quoted. They were previously listed
   // bare next to a variable contract rate, which read as though a 5-year fixed
@@ -116,7 +116,7 @@ export function MarketPulseClient({ initialStats = null }) {
   ];
 
   // Data provenance: the sale-to-list, inventory, sales-volume and YoY figures come
-  // from TRREB's MONTHLY Market Watch snapshot — not a live feed. Show an honest
+  // from TRREB's MONTHLY Market Watch snapshot - not a live feed. Show an honest
   // "as of {month}" so a monthly report is never mistaken for today's number.
   const trrebMonth = stats?.tRREBMonth || null;
   let monthsStale = null;
@@ -132,14 +132,14 @@ export function MarketPulseClient({ initialStats = null }) {
 
   if (loading) {
     // Render the hero (and its h1) in the loading state too, so the h1 is in
-    // the server HTML crawlers see — not only after the client fetch resolves.
+    // the server HTML crawlers see - not only after the client fetch resolves.
     return (
       <>
         <PageHero
           compact
           eyebrow="Live market data"
-          title="Mississauga Housing Market — Prices & Trends"
-          subtitle="Mississauga market snapshot — live MLS data blended with TRREB Market Watch"
+          title="Mississauga Housing Market - Prices & Trends"
+          subtitle="Mississauga market snapshot - live MLS data blended with TRREB Market Watch"
         />
         <div className="max-w-7xl mx-auto px-4 py-16">
           <div className="animate-pulse space-y-6">
@@ -161,12 +161,12 @@ export function MarketPulseClient({ initialStats = null }) {
     <PageHero
       compact
       eyebrow="Live market data"
-      title="Mississauga Housing Market — Prices & Trends"
-      subtitle={`Mississauga market snapshot — live MLS data blended with TRREB Market Watch${stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}`}
+      title="Mississauga Housing Market - Prices & Trends"
+      subtitle={`Mississauga market snapshot - live MLS data blended with TRREB Market Watch${stats?.tRREBMonth ? ` (${stats.tRREBMonth})` : ''}`}
     />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-      {/* Key Metrics — active-listings tile hidden when the API has no real
+      {/* Key Metrics - active-listings tile hidden when the API has no real
           count: showing "0 on market" reads as broken data */}
       <div className={`grid grid-cols-2 ${marketMetrics.activeCount > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-10`}>
         <div className="card p-5 text-center">
@@ -193,7 +193,7 @@ export function MarketPulseClient({ initialStats = null }) {
         )}
       </div>
 
-      {/* Data provenance — investors trust numbers only when they know the source
+      {/* Data provenance - investors trust numbers only when they know the source
           and vintage. Live active-market stats update continuously; sold prices,
           sales volume, inventory and YoY are TRREB's monthly snapshot (as-of month
           shown so a monthly report is never read as today's figure). */}
@@ -206,7 +206,7 @@ export function MarketPulseClient({ initialStats = null }) {
           <p className="text-xs text-muted leading-relaxed">
             Days-on-market and active listings update continuously from MLS. Sale-to-list ratio,
             months of inventory, sold prices, sales volume and year-over-year changes are from
-            TRREB Market Watch — <span className="font-semibold text-navy">as of {trrebMonth}</span>
+            TRREB Market Watch - <span className="font-semibold text-navy">as of {trrebMonth}</span>
             {monthsStale != null && monthsStale >= 2 && (
               <span> (latest published report; TRREB releases city figures monthly)</span>
             )}.
@@ -214,10 +214,10 @@ export function MarketPulseClient({ initialStats = null }) {
         </div>
       )}
 
-      {/* Motivated Seller Radar — the stale-inventory numbers the API already
+      {/* Motivated Seller Radar - the stale-inventory numbers the API already
           computes (dom >= 60, whole feed) finally get a surface. This is the
           page's most actionable insight for a buyer: where sellers have been
-          waiting longest and have already cut. Display-only — every figure
+          waiting longest and have already cut. Display-only - every figure
           comes from /api/market-stats verbatim, and the section hides itself
           entirely when the radar fields are absent or zero (older cached API
           responses, feed outage) rather than inventing a number. */}
@@ -228,7 +228,7 @@ export function MarketPulseClient({ initialStats = null }) {
               <span className="h-2 w-2 rounded-full bg-gold shrink-0" aria-hidden="true" />
               Motivated Seller Radar
             </h2>
-            <span className="text-[11px] text-slate-500">Live MLS — updates daily</span>
+            <span className="text-[11px] text-slate-500">Live MLS - updates daily</span>
           </div>
           <p className="text-xs text-muted mb-5 leading-relaxed">
             A seller two months in who has already moved on price is far more likely to move
@@ -312,12 +312,12 @@ export function MarketPulseClient({ initialStats = null }) {
         </div>
       </div>
 
-      {/* Inline lead capture — market-pulse is a high-intent research page but
+      {/* Inline lead capture - market-pulse is a high-intent research page but
           only offered a link CTA at the very bottom; give engaged readers a
           one-tap way to convert mid-scroll without leaving the page. */}
       <InlineCTA variant="newsletter" className="mb-10" />
 
-      {/* Recent Sales Activity — individual sold prices/addresses are
+      {/* Recent Sales Activity - individual sold prices/addresses are
           VOW-restricted TRREB data, gated the same real way as /recent-sales
           and the listing-detail Sold Comps tab. Shown to a not-yet-registered
           visitor as a capture prompt instead of vanishing; once genuinely
@@ -342,9 +342,9 @@ export function MarketPulseClient({ initialStats = null }) {
           <AuthGate
             isAuthenticated={isAuthenticated}
             onUnlock={() => setIsAuthenticated(true)}
-            source="Market Pulse — Recent Sales"
+            source="Market Pulse - Recent Sales"
             title="See exactly what nearby homes sold for"
-            valueLine="Real sold prices, addresses and dates across Mississauga — free, no credit card."
+            valueLine="Real sold prices, addresses and dates across Mississauga - free, no credit card."
           >
             {/* Mini stats row */}
             {salesStats && (
@@ -392,7 +392,7 @@ export function MarketPulseClient({ initialStats = null }) {
                       </td>
                       <td className="py-2.5 text-center text-muted hidden sm:table-cell">{comp.dom}d</td>
                       <td className="py-2.5 text-right text-xs text-muted hidden sm:table-cell">
-                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '-'}
                       </td>
                     </tr>
                   ))}
@@ -464,7 +464,7 @@ export function MarketPulseClient({ initialStats = null }) {
             Current Mortgage Rates
           </h2>
           <p className="text-xs text-muted mb-4">
-            Bank of Canada benchmark rates, published monthly via TRREB. Rates change frequently — verify with your mortgage broker.
+            Bank of Canada benchmark rates, published monthly via TRREB. Rates change frequently - verify with your mortgage broker.
           </p>
           <div className="space-y-0">
             {rates.map((r, i) => (
@@ -490,7 +490,7 @@ export function MarketPulseClient({ initialStats = null }) {
               They&apos;re the Bank of Canada benchmark; discounted rates from a broker are typically
               well below them, which is why our cash-flow numbers assume roughly{' '}
               {ratesData?.contractRateAssumption ? `${ratesData.contractRateAssumption}%` : '4.9%'}{' '}
-              on a 5-year fixed. Your actual rate depends on credit, down payment, property type and lender —
+              on a 5-year fixed. Your actual rate depends on credit, down payment, property type and lender -
               always get a quote from a licensed mortgage broker.
             </p>
           </div>
@@ -510,7 +510,7 @@ export function MarketPulseClient({ initialStats = null }) {
         </Link>
       </div>
     </div>
-    {/* Persistent mobile action — long data page; scrollers may never reach the
+    {/* Persistent mobile action - long data page; scrollers may never reach the
         end CTA. Low-friction email capture complements the /quiz strategy CTA. */}
     <StickyMobileCTA href="/alerts" label="Get Free Deal Alerts" />
     </>

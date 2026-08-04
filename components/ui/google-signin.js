@@ -14,14 +14,14 @@ import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
  * PHONE COLLECTION (`collectPhone`)
  * ---------------------------------
  * Google returns name + email and never a phone number, so this was the one
- * registration path that yielded nothing callable — and the easiest button on
+ * registration path that yielded nothing callable - and the easiest button on
  * the page to press. With `collectPhone`, a prompt appears after Google
  * returns and before access is granted.
  *
  * The lead is POSTed BEFORE the prompt is shown, so the name and email are
  * already banked; declining the number costs the number and nothing else.
  * That ordering is what makes it safe to ask here at all, and it is why the
- * prompt has a visible skip rather than trapping the visitor — see the same
+ * prompt has a visible skip rather than trapping the visitor - see the same
  * reasoning in signup-gate-modal.js.
  *
  * OFF by default, and deliberately left off on /login: a returning user
@@ -78,7 +78,7 @@ export function GoogleSignIn({
         return;
       }
 
-      // Capture the lead — carry the listing the visitor was viewing (if any)
+      // Capture the lead - carry the listing the visitor was viewing (if any)
       // so Hamza's notification shows the property, not just a bare sign-in.
       // Fire-and-forget by design: a network hiccup here must not cost the
       // visitor their sign-in, and the phone prompt below enriches this same
@@ -120,7 +120,7 @@ export function GoogleSignIn({
     }
     setPhoneError('');
     setSaving(true);
-    // Enriches the row the sign-in just created — /api/lead matches on email
+    // Enriches the row the sign-in just created - /api/lead matches on email
     // and fills blanks without overwriting anything already stored.
     try {
       await fetch('/api/lead', {
@@ -204,7 +204,7 @@ export function GoogleSignIn({
       <div ref={btnRef} className="w-full" />
 
       {/* Rendered through a portal: mounted inside a card with its own stacking
-          context, a plain z-index would paint this under the sticky header —
+          context, a plain z-index would paint this under the sticky header -
           the same trap signup-gate-modal.js documents. */}
       {pending && mounted && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">

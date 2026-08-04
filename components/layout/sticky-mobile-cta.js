@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { relForInternalHref } from '@/lib/seo/internal-link';
 
-// Sticky mobile-only primary CTA bar — the pattern proven on listing detail and
+// Sticky mobile-only primary CTA bar - the pattern proven on listing detail and
 // the neighbourhood guides. Long content pages (search visitors may never reach
 // the mid-page CTA) keep ONE clear action reachable while scrolling.
 //
@@ -9,7 +9,7 @@ import { relForInternalHref } from '@/lib/seo/internal-link';
 //   never covers a capture surface.
 // - Safe-area padded for phones with home indicators.
 // - Includes its own in-flow spacer (mobile-only) so page content never hides
-//   behind the fixed bar — drop it in before the closing tag, no wrapper edits.
+//   behind the fixed bar - drop it in before the closing tag, no wrapper edits.
 // - lg:hidden: desktop keeps the page's in-flow CTAs.
 export function StickyMobileCTA({ href, label }) {
   return (

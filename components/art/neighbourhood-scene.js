@@ -37,7 +37,7 @@ function hashName(name) {
   return Math.abs(h);
 }
 
-// Sky/light palettes — each area's card picks one by name hash, so cards vary.
+// Sky/light palettes - each area's card picks one by name hash, so cards vary.
 const SKIES = [
   { from: '#243A61', to: '#5A6E8C', sun: '#FCD34D' }, // dusk blue
   { from: '#3A3560', to: '#8A6C86', sun: '#FBBF24' }, // twilight violet

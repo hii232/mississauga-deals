@@ -23,7 +23,7 @@ export async function POST(request) {
       return NextResponse.json({ ok: true });
     }
 
-    // Clean referrer — strip own domain
+    // Clean referrer - strip own domain
     let cleanReferrer = referrer || null;
     if (cleanReferrer) {
       try {
@@ -59,7 +59,7 @@ export async function POST(request) {
       await supabase.from('page_views').insert(row);
     }
   } catch {
-    // Silently fail — tracking should never break the site
+    // Silently fail - tracking should never break the site
   }
 
   return NextResponse.json({ ok: true });

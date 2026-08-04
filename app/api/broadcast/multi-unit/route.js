@@ -17,7 +17,7 @@ export const maxDuration = 300;
 const SEND_BUDGET_MS = 240000;
 export const dynamic = 'force-dynamic';
 
-// Dated campaign id — powers the approval token AND the fail-closed
+// Dated campaign id - powers the approval token AND the fail-closed
 // broadcast_sends lock, so this send can happen at most once. A future
 // edition mints a NEW key. Deliberately NOT on a cron.
 const CAMPAIGN = 'multi-unit-2026-08';
@@ -41,7 +41,7 @@ function approvalToken() {
 }
 
 // ── The letter's facts, fetched live at compose time ─────────────────────────
-// One feed call with multiUnit=1 (server-side subtype filter) and nomedia=1 —
+// One feed call with multiUnit=1 (server-side subtype filter) and nomedia=1 -
 // the letter has no images, so paying for the Media expand would be waste.
 // Selection re-verifies types, aggregation computes every figure the letter
 // states, and validateMultiUnit refuses the send on anything implausible
@@ -69,7 +69,7 @@ async function fetchSnapshot(origin) {
   }
 
   // Fallback: if the eq-list found almost nothing, don't conclude scarcity
-  // from an unverified subtype spelling — walk the whole city feed (nomedia,
+  // from an unverified subtype spelling - walk the whole city feed (nomedia,
   // same pattern the homepage uses) and trust the mapped `type` instead.
   // Only after the walk is a low count a real market fact.
   if (rows.length < 2) {
@@ -91,7 +91,7 @@ async function fetchSnapshot(origin) {
   return validateMultiUnit(aggregateMultiUnit(rows), totalActive);
 }
 
-// Dev-only layout fixture for ?preview=1&sample=1 — aggregate counts only, no
+// Dev-only layout fixture for ?preview=1&sample=1 - aggregate counts only, no
 // invented addresses, and never reachable in production.
 const SAMPLE_DATA = {
   count: 7,
@@ -121,7 +121,7 @@ async function sendEmail(to, subject, html, text) {
       html,
       ...(text ? { text } : {}),
       reply_to: REPLY_TO,
-      // Attribution tag for the analytics webhook — the subject changes with
+      // Attribution tag for the analytics webhook - the subject changes with
       // live data, the tag doesn't.
       tags: [{ name: 'campaign', value: CAMPAIGN }],
       headers: {
@@ -150,9 +150,9 @@ function approvalBanner(count, data, origin, guardReady) {
   const url = `${origin}/api/broadcast/multi-unit?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
-    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
+    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT - waiting for your approval</div>
     <div style="font-family:system-ui,sans-serif;font-size:12px;color:#92400E;margin-bottom:8px;">This is exactly what your <strong>${count}</strong> contact${count === 1 ? '' : 's'} will receive. Nothing sends until you click below.</div>
-    ${guardReady ? '' : `<div style="font-family:system-ui,sans-serif;font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin:0 0 8px;text-align:left;">&#9888; Duplicate-send protection is NOT active &mdash; the broadcast_sends table is missing in Supabase, and the send will REFUSE until it exists. Fix first: Supabase &rarr; SQL Editor &rarr; paste &amp; run:<pre style="background:#0F172A;color:#E2E8F0;padding:10px;border-radius:6px;font-size:11px;line-height:1.5;overflow:auto;margin:8px 0 0;">${BROADCAST_SENDS_SQL}</pre></div>`}
+    ${guardReady ? '' : `<div style="font-family:system-ui,sans-serif;font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin:0 0 8px;text-align:left;">&#9888; Duplicate-send protection is NOT active - the broadcast_sends table is missing in Supabase, and the send will REFUSE until it exists. Fix first: Supabase &rarr; SQL Editor &rarr; paste &amp; run:<pre style="background:#0F172A;color:#E2E8F0;padding:10px;border-radius:6px;font-size:11px;line-height:1.5;overflow:auto;margin:8px 0 0;">${BROADCAST_SENDS_SQL}</pre></div>`}
     <div style="font-family:system-ui,sans-serif;font-size:11px;color:#92400E;margin-bottom:14px;">Live snapshot: ${data.count} multi-unit listings (${data.breakdown}) &middot; ${data.cutCount} with cuts &middot; median ${data.medianDOM || '?'} days. The send re-fetches and re-validates fresh.</div>
     <a href="${url}" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:12px 26px;border-radius:8px;text-decoration:none;">Review &amp; Send to ${count} &#8594;</a>
   </td></tr></table>
@@ -199,7 +199,7 @@ export async function GET(request) {
       const { data, reason } = await fetchSnapshot(selfOrigin(request)).catch((e) => ({ data: null, reason: String(e) }));
       if (!data) {
         return NextResponse.json(
-          { error: 'Cannot preview — live snapshot unavailable or failed validation', detail: reason },
+          { error: 'Cannot preview - live snapshot unavailable or failed validation', detail: reason },
           { status: 503 }
         );
       }
@@ -234,7 +234,7 @@ export async function GET(request) {
           `<h1>Send the multi-unit letter?</h1>
            <p>It will go to <strong>${recipients.length} contact${recipients.length === 1 ? '' : 's'}</strong>, with the market snapshot re-fetched and re-validated live at send time. This can't be undone.</p>
            <form method="POST" action="/api/broadcast/multi-unit?approve=1&t=${approvalToken()}">
-             <button type="submit">Yes — Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
+             <button type="submit">Yes - Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
            </form>`
         ),
         { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
@@ -255,14 +255,14 @@ export async function GET(request) {
       return NextResponse.json({
         alreadySent: true,
         campaign: CAMPAIGN,
-        note: 'Campaign already sent — no draft emailed.',
+        note: 'Campaign already sent - no draft emailed.',
       });
     }
     const { data, reason } = await fetchSnapshot(selfOrigin(request));
     if (!data) {
       console.warn('Multi-unit draft refused:', reason);
       return NextResponse.json(
-        { error: 'Snapshot unavailable or failed validation — not drafting', detail: reason },
+        { error: 'Snapshot unavailable or failed validation - not drafting', detail: reason },
         { status: 500 }
       );
     }
@@ -271,7 +271,7 @@ export async function GET(request) {
     const draftHtml = approvalBanner(recipients.length, data, selfOrigin(request), probe.guardReady) + html;
     const ok = await sendEmail(
       APPROVER,
-      `[APPROVE] Multi-unit letter — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
+      `[APPROVE] Multi-unit letter - send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
       draftHtml,
       buildMultiUnitText({ email: APPROVER, name: 'Hamza', data })
     );
@@ -294,7 +294,7 @@ export async function GET(request) {
   }
 }
 
-// ── POST ?approve=1&t=... — the approved send ────────────────────────────────
+// ── POST ?approve=1&t=... - the approved send ────────────────────────────────
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -310,18 +310,18 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email infrastructure not configured' }, { status: 500 });
     }
 
-    // Re-fetch and re-validate NOW — counts change daily, and the guard burns
+    // Re-fetch and re-validate NOW - counts change daily, and the guard burns
     // this campaign's one shot the moment the lock row is written.
     const { data, reason } = await fetchSnapshot(selfOrigin(request));
     if (!data) {
       console.warn('Multi-unit send refused:', reason);
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked — snapshot failed validation</h1><p>${reason || 'The live feed did not return a plausible multi-unit snapshot.'} Nothing was sent.</p>`),
+        htmlPage('Not sent', `<h1>Send blocked - snapshot failed validation</h1><p>${reason || 'The live feed did not return a plausible multi-unit snapshot.'} Nothing was sent.</p>`),
         { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
 
-    // FAIL-CLOSED idempotency — the mass-send happens ONLY if the lock row was
+    // FAIL-CLOSED idempotency - the mass-send happens ONLY if the lock row was
     // actually written. See lib/emails/broadcast-guard.js.
     const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
     if (lock.outcome === 'duplicate') {
@@ -332,7 +332,7 @@ export async function POST(request) {
     }
     if (lock.outcome !== 'acquired') {
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+        htmlPage('Not sent', `<h1>Send blocked - duplicate protection unavailable</h1>
          <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
          <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
          <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
@@ -354,7 +354,7 @@ export async function POST(request) {
         'Sent',
         `<h1>&#127881; Sent to ${bulk.sent} contact${bulk.sent === 1 ? '' : 's'}</h1>
          <p>${bulk.failed || bulk.remaining.length
-            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted &mdash; the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
+            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted - the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
             : 'Every email went out successfully.'}</p>
          <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
       ),

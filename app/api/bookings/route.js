@@ -34,7 +34,7 @@ function getETDate() {
 }
 
 /**
- * GET — Return booked slots for a given date
+ * GET - Return booked slots for a given date
  * ?date=2026-04-15
  */
 export async function GET(request) {
@@ -65,7 +65,7 @@ export async function GET(request) {
 }
 
 /**
- * POST — Create a booking
+ * POST - Create a booking
  */
 export async function POST(request) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -104,7 +104,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Cannot book in the past' }, { status: 400 });
   }
 
-  // No database: a booking is the hottest lead on the site — never drop it
+  // No database: a booking is the hottest lead on the site - never drop it
   // silently. Fall back to the email notification alone (no conflict check
   // possible); fail only when there is no capture channel at all.
   if (!supabase) {
@@ -151,7 +151,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
   }
 
-  // Also save as a lead — a property-specific booking is a viewing request, so
+  // Also save as a lead - a property-specific booking is a viewing request, so
   // tag the source and keep the listing so it shows up in the leads dashboard.
   await supabase.from('leads').insert({
     name: name.trim(),
@@ -189,13 +189,13 @@ function formatTime(t) {
 }
 
 async function sendBookingNotification({ name: rawName, email: rawEmail, phone: rawPhone, date, time, notes: rawNotes, listingId, listingAddress: rawAddr, listingPrice }) {
-  // User-supplied fields are interpolated into email HTML — escape them
+  // User-supplied fields are interpolated into email HTML - escape them
   const name = escapeHtml(rawName);
   const email = escapeHtml(rawEmail);
   const phone = rawPhone ? escapeHtml(rawPhone) : rawPhone;
   const notes = rawNotes ? escapeHtml(rawNotes) : rawNotes;
   const listingAddress = rawAddr ? escapeHtml(rawAddr) : rawAddr;
-  const priceLabel = listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : '';
+  const priceLabel = listingPrice ? ` - $${Number(listingPrice).toLocaleString()}` : '';
   const listingUrl = listingId ? `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(listingId)}` : '';
   const displayTime = formatTime(time);
   const displayDate = new Date(date + 'T12:00:00').toLocaleDateString('en-CA', {
@@ -243,8 +243,8 @@ async function sendBookingNotification({ name: rawName, email: rawEmail, phone: 
       from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
       to: process.env.LEAD_NOTIFICATION_EMAIL || 'hamza@nouman.ca',
       subject: listingAddress
-        ? `🏠 Viewing Request: ${rawName} wants to see ${rawAddr} — ${displayDate} at ${displayTime} ET`
-        : `📅 New Booking: ${name} — ${displayDate} at ${displayTime} ET`,
+        ? `🏠 Viewing Request: ${rawName} wants to see ${rawAddr} - ${displayDate} at ${displayTime} ET`
+        : `📅 New Booking: ${name} - ${displayDate} at ${displayTime} ET`,
       html,
     }),
   });

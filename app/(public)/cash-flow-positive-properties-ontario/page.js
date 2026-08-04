@@ -34,18 +34,18 @@ export const metadata = {
 };
 
 // Honest content: cash-flow-positive single units are genuinely hard at current
-// rates in the GTA — we say so, and route to the live, scored listings + the
+// rates in the GTA - we say so, and route to the live, scored listings + the
 // audited calculator for real numbers rather than promising a fixed return.
 const CF_FAQ = [
   {
     question: `Can you still find cash flow positive properties in Ontario in ${YEAR}?`,
     answer:
-      'Yes, but they are the exception, not the rule. At today\'s mortgage rates a standard single-unit purchase in the GTA usually carries slightly negative each month once you count mortgage, property tax, insurance, maintenance, and (for condos) the condo fee. The deals that clear a positive number almost always have an extra income source or a cost advantage — a legal or potential basement suite, a multi-unit property, a below-asking purchase price, or a larger down payment. Our listings are scored for exactly this, so you can filter straight to the ones that pencil out.',
+      'Yes, but they are the exception, not the rule. At today\'s mortgage rates a standard single-unit purchase in the GTA usually carries slightly negative each month once you count mortgage, property tax, insurance, maintenance, and (for condos) the condo fee. The deals that clear a positive number almost always have an extra income source or a cost advantage - a legal or potential basement suite, a multi-unit property, a below-asking purchase price, or a larger down payment. Our listings are scored for exactly this, so you can filter straight to the ones that pencil out.',
   },
   {
     question: 'What actually makes a rental property cash flow positive?',
     answer:
-      'Cash flow is simply the rent minus every cost of holding the property — mortgage principal and interest, property tax, insurance, maintenance, vacancy, and condo fees where they apply. A property is cash-flow positive when the rent clears all of that with money left over. The levers that get you there are more income (a second suite or extra units), lower financing cost (a bigger down payment or a better rate), lower fees (freehold over a high-fee condo), or a lower purchase price relative to rent.',
+      'Cash flow is simply the rent minus every cost of holding the property - mortgage principal and interest, property tax, insurance, maintenance, vacancy, and condo fees where they apply. A property is cash-flow positive when the rent clears all of that with money left over. The levers that get you there are more income (a second suite or extra units), lower financing cost (a bigger down payment or a better rate), lower fees (freehold over a high-fee condo), or a lower purchase price relative to rent.',
   },
   {
     question: 'Do I need a basement suite to cash flow in the GTA?',
@@ -56,14 +56,14 @@ const CF_FAQ = [
   {
     question: 'How do you calculate whether a listing is cash flow positive?',
     answer:
-      'Each listing is scored using estimated market rent minus a full expense stack: the mortgage on the shown price, property tax, insurance, a maintenance reserve, vacancy, and the actual condo fee when there is one. That is the same math the mortgage calculator uses, so the number on the card matches what you would model yourself. It is an estimate — confirm rent and costs for the specific property — but it is a consistent, honest basis for comparison.',
+      'Each listing is scored using estimated market rent minus a full expense stack: the mortgage on the shown price, property tax, insurance, a maintenance reserve, vacancy, and the actual condo fee when there is one. That is the same math the mortgage calculator uses, so the number on the card matches what you would model yourself. It is an estimate - confirm rent and costs for the specific property - but it is a consistent, honest basis for comparison.',
   },
 ];
 
 const LEVERS = [
   {
     title: 'A second suite',
-    body: 'A legal (or potential) basement suite adds a second rent against the same mortgage — the most common path from slightly negative to positive in Mississauga.',
+    body: 'A legal (or potential) basement suite adds a second rent against the same mortgage - the most common path from slightly negative to positive in Mississauga.',
     link: { href: '/legal-second-unit-mississauga', label: 'Legal second unit guide →' },
   },
   {
@@ -76,7 +76,7 @@ const LEVERS = [
   },
   {
     title: 'Buying below market',
-    body: 'A below-asking or motivated-seller purchase lowers the mortgage against the same rent — negotiation is a real cash-flow lever, not just a price win.',
+    body: 'A below-asking or motivated-seller purchase lowers the mortgage against the same rent - negotiation is a real cash-flow lever, not just a price win.',
   },
 ];
 
@@ -95,7 +95,7 @@ export default function CashFlowPositivePage() {
         compact
         eyebrow={`Ontario · Mississauga & the GTA · ${YEAR}`}
         title="Cash Flow Positive Properties in Ontario"
-        subtitle="At today's rates, a property that clears positive cash flow is the exception — here's what it takes, and how to filter straight to the Mississauga listings that actually pencil out."
+        subtitle="At today's rates, a property that clears positive cash flow is the exception - here's what it takes, and how to filter straight to the Mississauga listings that actually pencil out."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -103,8 +103,8 @@ export default function CashFlowPositivePage() {
         <div className="rounded-2xl border border-slate-200 bg-cloud p-6 mb-10">
           <h2 className="font-heading font-bold text-lg text-navy mb-2">The short answer</h2>
           <p className="text-sm text-slate-700 leading-relaxed">
-            <strong>Cash flow positive</strong> means the rent covers every cost of holding the property — mortgage,
-            property tax, insurance, maintenance, vacancy, and condo fees — with money left over. In the GTA at
+            <strong>Cash flow positive</strong> means the rent covers every cost of holding the property - mortgage,
+            property tax, insurance, maintenance, vacancy, and condo fees - with money left over. In the GTA at
             today&apos;s rates, a standard single-unit purchase usually runs slightly negative, so the properties that
             clear positive almost always have <strong>a second suite, multiple units, a below-asking price, or a larger
             down payment</strong>. Every listing here is scored on that exact math, so you can filter straight to the
@@ -158,7 +158,7 @@ export default function CashFlowPositivePage() {
         <div className="rounded-2xl bg-navy p-8 text-center">
           <h2 className="font-heading font-bold text-xl text-white mb-2">Filter to the deals that actually cash flow</h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
-            Browse Mississauga listings already scored for cash flow — or model a specific property, suite income and
+            Browse Mississauga listings already scored for cash flow - or model a specific property, suite income and
             down payment in the free calculator.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

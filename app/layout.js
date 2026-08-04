@@ -22,7 +22,7 @@ const dmSans = DM_Sans({
 
 export const metadata = {
   title: {
-    default: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals',
+    default: 'MississaugaInvestor.ca - Mississauga Real Estate Investment Deals',
     template: '%s | MississaugaInvestor.ca',
   },
   description:
@@ -57,7 +57,7 @@ export const metadata = {
     locale: 'en_CA',
     url: 'https://www.mississaugainvestor.ca',
     siteName: 'MississaugaInvestor.ca',
-    title: 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals',
+    title: 'MississaugaInvestor.ca - Mississauga Real Estate Investment Deals',
     description:
       'Find the best real estate investment deals in Mississauga. Cash flow analysis, cap rates, and expert insights.',
     images: [
@@ -71,9 +71,9 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MississaugaInvestor.ca — Mississauga Investment Deals',
+    title: 'MississaugaInvestor.ca - Mississauga Investment Deals',
     description: 'Cash flow analysis, cap rates, and deal scores for Mississauga properties.',
-    // Next.js does not copy OG images to Twitter — set explicitly so links
+    // Next.js does not copy OG images to Twitter - set explicitly so links
     // shared to X and other platforms render the branded card image
     images: ['/opengraph-image'],
   },
@@ -93,11 +93,11 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <meta name="theme-color" content="#0F2A4A" />
-        {/* Open the connection to the MLS photo CDN early — these are the LCP
+        {/* Open the connection to the MLS photo CDN early - these are the LCP
             images on listings, listing detail, and the homepage deal cards. */}
         <link rel="preconnect" href="https://trreb-image.ampre.ca" />
         <link rel="dns-prefetch" href="https://trreb-image.ampre.ca" />
-        {/* Analytics hosts — resolve DNS early without blocking render */}
+        {/* Analytics hosts - resolve DNS early without blocking render */}
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} strategy="afterInteractive" />

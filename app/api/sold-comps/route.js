@@ -62,11 +62,11 @@ export async function GET(request) {
       if (type) {
         const typeLower = type.toLowerCase();
         const typeMap = {
-          // Was PropertyType eq 'Residential'/'Residential Freehold' — that field is
+          // Was PropertyType eq 'Residential'/'Residential Freehold' - that field is
           // a broad TRREB category shared by semi-detached, townhouse, duplex,
           // triplex and multiplex too (same defect just fixed in
-          // /api/estimated-value), so a "Detached" query — including the public
-          // /recent-sales type filter, not just the gated listing-detail comps —
+          // /api/estimated-value), so a "Detached" query - including the public
+          // /recent-sales type filter, not just the gated listing-detail comps -
           // pulled in cheaper non-detached sold prices as "similar" comps,
           // skewing Avg Sold Price, Avg Negotiation and the buyer-leverage signal
           // for the site's most common property type. PropertySubType is the
@@ -227,7 +227,7 @@ export async function GET(request) {
         : 0,
       count: soldWithPrice.length,
       total,
-      // null = broad fallback with no recency guarantee — UI must say so
+      // null = broad fallback with no recency guarantee - UI must say so
       windowDays: usedFilter === 'broad_closed' ? null : WINDOW_DAYS,
     };
 

@@ -14,7 +14,7 @@ import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { slimForSSR } from '@/lib/listings/fetch-feed';
 
-// Same generous budget as the parent GTA hub page — single-city fetches are
+// Same generous budget as the parent GTA hub page - single-city fetches are
 // faster than the whole-GTA query, but a generous limit seeds the cache.
 export const maxDuration = 60;
 
@@ -35,7 +35,7 @@ export function generateStaticParams() {
 export const dynamicParams = false;
 
 // ISR for the baked listings. Without this the 28 city pages were generated
-// exactly once at build time — and because fetchGtaListings' old headers()
+// exactly once at build time - and because fetchGtaListings' old headers()
 // call threw during prerender (swallowed by its catch), what got baked was an
 // EMPTY listings array, permanently: no revalidate meant the empty shells
 // never healed. 300s matches the feed fetch's own cache window.
@@ -72,7 +72,7 @@ export default async function GtaCityPage({ params }) {
 
   const copy = CITY_COPY[city];
   const slug = params.city;
-  // In PARALLEL — the summary read must not lengthen an ISR regeneration that
+  // In PARALLEL - the summary read must not lengthen an ISR regeneration that
   // already struggles to land its feed fetch inside the budget.
   //
   // `summary` is this CITY's whole-market Deal Screener aggregate, sliced out
@@ -119,20 +119,20 @@ export default async function GtaCityPage({ params }) {
               Browse all GTA deals
             </a>
           </div>
-          {/* Region switcher — lets visitor jump to Mississauga, all GTA, or a
+          {/* Region switcher - lets visitor jump to Mississauga, all GTA, or a
               different city without going back to the hub. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <RegionSwitcher current={city} />
             <span className="text-xs text-slate-500">
-              Switch area — Mississauga, all GTA, or any city.
+              Switch area - Mississauga, all GTA, or any city.
             </span>
           </div>
           {/* CAP-vs-cash-flow clarifier (matches /listings and /gta hub). */}
           <p className="mt-3 text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
-            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage - so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
-          {/* Internal links to investor guides — passes link equity from city
+          {/* Internal links to investor guides - passes link equity from city
               pages and gives search visitors a useful next step. */}
           <p className="mt-2 text-sm text-slate-500">
             <span className="text-slate-500">Investor guides:</span>{' '}

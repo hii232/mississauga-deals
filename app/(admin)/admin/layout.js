@@ -111,7 +111,7 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  // Authenticated — show admin shell
+  // Authenticated - show admin shell
   return (
     <AdminContext.Provider value={{ adminKey }}>
       <div className="min-h-screen bg-[#0B1120] flex">

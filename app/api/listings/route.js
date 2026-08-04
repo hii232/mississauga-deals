@@ -15,7 +15,7 @@ const CITIES = [
   'Erin Mills', 'Churchill Meadows', 'Cooksville', 'Hurontario', 'Meadowvale', 'Malton',
 ];
 
-// mapType now lives in lib/property-types.js — one rule, imported here.
+// mapType now lives in lib/property-types.js - one rule, imported here.
 
 function estimateRent(price, beds, city, type) {
   // Conservative 2026 GTA rental rates
@@ -54,7 +54,7 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     // Page size is capped at 100, and the cap is load-bearing: AMPRE accepts
     // the Media $expand at $top=100 (measured: 99/99 rows return photos,
-    // fieldTier fees+media) but REJECTS it at $top=200 (~36k media rows — the
+    // fieldTier fees+media) but REJECTS it at $top=200 (~36k media rows - the
     // CDN stores ~5 size-variants per photo), which sent every standard page
     // request through 3 failed upstream calls before settling on a tier with
     // photos:[] on every row. Callers all iterate via the API's own `pages`
@@ -67,10 +67,10 @@ export async function GET(request) {
     filters.push("PropertyType ne 'Business'");
     filters.push("PropertyType ne 'No Building'");
 
-    // multiUnit=1 — only income properties (duplex/triplex/fourplex/multiplex).
+    // multiUnit=1 - only income properties (duplex/triplex/fourplex/multiplex).
     // A hardcoded eq-list, deliberately: no caller input reaches the OData
     // string, so there is nothing to escape. Callers must still re-check the
-    // mapped `type` on the rows they get back — if TREB's subtype spelling
+    // mapped `type` on the rows they get back - if TREB's subtype spelling
     // ever drifts, this filter returns 0 rows and consumers are built to
     // refuse on 0 rather than mislabel.
     if (searchParams.get('multiUnit') === '1') {
@@ -82,7 +82,7 @@ export async function GET(request) {
     if (searchParams.get('city')) {
       // Escaped, not raw: the whole filter is one concatenated string, so a
       // quote in ?city= closed this literal and let the caller append their own
-      // OData — replacing StandardStatus eq 'Active', the $300k floor and the
+      // OData - replacing StandardStatus eq 'Active', the $300k floor and the
       // commercial exclusions above with anything the VOW token can read.
       filters.push("City eq '" + odataStr(searchParams.get('city')) + "'");
     } else {
@@ -93,11 +93,11 @@ export async function GET(request) {
     const tail = '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    // nomedia=1 — for callers that AGGREGATE this feed rather than paint it.
+    // nomedia=1 - for callers that AGGREGATE this feed rather than paint it.
     // The homepage walks all ~25 pages to rank its top 4 deals and count the
     // cash-flow-positive listings, then fetches photos for just those 4 by id
     // (HomeDealCards reads only that photoMap, never row.photos). Every media
-    // row in the other ~2,500 listings is paid for and thrown away — and the
+    // row in the other ~2,500 listings is paid for and thrown away - and the
     // Media $expand is the dominant cost of a feed request, ~5 CDN
     // size-variants per photo. Same switch /api/listings-gta already exposes.
     // Defaults to media ON, so nothing changes for any existing caller.
@@ -125,7 +125,7 @@ export async function GET(request) {
       return true;
     });
     // `total` is AMPRE's @odata.count, taken BEFORE the exclusion filter above
-    // — so it counts commercial/lease rows this site never shows. That is the
+    // - so it counts commercial/lease rows this site never shows. That is the
     // gap that had the homepage hero claiming ~2,600 while the stats bar (which
     // counts real rows) said 2,547: two honest-looking numbers for the same
     // thing, on the same page. `excludedRate` lets a caller scale the raw count
@@ -144,7 +144,7 @@ export async function GET(request) {
         : 0;
       const rem = l.PublicRemarks || '';
 
-      // See lib/listings/market-timing.js — ModificationTimestamp is the sync
+      // See lib/listings/market-timing.js - ModificationTimestamp is the sync
       // stamp and must never stand in for days-on-market. 0 = unknown.
       const dom = computeDaysOnMarket(l);
       const daysSinceUpdate = computeDaysSinceUpdate(l);
@@ -162,7 +162,7 @@ export async function GET(request) {
       return {
         id: l.ListingKey,
         // ListingId is VOW-suppressed (null) on active listings, but ListingKey
-        // IS the MLS number ('W13607630') — a null mlsId on every record just
+        // IS the MLS number ('W13607630') - a null mlsId on every record just
         // looks broken to anyone reading the API.
         mlsId: l.ListingId || l.ListingKey,
         price,
@@ -170,7 +170,7 @@ export async function GET(request) {
         city,
         // CityRegion is the COMMUNITY (Cooksville, Malton, Port Credit…). This
         // was hardcoded to `city`, so every Mississauga listing reported its
-        // neighbourhood as "Mississauga" — defeating neighbourhood filtering,
+        // neighbourhood as "Mississauga" - defeating neighbourhood filtering,
         // the 24 guide pages, and the per-neighbourhood rent table (every
         // listing silently fell back to the city-level default rent). Falls
         // back to city when the feed omits it, i.e. exactly today's behaviour.
@@ -193,7 +193,7 @@ export async function GET(request) {
         lng: l.Longitude,
         // LivingArea/BuildingAreaTotal are unsupported by this feed (see
         // ampre-fields.js), which is why $/sqft has been blank site-wide.
-        // LivingAreaRange is TREB's banded range string ("700-799") — a
+        // LivingAreaRange is TREB's banded range string ("700-799") - a
         // different field, parsed to its midpoint. Approximate by nature.
         sqft: l.LivingArea || l.BuildingAreaTotal || parseLivingAreaRange(l.LivingAreaRange),
         sqftApproximate: !l.LivingArea && !l.BuildingAreaTotal && !!l.LivingAreaRange,
@@ -218,12 +218,12 @@ export async function GET(request) {
       {
         listings,
         total,
-        // The count of rows this site will actually show — use THIS for any
+        // The count of rows this site will actually show - use THIS for any
         // "N active listings" claim. See the excludedRate note above.
         browsableTotal,
         // Which $select tier the feed accepted. Surfaced so a field regression
         // is diagnosable from production in one request instead of guessing
-        // from symptoms like sqft:0 — that is precisely how the silent
+        // from symptoms like sqft:0 - that is precisely how the silent
         // fall-through to the minimal tier went unnoticed.
         fieldTier,
         supportedFields,
@@ -243,12 +243,12 @@ export async function GET(request) {
           // "live": deploy fixes stayed invisible on re-crawls for up to a
           // day, and each surface's cache aged differently so the same count
           // read differently page to page. 3600 keeps data ≤1h old under
-          // traffic — never re-raise this to a day.
+          // traffic - never re-raise this to a day.
           //
           // stale-while-revalidate is the LONG one, and it is what makes the
           // site load fast. At ~69 pageviews/day the old 3600 window meant a
           // cached answer was served only if someone else had hit the same
-          // URL within the last 75 minutes — almost never true — so nearly
+          // URL within the last 75 minutes - almost never true - so nearly
           // every visitor paid a live multi-second AMPRE query per page and
           // the grid filled at crawl speed. 86400 serves the last-known body
           // instantly to anyone arriving within a day while the CDN refreshes

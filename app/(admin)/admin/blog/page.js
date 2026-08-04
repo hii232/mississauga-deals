@@ -246,7 +246,7 @@ export default function AdminBlogPage() {
             />
           </div>
 
-          {/* Content — Write/Preview tabs */}
+          {/* Content - Write/Preview tabs */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-medium text-white/40">Content (Markdown)</label>

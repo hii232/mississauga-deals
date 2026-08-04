@@ -3,7 +3,7 @@ export const metadata = {
   description: 'Privacy policy for MississaugaInvestor.ca. Learn how we collect, use, and protect your personal information.',
   alternates: { canonical: '/privacy' },
   // Own openGraph block. Without one this page inherited the ROOT's,
-  // whose url is the homepage — so every share of this URL showed
+  // whose url is the homepage - so every share of this URL showed
   // homepage branding and pointed crawlers at '/'. Next REPLACES the
   // openGraph object rather than merging it, so the image has to be
   // restated here or the card ships without one.
@@ -15,7 +15,7 @@ export const metadata = {
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Privacy Policy | MississaugaInvestor.ca' }],
   },
   // Next.js REPLACES (not merges) the root layout twitter object when a page
-  // defines its own openGraph — without this the page shares text-only on
+  // defines its own openGraph - without this the page shares text-only on
   // X/Twitter/Slack/iMessage.
   twitter: {
     card: 'summary_large_image',

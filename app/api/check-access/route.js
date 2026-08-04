@@ -7,7 +7,7 @@ const supabase =
     : null;
 
 // GET /api/check-access?email=user@example.com
-// Returns { access: true/false } — used by frontend to verify a signed-up user still has access
+// Returns { access: true/false } - used by frontend to verify a signed-up user still has access
 //
 // Responses are user-specific; CDN must never serve one visitor's result to
 // another. private+no-store blocks every intermediate cache layer.
@@ -34,7 +34,7 @@ export async function GET(request) {
     .single();
 
   if (error || !data) {
-    // Lead not found — no access
+    // Lead not found - no access
     return NextResponse.json({ access: false }, { headers: NO_STORE });
   }
 

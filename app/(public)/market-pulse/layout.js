@@ -3,26 +3,26 @@ import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 const YEAR = new Date().getFullYear();
 
 export const metadata = {
-  title: { absolute: `Mississauga Housing Market ${YEAR} — Prices & Trends` },
-  description: `Mississauga housing market ${YEAR}: average prices by type, sale-to-list ratio, days on market and inventory — live MLS data plus TRREB Market Watch.`,
+  title: { absolute: `Mississauga Housing Market ${YEAR} - Prices & Trends` },
+  description: `Mississauga housing market ${YEAR}: average prices by type, sale-to-list ratio, days on market and inventory - live MLS data plus TRREB Market Watch.`,
   alternates: { canonical: '/market-pulse' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Market Pulse — Mississauga Real Estate Market Stats' }],
-    title: 'Market Pulse — Mississauga Real Estate Market Stats',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Market Pulse - Mississauga Real Estate Market Stats' }],
+    title: 'Market Pulse - Mississauga Real Estate Market Stats',
     description: 'Live Mississauga market data with TRREB stats, prices, DOM, and mortgage rates by Hamza Nouman.',
     url: 'https://www.mississaugainvestor.ca/market-pulse',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Market Pulse — Mississauga Real Estate Market Stats',
-    description: 'Mississauga home prices, sales, days on market and mortgage rates — TRREB data explained for investors.',
+    title: 'Market Pulse - Mississauga Real Estate Market Stats',
+    description: 'Mississauga home prices, sales, days on market and mortgage rates - TRREB data explained for investors.',
     images: ['/opengraph-image'],
   },
 };
 
 // The page presents a real statistics series (monthly TRREB Market Watch rows
-// + live MLS aggregates), so Dataset is the fitting schema — eligible for
+// + live MLS aggregates), so Dataset is the fitting schema - eligible for
 // Google Dataset Search. Fields are deliberately month-agnostic (open-ended
 // temporalCoverage, no figures baked in) so this markup can never go stale the
 // way the hardcoded stats once did.
@@ -81,25 +81,25 @@ const MARKET_FAQ = [
   {
     question: 'Is Mississauga a buyer’s market or a seller’s market right now?',
     answer:
-      'Read it from two numbers on this page rather than a headline. The sales-to-new-listings ratio is the standard measure: below roughly 40% is a buyer’s market, about 40–60% is balanced, and above 60% is a seller’s market. Pair it with months of inventory and the sale-to-list ratio — when homes sell below asking and inventory is climbing, buyers hold the leverage regardless of what any single month’s average price did.',
+      'Read it from two numbers on this page rather than a headline. The sales-to-new-listings ratio is the standard measure: below roughly 40% is a buyer’s market, about 40–60% is balanced, and above 60% is a seller’s market. Pair it with months of inventory and the sale-to-list ratio - when homes sell below asking and inventory is climbing, buyers hold the leverage regardless of what any single month’s average price did.',
   },
   {
     question: 'What is the difference between average and median sale price?',
     answer:
-      'The average is the sum of all sale prices divided by the number of sales, so a handful of luxury sales can pull it well above what a typical home traded for. The median is the middle sale — half sold for more, half for less — which makes it the more honest read on the typical home. Both are shown on this page precisely because the gap between them tells you how skewed the month was.',
+      'The average is the sum of all sale prices divided by the number of sales, so a handful of luxury sales can pull it well above what a typical home traded for. The median is the middle sale - half sold for more, half for less - which makes it the more honest read on the typical home. Both are shown on this page precisely because the gap between them tells you how skewed the month was.',
   },
   {
     question: 'What does the sale-to-list ratio tell an investor?',
     answer:
-      'It is the sale price as a percentage of the asking price, averaged across sales. Above 100% means homes are generally selling over asking (competitive bidding), while below 100% means sellers are accepting less than they asked. For an investor it sets the realistic negotiation expectation before writing an offer, and a falling ratio is usually the earliest sign a market is cooling — it moves before average prices do.',
+      'It is the sale price as a percentage of the asking price, averaged across sales. Above 100% means homes are generally selling over asking (competitive bidding), while below 100% means sellers are accepting less than they asked. For an investor it sets the realistic negotiation expectation before writing an offer, and a falling ratio is usually the earliest sign a market is cooling - it moves before average prices do.',
   },
   {
-    // Targets "motivated sellers Mississauga" / "how long on market" queries —
+    // Targets "motivated sellers Mississauga" / "how long on market" queries -
     // the search demand today's radar campaign feeds. Definitional like the
     // rest: the live counts live in the radar card above, never in this copy.
     question: 'How do I find motivated sellers in Mississauga?',
     answer:
-      'Days on market is the most reliable public signal. A listing that has sat well past the market’s typical selling time — roughly 60 days or more — tells you the seller’s expectations and the market have not met, and a price cut on top of that means the seller has already shown flexibility once. The Motivated Seller Radar on this page tracks how many active Mississauga listings currently fit that profile and which neighbourhoods they cluster in, and every listing on this site shows its real days on market so you can sort the whole city by who has been waiting longest before you write an offer.',
+      'Days on market is the most reliable public signal. A listing that has sat well past the market’s typical selling time - roughly 60 days or more - tells you the seller’s expectations and the market have not met, and a price cut on top of that means the seller has already shown flexibility once. The Motivated Seller Radar on this page tracks how many active Mississauga listings currently fit that profile and which neighbourhoods they cluster in, and every listing on this site shows its real days on market so you can sort the whole city by who has been waiting longest before you write an offer.',
   },
   {
     question: 'Where does this Mississauga market data come from?',
@@ -120,7 +120,7 @@ export default function Layout({ children }) {
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema) }} />
       {children}
-      {/* Rendered here, in the server layout, alongside the schema it mirrors —
+      {/* Rendered here, in the server layout, alongside the schema it mirrors -
           the page itself is a client component, and keeping question text in
           two files is how visible copy and markup drift apart. */}
       <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">

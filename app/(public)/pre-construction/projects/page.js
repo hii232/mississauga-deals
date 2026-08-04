@@ -5,7 +5,7 @@ import { FALLBACK_PROJECTS } from '@/lib/precon/fallback-projects';
 // the "80+ projects" its meta description promises (only a loading skeleton
 // and a "0+ Active Projects" hero chip), because the whole list arrived via a
 // client-side /api/precon fetch after hydration. Now the list is fetched
-// server-side and passed as initial props — same restructure pattern as the
+// server-side and passed as initial props - same restructure pattern as the
 // listing detail page (app/(public)/listings/[id]/page.js), including the
 // VERCEL-gated SITE_URL: deployed builds hit the public domain, local dev and
 // local `next start` both hit localhost, and env-less builds fail the fetch
@@ -27,7 +27,7 @@ async function fetchProjects() {
     if (Array.isArray(data.projects) && data.projects.length > 0) return data.projects;
     return null;
   } catch (err) {
-    // Expected on env-less builds (no server to hit) and transient outages —
+    // Expected on env-less builds (no server to hit) and transient outages -
     // the client component retries /api/precon from the browser in that case.
     console.error('[precon/projects] SSR fetch failed:', err?.name || err?.message || err);
     return null;

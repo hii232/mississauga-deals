@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
 
-// Generated magazine-style blog cover — guarantees every post has an image.
+// Generated magazine-style blog cover - guarantees every post has an image.
 // GET /api/blog-cover?title=...&category=...
 // Deterministic gradient per category so covers vary but stay on-brand.
 

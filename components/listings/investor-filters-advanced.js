@@ -39,7 +39,7 @@ function SliderInput({ label, value, onChange, min = 0, max = 10, step = 0.5, pr
           {label}
         </label>
         <span className="text-xs font-bold text-navy">
-          {value !== null && value !== undefined ? `${prefix}${value}${suffix}` : '—'}
+          {value !== null && value !== undefined ? `${prefix}${value}${suffix}` : '-'}
         </span>
       </div>
       <input

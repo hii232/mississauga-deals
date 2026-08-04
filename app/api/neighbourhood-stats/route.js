@@ -3,7 +3,7 @@ import { processListings } from '@/lib/listings/process-listings';
 import { computeHoodStats } from '@/lib/listings/hood-stats';
 import { fetchFeedPages } from '@/lib/listings/fetch-feed';
 
-// Public site URL — never build the internal fetch from request.url (on Vercel
+// Public site URL - never build the internal fetch from request.url (on Vercel
 // that resolves to the deployment-protected *.vercel.app host, an HTML auth wall).
 const SITE_URL =
   process.env.NODE_ENV === 'development'
@@ -11,7 +11,7 @@ const SITE_URL =
     : 'https://www.mississaugainvestor.ca';
 
 // Serve per-request, never at build time. With only `revalidate` exported,
-// Next STATICALLY generated this route during the build — and the batched
+// Next STATICALLY generated this route during the build - and the batched
 // 30-page feed walk (up to 5 batches x 25s) blew the 60s static-generation
 // budget three times and FAILED THE ENTIRE #67 DEPLOY. Live stats computed
 // from a live feed have no business in the build; the fetch-level
@@ -29,7 +29,7 @@ const revalidate = 600;
  */
 export async function GET() {
   try {
-    // Shared feed fetch — the same limit=100 Data Cache keys every other
+    // Shared feed fetch - the same limit=100 Data Cache keys every other
     // consumer reads (pages #61, market-stats #65, sitemaps). This route kept
     // its own limit=200 loop, so the per-hood avg price / DOM / yield on all
     // 24 guide pages and the homepage cards were computed from stale pre-fix
@@ -39,16 +39,16 @@ export async function GET() {
       pages: 30,
       revalidate,
       // 10s, not 25: pages fetch in batches of 6 (5 batches for 30 pages), and
-      // the worst case must fit inside maxDuration — 5 x 10s = 50s < 60s.
+      // the worst case must fit inside maxDuration - 5 x 10s = 50s < 60s.
       timeoutMs: 10000,
-      // nomedia=1: per-hood avg price / DOM / yield only — no photo is read
+      // nomedia=1: per-hood avg price / DOM / yield only - no photo is read
       // from these rows, and the Media $expand is the dominant request cost.
       qs: '&nomedia=1',
     });
     if (raw.length === 0) return NextResponse.json({ stats: {} });
 
     // s-maxage lets the Vercel Edge CDN serve cached neighbourhood stats for
-    // 10 minutes — matching the underlying feed revalidate window — so the
+    // 10 minutes - matching the underlying feed revalidate window - so the
     // 30-page feed walk runs at most once per 10-minute window, not on every
     // request from the 24 neighbourhood guide pages and homepage cards.
     return NextResponse.json(

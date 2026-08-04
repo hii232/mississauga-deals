@@ -12,7 +12,7 @@ import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
  * Step 1: Email only (micro-conversion)
  * Step 2: Name + Phone (profile completion)
  *
- * Appears as overlay on listings page — user never leaves the page.
+ * Appears as overlay on listings page - user never leaves the page.
  */
 // `initialEmail` / `initialStep` let a caller that has ALREADY captured the
 // email (the homepage hero's inline field) open this straight at step 2 instead
@@ -20,7 +20,7 @@ import { formatPhone, isValidPhone, isFakePhone } from '@/lib/phone';
 // `listing` ({ id, address, price }) is threaded through to /api/lead so the
 // notification Hamza receives names the property the visitor was looking at.
 // Without it the API's listing fields stay null and the property block in the
-// lead email — which already exists and links straight to the listing — never
+// lead email - which already exists and links straight to the listing - never
 // renders for the highest-intent leads on the site.
 export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'gate', initialEmail = '', initialStep = 1, listing = null }) {
   const leadListing = listing
@@ -40,7 +40,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   const [loading, setLoading] = useState(false);
   // Rendered through a portal (see the return): z-[9999] alone is not enough,
   // because z-index is resolved WITHIN the nearest stacking context. Mounted
-  // inside the homepage hero — whose wrapper is `relative z-10` — the whole
+  // inside the homepage hero - whose wrapper is `relative z-10` - the whole
   // modal was painted under the sticky header (z-50), leaving its close button
   // unclickable. document.body has no such parent.
   const [mounted, setMounted] = useState(false);
@@ -68,7 +68,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
 
     // Bank the email SERVER-SIDE before asking for anything else, exactly as
     // InlineEmailCapture does. This step used to keep the email in localStorage
-    // only and post nothing until step 2 completed or was skipped — so a
+    // only and post nothing until step 2 completed or was skipped - so a
     // visitor who closed the tab at step 2 was lost outright. That gap is why
     // phone could not safely be made mandatory here: requiring the one field
     // people most resist, on a form whose abandonment also threw away the
@@ -87,7 +87,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
         }),
       });
       const data = await res.json().catch(() => ({}));
-      // Never advance on a server rejection (429, 400) — that would show the
+      // Never advance on a server rejection (429, 400) - that would show the
       // profile form for a lead that was never stored.
       if (!res.ok) {
         setError(data.error || 'Something went wrong. Please try again.');
@@ -117,7 +117,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     // Phone is REQUIRED to complete a profile: Hamza works these leads by
     // phone, and an email-only lead is far less likely to become a client.
     // This is safe to require now only because handleStep1 posts the email
-    // before this form is ever shown — abandoning here loses the name and
+    // before this form is ever shown - abandoning here loses the name and
     // phone, never the lead itself. The "skip" link below stays as the honest
     // way out, so nobody is trapped in the modal over a field they won't give.
     if (!phone) {
@@ -154,7 +154,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       });
 
       const data = await res.json();
-      // Don't fake success on a server rejection (429 rate-limit, 400, 500) —
+      // Don't fake success on a server rejection (429 rate-limit, 400, 500) -
       // that would mark the visitor registered and dismiss the modal while the
       // lead never reached Hamza. Surface the error and let them retry.
       if (!res.ok) {
@@ -179,7 +179,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
   function handleSkipStep2() {
     // They gave an email but would not give a phone. The email is already
     // stored (handleStep1 posts it), so this second post is not what saves the
-    // lead — it exists to record the distinct "(email only)" source so Hamza
+    // lead - it exists to record the distinct "(email only)" source so Hamza
     // can see in admin who declined the profile, and to bank a partially-typed
     // name. Fire-and-forget: never block the UI on a network hiccup.
     fetch('/api/lead', {
@@ -207,7 +207,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     // Always dismissible now. Step 2 used to trap the visitor because the email
     // had not been persisted yet, so letting them out lost the lead. Since
     // handleStep1 banks the email server-side, there is nothing left to hold
-    // them hostage for — and holding someone in an unclosable modal over a
+    // them hostage for - and holding someone in an unclosable modal over a
     // now-required phone field is exactly how a trustworthy site stops feeling
     // like one.
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
@@ -267,14 +267,14 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                   disabled={loading}
                   className="w-full rounded-lg bg-accent px-4 py-3 text-sm font-bold text-white transition hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:opacity-60"
                 >
-                  {loading ? 'One moment…' : 'Unlock Premium Deals — Free'}
+                  {loading ? 'One moment…' : 'Unlock Premium Deals - Free'}
                 </button>
               </form>
 
               <p className="mt-3 text-center text-[11px] text-slate-500">
                 Free forever. No credit card. No spam.
               </p>
-              {/* VOW terms assent — this capture unlocks sold/comp data, and
+              {/* VOW terms assent - this capture unlocks sold/comp data, and
                   TRREB's VOW rules require a terms-of-use agreement before
                   that data is shown. Substance in /terms §5. */}
               <p className="mt-1 text-center text-[11px] text-slate-500">
@@ -287,7 +287,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
 
               {/* Social proof. This hardcoded "4,000+ Listings Scored", which
                   contradicted the site-wide PLATFORM_STATS figure ("1,800+") by
-                  more than double — on the one surface where a visitor is
+                  more than double - on the one surface where a visitor is
                   deciding whether to trust us with an email. ProofRow sources
                   every number live and drops any it cannot source. */}
               <div className="mt-4 border-t border-slate-100 pt-4">
@@ -307,13 +307,13 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-white">Almost There!</h2>
-              {/* The old line — "complete your profile to get deal alerts &
-                  first month's mortgage on us" — read as if finishing the form
+              {/* The old line - "complete your profile to get deal alerts &
+                  first month's mortgage on us" - read as if finishing the form
                   earned the mortgage credit. The actual condition is closing a
                   purchase with Hamza, and an inducement ad that hides its
                   condition is misleading advertising (RECO). State it. */}
               <p className="mt-1 text-sm text-white/60">
-                Complete your profile to get deal alerts &mdash; and when you close with Hamza,
+                Complete your profile to get deal alerts - and when you close with Hamza,
                 your first month&apos;s mortgage is on us as a credit on closing.
               </p>
             </div>
@@ -379,7 +379,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 onClick={handleSkipStep2}
                 className="mt-2 w-full py-2 text-center text-xs text-slate-500 hover:text-slate-700 transition"
               >
-                Skip for now — I&apos;ll complete later
+                Skip for now - I&apos;ll complete later
               </button>
 
               {/* Mortgage offer teaser */}

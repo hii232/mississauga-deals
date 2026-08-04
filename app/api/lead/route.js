@@ -48,7 +48,7 @@ export async function POST(request) {
   //
   // Two things were wrong here. The check was gated on
   // `source === 'registration'`, which was defensible while a number was
-  // optional — someone volunteering one rarely invents it. It stopped being
+  // optional - someone volunteering one rarely invents it. It stopped being
   // defensible when a phone became MANDATORY on the signup gate (source
   // 'Sign Up' / 'View Limit') and after Google Sign-In ('google-signin'):
   // forcing the field out of a reluctant visitor is exactly what produces
@@ -57,7 +57,7 @@ export async function POST(request) {
   //
   // And rejecting outright would have been the wrong cure. Three forms send an
   // OPTIONAL phone (the quiz, the pre-construction VIP form, the sell
-  // valuation) — a 400 there would throw away a complete lead because a
+  // valuation) - a 400 there would throw away a complete lead because a
   // bonus field was fat-fingered. The email IS the lead; the phone is an
   // extra. So a number that fails is dropped and the lead is stored without
   // it, which satisfies both halves: Hamza never gets a number he cannot dial,
@@ -81,12 +81,12 @@ export async function POST(request) {
       .single();
 
     if (existing) {
-      // Email already exists — still allow login, just don't create a duplicate lead.
+      // Email already exists - still allow login, just don't create a duplicate lead.
       // ENRICH rather than discard: the email-first capture paths (homepage hero,
       // signup gate) save the email on step 1 and the name/phone only arrive on
       // step 2, as a SECOND request. Without this, that second request hit the
       // duplicate branch and Hamza kept a nameless, phoneless lead even though
-      // the visitor had typed both. Only ever FILLS BLANKS — a stored value is
+      // the visitor had typed both. Only ever FILLS BLANKS - a stored value is
       // never overwritten, so a later partial submission can't erase good data.
       const fullName = name || [firstName, lastName].filter(Boolean).join(' ') || null;
       const patch = {};
@@ -96,8 +96,8 @@ export async function POST(request) {
         const { error: updateError } = await supabase.from('leads').update(patch).eq('id', existing.id);
         if (updateError) console.error('Lead enrich error:', JSON.stringify(updateError));
         // Logged on SUCCESS too, mirroring the "Lead saved:" line on the insert
-        // path. The two-step capture posts twice — email first, then name/phone
-        // — and only the first post left a trace, so "did his name actually
+        // path. The two-step capture posts twice - email first, then name/phone
+        // - and only the first post left a trace, so "did his name actually
         // land, or did the second post silently no-op?" could not be answered
         // from the logs at all. Now every lead write says what it wrote.
         else console.log('Lead enriched:', email.toLowerCase().trim(), Object.keys(patch).join('+'));
@@ -159,8 +159,8 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
     newsletter: 'Newsletter',
     booking: 'Booked Call',
     viewing: 'Viewing Request',
-    'seller-valuation': 'Seller — Home Valuation',
-    'investor-offer-preview': 'Seller — Investor Offer Preview',
+    'seller-valuation': 'Seller - Home Valuation',
+    'investor-offer-preview': 'Seller - Investor Offer Preview',
   };
   const isReturning = typeof source === 'string' && source.endsWith(' (returning)');
   const baseSource = isReturning ? source.replace(/ \(returning\)$/, '') : source;
@@ -183,7 +183,7 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
   const intentLine = intentBySource[baseSource] || 'New lead captured';
 
   const listingUrl = listingId ? `https://www.mississaugainvestor.ca/listings/${encodeURIComponent(listingId)}` : '';
-  const priceLabel = listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : '';
+  const priceLabel = listingPrice ? ` - $${Number(listingPrice).toLocaleString()}` : '';
 
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:500px;margin:0 auto;">
@@ -198,7 +198,7 @@ async function sendLeadNotification({ name, email, phone, source, listingId, lis
           ${listingUrl ? `<a href="${listingUrl}" style="display:inline-block;margin-top:6px;color:#2563EB;font-size:13px;font-weight:600;text-decoration:none;">View listing →</a>` : ''}
         </div>` : ''}
         <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Name</td><td style="padding:6px 0;font-weight:600;font-size:14px;">${name || '—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Name</td><td style="padding:6px 0;font-weight:600;font-size:14px;">${name || '-'}</td></tr>
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Email</td><td style="padding:6px 0;font-size:14px;"><a href="mailto:${email}">${email}</a></td></tr>
           ${phone ? `<tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Phone</td><td style="padding:6px 0;font-size:14px;"><a href="tel:${phone}">${phone}</a></td></tr>` : ''}
           <tr><td style="padding:6px 0;color:#6b7280;font-size:13px;">Source</td><td style="padding:6px 0;font-size:14px;">${srcLabel}</td></tr>

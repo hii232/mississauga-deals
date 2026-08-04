@@ -29,7 +29,7 @@ export default function ExitIntentPopup() {
     }, 10000);
 
     // Don't interrupt visitors who are on a dedicated conversion page with an
-    // off-message BUYER popup — sellers on /sell and anyone mid-booking on
+    // off-message BUYER popup - sellers on /sell and anyone mid-booking on
     // /book-call already have a stronger, page-specific CTA in front of them.
     // Read the live path so the one-shot stays armed for other pages.
     const EXCLUDED = ['/sell', '/book-call'];
@@ -41,7 +41,7 @@ export default function ExitIntentPopup() {
     const trigger = () => {
       if (!armed.current) return;
       if (isExcludedPath()) return; // keep armed; fire later on a relevant page
-      armed.current = false; // One-shot — whichever intent signal fires first
+      armed.current = false; // One-shot - whichever intent signal fires first
       setVisible(true);
       trackExitIntent('shown');
     };
@@ -53,7 +53,7 @@ export default function ExitIntentPopup() {
     };
 
     // Mobile (most of our traffic): mouseleave never fires, so use scroll depth.
-    // Only on genuinely long pages, after real downward scroll past ~60% — a
+    // Only on genuinely long pages, after real downward scroll past ~60% - a
     // high-engagement moment, not a spammy on-load popup.
     const handleScroll = () => {
       if (!armed.current) return;
@@ -90,7 +90,7 @@ export default function ExitIntentPopup() {
     setError('');
 
     try {
-      // Subscribe to the weekly top-10 newsletter (deliverable to any email) —
+      // Subscribe to the weekly top-10 newsletter (deliverable to any email) -
       // this endpoint also inserts the lead, so Hamza still gets the contact.
       const params = new URLSearchParams(window.location.search);
       const res = await fetch('/api/newsletter/subscribe', {
@@ -157,7 +157,7 @@ export default function ExitIntentPopup() {
           <p className="text-slate-300 mt-2 text-sm leading-relaxed">
             {success
               ? 'Your first deal roundup lands Monday.'
-              : 'The highest cash-flow Mississauga investment properties — scored, ranked, and delivered free every Monday.'}
+              : 'The highest cash-flow Mississauga investment properties - scored, ranked, and delivered free every Monday.'}
           </p>
         </div>
 
@@ -222,7 +222,7 @@ export default function ExitIntentPopup() {
         {!success && (
           <div className="bg-cloud border-t border-slate-100 px-8 py-4 text-center">
             <p className="text-xs text-muted">
-              <span className="font-semibold text-navy">Every</span> new Mississauga &amp; GTA MLS listing — scored for cash flow daily
+              <span className="font-semibold text-navy">Every</span> new Mississauga &amp; GTA MLS listing - scored for cash flow daily
             </p>
           </div>
         )}

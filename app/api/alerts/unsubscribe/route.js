@@ -36,17 +36,17 @@ function page({ title, message, form }) {
 
 // A GET request from a real click and a GET request from an email-security
 // gateway's link scanner (Defender for Office 365 Safe Links, Proofpoint,
-// Mimecast — all of which prefetch links in incoming mail before the
+// Mimecast - all of which prefetch links in incoming mail before the
 // recipient opens it) are indistinguishable at the HTTP level. This route
 // used to unsubscribe on GET, so every alert email's visible "Unsubscribe"
 // link was a live trigger any scanner could fire before the subscriber ever
-// read the message — silently killing their alerts with no action on their
+// read the message - silently killing their alerts with no action on their
 // part and no way for the site to tell "unsubscribed" from "scanned".
 //
 // GET now only ever READS and renders a confirm page; the actual mutation
 // happens in POST, behind a real click on that page's button. The
 // RFC 8058 List-Unsubscribe-Post header (below) already POSTs directly and is
-// unaffected — mail clients only send that on an explicit user action, and it
+// unaffected - mail clients only send that on an explicit user action, and it
 // never touches this GET handler.
 export async function GET(request) {
   try {
@@ -70,7 +70,7 @@ export async function GET(request) {
         return new Response(
           page({
             title: 'Link no longer valid',
-            message: "This unsubscribe link doesn't match a saved search — it may already have been removed.",
+            message: "This unsubscribe link doesn't match a saved search - it may already have been removed.",
           }),
           { headers: { 'Content-Type': 'text/html' } }
         );
@@ -128,7 +128,7 @@ export async function GET(request) {
 //     gets the HTML page back).
 // (2) RFC 8058 one-click: mail clients POST directly to the
 //     List-Unsubscribe header URL (email+token only) when a subscriber uses
-//     their client's native "Unsubscribe" button — never via GET, so this was
+//     their client's native "Unsubscribe" button - never via GET, so this was
 //     already correctly un-mutating-on-fetch before this change.
 export async function POST(request) {
   try {
@@ -164,7 +164,7 @@ export async function POST(request) {
     }
 
     await supabase.from('leads').update({ status: 'unsubscribed' }).eq('email', normalized);
-    // Unsubscribing from email should stop ALL email — deal alerts included
+    // Unsubscribing from email should stop ALL email - deal alerts included
     await supabase.from('saved_searches').update({ active: false }).eq('email', normalized);
 
     return new Response(

@@ -5,7 +5,7 @@ import { useAdmin } from '../layout';
 
 // ── Helpers ──────────────────────────────────────────────
 function timeAgo(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (diff < 60) return 'just now';
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
@@ -15,12 +15,12 @@ function timeAgo(dateStr) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatDateTime(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) +
     ' at ' +
@@ -404,7 +404,7 @@ export default function LeadsCRM() {
   }
 
   // Export the currently-filtered leads to CSV so no captured lead is stranded
-  // in the dashboard — Hamza can work them in a spreadsheet / CRM / mail-merge.
+  // in the dashboard - Hamza can work them in a spreadsheet / CRM / mail-merge.
   function exportCsv() {
     if (filtered.length === 0) return;
     const cols = [
@@ -569,7 +569,7 @@ export default function LeadsCRM() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <p className="text-sm font-semibold text-white truncate">{lead.name || '—'}</p>
+                      <p className="text-sm font-semibold text-white truncate">{lead.name || '-'}</p>
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${sourceColor(lead.source)}`}>
                         {sourceLabel(lead.source)}
                       </span>
@@ -634,11 +634,11 @@ export default function LeadsCRM() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="bg-white/[0.02] rounded-lg p-3">
                         <p className="text-[10px] uppercase text-white/55 mb-1">Email</p>
-                        <p className="text-sm text-white font-medium truncate">{lead.email || '—'}</p>
+                        <p className="text-sm text-white font-medium truncate">{lead.email || '-'}</p>
                       </div>
                       <div className="bg-white/[0.02] rounded-lg p-3">
                         <p className="text-[10px] uppercase text-white/55 mb-1">Phone</p>
-                        <p className="text-sm text-white font-medium">{lead.phone || '—'}</p>
+                        <p className="text-sm text-white font-medium">{lead.phone || '-'}</p>
                       </div>
                       <div className="bg-white/[0.02] rounded-lg p-3">
                         <p className="text-[10px] uppercase text-white/55 mb-1">Signed Up</p>

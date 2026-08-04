@@ -7,13 +7,13 @@ import { fmtK } from '@/lib/utils/format';
 
 const YEAR = new Date().getFullYear();
 
-// TRREB Market Watch publishes these CITY-WIDE aggregate figures openly —
+// TRREB Market Watch publishes these CITY-WIDE aggregate figures openly -
 // unlike the individual sold records (address, exact price) in
 // RecentSalesClient's table, which now require registration per TRREB's VOW
 // rules (see the compliance fix that gated that table). Server-fetched so
 // this substance survives for anonymous visitors and crawlers, who since
 // that fix see only the registration gate where the comps table used to
-// render — this page's whole reason to exist is the query "mississauga sold
+// render - this page's whole reason to exist is the query "mississauga sold
 // prices", so it needs real numbers even before someone registers.
 async function fetchMarketSnapshot() {
   try {
@@ -33,7 +33,7 @@ async function fetchMarketSnapshot() {
 // The sales table itself is client-fetched, so this page shipped a crawler
 // little more than its h1 while targeting a genuinely high-intent query
 // ("mississauga sold prices"). These answer what a searcher for sold data
-// actually wants to know, and — like the /market-pulse set — carry NO figures:
+// actually wants to know, and - like the /market-pulse set - carry NO figures:
 // the numbers on this page change with every sale, and schema can be surfaced
 // by Google long after a refresh. Questions are disjoint from /faq, /listings
 // and /market-pulse so no two pages compete for the same rich result.
@@ -41,12 +41,12 @@ const SOLD_FAQ = [
   {
     question: 'Are home sold prices public in Ontario?',
     answer:
-      'Not in the way they are in much of the United States. Ontario sold prices are not published on public listing portals — they are held in the TRREB MLS® system and released only through a REALTOR® or a Virtual Office Website operated under a board agreement, which is how the sales on this page are shown. That is also why the data may only be used by people with a bona fide interest in buying, selling or leasing, not for general commercial purposes.',
+      'Not in the way they are in much of the United States. Ontario sold prices are not published on public listing portals - they are held in the TRREB MLS® system and released only through a REALTOR® or a Virtual Office Website operated under a board agreement, which is how the sales on this page are shown. That is also why the data may only be used by people with a bona fide interest in buying, selling or leasing, not for general commercial purposes.',
   },
   {
     question: 'Why does a sold price matter more than a list price?',
     answer:
-      "A list price is an asking strategy — it can be set low to attract competing offers or high to leave negotiating room, and neither tells you what the market paid. The sold price is the only number both a buyer and a seller agreed to. For an investor it is the input that matters: your return is calculated on what you actually pay, not on what the seller hoped for.",
+      "A list price is an asking strategy - it can be set low to attract competing offers or high to leave negotiating room, and neither tells you what the market paid. The sold price is the only number both a buyer and a seller agreed to. For an investor it is the input that matters: your return is calculated on what you actually pay, not on what the seller hoped for.",
   },
   {
     question: 'What is the list-to-sold gap and how should I read it?',
@@ -61,7 +61,7 @@ const SOLD_FAQ = [
   {
     question: 'How do I use sold comps to decide what to offer?',
     answer:
-      'Start with sales of the same property type and bedroom count in the same neighbourhood within the last few months, then adjust for the obvious differences — finished basement, parking, lot, condition, renovation. Look at both the sold prices and how long each took to sell. On this site every active listing page also shows nearby closed sales alongside its cash-flow and cap-rate analysis, so you can judge price and return together.',
+      'Start with sales of the same property type and bedroom count in the same neighbourhood within the last few months, then adjust for the obvious differences - finished basement, parking, lot, condition, renovation. Look at both the sold prices and how long each took to sell. On this site every active listing page also shows nearby closed sales alongside its cash-flow and cap-rate analysis, so you can judge price and return together.',
   },
 ];
 
@@ -70,21 +70,21 @@ const SOLD_FAQ = [
 export const revalidate = 3600;
 
 export const metadata = {
-  title: { absolute: `Mississauga Sold Prices ${YEAR} — Recent Home Sales` },
+  title: { absolute: `Mississauga Sold Prices ${YEAR} - Recent Home Sales` },
   description:
     `What homes actually sold for in Mississauga in ${YEAR}: real sold prices, days on market and list-vs-sold gaps, updated from MLS. Know it before you offer.`,
   alternates: { canonical: '/recent-sales' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Sold Prices ${YEAR} — Recent Home Sales` }],
-    title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales`,
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Sold Prices ${YEAR} - Recent Home Sales` }],
+    title: `Mississauga Sold Prices ${YEAR} - Recent Home Sales`,
     description:
       'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',
     url: 'https://www.mississaugainvestor.ca/recent-sales',
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Mississauga Sold Prices ${YEAR} — Recent Home Sales`,
+    title: `Mississauga Sold Prices ${YEAR} - Recent Home Sales`,
     description:
       'Real sold prices, days on market, and negotiation gaps for Mississauga homes, updated from MLS data.',
     images: ['/opengraph-image'],
@@ -106,13 +106,13 @@ export default async function RecentSalesPage() {
       <FAQJsonLd items={SOLD_FAQ} />
       <RecentSalesClient />
 
-      {/* Server-rendered aggregate snapshot — always real, never gated (see
+      {/* Server-rendered aggregate snapshot - always real, never gated (see
           fetchMarketSnapshot above for why this exists and why it's safe). */}
       {hasSnapshot && (
         <section className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
           <div className="card p-6">
             <h2 className="font-heading text-lg font-bold text-navy">
-              Mississauga Sold Market Snapshot — {marketStats.tRREBMonth}
+              Mississauga Sold Market Snapshot - {marketStats.tRREBMonth}
             </h2>
             <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-5">
               <div className="text-center">
@@ -146,8 +146,8 @@ export default async function RecentSalesPage() {
             </div>
             <p className="mt-4 text-xs text-slate-500">
               City-wide aggregate from TRREB&apos;s {marketStats.tRREBMonth} Market Watch report
-              {marketStats.tRREBIsStale ? ' — the most recent report on hand, which may be a couple of months behind' : ''}.
-              Individual sold listings below (exact address, price and date) require a free account — that level of
+              {marketStats.tRREBIsStale ? ' - the most recent report on hand, which may be a couple of months behind' : ''}.
+              Individual sold listings below (exact address, price and date) require a free account - that level of
               detail is released only through a REALTOR® or a board-agreement Virtual Office Website, per TRREB&apos;s
               data rules.
             </p>
@@ -155,7 +155,7 @@ export default async function RecentSalesPage() {
         </section>
       )}
 
-      {/* Server-rendered explainer, alongside the snapshot above — the sales
+      {/* Server-rendered explainer, alongside the snapshot above - the sales
           table itself is client-fetched and now gated (VOW), so these two
           sections carry the real substance a crawler sees for a page aimed at
           a high-intent query, and the explainer is genuinely useful to a buyer
@@ -189,7 +189,7 @@ export default async function RecentSalesPage() {
         </p>
       </section>
 
-      {/* This page had no lead capture — a high-intent surface (investors
+      {/* This page had no lead capture - a high-intent surface (investors
           checking what actually sold). Add an inline email capture at the foot. */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 pt-10">
         <InlineCTA variant="newsletter" />

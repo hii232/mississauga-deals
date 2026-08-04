@@ -5,18 +5,18 @@ const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
 /**
- * GET /api/photos-batch?ids=A,B,C — fetches the first photo for up to 25
+ * GET /api/photos-batch?ids=A,B,C - fetches the first photo for up to 25
  * listings. (POST with {ids} is still accepted for compatibility with
  * already-cached client bundles, but GET is the real path now: Vercel's CDN
  * only caches GET responses, so the old POST-only design re-paid 25 upstream
- * Media queries for EVERY visitor scrolling the same page — the s-maxage
+ * Media queries for EVERY visitor scrolling the same page - the s-maxage
  * header on it was dead code.)
  *
  * Concurrency is chunked at 6, not 25-at-once: the browser fires up to 4 of
  * these calls in parallel, which under the old design meant 100 simultaneous
- * AMPRE queries — the exact burst pattern the upstream throttles (measured on
+ * AMPRE queries - the exact burst pattern the upstream throttles (measured on
  * the feed fan-out, see lib/listings/fetch-feed.js). Under throttle the whole
- * batch then died at the old maxDuration of 10s — a Hobby-plan leftover — and
+ * batch then died at the old maxDuration of 10s - a Hobby-plan leftover - and
  * every card fell back to the grey placeholder icon.
  */
 export const maxDuration = 60;
@@ -29,10 +29,10 @@ async function resolvePhotos(ids) {
   const result = {};
   const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
 
-  // Fetch one photo — try ResourceRecordKey first (fastest), then ListingKey
+  // Fetch one photo - try ResourceRecordKey first (fastest), then ListingKey
   async function fetchOne(id) {
     // odataStr alone left the $filter itself un-encoded, so an `&` in an id could
-    // still append query parameters — encode the finished clause too.
+    // still append query parameters - encode the finished clause too.
     const safeId = odataStr(id);
 
     // Method 1: ResourceRecordKey filter (most reliable for AMPRE)
@@ -84,7 +84,7 @@ export async function GET(request) {
     // Cached by the CDN because this is a GET: the first visitor pays the
     // upstream queries, everyone else on the same page slice reads the cache.
     // Photos essentially never change while a listing is active, so fresh for
-    // a day and served instantly for a week — same reasoning as /api/photos.
+    // a day and served instantly for a week - same reasoning as /api/photos.
     headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800' },
   });
 }

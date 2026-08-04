@@ -70,7 +70,7 @@ export function EmailCapture() {
           Get the 10 best cash-flowing deals in Mississauga
         </h2>
         <p className="text-sm text-navy/70 mb-6">
-          Hand-picked every Monday — the highest cash-flow investment properties on the market, delivered free to your inbox.
+          Hand-picked every Monday - the highest cash-flow investment properties on the market, delivered free to your inbox.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
@@ -100,12 +100,12 @@ export function EmailCapture() {
               &ldquo;{FEATURED_REVIEW.text.length > 132 ? FEATURED_REVIEW.text.slice(0, 130).trimEnd() + '…' : FEATURED_REVIEW.text}&rdquo;
             </blockquote>
             <figcaption className="mt-2 text-[11px] font-semibold text-navy/70">
-              &mdash; {FEATURED_REVIEW.name} · Verified Google review
+              - {FEATURED_REVIEW.name} · Verified Google review
             </figcaption>
           </figure>
         )}
         {/* Risk-reversal line, directly under the primary capture. It was
-            navy/40 at 11px — measured 2.28:1 on this band, well under WCAG AA
+            navy/40 at 11px - measured 2.28:1 on this band, well under WCAG AA
             (4.5:1), so the one reassurance that answers "will you spam me?"
             was the least readable text on the page. navy/70 measures 5.1:1. */}
         <p className="text-xs text-navy/70 mt-4">

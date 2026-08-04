@@ -42,7 +42,7 @@ const GTA_GROUPS = [
 ];
 
 function cityHref(city) {
-  // "Toronto (All)" maps to the /gta/toronto path — the API expands "Toronto"
+  // "Toronto (All)" maps to the /gta/toronto path - the API expands "Toronto"
   // to every Toronto sub-area just as it did for the old ?city=Toronto param.
   const name = city === 'Toronto (All)' ? 'Toronto' : city;
   return '/gta/' + name.toLowerCase().replace(/\s+/g, '-');
@@ -289,8 +289,8 @@ export default function Header({ savedCount = 0 }) {
   const [mobileExpanded, setMobileExpanded] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   // Live Google rating. This is a client component, so it goes through the API
-  // route rather than the Places key ever reaching the browser. Stays null —
-  // and the trust chip stays hidden — unless Google returns a real rating.
+  // route rather than the Places key ever reaching the browser. Stays null -
+  // and the trust chip stays hidden - unless Google returns a real rating.
   const [googleRating, setGoogleRating] = useState(null);
 
   useEffect(() => {
@@ -335,7 +335,7 @@ export default function Header({ savedCount = 0 }) {
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <span className="hidden sm:inline">🔥</span>
           <span>
-            NEW: Save Up to $130,000 on New Homes — Ontario HST Rebate Now Active
+            NEW: Save Up to $130,000 on New Homes - Ontario HST Rebate Now Active
           </span>
           <span className="hidden md:inline text-white/80 text-xs font-normal">
             (Apr 1, 2026 – Mar 31, 2027)
@@ -557,7 +557,7 @@ export default function Header({ savedCount = 0 }) {
         {menuOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white animate-slideDown max-h-[80vh] overflow-y-auto">
             <nav className="px-4 py-3 space-y-1">
-              {/* Find My Deal — top of mobile menu */}
+              {/* Find My Deal - top of mobile menu */}
               <Link
                 href="/quiz"
                 className="block w-full text-center bg-accent hover:bg-accent-dark text-white font-bold text-sm rounded-lg py-3 no-underline transition-colors mb-3"

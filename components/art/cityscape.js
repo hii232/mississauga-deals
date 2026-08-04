@@ -1,8 +1,8 @@
-// Original Mississauga skyline artwork — pure SVG, zero network requests.
+// Original Mississauga skyline artwork - pure SVG, zero network requests.
 // The two curved towers are the Absolute World pair, the city's landmark.
 // Server components; deterministic output (no randomness) so SSG stays stable.
 
-// Deterministic "lit window" grid — (i*7 + j*13) % k picks which windows glow
+// Deterministic "lit window" grid - (i*7 + j*13) % k picks which windows glow
 function Windows({ x, y, w, h, cols, rows, litColor = '#F59E0B', litOpacity = 0.85, density = 3 }) {
   const cw = w / cols;
   const ch = h / rows;
@@ -28,7 +28,7 @@ function Windows({ x, y, w, h, cols, rows, litColor = '#F59E0B', litOpacity = 0.
   return <g>{cells}</g>;
 }
 
-// Absolute World tower — vase-curved silhouette built from stacked bezier bulges
+// Absolute World tower - vase-curved silhouette built from stacked bezier bulges
 function AbsoluteTower({ x, y, h, w, fill, flip = false }) {
   const s = flip ? -1 : 1;
   const cx = x;
@@ -160,7 +160,7 @@ export function CityscapePanorama({ variant = 'dusk', className = '' }) {
   );
 }
 
-/** Thin silhouette strip — section divider between white sections. */
+/** Thin silhouette strip - section divider between white sections. */
 export function SkylineStrip({ className = '', tone = '#1B2A4A', opacity = 0.06 }) {
   return (
     <svg viewBox="0 0 1440 60" preserveAspectRatio="xMidYMax slice" className={className} aria-hidden="true" focusable="false">

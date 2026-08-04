@@ -171,7 +171,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
           <p className="text-xs font-medium uppercase tracking-wide text-accent">Viewing request</p>
           <p className="text-sm font-semibold text-navy">
             {listingAddress}
-            {listingPrice ? ` — $${Number(listingPrice).toLocaleString()}` : ''}
+            {listingPrice ? ` - $${Number(listingPrice).toLocaleString()}` : ''}
           </p>
         </div>
       </div>
@@ -193,7 +193,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
             </button>
             {/* Deliberately NOT a heading. This is a date-picker control label
                 sitting between the prev/next buttons, not a section of the
-                document — as an h3 it was the first heading after /book-call's
+                document - as an h3 it was the first heading after /book-call's
                 h1, so the page outline read h1 -> "July 2026". Promoting it to
                 h2 would fix the skip by putting a month name in the outline,
                 which is worse. aria-live announces the change when the visitor
@@ -269,7 +269,7 @@ export function BookingCalendar({ listingId = '', listingAddress = '', listingPr
         {selectedDate && (
           <div className="card p-5">
             <h3 className="font-heading font-semibold text-sm text-navy mb-3">
-              Available Times — {selectedDate.toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })}
+              Available Times - {selectedDate.toLocaleDateString('en-CA', { weekday: 'long', month: 'short', day: 'numeric' })}
             </h3>
             {loadingSlots ? (
               <div className="flex items-center justify-center py-6">

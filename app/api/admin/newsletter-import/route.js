@@ -11,14 +11,14 @@ export const maxDuration = 60;
 // which is the weekly-newsletter recipient list. Admin-gated.
 //
 // POST /api/admin/newsletter-import   (header: x-admin-key: <ADMIN_SECRET>)
-// Body — either:
+// Body - either:
 //   { "contacts": [{ "email": "a@b.com", "name": "Ann" }, ...] }
 // or raw CSV text (Content-Type: text/csv) with an email column, e.g. a
-// MailerLite export — the header row is used to find email/name columns.
+// MailerLite export - the header row is used to find email/name columns.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// ESP exports are not reliably comma-separated — MailerLite's subscriber export
+// ESP exports are not reliably comma-separated - MailerLite's subscriber export
 // is TAB-separated. Splitting on commas alone turned every row into a single
 // field, so the email column was never found and a real 477-row export imported
 // exactly zero contacts while reporting "No contacts found in payload".
@@ -32,7 +32,7 @@ function detectDelimiter(headerLine) {
   return counts[0][1] > 0 ? counts[0][0] : ',';
 }
 
-// Minimal delimited parsing with quoted-field support — enough for ESP exports
+// Minimal delimited parsing with quoted-field support - enough for ESP exports
 function parseCsvLine(line, delim = ',') {
   const out = [];
   let cur = '';
@@ -71,7 +71,7 @@ function contactsFromCsv(text) {
   const header = parseCsvLine(lines[0], delim).map((h) => h.toLowerCase().trim());
   // Find the email column by name (email / e-mail / email address / subscriber /
   // contact), then fall back to whichever column actually holds an email in the
-  // first data row — so exports that label it "Subscriber" (MailerLite) or
+  // first data row - so exports that label it "Subscriber" (MailerLite) or
   // anything unexpected still import correctly.
   let emailIdx = header.findIndex(
     (h) => h.includes('email') || h.includes('e-mail') || h === 'subscriber' || h === 'contact'
@@ -160,13 +160,13 @@ export async function POST(request) {
     }
 
     // Existing leads are never overwritten and an unsubscribe is never
-    // resurrected — but a blank phone is a GAP, not a decision, so a re-upload
+    // resurrected - but a blank phone is a GAP, not a decision, so a re-upload
     // that carries numbers fills it in. This is the whole point of re-importing
     // an export after the ESP has collected phone numbers: the contacts are
     // already here, only their phones are missing.
     // Look the existing rows up in CHUNKS. PostgREST takes `in` filters as a
     // query string, and one `.in()` carrying every address of a real list (477
-    // emails is ~12KB) runs past the server's URL limit — the lookup fails, the
+    // emails is ~12KB) runs past the server's URL limit - the lookup fails, the
     // whole list looks new, and the insert then collides with rows that were
     // already there. Chunked, the query is always small.
     const existingRows = [];
@@ -231,7 +231,7 @@ export async function POST(request) {
       const chunk = slice.map((v) => ({
         email: v.email,
         name: v.name,
-        // Was hardcoded to '' — every phone number in every export uploaded
+        // Was hardcoded to '' - every phone number in every export uploaded
         // through this route was silently discarded.
         phone: v.phone || '',
         source: 'mailerlite-import',

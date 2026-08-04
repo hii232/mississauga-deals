@@ -47,7 +47,7 @@ export default function QuizPage() {
     setError('');
 
     // Validate email FORMAT, not just presence: a typo (e.g. "me@gmail")
-    // makes /api/lead return 400, which the old bare `await fetch` swallowed —
+    // makes /api/lead return 400, which the old bare `await fetch` swallowed -
     // the visitor saw their results while this high-intent lead (5 answers +
     // name + email + phone) was silently lost. Catch it before we submit.
     if (!email || !/\S+@\S+\.\S+/.test(email)) {
@@ -129,7 +129,7 @@ export default function QuizPage() {
         </div>
       )}
 
-      {/* Question Steps — key={step} re-mounts the card on each advance,
+      {/* Question Steps - key={step} re-mounts the card on each advance,
           triggering the animate-fadeUp entrance for a polished step transition. */}
       {step < totalSteps && (
         <div key={step} className="card p-8 animate-fadeUp">
@@ -149,7 +149,7 @@ export default function QuizPage() {
                     <span className="block text-xs text-slate-500 mt-0.5">{opt.sub}</span>
                   )}
                 </span>
-                {/* Chevron communicates "tap to advance" — makes the single-click
+                {/* Chevron communicates "tap to advance" - makes the single-click
                     interaction pattern obvious without any instructional copy. */}
                 <svg
                   className="h-4 w-4 flex-shrink-0 text-slate-300 transition-colors group-hover:text-accent"
@@ -167,7 +167,7 @@ export default function QuizPage() {
         </div>
       )}
 
-      {/* Email Gate — email is collected FIRST so a partial abandonment
+      {/* Email Gate - email is collected FIRST so a partial abandonment
           still yields the most critical lead field. Name and phone, while
           genuinely useful, are optional and labelled clearly as such. */}
       {step === totalSteps && (
@@ -182,7 +182,7 @@ export default function QuizPage() {
               Your investment profile is ready
             </h2>
             <p className="text-sm text-slate-500">
-              Enter your email to unlock your results — Hamza will follow up with matching listings tailored to your answers.
+              Enter your email to unlock your results - Hamza will follow up with matching listings tailored to your answers.
             </p>
           </div>
 
@@ -193,7 +193,7 @@ export default function QuizPage() {
           )}
 
           <form onSubmit={handleEmailSubmit} className="space-y-4">
-            {/* Email first — the minimum viable capture even if the visitor
+            {/* Email first - the minimum viable capture even if the visitor
                 abandons before completing name and phone. */}
             <div>
               <label htmlFor="quiz-email" className="mb-1 block text-sm font-medium text-navy">
@@ -264,7 +264,7 @@ export default function QuizPage() {
               {result.desc}
             </p>
 
-            {/* Answer summary — labels raised to 11px (legibility floor is 10px;
+            {/* Answer summary - labels raised to 11px (legibility floor is 10px;
                 these carry real meaning so they warrant the extra point). */}
             <div className="grid grid-cols-2 gap-3 text-left max-w-sm mx-auto mb-8">
               <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
@@ -292,7 +292,7 @@ export default function QuizPage() {
             {/* Risk reversal, echoed at this high-intent moment. The quiz result
                 is a top-of-funnel capture (5 answers + contact info already
                 given) with a real "reach out" CTA, but the site's strongest
-                closing incentive lived only on the homepage/book-call/blog —
+                closing incentive lived only on the homepage/book-call/blog -
                 same accent-tinted band, same copy, same AA-safe accent-dark
                 chip verified on those pages. */}
             <div className="mb-6 rounded-xl border border-accent/20 bg-accent/5 p-4 text-left max-w-md mx-auto">
@@ -301,7 +301,7 @@ export default function QuizPage() {
                   Exclusive offer
                 </span>
                 <p className="text-sm leading-relaxed text-navy">
-                  <span className="font-semibold">Close with Hamza and your first month&rsquo;s mortgage is on us</span> —
+                  <span className="font-semibold">Close with Hamza and your first month&rsquo;s mortgage is on us</span> -
                   applied as a credit on closing. All investment properties qualify.
                 </p>
               </div>

@@ -18,7 +18,7 @@ const BASE = 'https://www.mississaugainvestor.ca';
 
 // ItemList of every ranked neighbourhood so search engines read /neighbourhoods
 // as the collection page it is (each entry points to its own guide). Built from
-// the static HOOD_DATA — the same 24 that render — so the markup always matches
+// the static HOOD_DATA - the same 24 that render - so the markup always matches
 // the page (extras are CSS-hidden, never unmounted). Mirrors /guides and /blog.
 const neighbourhoodListSchema = {
   '@context': 'https://schema.org',
@@ -68,7 +68,7 @@ export default function NeighbourhoodsPage() {
   }, []);
 
   useEffect(() => {
-    // Live per-neighbourhood avg price / DOM / yield from ACTIVE listings —
+    // Live per-neighbourhood avg price / DOM / yield from ACTIVE listings -
     // not sold data, so no gate applies.
     fetch('/api/neighbourhood-stats')
       .then((r) => (r.ok ? r.json() : null))
@@ -78,7 +78,7 @@ export default function NeighbourhoodsPage() {
       .catch(() => {});
   }, []);
 
-  // Individual sold prices + addresses are VOW-restricted TRREB data — skip
+  // Individual sold prices + addresses are VOW-restricted TRREB data - skip
   // the fetch entirely while gated (matches /recent-sales and listing-detail).
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -103,7 +103,7 @@ export default function NeighbourhoodsPage() {
       isLive: !!live,
     };
   });
-  // Top 3 by gross rent yield — powers the "best neighbourhoods" answer block
+  // Top 3 by gross rent yield - powers the "best neighbourhoods" answer block
   const topByYield = [...merged].sort((a, b) => (b.rentYield || 0) - (a.rentYield || 0)).slice(0, 3);
   const filtered = filter === 'All' ? merged : merged.filter((h) => h.data.trend === filter.toLowerCase());
   const hoodCount = merged.length;
@@ -126,10 +126,10 @@ export default function NeighbourhoodsPage() {
       compact
       eyebrow="24 neighbourhoods, ranked"
       title="Best Neighbourhoods to Invest in Mississauga"
-      subtitle="Every Mississauga neighbourhood ranked for investors by rent yield, price trend, and days on market — so you can match an area to your strategy."
+      subtitle="Every Mississauga neighbourhood ranked for investors by rent yield, price trend, and days on market - so you can match an area to your strategy."
     />
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      {/* Top picks — directly answers "best neighbourhoods to invest in Mississauga" */}
+      {/* Top picks - directly answers "best neighbourhoods to invest in Mississauga" */}
       <div className="mb-8 rounded-2xl border border-accent/15 bg-gradient-to-br from-accent/5 to-white p-5 md:p-6">
         <h2 className="font-heading text-lg font-bold text-navy">
           Where to invest in Mississauga right now
@@ -169,7 +169,7 @@ export default function NeighbourhoodsPage() {
         ))}
       </div>
 
-      {/* Cards Grid — all 24 stacked ran 18 screens on mobile. Show the first 9
+      {/* Cards Grid - all 24 stacked ran 18 screens on mobile. Show the first 9
           and reveal the rest on tap. The extras are CSS-hidden, NOT unmounted,
           so every neighbourhood stays in the HTML for crawlers and the page's
           ItemList schema still matches what's rendered. */}
@@ -206,7 +206,7 @@ export default function NeighbourhoodsPage() {
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-4">
                   <h3 className="font-heading text-lg font-bold text-white drop-shadow-sm">{name}</h3>
                   <div className="flex-shrink-0 rounded-xl bg-white/95 px-3 py-1.5 text-center shadow-md">
-                    <p className="text-lg font-extrabold leading-none text-accent">{rentYield != null ? `${rentYield}%` : '—'}</p>
+                    <p className="text-lg font-extrabold leading-none text-accent">{rentYield != null ? `${rentYield}%` : '-'}</p>
                     <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
                       Rent Yield{isLive && <span className="ml-0.5 text-emerald-600">·Live</span>}
                     </p>
@@ -229,7 +229,7 @@ export default function NeighbourhoodsPage() {
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-500">Avg DOM</p>
-                  <p className="text-sm font-bold text-navy">{avgDOM != null ? `${avgDOM} days` : '—'}</p>
+                  <p className="text-sm font-bold text-navy">{avgDOM != null ? `${avgDOM} days` : '-'}</p>
                 </div>
                 <div className="rounded-lg bg-cloud p-2.5">
                   <p className="text-[10px] font-medium uppercase text-slate-500">Inventory*</p>
@@ -287,7 +287,7 @@ export default function NeighbourhoodsPage() {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY &amp; inventory</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
-      {/* Visible FAQ — renders the SAME NEIGHBOURHOODS_FAQ array as the FAQPage
+      {/* Visible FAQ - renders the SAME NEIGHBOURHOODS_FAQ array as the FAQPage
           schema above. Google requires FAQ structured data to be visible on the
           page; the schema was previously declared with none of it on screen,
           which forfeits rich-result eligibility and risks a structured-data
@@ -313,7 +313,7 @@ export default function NeighbourhoodsPage() {
         </div>
       </section>
 
-      {/* Recent Sales Activity — individual sold prices/addresses are
+      {/* Recent Sales Activity - individual sold prices/addresses are
           VOW-restricted TRREB data, gated the same real way as /recent-sales
           and the listing-detail Sold Comps tab. Shown to a not-yet-registered
           visitor as a capture prompt (mirroring every other gate on the site)
@@ -342,9 +342,9 @@ export default function NeighbourhoodsPage() {
           <AuthGate
             isAuthenticated={isAuthenticated}
             onUnlock={() => setIsAuthenticated(true)}
-            source="Neighbourhoods — Recent Sales"
+            source="Neighbourhoods - Recent Sales"
             title="See exactly what nearby homes sold for"
-            valueLine="Real sold prices, addresses and dates across Mississauga — free, no credit card."
+            valueLine="Real sold prices, addresses and dates across Mississauga - free, no credit card."
           >
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -371,7 +371,7 @@ export default function NeighbourhoodsPage() {
                         </span>
                       </td>
                       <td className="py-2.5 text-right text-xs text-muted hidden md:table-cell">
-                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '—'}
+                        {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' }) : '-'}
                       </td>
                     </tr>
                   ))}

@@ -4,13 +4,13 @@ import { computeDaysOnMarket, computeDaysSinceUpdate, parseLivingAreaRange } fro
 import { fetchWithFieldTiers } from '@/lib/listings/ampre-fields';
 import { applyFirstSeenFloor } from '@/lib/listings/first-seen';
 import { cityAliases, citySubarea } from '@/lib/constants';
-// Shared with every other feed route — see lib/listings/odata.js for why the
+// Shared with every other feed route - see lib/listings/odata.js for why the
 // ?city= param must never reach $filter unescaped.
 import { odataStr } from '@/lib/listings/odata';
 
 export const dynamic = 'force-dynamic';
 // 60, not 30: production error clusters show this route's own 30s ceiling
-// being hit (77 timeouts since Jun 24) — the cold path (field probe + 24.5k-row
+// being hit (77 timeouts since Jun 24) - the cold path (field probe + 24.5k-row
 // filter + $count + media expand) can genuinely exceed it, and a route killed
 // at 30s fails the SSR cache seed that /gta's 25s-budget fetch depends on.
 export const maxDuration = 60;
@@ -18,7 +18,7 @@ export const maxDuration = 60;
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
-// Top 15 GTA cities — keeps the OData OR filter fast
+// Top 15 GTA cities - keeps the OData OR filter fast
 const GTA_CITIES = [
   'Brampton', 'Caledon',
   'Vaughan', 'Richmond Hill', 'Markham', 'Newmarket', 'Aurora',
@@ -26,7 +26,7 @@ const GTA_CITIES = [
   'Oakville', 'Burlington', 'Milton',
   'Hamilton',
   'Barrie',
-  // Both of the Town of Halton Hills' names — see CITY_ALIAS_GROUPS in
+  // Both of the Town of Halton Hills' names - see CITY_ALIAS_GROUPS in
   // lib/constants.js. Only one of them is TREB's label and we cannot see which
   // from outside production, so asking for one alone risks the hub feed
   // silently containing none of that town's listings.
@@ -52,7 +52,7 @@ function subareaFilters(def) {
   return out;
 }
 
-// mapType now lives in lib/property-types.js — one rule, imported here.
+// mapType now lives in lib/property-types.js - one rule, imported here.
 
 // GTA-wide rent estimates by city tier
 const CITY_RENT_TIER = {
@@ -103,7 +103,7 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     // Page size is capped at 100, and the cap is load-bearing: AMPRE accepts
     // the Media $expand at $top=100 (measured: 99/99 rows return photos,
-    // fieldTier fees+media) but REJECTS it at $top=200 (~36k media rows — the
+    // fieldTier fees+media) but REJECTS it at $top=200 (~36k media rows - the
     // CDN stores ~5 size-variants per photo), which sent every standard page
     // request through 3 failed upstream calls before settling on a tier with
     // photos:[] on every row. Callers all iterate via the API's own `pages`
@@ -120,7 +120,7 @@ export async function GET(request) {
     if (searchParams.get('maxPrice')) filters.push('ListPrice le ' + parseInt(searchParams.get('maxPrice')));
     if (searchParams.get('beds')) filters.push('BedroomsTotal ge ' + parseInt(searchParams.get('beds')));
 
-    // Filter by specific city or default to all GTA cities (excluding Mississauga — that's the main page)
+    // Filter by specific city or default to all GTA cities (excluding Mississauga - that's the main page)
     const cityParam = searchParams.get('city');
     const subarea = cityParam ? citySubarea(cityParam) : null;
     if (cityParam) {
@@ -138,8 +138,8 @@ export async function GET(request) {
       } else {
         // Ask for every name this municipality can appear under. Only
         // Halton Hills/Georgetown has more than one (lib/constants.js), and it
-        // matters: /gta/georgetown used to send City eq 'Georgetown' — a name
-        // the board may not use at all — so that page could match zero rows,
+        // matters: /gta/georgetown used to send City eq 'Georgetown' - a name
+        // the board may not use at all - so that page could match zero rows,
         // while /gta/halton-hills matched rows it then displayed as Georgetown.
         // Asking for both makes each page correct under either board label.
         const names = cityAliases(cityParam);
@@ -157,12 +157,12 @@ export async function GET(request) {
     const tail = '&$top=' + limit + '&$skip=' + skip
       + '&$orderby=ModificationTimestamp desc&$count=true';
 
-    // nomedia=1 — for the whole-feed AGGREGATE walk (lib/listings/gta-screener.js),
+    // nomedia=1 - for the whole-feed AGGREGATE walk (lib/listings/gta-screener.js),
     // never for a rendered page. Photos are the dominant cost of a feed request
     // and an aggregate reads none of them; the walk is ~245 pages, so carrying
     // media through it would drag millions of media rows to compute six
     // numbers. Every other field, and therefore every computed figure, is
-    // unchanged — only `photos`/`images` come back empty.
+    // unchanged - only `photos`/`images` come back empty.
     const wantsMedia = searchParams.get('nomedia') !== '1';
     const result = await fetchWithFieldTiers(base, tail, TOK, { media: wantsMedia });
     if (result.error) {
@@ -203,7 +203,7 @@ export async function GET(request) {
       // things at once: the relabel ran BEFORE estimateRent, so those listings
       // were priced with the 0.90 unknown-city tier instead of 0.95 (rent, and
       // therefore cash flow, cap rate, cash-on-cash and Deal Score, understated
-      // — a 3-bed detached at $999k came out at $3,000/mo instead of $3,100);
+      // - a 3-bed detached at $999k came out at $3,000/mo instead of $3,100);
       // the /gta/halton-hills page displayed all of its listings as Georgetown,
       // collapsing Acton and Glen Williams under that name too; and it hid the
       // fact that /gta/georgetown was querying a city name the board may not
@@ -216,7 +216,7 @@ export async function GET(request) {
         : 0;
       const rem = l.PublicRemarks || '';
 
-      // See lib/listings/market-timing.js — ModificationTimestamp is the sync
+      // See lib/listings/market-timing.js - ModificationTimestamp is the sync
       // stamp and must never stand in for days-on-market. 0 = unknown.
       const dom = computeDaysOnMarket(l);
       const daysSinceUpdate = computeDaysSinceUpdate(l);
@@ -234,14 +234,14 @@ export async function GET(request) {
       return {
         id: l.ListingKey,
         // ListingId is VOW-suppressed (null) on active listings, but ListingKey
-      // IS the MLS number ('W13607630') — a null mlsId on every record just
+      // IS the MLS number ('W13607630') - a null mlsId on every record just
       // looks broken to anyone reading the API.
       mlsId: l.ListingId || l.ListingKey,
         price,
         address: addr(l),
         city,
         // CityRegion = the COMMUNITY, not the municipality. See the note in
-        // /api/listings — this was hardcoded to `city`, so neighbourhood
+        // /api/listings - this was hardcoded to `city`, so neighbourhood
         // filtering and the per-neighbourhood rent table never saw a real
         // community name. Falls back to city exactly as before when absent.
         neighbourhood: l.CityRegion || city,
@@ -262,12 +262,12 @@ export async function GET(request) {
         lat: l.Latitude,
         lng: l.Longitude,
         // TREB serves sqft as a banded range string; the numeric fields are
-        // unsupported. Parsed to the band midpoint — approximate by nature.
+        // unsupported. Parsed to the band midpoint - approximate by nature.
         sqft: l.LivingArea || l.BuildingAreaTotal || parseLivingAreaRange(l.LivingAreaRange),
         sqftApproximate: !l.LivingArea && !l.BuildingAreaTotal && !!l.LivingAreaRange,
         // Already selected from AMPRE (all three fallback $selects) but never
         // returned, so the sitemap had no real date for GTA listings and
-        // stamped "now" on every one. Passthrough only — no logic depends on it.
+        // stamped "now" on every one. Passthrough only - no logic depends on it.
         modificationTimestamp: l.ModificationTimestamp || null,
         originalPrice: l.OriginalListPrice || price,
         priceDrop: drop,
@@ -287,7 +287,7 @@ export async function GET(request) {
       {
         headers: {
           // Fresh ≤1h, served instantly for a day. Same split as /api/listings
-          // and for the same reasons — see the comment there. The short number
+          // and for the same reasons - see the comment there. The short number
           // (freshness) was once 86400 and that WAS a bug: day-stale counts on
           // a feed labelled live. The long number (stale-while-revalidate) is
           // what makes loads instant at this site's traffic level, and it

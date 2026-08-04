@@ -4,7 +4,7 @@ import { InlineEmailCapture } from '@/components/ui/inline-email-capture';
 import { ProofRow } from '@/components/ui/proof-row';
 
 // Shared email gate for VOW-restricted or otherwise premium data. When
-// `isAuthenticated` is false the children are not rendered at all — the
+// `isAuthenticated` is false the children are not rendered at all - the
 // caller must also skip the data fetch itself while gated, not just hide the
 // markup, so gated content never reaches the DOM or the network for an
 // anonymous visitor. Extracted from the listing-detail page's own AuthGate
@@ -28,14 +28,14 @@ export function AuthGate({ children, isAuthenticated, title, valueLine, source, 
           source={source}
           tone="light"
           listing={listing}
-          buttonLabel="Unlock — Free"
+          buttonLabel="Unlock - Free"
           note="Free forever. No credit card. Unsubscribe anytime."
           onCaptured={onUnlock}
         />
       </div>
       {/* VOW terms acceptance. This gate is what stands between an anonymous
           visitor and sold/comparable-sale data, and TRREB's VOW rules require
-          a terms-of-use agreement — not just an email — before that data is
+          a terms-of-use agreement - not just an email - before that data is
           shown. The substance lives in /terms §5; this is the assent. */}
       <p className="mt-2 text-[11px] leading-relaxed text-muted">
         By unlocking you agree to the{' '}

@@ -10,13 +10,13 @@ const HERO = {
   eyebrow: 'Live · MLS sold data',
   title: 'Mississauga Recent Sales & Sold Prices',
   subtitle:
-    'Recently sold properties in Mississauga — see what investors are actually paying, days on market, and the list-vs-sold gap.',
+    'Recently sold properties in Mississauga - see what investors are actually paying, days on market, and the list-vs-sold gap.',
 };
 
 const TYPE_FILTERS = ['All', 'Detached', 'Semi-Detached', 'Townhouse', 'Condo'];
 
 function timeAgo(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   const now = new Date();
   const date = new Date(dateStr);
   const diff = Math.floor((now - date) / 1000);
@@ -28,7 +28,7 @@ function timeAgo(dateStr) {
 }
 
 function formatDate(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-CA', {
     month: 'short',
     day: 'numeric',
@@ -48,7 +48,7 @@ export function RecentSalesClient() {
     setIsAuthenticated(registered);
   }, []);
 
-  // Individual sold prices + addresses are VOW-restricted TRREB data — this
+  // Individual sold prices + addresses are VOW-restricted TRREB data - this
   // used to fetch and render them for every anonymous visitor. Now the fetch
   // itself is skipped while gated, so no sold record ever reaches an
   // unauthenticated browser (matches the listing-detail Sold Comps tab).
@@ -96,14 +96,14 @@ export function RecentSalesClient() {
       <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-      {/* Individual sold prices + addresses are VOW-restricted TRREB data —
+      {/* Individual sold prices + addresses are VOW-restricted TRREB data -
           gated the same real way as the listing-detail Sold Comps tab. */}
       <AuthGate
         isAuthenticated={isAuthenticated}
         onUnlock={() => setIsAuthenticated(true)}
-        source="Recent Sales — Sold Data"
+        source="Recent Sales - Sold Data"
         title="See exactly what nearby homes sold for"
-        valueLine="Real sold prices, dates and the list-vs-sold gap for every recent Mississauga sale — free, no credit card."
+        valueLine="Real sold prices, dates and the list-vs-sold gap for every recent Mississauga sale - free, no credit card."
       >
 
       {/* Stats Cards */}

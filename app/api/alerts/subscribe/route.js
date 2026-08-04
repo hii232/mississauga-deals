@@ -40,7 +40,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
     }
 
-    // Sanitize into the CANONICAL client/applyFilters filter shape — the same
+    // Sanitize into the CANONICAL client/applyFilters filter shape - the same
     // shape the Save-Search button sends and the daily cron consumes. (The old
     // allow-list here was a disjoint legacy format, so every saved search
     // stored ~empty filters and alerts matched everything.) Legacy simple keys
@@ -93,7 +93,7 @@ export async function POST(request) {
         }),
       });
     } catch {
-      // Lead capture is optional — don't fail the main request
+      // Lead capture is optional - don't fail the main request
     }
 
     return NextResponse.json({ success: true, id: data.id });

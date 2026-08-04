@@ -12,12 +12,12 @@ const BASE = 'https://www.mississaugainvestor.ca';
 // Upstream pages of 200 rows to pull per listing feed. Both feeds use the same
 // budget so neither is arbitrarily favoured; see the GTA branch for why full
 // coverage needs a sitemap index rather than a bigger number here.
-// 30 pages × 100 rows — the feed page size is capped at 100 (media-expand
+// 30 pages × 100 rows - the feed page size is capped at 100 (media-expand
 // limit, see app/api/listings/route.js), so the budget doubles to keep the
 // same ~3,000-listing coverage as before.
 const LISTING_PAGE_BUDGET = 30;
 
-// Hard per-request timeout — see the note in app/image-sitemap.xml/route.js.
+// Hard per-request timeout - see the note in app/image-sitemap.xml/route.js.
 // This file makes up to 2 x LISTING_PAGE_BUDGET upstream calls inside a 60s
 // static-generation budget; an unbounded hang fails the entire build.
 const FETCH_TIMEOUT_MS = 8000;
@@ -49,7 +49,7 @@ const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june',
 function monthStringToISO(monthYear) {
   if (typeof monthYear !== 'string') return null;
   // Parse explicitly. `new Date('not-a-month 1 UTC')` does NOT return Invalid
-  // Date — V8 coerces it to the year 2001 — so a typo in the constant would
+  // Date - V8 coerces it to the year 2001 - so a typo in the constant would
   // have silently published a 25-year-old lastmod on all 24 guide pages.
   const m = monthYear.trim().match(/^([A-Za-z]+)\s+(\d{4})$/);
   if (!m) return null;
@@ -57,7 +57,7 @@ function monthStringToISO(monthYear) {
   if (monthIdx === -1) return null;
   const year = Number(m[2]);
   if (!Number.isFinite(year) || year < 2000 || year > 2100) return null;
-  // End of that month — the latest point the stated content was true.
+  // End of that month - the latest point the stated content was true.
   return new Date(Date.UTC(year, monthIdx + 1, 0)).toISOString();
 }
 
@@ -102,7 +102,7 @@ export default async function sitemap() {
     // 6 hours and used to stamp `now` on all ~80 static URLs, telling Google
     // that every guide, legal page and landing page changed twice a day. Google
     // treats a consistently unreliable lastmod as a reason to IGNORE lastmod for
-    // the whole site — which would throw away the accurate per-listing and
+    // the whole site - which would throw away the accurate per-listing and
     // per-post dates below, the ones that actually matter for recrawl. Omitting
     // it is explicitly fine; lying is not.
   ].map((p) => (FEED_DRIVEN.has(p.url) ? { ...p, lastModified: now } : p));
@@ -117,7 +117,7 @@ export default async function sitemap() {
     priority: 0.75,
   }));
 
-  // ── GTA city pages (/gta/[city]) — path-segment URLs so Google treats each
+  // ── GTA city pages (/gta/[city]) - path-segment URLs so Google treats each
   // as a genuinely distinct page with its own canonical (previously these were
   // /gta?city=X query-param variants, which Google consolidated into /gta and
   // reported as "Duplicate, Google chose different canonical than user"). ──
@@ -131,7 +131,7 @@ export default async function sitemap() {
   // ── Dynamic listing pages ──
   let listingPages = [];
   try {
-    // Public domain, NOT VERCEL_URL — the *.vercel.app URL is behind Vercel
+    // Public domain, NOT VERCEL_URL - the *.vercel.app URL is behind Vercel
     // deployment protection, so fetching it 401s and the sitemap loses all
     // listing URLs.
     const baseUrl =
@@ -139,13 +139,13 @@ export default async function sitemap() {
         ? 'http://localhost:3000'
         : 'https://www.mississaugainvestor.ca';
 
-    // Shared feed fetch — the SAME limit=100 cache keys the pages and
+    // Shared feed fetch - the SAME limit=100 cache keys the pages and
     // market-stats read. This branch kept its own limit=200 loop, i.e. its
     // own set of Data Cache entries with their own staleness, which is the
     // split-brain that had the sitemap regenerate with ZERO listing URLs
     // while the pages were serving fresh rows.
     // nomedia=1: this branch reads ListingKey and modificationTimestamp and
-    // nothing else — the photos it was paying for were never even looked at.
+    // nothing else - the photos it was paying for were never even looked at.
     // The Media $expand is the dominant cost of a feed request, and losing
     // page 1 to a timeout is what leaves the sitemap with ZERO listing URLs.
     // (image-sitemap.xml is the one feed consumer that DOES need photos and
@@ -162,7 +162,7 @@ export default async function sitemap() {
         .filter((l) => l.ListingKey || l.id)
         .map((l) => ({
           url: `${BASE}/listings/${l.ListingKey || l.id}`,
-          // Real MLS modification timestamp, or nothing — never a fake stamp.
+          // Real MLS modification timestamp, or nothing - never a fake stamp.
           ...(l.modificationTimestamp || l.ModificationTimestamp
             ? { lastModified: l.modificationTimestamp || l.ModificationTimestamp }
             : {}),
@@ -182,7 +182,7 @@ export default async function sitemap() {
   // DELIBERATELY TRUNCATED, and the number matters: the live GTA feed carries
   // ~24,500 active listings (measured against production 2026-07-26), so this
   // submits a fraction of them. The page budget now MATCHES the Mississauga
-  // branch above rather than sitting at an arbitrary third of it — the feed is
+  // branch above rather than sitting at an arbitrary third of it - the feed is
   // ordered by ModificationTimestamp desc, so what gets submitted is the most
   // recently updated, which is the right slice if you can only take one.
   //
@@ -211,7 +211,7 @@ export default async function sitemap() {
         .filter((l) => l.id)
         .map((l) => ({
           url: `${BASE}/listings/${l.id}`,
-          // Real MLS timestamp or nothing — same rule as the Mississauga
+          // Real MLS timestamp or nothing - same rule as the Mississauga
           // listings above. This branch used to stamp `now` on up to 1,000
           // URLs every 6 hours, which is the exact unreliable-lastmod signal
           // the comment on the static pages warns about: Google responds by
@@ -238,7 +238,7 @@ export default async function sitemap() {
         blogPages = posts
           // A sitemap entry is a canonical claim. Skip posts that 308-redirect
           // away (next.config.js) or whose rel=canonical points at a dedicated
-          // page (CANONICAL_OVERRIDES) — submitting them tells Google "index
+          // page (CANONICAL_OVERRIDES) - submitting them tells Google "index
           // this URL" while the URL itself says "I'm not the real one". Both
           // lists live in lib/blog/canonical-overrides.js so they can't drift.
           .filter((p) => !isNonCanonicalBlogSlug(p.slug))

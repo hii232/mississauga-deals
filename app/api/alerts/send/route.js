@@ -21,7 +21,7 @@ const plural = (n, singular, pluralForm = `${singular}s`) => `${n} ${n === 1 ? s
 // Newsletter uses 60s for one batch send; alerts do N sends, so give headroom.
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
-// — worst case ~75s before a single email sends. The old budget could kill
+// - worst case ~75s before a single email sends. The old budget could kill
 // the route mid-walk on a slow upstream, so the send silently never happened.
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -31,7 +31,7 @@ const supabase =
     ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
     : null;
 
-// Public site URL — never build the internal fetch from request.url / VERCEL_URL:
+// Public site URL - never build the internal fetch from request.url / VERCEL_URL:
 // on a cron invocation that resolves to the *.vercel.app deployment host, which is
 // behind Vercel deployment protection and serves an HTML auth wall (200), so the
 // self-fetch never reaches /api/listings and JSON.parse chokes on "<!DOCTYPE ...".
@@ -52,7 +52,7 @@ export async function GET(request) {
 export async function POST(request) {
   // Cron-or-admin, failing CLOSED. The old guard was skipped entirely when
   // CRON_SECRET was unset, which left the highest-consequence endpoint on the
-  // site — a mass send to every subscriber — open to anyone who knew the URL.
+  // site - a mass send to every subscriber - open to anyone who knew the URL.
   const denied = requireCronOrAdmin(request);
   if (denied) return denied;
 
@@ -61,7 +61,7 @@ export async function POST(request) {
   // but never calls Resend and never writes to saved_searches or
   // alert_sent_listings. This exists so "does the alert pipeline actually
   // work" can be answered from the admin dashboard without risking a real
-  // email reaching a real subscriber — Vercel Cron never sets this (it always
+  // email reaching a real subscriber - Vercel Cron never sets this (it always
   // GETs with no query string), so the daily schedule is untouched.
   const dryRun = new URL(request.url).searchParams.get('dryRun') === '1';
 
@@ -71,10 +71,10 @@ export async function POST(request) {
     }
     // Fail loudly if the sender isn't configured at all. Without this the run
     // would look "successful" (sent: 0) while every send was doomed. Skipped
-    // in dry-run mode — the whole point is answering "does matching work" even
+    // in dry-run mode - the whole point is answering "does matching work" even
     // when Resend itself isn't configured yet.
     if (!dryRun && !process.env.RESEND_API_KEY) {
-      console.error('Alerts: RESEND_API_KEY is not set — no alert email can be sent.');
+      console.error('Alerts: RESEND_API_KEY is not set - no alert email can be sent.');
       return NextResponse.json(
         { error: 'Email sending is not configured (RESEND_API_KEY missing)', sent: 0 },
         { status: 503 }
@@ -88,25 +88,25 @@ export async function POST(request) {
 
     if (searchErr) throw searchErr;
     // NO early return on zero saved searches any more: the default audience
-    // (every lead, below) is the majority of recipients — before 2026-08-03
+    // (every lead, below) is the majority of recipients - before 2026-08-03
     // this exit meant "nobody built a saved search" silenced the entire alert
     // product for 483 captured contacts.
     const activeSearches = searches || [];
 
-    // 2. Fetch current listings — ALL pages. This route used to fetch page 1
+    // 2. Fetch current listings - ALL pages. This route used to fetch page 1
     // only (200 rows), so every saved search was matched against ~8% of the
     // active inventory and alerts silently under-delivered. fetchAllListings
     // keeps the same loud-failure and non-JSON guards.
     const rawListings = await fetchAllListings(SITE_URL, '/api/listings');
     const allListings = processListings(rawListings.listings);
     // Surfaced in every response, success or "sent 0", because "0 emails went
-    // out" is ambiguous on its own — it's the normal, healthy result on a day
+    // out" is ambiguous on its own - it's the normal, healthy result on a day
     // with nothing new, and it's ALSO what a dead AMPRE token looks like (feed
     // returns nothing, every search matches nothing, indistinguishable from
     // "quiet day" without this number sitting next to it).
     let feedListingCount = allListings.length;
 
-    // 2b. GTA pool — only fetched when some saved search is scoped outside
+    // 2b. GTA pool - only fetched when some saved search is scoped outside
     // Mississauga (filters.city set by the save-search flow on /gta pages).
     // A GTA feed failure must not kill Mississauga alerts: those searches just
     // match nothing this run, and the error is logged for diagnosis.
@@ -116,7 +116,7 @@ export async function POST(request) {
     );
     if (needsGta) {
       try {
-        // Full GTA pool too — same page-1-only bug applied here.
+        // Full GTA pool too - same page-1-only bug applied here.
         const rawGta = await fetchAllListings(SITE_URL, '/api/listings-gta');
         gtaListings = processListings(rawGta.listings);
       } catch (err) {
@@ -137,13 +137,13 @@ export async function POST(request) {
     // 3b. Repeat-send guard: the DOM<=3 freshness window keeps a listing
     // eligible for up to 4 consecutive daily sends, so without this a
     // subscriber sees the same "new" property four days running. Load what
-    // each recipient was already sent in the last 7 days (ample — nothing
+    // each recipient was already sent in the last 7 days (ample - nothing
     // stays DOM<=3 longer than 4). If the table doesn't exist yet (migration
     // not run) or the query fails, the set stays empty and behavior is
-    // exactly the pre-guard behavior — never block the send over dedupe.
+    // exactly the pre-guard behavior - never block the send over dedupe.
     const alreadySent = new Map(); // email -> Set(listing_id)
     // email -> most recent sent_at (ms). Doubles as the default audience's
-    // frequency cap — the dedupe rows are also a send diary.
+    // frequency cap - the dedupe rows are also a send diary.
     const lastSentAt = new Map();
     // The default audience below requires this to be true. For saved-search
     // owners a guard outage degrades to pre-guard behaviour (fail-open, their
@@ -154,7 +154,7 @@ export async function POST(request) {
       const lookback = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       // No .in(email) filter: the audience is now ~500 addresses (URL-length
       // trouble as a querystring), and housekeeping caps this table at 14 days
-      // of rows anyway — read it all and filter in memory.
+      // of rows anyway - read it all and filter in memory.
       const { data: sentRows, error: sentErr } = await supabase
         .from('alert_sent_listings')
         .select('email, listing_id, sent_at')
@@ -169,7 +169,7 @@ export async function POST(request) {
       }
     } catch (err) {
       console.error(
-        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) — saved-search sends continue without dedupe; default-audience sends are SKIPPED:',
+        'Alerts: repeat-send guard unavailable (run supabase/migrations/create_alert_sent_listings.sql?) - saved-search sends continue without dedupe; default-audience sends are SKIPPED:',
         err?.message || err
       );
     }
@@ -178,7 +178,7 @@ export async function POST(request) {
     const failures = [];
     const preview = []; // dry-run only: what WOULD have gone out, and to whom
     // Populated in BOTH modes. "Sent 0" / "would send 0" is ambiguous on its
-    // own — it's the normal, healthy result on a day with nothing new, and
+    // own - it's the normal, healthy result on a day with nothing new, and
     // it's ALSO what a dead feed or an over-narrow saved search looks like.
     // `matched` (before the freshness/dedupe rule) vs `fresh` (after it) tells
     // them apart: matched>0 & fresh=0 means "nothing NEW today" (fine);
@@ -188,8 +188,8 @@ export async function POST(request) {
 
     // 4. For each email, find matching listings across all their saved searches
     for (const [email, userData] of Object.entries(byEmail)) {
-      const allMatches = new Map(); // dedup by listing ID — FRESH (what would send)
-      const allMatchedPreFreshness = new Map(); // dedup by listing ID — matched filters, before freshness
+      const allMatches = new Map(); // dedup by listing ID - FRESH (what would send)
+      const allMatchedPreFreshness = new Map(); // dedup by listing ID - matched filters, before freshness
       const sentToUser = alreadySent.get(email) || new Set();
 
       for (const search of userData.searches) {
@@ -208,7 +208,7 @@ export async function POST(request) {
         }
 
         // Only include "new" listings (DOM <= 3 or first alert), and never a
-        // listing this recipient already received in the last 7 days — the
+        // listing this recipient already received in the last 7 days - the
         // first-alert path is filtered too, so a second saved search doesn't
         // re-deliver properties an earlier alert already showed.
         const isFirstAlert = !search.last_sent_at;
@@ -217,7 +217,7 @@ export async function POST(request) {
           ? unseen.slice(0, 10) // First alert: top 10 matches
           // Freshness without fabrication: real DOM 1-3 when the feed supplies
           // it; otherwise fall back to "record changed in the last 3 days"
-          // (daysSinceUpdate) — an honest proxy for newly listed/changed, and
+          // (daysSinceUpdate) - an honest proxy for newly listed/changed, and
           // the only market-timing signal the feed serves on active listings.
           // The old `l.dom <= 3` matched EVERY listing once DOM became an
           // honest 0-when-unknown, which would have made the daily email an
@@ -249,7 +249,7 @@ export async function POST(request) {
         .sort((a, b) => b.hamzaScore - a.hamzaScore)
         .slice(0, 15); // Cap at 15 listings per email
 
-      // Dry run stops HERE — after the exact same matching pipeline a real
+      // Dry run stops HERE - after the exact same matching pipeline a real
       // send would use, before anything is sent or recorded. No Resend call,
       // no saved_searches update, no alert_sent_listings write: this branch
       // cannot email anyone or change what tomorrow's real run considers "new".
@@ -287,7 +287,7 @@ export async function POST(request) {
           to: email,
           subject: alertSubject(listings),
           html: emailHtml,
-          // RFC 8058 one-click unsubscribe — required by Gmail/Yahoo bulk-sender
+          // RFC 8058 one-click unsubscribe - required by Gmail/Yahoo bulk-sender
           // rules for a daily list send. Missing it depresses inbox placement.
           headers: {
             'List-Unsubscribe': `<${unsubscribeUrl(email)}>`,
@@ -305,7 +305,7 @@ export async function POST(request) {
           .update({ last_sent_at: new Date().toISOString() })
           .in('id', ids);
         // Record what this email contained so tomorrow's run won't repeat it.
-        // Recorded ONLY after Resend accepts — a rejected send stays eligible.
+        // Recorded ONLY after Resend accepts - a rejected send stays eligible.
         // upsert (not insert) so a listing re-alerted after the 7-day window
         // refreshes its sent_at instead of failing the primary key.
         try {
@@ -322,13 +322,13 @@ export async function POST(request) {
           console.error(`Alerts: could not record sent listings for ${email}:`, err?.message || err);
         }
       } else {
-        // A rejected send used to be swallowed silently — the run just reported
+        // A rejected send used to be swallowed silently - the run just reported
         // "sent: 0" with no reason, so a misconfigured sender (unverified domain
         // -> 403, bad key -> 401, bad from-address -> 422) looked identical to
         // "nobody matched today". Capture Resend's own message so one look at
         // the cron response or the logs says exactly what is wrong.
         const detail = await resendRes.text().catch(() => '');
-        const reason = `HTTP ${resendRes.status}${detail ? ` — ${detail.slice(0, 300)}` : ''}`;
+        const reason = `HTTP ${resendRes.status}${detail ? ` - ${detail.slice(0, 300)}` : ''}`;
         failures.push({ email, reason });
         console.error(`Alerts: Resend REJECTED the send to ${email}: ${reason}`);
       }
@@ -336,11 +336,11 @@ export async function POST(request) {
 
     // ── 6. DEFAULT AUDIENCE: every lead without a saved search ──────────────
     // (Hamza, 2026-08-03: "point the daily alert at leads".) Until now this
-    // route served only saved_searches — yesterday's run reached exactly ONE
+    // route served only saved_searches - yesterday's run reached exactly ONE
     // person while 483 captured contacts got nothing. Rules for this group
     // live in lib/alerts/default-audience.js: deal score >= 8 only, max 6
     // listings, one email per recipient per 3 days, 120 sends per run, and
-    // NOTHING unless alert_sent_listings is reachable (fail-closed — without
+    // NOTHING unless alert_sent_listings is reachable (fail-closed - without
     // the dedupe diary this would be an uncapped daily blast).
     const defaultAudience = {
       guardReady: guardOk,
@@ -349,9 +349,9 @@ export async function POST(request) {
     const defaultDeals = pickDefaultDeals(allListings);
     defaultAudience.deals = defaultDeals.length;
     if (!guardOk) {
-      defaultAudience.skippedReason = 'alert_sent_listings unreachable — fail-closed for the lead audience';
+      defaultAudience.skippedReason = 'alert_sent_listings unreachable - fail-closed for the lead audience';
     } else if (defaultDeals.length === 0) {
-      defaultAudience.skippedReason = 'no fresh listings scoring 8+ today — nothing worth 483 inboxes';
+      defaultAudience.skippedReason = 'no fresh listings scoring 8+ today - nothing worth 483 inboxes';
     } else {
       const recipients = await getBroadcastRecipients(supabase);
       const savedEmails = new Set(Object.keys(byEmail).map((e) => String(e).toLowerCase().trim()));
@@ -409,11 +409,11 @@ export async function POST(request) {
         } else {
           const detail = await res.text().catch(() => '');
           defaultAudience.failed++;
-          failures.push({ email: r.email, reason: `HTTP ${res.status}${detail ? ` — ${detail.slice(0, 200)}` : ''}` });
+          failures.push({ email: r.email, reason: `HTTP ${res.status}${detail ? ` - ${detail.slice(0, 200)}` : ''}` });
         }
       }
       console.log(
-        `Alerts: default audience — ${defaultAudience.sent} ${dryRun ? 'would be ' : ''}sent of ${eligible.length} eligible ` +
+        `Alerts: default audience - ${defaultAudience.sent} ${dryRun ? 'would be ' : ''}sent of ${eligible.length} eligible ` +
         `(${cooling} cooling down, ${capped} deferred to next run) from ${defaultDeals.length} qualifying deals.`
       );
     }
@@ -427,18 +427,18 @@ export async function POST(request) {
     }
 
     if (dryRun) {
-      // No housekeeping either — a dry run touches nothing but reads.
+      // No housekeeping either - a dry run touches nothing but reads.
       const totalWouldSend = preview.reduce((n, p) => n + p.wouldSend, 0);
       const totalMatched = matchSummary.reduce((n, m) => n + m.matched, 0);
       let message;
       if (totalWouldSend > 0) {
-        message = `Would send ${totalWouldSend} listing${totalWouldSend === 1 ? '' : 's'} across ${preview.filter((p) => p.wouldSend > 0).length} email${preview.filter((p) => p.wouldSend > 0).length === 1 ? '' : 's'} — nothing was actually sent.`;
+        message = `Would send ${totalWouldSend} listing${totalWouldSend === 1 ? '' : 's'} across ${preview.filter((p) => p.wouldSend > 0).length} email${preview.filter((p) => p.wouldSend > 0).length === 1 ? '' : 's'} - nothing was actually sent.`;
       } else if (feedListingCount === 0) {
-        message = `The feed returned 0 active listings — nothing can match. Check the AMPRE token before assuming subscriber filters are the problem.`;
+        message = `The feed returned 0 active listings - nothing can match. Check the AMPRE token before assuming subscriber filters are the problem.`;
       } else if (totalMatched === 0) {
         message = `The feed has ${plural(feedListingCount, 'active listing')}, but 0 currently match any saved search's filters (see each recipient's "matched" count below).`;
       } else {
-        message = `${plural(feedListingCount, 'active listing')}, ${totalMatched} match a saved search — but none are NEW since the last alert. That's expected on a quiet day, not a failure.`;
+        message = `${plural(feedListingCount, 'active listing')}, ${totalMatched} match a saved search - but none are NEW since the last alert. That's expected on a quiet day, not a failure.`;
       }
       return NextResponse.json({
         dryRun: true,
@@ -453,7 +453,7 @@ export async function POST(request) {
     }
 
     // Housekeeping: guard rows older than double the lookback window are dead
-    // weight — clear them so the table stays a few thousand rows, not months
+    // weight - clear them so the table stays a few thousand rows, not months
     // of history. Best-effort; a failure (incl. missing table) changes nothing.
     try {
       await supabase
@@ -463,17 +463,17 @@ export async function POST(request) {
     } catch {}
 
     // "Sent 0 alert emails" alone reads as a failure but is the normal, daily
-    // result whenever nobody has a new match — this is exactly what confused
+    // result whenever nobody has a new match - this is exactly what confused
     // the "is delivery broken?" question the first time this ran for real.
     // Same disambiguation as the dry-run message, built from the same counts.
     const totalMatchedReal = matchSummary.reduce((n, m) => n + m.matched, 0);
     let sentZeroReason = '';
     if (sentCount === 0 && failures.length === 0) {
       sentZeroReason = feedListingCount === 0
-        ? ' The feed returned 0 active listings — nothing could match. Check the AMPRE token.'
+        ? ' The feed returned 0 active listings - nothing could match. Check the AMPRE token.'
         : totalMatchedReal === 0
           ? ` The feed has ${plural(feedListingCount, 'active listing')}, but 0 match any saved search's filters right now.`
-          : ` ${plural(feedListingCount, 'active listing')}, ${totalMatchedReal} match a saved search — just none are new since the last alert. Normal on a quiet day.`;
+          : ` ${plural(feedListingCount, 'active listing')}, ${totalMatchedReal} match a saved search - just none are new since the last alert. Normal on a quiet day.`;
     }
 
     return NextResponse.json({
@@ -507,7 +507,7 @@ function alertSubject(listings) {
       return `New deal: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow${where}${more}`;
     }
     if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
-      return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} — top ${top.capRate.toFixed(1)}% cap rate${where}`;
+      return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} - top ${top.capRate.toFixed(1)}% cap rate${where}`;
     }
   }
   return `${n} New Investment ${n === 1 ? 'Deal' : 'Deals'} in Mississauga`;
@@ -518,7 +518,7 @@ const UTM = 'utm_source=alerts&utm_medium=email&utm_campaign=daily-alert';
 // The rent every cash-flow figure in the email assumes. The site's listing
 // cards state this on every card (an investor's critique: a cash-flow number
 // with an unstated rent assumption is not credible), but the emails shipped
-// the figures bare — so the channel that reaches subscribers directly was the
+// the figures bare - so the channel that reaches subscribers directly was the
 // one place the assumption stayed hidden. Reads the SAME fields the card's
 // RentAssumption component reads, so the two can never disagree; returns ''
 // when rent is missing rather than inventing one.
@@ -535,7 +535,7 @@ function rentAssumptionLine(l) {
   } else if (basement > 0 && base > 0) {
     breakdown = ` · ${money(base)} main + ${money(basement)} ${l.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
-  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) - CAP
   // and cash flow for every condo/apt listing are computed on a bedroom/sqft
   // estimate, and the site labels that figure "Condo Fee (est.)" everywhere
   // it's shown. The email rendered the same estimate-derived numbers with no
@@ -550,7 +550,7 @@ function rentAssumptionLine(l) {
  * opts.audience === 'default' renders the lead-audience edition: same layout
  * and figures, but the intro says what this actually is (the day's top-scoring
  * new listings, not "your saved search") and the footer unsubscribes the
- * EMAIL via the signed token — these recipients have no saved-search row to
+ * EMAIL via the signed token - these recipients have no saved-search row to
  * point an ?id= link at. Honesty constraint: never tell someone they have a
  * saved search they never made.
  */
@@ -560,7 +560,7 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
     .map(
       (l) => {
         // Guard every rendered number: a single malformed listing (undefined /
-        // NaN capRate, cashFlow or score — the same case the listings grid had
+        // NaN capRate, cashFlow or score - the same case the listings grid had
         // to defend against) must never throw and abort the whole email, which
         // would leave this subscriber with NO alert. Fall back to safe values.
         const score = Number.isFinite(l.hamzaScore) ? l.hamzaScore : null;
@@ -589,7 +589,7 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
               <td style="text-align: right; vertical-align: top;">
                 <div style="font-weight: 700; color: #1B2A4A; font-size: 16px;">${fmtPrice(price)}</div>
                 <div style="display: inline-block; background: ${scoreBg}; color: white; font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 12px; margin-top: 4px;">
-                  ${score == null ? '—' : score.toFixed(1)}
+                  ${score == null ? '-' : score.toFixed(1)}
                 </div>
               </td>
             </tr>
@@ -598,15 +598,15 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
                 <table cellpadding="0" cellspacing="0">
                   <tr>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #475569; margin-right: 8px;">
-                      CAP ${cap == null ? '—' : cap.toFixed(1) + '%'}
+                      CAP ${cap == null ? '-' : cap.toFixed(1) + '%'}
                     </td>
                     <td width="8"></td>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: ${cf == null ? '#475569' : cf >= 0 ? '#047857' : '#DC2626'}; font-weight: 600;">
-                      PCF ${cf == null ? '—' : cf >= 0 ? `+$${cf.toLocaleString()}/mo` : `−$${Math.abs(cf).toLocaleString()}/mo`}
+                      PCF ${cf == null ? '-' : cf >= 0 ? `+$${cf.toLocaleString()}/mo` : `−$${Math.abs(cf).toLocaleString()}/mo`}
                     </td>
                     <td width="8"></td>
                     <td style="background: #F1F5F9; border-radius: 6px; padding: 4px 10px; font-size: 12px; color: #475569;">
-                      ${dom == null ? '—' : dom + ' DOM'}
+                      ${dom == null ? '-' : dom + ' DOM'}
                     </td>
                   </tr>
                 </table>
@@ -633,11 +633,11 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin: 0; padding: 0; background: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- Preheader: the inbox preview snippet. Hidden in the body but shown by the
-       client next to the subject — prime open-rate real estate. -->
+       client next to the subject - prime open-rate real estate. -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F8FAFC;opacity:0;">
     ${isDefault
-      ? `Today&rsquo;s top-scoring new ${listings.length === 1 ? 'listing' : 'listings'} — cash flow, cap rate &amp; deal score on each.`
-      : `${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search — cash flow, cap rate &amp; deal score on each.`}
+      ? `Today&rsquo;s top-scoring new ${listings.length === 1 ? 'listing' : 'listings'} - cash flow, cap rate &amp; deal score on each.`
+      : `${listings.length} new ${listings.length === 1 ? 'match' : 'matches'} for your saved search - cash flow, cap rate &amp; deal score on each.`}
   </div>
   <table width="100%" cellpadding="0" cellspacing="0" style="background: #F8FAFC; padding: 32px 16px;">
     <tr>
@@ -668,7 +668,7 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
               </div>
               <div style="color: #64748B; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
                 ${isDefault
-                  ? `${listings.length === 1 ? 'One listing hit' : `${listings.length} new listings hit`} the market scoring <strong>8+ out of 10</strong> on cash flow, cap rate and value &mdash; the bar only a handful clear each week. Here ${listings.length === 1 ? 'it is' : 'they are'}, best first.`
+                  ? `${listings.length === 1 ? 'One listing hit' : `${listings.length} new listings hit`} the market scoring <strong>8+ out of 10</strong> on cash flow, cap rate and value - the bar only a handful clear each week. Here ${listings.length === 1 ? 'it is' : 'they are'}, best first.`
                   : `${listings.length} new investment ${listings.length === 1 ? 'property matches' : 'properties match'} your saved search criteria.`}
               </div>
 
@@ -676,9 +676,9 @@ function buildAlertEmail(listings, name, searches, opts = {}) {
                 ${listingRows}
               </table>
 
-              <!-- Metric legend — explains the CAP vs PCF question every investor asks -->
+              <!-- Metric legend - explains the CAP vs PCF question every investor asks -->
               <div style="margin-top: 18px; padding: 12px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #64748B; font-size: 12px; line-height: 1.55;">
-                <strong style="color: #475569;">CAP</strong> is the yield before financing (all-cash). <strong style="color: #475569;">PCF</strong> is your monthly cash flow after the mortgage. A positive CAP with a small negative PCF is normal at today&rsquo;s rates &mdash; most of that gap is principal you keep as equity.
+                <strong style="color: #475569;">CAP</strong> is the yield before financing (all-cash). <strong style="color: #475569;">PCF</strong> is your monthly cash flow after the mortgage. A positive CAP with a small negative PCF is normal at today&rsquo;s rates - most of that gap is principal you keep as equity.
                 <br /><br />
                 Every figure assumes ${DEFAULT_ASSUMPTIONS.downPaymentPercent}% down at ${DEFAULT_ASSUMPTIONS.annualInterestRate}% over ${DEFAULT_ASSUMPTIONS.amortizationYears} years, plus property tax, insurance, maintenance and vacancy. <a href="https://www.mississaugainvestor.ca/score-methodology?${UTM}" style="color: #2563EB;">See the full methodology</a> or change any assumption on a listing page.
               </div>

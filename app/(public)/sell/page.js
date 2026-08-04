@@ -13,7 +13,7 @@ const BASE = 'https://www.mississaugainvestor.ca';
 export const revalidate = 3600;
 
 export const metadata = {
-  // Title targets the dominant seller query — "what is my home worth" — which
+  // Title targets the dominant seller query - "what is my home worth" - which
   // is how most Mississauga homeowners begin the selling journey. The H1 and
   // body copy then convert that visitor into a valuation request.
   title: { absolute: 'What Is My Mississauga Home Worth? Free Home Valuation' },
@@ -32,26 +32,26 @@ export const metadata = {
   alternates: { canonical: '/sell' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Free Mississauga Home Valuation — MississaugaInvestor.ca' }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Free Mississauga Home Valuation - MississaugaInvestor.ca' }],
     title: 'What Is My Mississauga Home Worth? Free Home Valuation',
-    description: 'A free, data-backed home valuation from a licensed Mississauga agent — real comparable sales, not an online estimate. No obligation.',
+    description: 'A free, data-backed home valuation from a licensed Mississauga agent - real comparable sales, not an online estimate. No obligation.',
     url: `${BASE}/sell`,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'What Is My Mississauga Home Worth? Free Home Valuation',
-    description: 'Free home valuation from a licensed Mississauga agent — real comparable sales, not an algorithm.',
+    description: 'Free home valuation from a licensed Mississauga agent - real comparable sales, not an algorithm.',
     images: ['/opengraph-image'],
   },
 };
 
 // Page-relevant service structured data for the seller page. No self-serving
-// aggregateRating (Google discourages it on self-markup) — the real 5.0 Google
+// aggregateRating (Google discourages it on self-markup) - the real 5.0 Google
 // rating stays as visible on-page proof only.
 const agentServiceSchema = {
   '@context': 'https://schema.org',
   '@type': 'RealEstateAgent',
-  name: 'Hamza Nouman — Cityscape Real Estate',
+  name: 'Hamza Nouman - Cityscape Real Estate',
   description: 'Mississauga listing agent. Free, data-backed home valuations and full-service listings priced and marketed to sell for the most.',
   url: `${BASE}/sell`,
   image: `${BASE}/images/hamza-headshot.jpg`,
@@ -70,11 +70,11 @@ const agentServiceSchema = {
   provider: { '@type': 'Person', '@id': `${BASE}/about#hamza-nouman`, name: 'Hamza Nouman' },
 };
 
-// Honest, general answers — no fabricated stats, commissions, or timelines.
+// Honest, general answers - no fabricated stats, commissions, or timelines.
 // Specifics come from the free valuation + CMA, which every answer routes back to.
 //
 // A FUNCTION, not a static array: two of these answers quote how many listings
-// the engine scores, and they also ship inside this page's FAQPage JSON-LD — so
+// the engine scores, and they also ship inside this page's FAQPage JSON-LD - so
 // a hardcoded figure sent a stale number to Google as well as to the reader.
 // They said "over 1,800" while the same page's stat tile showed the live count,
 // contradicting itself in its own copy.
@@ -86,44 +86,44 @@ function buildSellFaq(propertiesAnalyzed) {
     // because a figure in schema can be shown by Google long after prices move.
     question: 'What is my Mississauga home worth?',
     answer:
-      `Your home's value depends on four things: what comparable homes in your area actually sold for in the last 90 days, what similar homes are listed for right now (your competition), your home's specific features (size, layout, condition, secondary-suite potential), and current buyer demand in your neighbourhood. An online estimate uses only the first two and ignores the rest — which is why the same Zestimate or HouseSigma figure can be $50,000–$100,000 off. A free CMA from Hamza uses all four, sourced from real MLS data and a walkthrough of your specific home.`,
+      `Your home's value depends on four things: what comparable homes in your area actually sold for in the last 90 days, what similar homes are listed for right now (your competition), your home's specific features (size, layout, condition, secondary-suite potential), and current buyer demand in your neighbourhood. An online estimate uses only the first two and ignores the rest - which is why the same Zestimate or HouseSigma figure can be $50,000–$100,000 off. A free CMA from Hamza uses all four, sourced from real MLS data and a walkthrough of your specific home.`,
   },
   {
     question: 'How do you sell my home for the most?',
     answer:
-      `It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score ${propertiesAnalyzed} Mississauga listings, markets your home professionally on the open market (MLS plus targeted exposure), and — as an investment-focused agent — knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.`,
+      `It comes down to three things done well: pricing your home precisely from real market data, marketing it to every serious buyer so they compete, and negotiating hard on your behalf. Hamza prices with the same analytics that score ${propertiesAnalyzed} Mississauga listings, markets your home professionally on the open market (MLS plus targeted exposure), and - as an investment-focused agent - knows exactly what today’s buyers will pay a premium for. The free valuation lays out the plan for your specific home.`,
   },
   {
     question: 'What makes your approach different from other agents?',
     answer:
-      'Most agents list a home and hope. Hamza brings data and a buyer’s-eye view: he knows what drives today’s offers (layout, location, secondary-suite potential, condition), how to position and prepare your home to attract the most buyers, and how to price it to spark competing offers. The result is a listing built to net you the most — not just to get sold.',
+      'Most agents list a home and hope. Hamza brings data and a buyer’s-eye view: he knows what drives today’s offers (layout, location, secondary-suite potential, condition), how to position and prepare your home to attract the most buyers, and how to price it to spark competing offers. The result is a listing built to net you the most - not just to get sold.',
   },
   {
     question: 'How do you decide what to list my home for?',
     answer:
-      `Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area — the same analytics that score ${propertiesAnalyzed} Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.`,
+      `Pricing is data-driven, not a hunch. It comes from recent comparable sales, the homes you’d be competing against right now, and live buyer demand in your area - the same analytics that score ${propertiesAnalyzed} Mississauga listings. Price it right and you attract more buyers and stronger offers; the valuation lays out the exact strategy for your home.`,
   },
   {
     question: 'What does it cost to sell a home in Ontario?',
     answer:
-      'The main costs are the real estate commission (agreed with you up front, in writing), your lawyer’s fees for closing, and any prep you choose to do. There’s no cost to get a valuation or to talk through your options — you only move forward when you’re ready and the terms are clear.',
+      'The main costs are the real estate commission (agreed with you up front, in writing), your lawyer’s fees for closing, and any prep you choose to do. There’s no cost to get a valuation or to talk through your options - you only move forward when you’re ready and the terms are clear.',
   },
   {
     question: 'How long will it take to sell?',
     answer:
-      'It depends on your price, your home’s condition, and the market — anyone who promises an exact number before seeing your home is guessing. A well-priced, well-marketed home in a healthy market can attract offers quickly. Your valuation includes a realistic timeline based on how similar homes near you are actually selling.',
+      'It depends on your price, your home’s condition, and the market - anyone who promises an exact number before seeing your home is guessing. A well-priced, well-marketed home in a healthy market can attract offers quickly. Your valuation includes a realistic timeline based on how similar homes near you are actually selling.',
   },
   {
     question: 'Do I have to commit to selling to get a valuation?',
     answer:
-      'No. The valuation is free and there’s no obligation — to sell, to list, or to do anything at all. Many people request one just to understand their equity or plan ahead. If the time is right, Hamza is there; if it isn’t, that’s a perfectly good answer too.',
+      'No. The valuation is free and there’s no obligation - to sell, to list, or to do anything at all. Many people request one just to understand their equity or plan ahead. If the time is right, Hamza is there; if it isn’t, that’s a perfectly good answer too.',
   },
   ];
 }
 
 // A function, not a static array: the "Priced with data" line quotes the
 // live properties-analyzed count (see lib/listings/properties-analyzed.js),
-// which is only known per-request — this used to be a hand-set
+// which is only known per-request - this used to be a hand-set
 // PLATFORM_STATS constant baked in at build time that drifted from the same
 // figure shown live elsewhere on the site.
 function buildDifferentiators(propertiesAnalyzed) {
@@ -131,22 +131,22 @@ function buildDifferentiators(propertiesAnalyzed) {
     {
       icon: '📣',
       title: 'Marketed to every serious buyer',
-      body: 'Full MLS exposure plus targeted marketing — professional photography, standout listing copy, and the right buyers reached — so your home draws maximum interest and competing offers on the open market.',
+      body: 'Full MLS exposure plus targeted marketing - professional photography, standout listing copy, and the right buyers reached - so your home draws maximum interest and competing offers on the open market.',
     },
     {
       icon: '📊',
       title: 'Priced with data, not guesswork',
-      body: `The same analytics engine that has scored ${propertiesAnalyzed} Mississauga listings prices your home to sell for the most — grounded in real comparable sales and live buyer demand, not a round-number guess.`,
+      body: `The same analytics engine that has scored ${propertiesAnalyzed} Mississauga listings prices your home to sell for the most - grounded in real comparable sales and live buyer demand, not a round-number guess.`,
     },
     {
       icon: '🛠️',
       title: 'Full-service, handled for you',
-      body: 'You get the works — professional photography, staging guidance, targeted marketing, and hard negotiation — the whole process managed end to end.',
+      body: 'You get the works - professional photography, staging guidance, targeted marketing, and hard negotiation - the whole process managed end to end.',
     },
     {
       icon: '🎯',
       title: 'An investor’s read on your home',
-      body: 'Hamza knows exactly what today’s buyers value — layout, location, secondary-suite potential, cash-flow appeal — and positions your home to attract the most buyers and the strongest offers.',
+      body: 'Hamza knows exactly what today’s buyers value - layout, location, secondary-suite potential, cash-flow appeal - and positions your home to attract the most buyers and the strongest offers.',
     },
   ];
 }
@@ -160,7 +160,7 @@ const STEPS = [
   {
     n: '2',
     title: 'Prepare &amp; launch',
-    body: 'Professional photography, staging guidance, and targeted marketing put your home in front of every serious buyer — priced to spark competing offers.',
+    body: 'Professional photography, staging guidance, and targeted marketing put your home in front of every serious buyer - priced to spark competing offers.',
   },
   {
     n: '3',
@@ -193,7 +193,7 @@ export default async function SellPage() {
       {/* ── Hero with embedded form ── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C]">
         {/* On mobile the pitch (headline + copy + chips + 3 bullets + a jump
-            link) pushed the valuation form 1.1 screens down — a seller had to
+            link) pushed the valuation form 1.1 screens down - a seller had to
             scroll past a full screen to reach the one action that converts.
             Mobile order is now headline → FORM → supporting bullets (flex
             order); desktop keeps the two-column pitch-beside-form layout via
@@ -209,7 +209,7 @@ export default async function SellPage() {
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-white/70 md:text-base">
               Get a free, <strong className="text-white">data-backed valuation</strong> and a clear plan to net you the
-              most — precise pricing, professional marketing, and hard negotiation from an agent who knows exactly what
+              most - precise pricing, professional marketing, and hard negotiation from an agent who knows exactly what
               today’s buyers pay for.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
@@ -219,12 +219,12 @@ export default async function SellPage() {
             </div>
           </div>
 
-          {/* Form — second on mobile, right column on desktop */}
+          {/* Form - second on mobile, right column on desktop */}
           <div className="order-2 lg:order-none lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:pt-1">
             <ValuationForm id="valuation-form" />
           </div>
 
-          {/* Supporting bullets — after the form on mobile */}
+          {/* Supporting bullets - after the form on mobile */}
           <ul className="order-3 space-y-2.5 lg:order-none lg:col-start-1 lg:row-start-2 lg:max-w-xl lg:self-start">
             {['A free, data-backed valuation of your home', 'A listing priced and marketed to draw competing offers', 'Free, no pressure, zero obligation'].map((b) => (
               <li key={b} className="flex items-start gap-2.5 text-sm text-white/80">
@@ -288,7 +288,7 @@ export default async function SellPage() {
               {Array.from({ length: 5 }).map((_, i) => <span key={i} className="text-lg">★</span>)}
             </div>
             <h2 className="section-title mb-2">
-              Clients trust Hamza{googleRating ? ` — ${googleRatingShort(googleRating)}` : ""}
+              Clients trust Hamza{googleRating ? ` - ${googleRatingShort(googleRating)}` : ""}
             </h2>
             <p className="section-subtitle mx-auto">Honest advice, done properly. Here’s what people say after working with him.</p>
           </div>
@@ -314,8 +314,8 @@ export default async function SellPage() {
         {/* ── FAQ ── */}
         <section className="py-14 md:py-16">
           <h2 className="section-title mb-6 text-center">Selling your home: common questions</h2>
-          {/* Accordion: fully expanded this ran 2.3 screens on mobile — the
-              longest block on the page — pushing the final CTA far down. Native
+          {/* Accordion: fully expanded this ran 2.3 screens on mobile - the
+              longest block on the page - pushing the final CTA far down. Native
               <details> keeps every answer in the HTML (still crawlable, and the
               FAQPage JSON-LD above is unaffected) with no JS. First one open so
               the section never reads as empty. */}

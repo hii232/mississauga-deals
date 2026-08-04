@@ -28,7 +28,7 @@ const HOODS = Object.keys(HOOD_DATA);
 // form with no explanatory content and no FAQ markup. These answer what
 // actually stops an investor from signing: how deposits are staged, what
 // interim occupancy costs, whether they can back out, and whether pre-con even
-// beats resale — answered honestly, downsides included, because a page that
+// beats resale - answered honestly, downsides included, because a page that
 // pretends there aren't any reads like a builder's brochure.
 //
 // Deliberately NO dollar figures or dates: the enhanced HST rebate is bounded
@@ -40,22 +40,22 @@ const PRECON_FAQ = [
   {
     question: 'How do deposits work on a pre-construction condo in Ontario?',
     answer:
-      'Unlike a resale purchase, where the deposit is a single payment, a pre-construction deposit is staged over months — commonly a payment on signing, then further instalments at set intervals, and sometimes a final one at interim occupancy. The total is set by the builder and is typically higher for investors than for end users, with more again asked of international buyers. The schedule is written into the agreement of purchase and sale, so it is worth reading before you sign rather than after.',
+      'Unlike a resale purchase, where the deposit is a single payment, a pre-construction deposit is staged over months - commonly a payment on signing, then further instalments at set intervals, and sometimes a final one at interim occupancy. The total is set by the builder and is typically higher for investors than for end users, with more again asked of international buyers. The schedule is written into the agreement of purchase and sale, so it is worth reading before you sign rather than after.',
   },
   {
     question: 'What is interim occupancy and why does it cost money?',
     answer:
-      'There is usually a gap between the date you can move into a new condo and the date the building is legally registered and the unit becomes yours. During that gap — interim occupancy — you pay the builder a monthly occupancy fee covering interest on the unpaid balance, estimated property taxes and common expenses. None of it pays down a mortgage or builds equity, and it can run for months, so an investor should budget it as a real carrying cost rather than meet it as a surprise.',
+      'There is usually a gap between the date you can move into a new condo and the date the building is legally registered and the unit becomes yours. During that gap - interim occupancy - you pay the builder a monthly occupancy fee covering interest on the unpaid balance, estimated property taxes and common expenses. None of it pays down a mortgage or builds equity, and it can run for months, so an investor should budget it as a real carrying cost rather than meet it as a surprise.',
   },
   {
     question: 'Can I cancel a pre-construction condo purchase after signing?',
     answer:
-      "Yes, within a limited window. Ontario's Condominium Act gives buyers of a new condominium a 10-day statutory cooling-off period after receiving the signed agreement and the disclosure statement, during which the agreement can be rescinded and the deposit returned. After those 10 days the agreement binds you, which makes the cooling-off period the time to have a lawyer read the disclosure statement — not a formality to skip.",
+      "Yes, within a limited window. Ontario's Condominium Act gives buyers of a new condominium a 10-day statutory cooling-off period after receiving the signed agreement and the disclosure statement, during which the agreement can be rescinded and the deposit returned. After those 10 days the agreement binds you, which makes the cooling-off period the time to have a lawyer read the disclosure statement - not a formality to skip.",
   },
   {
     question: 'Do investors qualify for the HST rebate on a new build?',
     answer:
-      'Yes — the enhanced Ontario rebate on new homes carries no first-time-buyer requirement, and purpose-built rental developers qualify as well, which is unusual among housing incentives. The amount depends on the purchase price and on when the agreement of purchase and sale was signed, since the enhanced rebate applies to a defined window. The HST rebate guide on this site sets out the current tiers, dates and eligibility rules in full.',
+      'Yes - the enhanced Ontario rebate on new homes carries no first-time-buyer requirement, and purpose-built rental developers qualify as well, which is unusual among housing incentives. The amount depends on the purchase price and on when the agreement of purchase and sale was signed, since the enhanced rebate applies to a defined window. The HST rebate guide on this site sets out the current tiers, dates and eligibility rules in full.',
   },
   {
     question: 'Is pre-construction a better investment than a resale property?',
@@ -143,8 +143,8 @@ export default function PreConstructionPage() {
       <PageHero
         compact
         eyebrow="Pre-construction VIP"
-        title="Pre-Construction Condos Mississauga — VIP Access"
-        subtitle="Exclusive first access to new Mississauga developments — plus save up to $130K with the Ontario HST rebate."
+        title="Pre-Construction Condos Mississauga - VIP Access"
+        subtitle="Exclusive first access to new Mississauga developments - plus save up to $130K with the Ontario HST rebate."
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <BreadcrumbJsonLd
@@ -161,7 +161,7 @@ export default function PreConstructionPage() {
           </div>
           <div className="flex-1">
             <h2 className="font-heading font-bold text-lg text-navy mb-1">
-              Save Up to $130,000 — Ontario HST Rebate Now Active
+              Save Up to $130,000 - Ontario HST Rebate Now Active
             </h2>
             <p className="text-sm text-slate-600 leading-relaxed">
               Get VIP access to pre-construction projects <strong>plus save up to $130,000 in HST</strong> on new builds.
@@ -194,7 +194,7 @@ export default function PreConstructionPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-navy">First Access Pricing</h3>
-                <p className="text-xs text-muted">Get VIP pricing before public launch — often 5-10% below retail.</p>
+                <p className="text-xs text-muted">Get VIP pricing before public launch - often 5-10% below retail.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -237,7 +237,7 @@ export default function PreConstructionPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Primary fields — always visible */}
+            {/* Primary fields - always visible */}
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium text-navy">
                 Name <span className="text-red-600" aria-hidden="true">*</span>
@@ -280,7 +280,7 @@ export default function PreConstructionPage() {
               {loading ? 'Submitting…' : 'Get VIP Access'}
             </button>
 
-            {/* Optional qualifying fields — collapsed by default */}
+            {/* Optional qualifying fields - collapsed by default */}
             <details className="group">
               <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-dark [&::-webkit-details-marker]:hidden">
                 <svg
@@ -293,7 +293,7 @@ export default function PreConstructionPage() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                 </svg>
-                Tell us more — helps us match the right projects (optional)
+                Tell us more - helps us match the right projects (optional)
               </summary>
               <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
                 <div>
@@ -373,7 +373,7 @@ export default function PreConstructionPage() {
             </details>
 
             <p className="text-[11px] text-muted text-center">
-              No obligation. We respect your privacy — unsubscribe anytime.
+              No obligation. We respect your privacy - unsubscribe anytime.
             </p>
           </form>
         </div>
@@ -382,7 +382,7 @@ export default function PreConstructionPage() {
       <FAQJsonLd items={PRECON_FAQ} />
       {/* Lives on THIS page, not the shared layout: the layout also wraps
           /pre-construction/projects and /hst-rebate, so putting it there
-          published the same FAQ markup on all three — and gave hst-rebate two
+          published the same FAQ markup on all three - and gave hst-rebate two
           competing FAQPage blocks. */}
       <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6 lg:px-8">
         <h2 className="font-heading text-xl font-bold text-navy">
@@ -418,7 +418,7 @@ export default function PreConstructionPage() {
           .
         </p>
         <p className="mt-3 text-xs text-slate-500">
-          General information only — not legal or tax advice. Have a lawyer review any agreement of purchase and sale
+          General information only - not legal or tax advice. Have a lawyer review any agreement of purchase and sale
           during the cooling-off period.
         </p>
       </section>

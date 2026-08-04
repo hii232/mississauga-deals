@@ -13,7 +13,7 @@ import { blogCoverUrl } from '@/lib/blog-cover';
 import { sanitizePost, sanitizeBlogText } from '@/lib/blog/sanitize-content';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
-// Canonical overrides live in lib/blog/canonical-overrides.js — shared with
+// Canonical overrides live in lib/blog/canonical-overrides.js - shared with
 // app/sitemap.js (which must EXCLUDE these slugs: a sitemap entry is a
 // canonical claim, and these posts' canonicals point elsewhere) and
 // next.config.js, so the lists can't drift.
@@ -47,7 +47,7 @@ export async function generateMetadata({ params }) {
     ?? `https://www.mississaugainvestor.ca/blog/${post.slug}`;
 
   // Repo-side SEO override. Titles/excerpts are written by the auto-blog
-  // generator into Supabase and cannot be corrected from here — and the
+  // generator into Supabase and cannot be corrected from here - and the
   // 2026-08-03 Search Console export showed every top page losing clicks to
   // SERP truncation (the 1,915-impression condo-vs-townhouse post was cut at
   // "…Which Is Better for Ca", hiding its entire hook). See seo-overrides.js.
@@ -65,13 +65,13 @@ export async function generateMetadata({ params }) {
       description: metaDescription,
       url: `https://www.mississaugainvestor.ca/blog/${post.slug}`,
       type: 'article',
-      // Article freshness + authorship signals for social unfurls and search —
+      // Article freshness + authorship signals for social unfurls and search -
       // mirrors the authoritative dates/author already in the Article JSON-LD.
       publishedTime: post.created_at || undefined,
       modifiedTime: post.updated_at || post.created_at || undefined,
       authors: ['Hamza Nouman'],
       // og:image:width/height only when the cover is our OWN generated one
-      // (/api/blog-cover, verified 1200x630 in app/api/blog-cover/route.js) —
+      // (/api/blog-cover, verified 1200x630 in app/api/blog-cover/route.js) -
       // a post with a real cover_image_url (an imported photo) has genuinely
       // unknown dimensions, and guessing them would be exactly the fabricated
       // number this codebase's honesty rules exist to prevent.
@@ -142,7 +142,7 @@ export default async function BlogPostPage({ params }) {
   // image optimizer only when the host is whitelisted in next.config.js
   // remotePatterns (Supabase storage, ampre, Unsplash). Generated
   // /api/blog-cover PNGs (own dynamic route) and any admin-pasted host that
-  // isn't whitelisted pass through unoptimized — the optimizer would 400 them.
+  // isn't whitelisted pass through unoptimized - the optimizer would 400 them.
   const coverUrl = blogCoverUrl(post);
   const coverOptimizable =
     /^https:\/\/([a-z0-9-]+\.)*(supabase\.co|ampre\.ca|repliers\.io)\//i.test(coverUrl) ||
@@ -177,7 +177,7 @@ export default async function BlogPostPage({ params }) {
         </div>
       </div>
 
-      {/* Hero — single H1, dusk skyline identity */}
+      {/* Hero - single H1, dusk skyline identity */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#16223D] via-navy to-[#25355C] py-12 md:py-16">
         <CityscapePanorama
           variant="dusk"
@@ -206,7 +206,7 @@ export default async function BlogPostPage({ params }) {
       <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-10">
           <article>
-            {/* Dedicated-guide notice — shown only on blog posts that cover the
+            {/* Dedicated-guide notice - shown only on blog posts that cover the
                 same topic as a purpose-built investor guide page. Points readers
                 to the interactive/conversion-optimised version and reinforces the
                 canonical signal we emit in <head>. Subtle: accent tint, not a
@@ -237,7 +237,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Author Box — TOP of article */}
+            {/* Author Box - TOP of article */}
             <div className="flex items-center gap-4 p-5 bg-cloud rounded-xl border border-gray-100 mb-8">
               <div className="relative w-14 h-14 flex-shrink-0">
                 <Image
@@ -267,7 +267,7 @@ export default async function BlogPostPage({ params }) {
 
             {/* Fixed aspect box (matches the 1200×630 generated covers) +
                 object-cover: the browser reserves the full image area before
-                load, so the LCP image causes zero layout shift — previously the
+                load, so the LCP image causes zero layout shift - previously the
                 unsized w-full img pushed the whole article down when it loaded.
                 Unsplash covers (variable landscape aspects) crop consistently. */}
             <Image
@@ -285,7 +285,7 @@ export default async function BlogPostPage({ params }) {
 
             {/* End-of-post booking CTA */}
             <div className="mt-12 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
-              {/* Exclusive offer note — gold chip, sufficient contrast on navy */}
+              {/* Exclusive offer note - gold chip, sufficient contrast on navy */}
               <div className="inline-flex items-center gap-1.5 mb-5">
                 <span className="text-[10px] font-bold uppercase tracking-wide text-gold">Exclusive:</span>
                 <span className="text-[10px] text-white/75">First month&apos;s mortgage on us when you close</span>
@@ -303,7 +303,7 @@ export default async function BlogPostPage({ params }) {
                 Need help with this topic?
               </h3>
               <p className="text-white/60 text-sm mb-5 max-w-md mx-auto">
-                Book a free 15-minute investor call with Hamza. No obligation — we&apos;ll walk through your numbers together.
+                Book a free 15-minute investor call with Hamza. No obligation - we&apos;ll walk through your numbers together.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
@@ -369,7 +369,7 @@ export default async function BlogPostPage({ params }) {
           {/* Sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-24 space-y-4">
-              {/* Email capture FIRST — the only ask that matches a cold
+              {/* Email capture FIRST - the only ask that matches a cold
                   organic reader's temperature. Quiz/call/booking below are
                   higher-commitment steps. */}
               <SidebarEmailCapture />
@@ -392,7 +392,7 @@ export default async function BlogPostPage({ params }) {
                   </svg>
                   647-609-1289
                 </a>
-                {/* bg-emerald-500 measured 2.54:1 for white text — the same
+                {/* bg-emerald-500 measured 2.54:1 for white text - the same
                     AA failure fixed on the homepage badges this morning,
                     recurring here on a real conversion CTA on the site's
                     top-traffic page type. emerald-700 = 5.48:1. */}
@@ -406,11 +406,11 @@ export default async function BlogPostPage({ params }) {
 
               {/* First Month Offer */}
               <div className="rounded-xl bg-accent/5 border border-accent/20 p-4">
-                {/* text-emerald-600 on bg-accent/5 measured ~2.2:1 — fails AA.
+                {/* text-emerald-600 on bg-accent/5 measured ~2.2:1 - fails AA.
                     accent-dark (#1D4ED8) on white/near-white = 7.1:1, passes. */}
                 <span className="text-[10px] font-bold text-accent-dark">EXCLUSIVE OFFER</span>
                 <p className="text-sm font-semibold text-navy mt-1 leading-snug">
-                  Close with Hamza — First Month&apos;s Mortgage On Us
+                  Close with Hamza - First Month&apos;s Mortgage On Us
                 </p>
                 <Link href="/book-call" className="text-xs text-accent font-semibold no-underline mt-2 inline-block">
                   Learn more →

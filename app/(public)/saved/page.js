@@ -53,7 +53,7 @@ export default function SavedPage() {
 
     let cancelled = false;
 
-    // Batch fetch photos — GET so the CDN can cache the response (POST is
+    // Batch fetch photos - GET so the CDN can cache the response (POST is
     // never cached); 25 per call matching the endpoint's cap, ids sorted for
     // a stable cache key.
     for (let i = 0; i < needPhotos.length; i += 25) {

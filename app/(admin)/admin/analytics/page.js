@@ -168,7 +168,7 @@ export default function AnalyticsPage() {
 
     // Response time
     const withCalls = leads.filter((l) => l.last_called_at && l.created_at);
-    let avgResponseHrs = '—';
+    let avgResponseHrs = '-';
     if (withCalls.length) {
       const totalHrs = withCalls.reduce((s, l) => {
         return s + (new Date(l.last_called_at) - new Date(l.created_at)) / (1000 * 60 * 60);
@@ -251,13 +251,13 @@ export default function AnalyticsPage() {
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
           <p className="text-[10px] uppercase text-white/55 mb-1">Conversion Rate</p>
           <p className="font-mono text-2xl font-bold text-green-400">
-            {visitorTotal > 0 ? ((leads.length / visitorTotal) * 100).toFixed(1) : '—'}%
+            {visitorTotal > 0 ? ((leads.length / visitorTotal) * 100).toFixed(1) : '-'}%
           </p>
           <p className="text-[10px] text-white/60">visitors to leads</p>
         </div>
       </div>
 
-      {/* Email campaign clicks — visits arriving via the UTM-tagged email links */}
+      {/* Email campaign clicks - visits arriving via the UTM-tagged email links */}
       {emailCampaigns.length > 0 && (
         <div className="bg-[#141B2D] border border-accent/20 rounded-xl p-5">
           <div className="flex items-baseline justify-between mb-1">
@@ -296,16 +296,16 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {/* Who clicked — per-person email attribution, so hot contacts are callable */}
+      {/* Who clicked - per-person email attribution, so hot contacts are callable */}
       {emailCampaigns.length > 0 && (
         <div className="bg-[#141B2D] border border-green-500/20 rounded-xl p-5">
           <div className="flex items-baseline justify-between mb-1">
-            <h2 className="text-sm font-bold text-white">📞 Who Clicked — Call List</h2>
+            <h2 className="text-sm font-bold text-white">📞 Who Clicked - Call List</h2>
             <span className="text-[10px] text-white/60">last 30 days</span>
           </div>
           <p className="text-[11px] text-white/40 mb-4">
             Contacts who clicked a link in your emails, hottest first.
-            {clickers.length === 0 && ' Tracking starts with your NEXT email send — earlier sends only show totals above (per-person clicks for those are in Resend).'}
+            {clickers.length === 0 && ' Tracking starts with your NEXT email send - earlier sends only show totals above (per-person clicks for those are in Resend).'}
           </p>
           {clickers.length > 0 && (
             <div className="divide-y divide-white/[0.04]">
@@ -358,7 +358,7 @@ export default function AnalyticsPage() {
           <LineChart data={visitorDaily} height={180} />
         ) : (
           <div className="text-center py-8">
-            <p className="text-sm text-white/40">No visitor data yet — views will appear as visitors arrive</p>
+            <p className="text-sm text-white/40">No visitor data yet - views will appear as visitors arrive</p>
           </div>
         )}
       </div>
@@ -446,7 +446,7 @@ export default function AnalyticsPage() {
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">
           <p className="text-[10px] uppercase text-white/55 mb-1">Avg Response</p>
-          <p className="font-mono text-2xl font-bold text-amber-400">{analytics?.avgResponseHrs || '—'}</p>
+          <p className="font-mono text-2xl font-bold text-amber-400">{analytics?.avgResponseHrs || '-'}</p>
           <p className="text-[10px] text-white/60">to first contact</p>
         </div>
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-xl p-4">

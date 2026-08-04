@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
 // the radar campaign is a NEW campaign key, not a blocked duplicate.
 const CAMPAIGN = 'motivated-sellers-2026-07';
 
-// Both of these emails invite a reply ("just reply to this email — it comes
+// Both of these emails invite a reply ("just reply to this email - it comes
 // straight to me"). Without reply_to that is false: replies hit the
 // notifications@ from-address instead of Hamza.
 const REPLY_TO =
@@ -38,7 +38,7 @@ const APPROVER =
   process.env.LEAD_NOTIFICATION_EMAIL ||
   'hamza@nouman.ca';
 
-// Auth: cron Bearer, admin header, or ?key= — see lib/api-auth.js requireBroadcast.
+// Auth: cron Bearer, admin header, or ?key= - see lib/api-auth.js requireBroadcast.
 // The actual send needs the HMAC approval token from the draft email.
 
 function approvalToken() {
@@ -57,7 +57,7 @@ function approvalToken() {
 // The plausibility guard is the campaign's core safety: if the feed is down,
 // partially filled, or the mapping ever regresses (all hoods "Mississauga",
 // zero DOM, etc.), the send REFUSES rather than mailing the whole database a
-// wrong number — a wrong number is the worst bug on this site, and in an email
+// wrong number - a wrong number is the worst bug on this site, and in an email
 // it can't even be hotfixed.
 async function fetchRadar(origin) {
   const res = await fetch(`${origin}/api/market-stats`, { cache: 'no-store' });
@@ -87,7 +87,7 @@ async function fetchRadar(origin) {
 }
 
 // Only for ?preview=1 in a dev sandbox with no reachable feed, so the layout is
-// reviewable. Real drafts and sends NEVER fall back to these — they refuse.
+// reviewable. Real drafts and sends NEVER fall back to these - they refuse.
 const SAMPLE_RADAR = {
   staleCount: 630,
   stalePct: 24.7,
@@ -115,7 +115,7 @@ async function sendEmail(to, subject, html) {
       subject,
       html,
       reply_to: REPLY_TO,
-      // Campaign tag — this is what the Resend webhook reads to attribute
+      // Campaign tag - this is what the Resend webhook reads to attribute
       // opens/clicks to a campaign. Subjects are generated from live data and
       // change between editions, so they are not a stable key.
       tags: [{ name: 'campaign', value: CAMPAIGN }],
@@ -144,11 +144,11 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 
 // ── Draft banner prepended to the email when it's sent for approval ──
 function approvalBanner(count, radar, origin) {
-  // Origin comes from the request being served — see lib/emails/self-origin.js.
+  // Origin comes from the request being served - see lib/emails/self-origin.js.
   const url = `${origin}/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}`;
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
-    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
+    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT - waiting for your approval</div>
     <div style="font-family:system-ui,sans-serif;font-size:12px;color:#92400E;margin-bottom:6px;">This is exactly what your <strong>${count}</strong> contact${count === 1 ? '' : 's'} will receive. Nothing sends until you click below.</div>
     <div style="font-family:system-ui,sans-serif;font-size:11px;color:#92400E;margin-bottom:14px;">Live radar at draft time: ${radar.staleCount} stale &middot; ${radar.staleWithPriceCut} with cuts &middot; ${radar.activeCount} active. The send re-fetches these numbers fresh.</div>
     <a href="${url}" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:12px 26px;border-radius:8px;text-decoration:none;">Review &amp; Send to ${count} &#8594;</a>
@@ -180,7 +180,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // ?preview=1 — render the email itself, send nothing. Open in dev; authed in prod.
+    // ?preview=1 - render the email itself, send nothing. Open in dev; authed in prod.
     if (searchParams.get('preview') === '1') {
       if (process.env.NODE_ENV !== 'development') {
         const authErr = requireBroadcast(request, searchParams);
@@ -196,7 +196,7 @@ export async function GET(request) {
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
-    // ?count=1 — how many contacts this broadcast would reach right now.
+    // ?count=1 - how many contacts this broadcast would reach right now.
     if (searchParams.get('count') === '1') {
       const authErr = requireBroadcast(request, searchParams);
       if (authErr) return authErr;
@@ -205,7 +205,7 @@ export async function GET(request) {
       return NextResponse.json({ recipients: recipients.length });
     }
 
-    // ?approve=1&t=... — confirmation page shown by the draft email's button.
+    // ?approve=1&t=... - confirmation page shown by the draft email's button.
     if (searchParams.get('approve') === '1') {
       if (searchParams.get('t') !== approvalToken()) {
         return new Response(
@@ -221,14 +221,14 @@ export async function GET(request) {
           `<h1>Send the Motivated Seller Radar email?</h1>
            <p>It will go to <strong>${recipients.length} contact${recipients.length === 1 ? '' : 's'}</strong> in your database, with the radar numbers re-fetched live at send time. This can't be undone.</p>
            <form method="POST" action="/api/broadcast/motivated-sellers?approve=1&t=${approvalToken()}">
-             <button type="submit">Yes — Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
+             <button type="submit">Yes - Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
            </form>`
         ),
         { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
 
-    // Default (authed) — email the DRAFT (with approval button) to the approver only.
+    // Default (authed) - email the DRAFT (with approval button) to the approver only.
     const authErr = requireBroadcast(request, searchParams);
     if (authErr) return authErr;
     if (!process.env.RESEND_API_KEY) {
@@ -253,16 +253,16 @@ export async function GET(request) {
         return NextResponse.json({
           alreadySent: true,
           campaign: CAMPAIGN,
-          note: 'Campaign already sent — no draft emailed. Remove the cron entry in vercel.json when convenient.',
+          note: 'Campaign already sent - no draft emailed. Remove the cron entry in vercel.json when convenient.',
         });
       }
     } catch {
-      // table missing — proceed with the draft
+      // table missing - proceed with the draft
     }
     const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return NextResponse.json(
-        { error: 'Radar numbers unavailable or implausible — not drafting', detail: reason },
+        { error: 'Radar numbers unavailable or implausible - not drafting', detail: reason },
         { status: 500 }
       );
     }
@@ -271,7 +271,7 @@ export async function GET(request) {
     const draftHtml = approvalBanner(recipients.length, radar, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
-      `[APPROVE] Motivated Seller Radar — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
+      `[APPROVE] Motivated Seller Radar - send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
       draftHtml
     );
     return NextResponse.json({
@@ -288,7 +288,7 @@ export async function GET(request) {
   }
 }
 
-// ── POST ?approve=1&t=... — the approved send (from the confirmation page) ──
+// ── POST ?approve=1&t=... - the approved send (from the confirmation page) ──
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -309,13 +309,13 @@ export async function POST(request) {
     const { radar, reason } = await fetchRadar(selfOrigin(request));
     if (!radar) {
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked — radar numbers unavailable</h1><p>${reason || 'The live stats endpoint did not return plausible numbers.'} Nothing was sent; try again once /api/market-stats is healthy.</p>`),
+        htmlPage('Not sent', `<h1>Send blocked - radar numbers unavailable</h1><p>${reason || 'The live stats endpoint did not return plausible numbers.'} Nothing was sent; try again once /api/market-stats is healthy.</p>`),
         { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
 
     // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
-    // when broadcast_sends was missing — and the table was in fact missing,
+    // when broadcast_sends was missing - and the table was in fact missing,
     // which is how this database got the same campaign twice. The mass-send
     // now happens ONLY if the lock row was actually written.
     const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
@@ -327,7 +327,7 @@ export async function POST(request) {
     }
     if (lock.outcome !== 'acquired') {
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+        htmlPage('Not sent', `<h1>Send blocked - duplicate protection unavailable</h1>
          <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
          <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
          <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
@@ -349,7 +349,7 @@ export async function POST(request) {
         'Sent',
         `<h1>&#127881; Sent to ${bulk.sent} contact${bulk.sent === 1 ? '' : 's'}</h1>
          <p>${bulk.failed || bulk.remaining.length
-            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted &mdash; the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
+            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted - the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
             : 'Every email went out successfully.'}</p>
          <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
       ),

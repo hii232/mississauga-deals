@@ -12,7 +12,7 @@ const YEAR = new Date().getFullYear();
 export const metadata = {
   title: { absolute: 'Mississauga vs Brampton vs Hamilton: Where to Invest?' },
   description:
-    'Compare property tax, land transfer tax and rental demand across Mississauga, Brampton and Hamilton — with live scored listings for each city.',
+    'Compare property tax, land transfer tax and rental demand across Mississauga, Brampton and Hamilton - with live scored listings for each city.',
   keywords: [
     'mississauga vs brampton real estate investment',
     'mississauga vs hamilton real estate investment',
@@ -24,19 +24,19 @@ export const metadata = {
   openGraph: {
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Mississauga vs Brampton vs Hamilton: Where to Invest?' }],
     title: 'Mississauga vs Brampton vs Hamilton: Where to Invest?',
-    description: 'Property tax, land transfer tax and rental demand compared across three GTA cities — with live scored listings for each.',
+    description: 'Property tax, land transfer tax and rental demand compared across three GTA cities - with live scored listings for each.',
     url: 'https://www.mississaugainvestor.ca/mississauga-vs-brampton-vs-hamilton',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Mississauga vs Brampton vs Hamilton: Where to Invest?',
-    description: 'Property tax, land transfer tax and rental demand compared across three GTA cities — with live scored listings for each.',
+    description: 'Property tax, land transfer tax and rental demand compared across three GTA cities - with live scored listings for each.',
     images: ['/opengraph-image'],
   },
 };
 
 // Property tax rates are the site's own researched 2025 TAX_RATES table (the
-// same numbers every listing's carrying-cost math already uses) — not
+// same numbers every listing's carrying-cost math already uses) - not
 // re-authored here, so this page can't drift from the calculator. No price,
 // appreciation or rent figures are stated: those move constantly and the
 // honest, non-fabricated source for them is the live listings each city links
@@ -47,7 +47,7 @@ const CITIES = ['Mississauga', 'Brampton', 'Hamilton'];
 const QUALITATIVE_ROWS = [
   {
     factor: 'Distance from Toronto',
-    values: ['Closest of the three — borders Toronto directly', 'West of Toronto, along the Hwy 401/407 corridor', 'Farthest of the three, at the west end of the GTA'],
+    values: ['Closest of the three - borders Toronto directly', 'West of Toronto, along the Hwy 401/407 corridor', 'Farthest of the three, at the west end of the GTA'],
   },
   {
     factor: 'Typical entry price vs. the other two',
@@ -67,15 +67,15 @@ const CITY_VS_FAQ = [
   {
     question: 'Which is the best GTA city to invest in: Mississauga, Brampton or Hamilton?',
     answer:
-      'There is no single winner — each trades price for something else. Mississauga generally commands the highest entry price of the three but pairs it with Pearson Airport, major employers and the Hurontario LRT corridor. Brampton usually sits between the two on price, with strong population growth and logistics-driven rental demand. Hamilton is typically the most affordable, anchored by McMaster University and an ongoing downtown revitalization. Match the city to your budget and strategy, then compare specific scored listings rather than picking a city on reputation alone.',
+      'There is no single winner - each trades price for something else. Mississauga generally commands the highest entry price of the three but pairs it with Pearson Airport, major employers and the Hurontario LRT corridor. Brampton usually sits between the two on price, with strong population growth and logistics-driven rental demand. Hamilton is typically the most affordable, anchored by McMaster University and an ongoing downtown revitalization. Match the city to your budget and strategy, then compare specific scored listings rather than picking a city on reputation alone.',
   },
   {
     question: 'How do property tax rates compare?',
-    answer: `Property tax is charged as a percentage of assessed value and varies by municipality — using each city's own published 2025 residential rate: Mississauga is about ${(getTaxRate('Mississauga') * 100).toFixed(2)}%, Brampton about ${(getTaxRate('Brampton') * 100).toFixed(2)}%, and Hamilton about ${(getTaxRate('Hamilton') * 100).toFixed(2)}%. On a similarly priced property, that gap alone can move monthly carrying costs by a meaningful amount, which is why every listing on this site has its own city's real rate built into its cash-flow number rather than one blanket estimate.`,
+    answer: `Property tax is charged as a percentage of assessed value and varies by municipality - using each city's own published 2025 residential rate: Mississauga is about ${(getTaxRate('Mississauga') * 100).toFixed(2)}%, Brampton about ${(getTaxRate('Brampton') * 100).toFixed(2)}%, and Hamilton about ${(getTaxRate('Hamilton') * 100).toFixed(2)}%. On a similarly priced property, that gap alone can move monthly carrying costs by a meaningful amount, which is why every listing on this site has its own city's real rate built into its cash-flow number rather than one blanket estimate.`,
   },
   {
     question: 'Does land transfer tax differ between the three?',
-    answer: `Ontario's provincial land transfer tax applies the same sliding-scale formula everywhere in the province, so it is identical in Mississauga, Brampton and Hamilton — for example, ${fmtLTTExample()} on a $700,000 purchase in any of the three. None of the three charges an additional MUNICIPAL land transfer tax; that extra layer applies only inside the City of Toronto (including its amalgamated districts), roughly doubling the tax there. Budget the provincial tax plus legal fees and inspection everywhere — see the mortgage calculator for the full closing-cost breakdown on a specific price.`,
+    answer: `Ontario's provincial land transfer tax applies the same sliding-scale formula everywhere in the province, so it is identical in Mississauga, Brampton and Hamilton - for example, ${fmtLTTExample()} on a $700,000 purchase in any of the three. None of the three charges an additional MUNICIPAL land transfer tax; that extra layer applies only inside the City of Toronto (including its amalgamated districts), roughly doubling the tax there. Budget the provincial tax plus legal fees and inspection everywhere - see the mortgage calculator for the full closing-cost breakdown on a specific price.`,
   },
   {
     question: 'Which city has the lowest entry prices right now?',
@@ -85,7 +85,7 @@ const CITY_VS_FAQ = [
   {
     question: 'Is it worth investing outside Mississauga at all?',
     answer:
-      'Often, yes — rental demand and price-to-rent ratios vary city to city, and a property that cash-flows poorly in one market can work in another at a lower entry price. The trade-off is usually local knowledge: property management, tenant demand and neighbourhood-level nuance are things Mississauga guides on this site are built specifically to cover. The GTA hub applies the same scoring engine (cash flow, cap rate, legal-suite detection) to every city, so the comparison is apples-to-apples wherever you end up buying.',
+      'Often, yes - rental demand and price-to-rent ratios vary city to city, and a property that cash-flows poorly in one market can work in another at a lower entry price. The trade-off is usually local knowledge: property management, tenant demand and neighbourhood-level nuance are things Mississauga guides on this site are built specifically to cover. The GTA hub applies the same scoring engine (cash flow, cap rate, legal-suite detection) to every city, so the comparison is apples-to-apples wherever you end up buying.',
   },
 ];
 
@@ -96,7 +96,7 @@ function fmtLTTExample() {
 
 export default function CityComparisonPage() {
   // Only render the exact-rate FAQ answer with numbers this site has actually
-  // researched for all three cities — if that ever stops being true for one
+  // researched for all three cities - if that ever stops being true for one
   // of them, this guards against silently printing the generic fallback rate
   // as if it were a real published figure.
   const ratesResearched = CITIES.every((c) => hasExplicitTaxRate(c));
@@ -116,7 +116,7 @@ export default function CityComparisonPage() {
         compact
         eyebrow={`GTA Investing · ${YEAR}`}
         title="Mississauga vs Brampton vs Hamilton: Where to Invest?"
-        subtitle="Property tax, land transfer tax and rental-demand drivers compared across three GTA cities — then run the numbers on real, scored listings in each."
+        subtitle="Property tax, land transfer tax and rental-demand drivers compared across three GTA cities - then run the numbers on real, scored listings in each."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -128,7 +128,7 @@ export default function CityComparisonPage() {
             major employers and the Hurontario LRT corridor. <strong>Brampton</strong> usually sits between the two on
             price, with fast population growth and strong logistics-driven rental demand. <strong>Hamilton</strong> is
             typically the most affordable, anchored by McMaster University and an active downtown revitalization. All
-            three pay the same provincial land transfer tax — none charges Toronto&apos;s extra municipal layer — but
+            three pay the same provincial land transfer tax - none charges Toronto&apos;s extra municipal layer - but
             their property tax rates differ meaningfully. Pick a city for your budget and strategy, then compare real,
             scored listings rather than a reputation.
           </p>
@@ -137,7 +137,7 @@ export default function CityComparisonPage() {
           </Link>
         </div>
 
-        {/* Property tax + LTT table — real, sourced numbers */}
+        {/* Property tax + LTT table - real, sourced numbers */}
         <h2 className="font-heading font-bold text-xl text-navy mb-4">Property tax &amp; land transfer tax, side by side</h2>
         <div className="overflow-x-auto rounded-xl border border-slate-200 mb-3">
           <table className="w-full text-left text-sm">
@@ -162,7 +162,7 @@ export default function CityComparisonPage() {
           </table>
         </div>
         <p className="text-xs text-slate-500 mb-10">
-          Property tax rates are the site&apos;s own researched 2025 municipal rates — the same figures used in every
+          Property tax rates are the site&apos;s own researched 2025 municipal rates - the same figures used in every
           listing&apos;s carrying-cost math, so this table can&apos;t drift from the calculator. Ontario&apos;s provincial
           land transfer tax applies identically in all three cities; only the City of Toronto charges an additional
           municipal land transfer tax, which is why that column reads &quot;None&quot; here.
@@ -193,12 +193,12 @@ export default function CityComparisonPage() {
           </table>
         </div>
         <p className="text-xs text-slate-500 mb-10">
-          General tendencies, not a promise for any specific property — prices and rents move constantly, so this page
+          General tendencies, not a promise for any specific property - prices and rents move constantly, so this page
           deliberately doesn&apos;t quote a $ figure that would go stale. See live, scored listings in each city for
           today&apos;s real numbers.
         </p>
 
-        {/* Live city links — the honest source for current prices */}
+        {/* Live city links - the honest source for current prices */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
           <Link href="/listings" className="rounded-xl border border-slate-200 bg-white p-4 text-center no-underline transition-all hover:border-accent/30 hover:shadow-md">
             <span className="block font-heading font-semibold text-sm text-navy">Mississauga</span>
@@ -214,7 +214,7 @@ export default function CityComparisonPage() {
           </Link>
         </div>
 
-        {/* Inline email capture — convert the reader who isn't ready to browse yet */}
+        {/* Inline email capture - convert the reader who isn't ready to browse yet */}
         <InlineCTA variant="newsletter" className="mb-10" />
 
         {/* Visible FAQ (mirrors the schema) */}
@@ -233,7 +233,7 @@ export default function CityComparisonPage() {
           <h2 className="font-heading font-bold text-xl text-white mb-2">Compare real listings, not just averages</h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
             Every listing in Mississauga, Brampton, Hamilton and across the GTA is scored for cash flow and cap rate
-            using each city&apos;s own real tax rate — so the comparison is apples-to-apples.
+            using each city&apos;s own real tax rate - so the comparison is apples-to-apples.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/gta" className="btn-primary !px-6 no-underline text-center">

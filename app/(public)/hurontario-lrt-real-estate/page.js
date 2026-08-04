@@ -35,7 +35,7 @@ export const metadata = {
 
 // Honest, general guidance. Transit's effect on values/rents is described as a
 // well-documented tendency, not a promise, and no specific appreciation figures
-// are fabricated — readers are routed to the neighbourhood guides + live
+// are fabricated - readers are routed to the neighbourhood guides + live
 // listings + market data for real numbers.
 const LRT_FAQ = [
   {
@@ -46,22 +46,22 @@ const LRT_FAQ = [
   {
     question: 'Which Mississauga neighbourhoods does the LRT affect most?',
     answer:
-      'The corridor runs straight through several of the city’s densest, most investable nodes: Port Credit at the south end (with its GO station and waterfront), Cooksville (a GO and transit hub mid-line), and Mississauga City Centre around Square One — the downtown core with the most condo supply. Areas immediately along Hurontario Street and within walking distance of a stop stand to benefit most from the improved connectivity.',
+      'The corridor runs straight through several of the city’s densest, most investable nodes: Port Credit at the south end (with its GO station and waterfront), Cooksville (a GO and transit hub mid-line), and Mississauga City Centre around Square One - the downtown core with the most condo supply. Areas immediately along Hurontario Street and within walking distance of a stop stand to benefit most from the improved connectivity.',
   },
   {
     question: 'Does being near an LRT stop raise property value or rent?',
     answer:
-      'It tends to. Proximity to rapid transit is one of the most consistently documented drivers of housing demand: it widens the pool of renters and buyers who can live without a car, improves walkability scores, and supports higher rents and resale values near stations. That said, it is a tendency, not a guarantee — some of the expected uplift can already be priced in once a line is announced and under construction, and effects vary block by block. Model the actual rent and cash flow for a specific property rather than assuming a transit premium.',
+      'It tends to. Proximity to rapid transit is one of the most consistently documented drivers of housing demand: it widens the pool of renters and buyers who can live without a car, improves walkability scores, and supports higher rents and resale values near stations. That said, it is a tendency, not a guarantee - some of the expected uplift can already be priced in once a line is announced and under construction, and effects vary block by block. Model the actual rent and cash flow for a specific property rather than assuming a transit premium.',
   },
   {
     question: 'When does the Hurontario LRT open?',
     answer:
-      'Metrolinx, the provincial agency building the line, publishes the current construction and opening timeline — always check the official source for the latest dates rather than relying on older estimates. For investing decisions, what matters most is that the route, stations and connections are fixed and the corridor is being built out, so the long-term connectivity is locked in.',
+      'Metrolinx, the provincial agency building the line, publishes the current construction and opening timeline - always check the official source for the latest dates rather than relying on older estimates. For investing decisions, what matters most is that the route, stations and connections are fixed and the corridor is being built out, so the long-term connectivity is locked in.',
   },
   {
     question: 'Is it a good time to invest along the Hurontario corridor?',
     answer:
-      'The corridor concentrates transit, jobs (Square One / City Centre), GO connections and rental demand, which is a strong long-term foundation for a rental property. Whether a specific listing is a good buy still comes down to its price, rent, and carrying costs — cap rate, cash flow and break-even rent. Use the neighbourhood guides for area context and the listing analysis tools to check the numbers on any property before you commit.',
+      'The corridor concentrates transit, jobs (Square One / City Centre), GO connections and rental demand, which is a strong long-term foundation for a rental property. Whether a specific listing is a good buy still comes down to its price, rent, and carrying costs - cap rate, cash flow and break-even rent. Use the neighbourhood guides for area context and the listing analysis tools to check the numbers on any property before you commit.',
   },
 ];
 
@@ -74,12 +74,12 @@ const NODES = [
   {
     title: 'Mississauga City Centre',
     slug: 'city-centre',
-    body: 'The downtown core around Square One — the city’s largest concentration of condo supply, jobs and amenities, and the node most shaped by transit-oriented density.',
+    body: 'The downtown core around Square One - the city’s largest concentration of condo supply, jobs and amenities, and the node most shaped by transit-oriented density.',
   },
   {
     title: 'Cooksville',
     slug: 'cooksville',
-    body: 'A mid-line transit hub with its own GO station, more affordable entry prices and a large existing rental pool — often where the corridor’s cash-flow math works best.',
+    body: 'A mid-line transit hub with its own GO station, more affordable entry prices and a large existing rental pool - often where the corridor’s cash-flow math works best.',
   },
   {
     title: 'The Hurontario corridor',
@@ -103,7 +103,7 @@ export default function HurontarioLrtRealEstatePage() {
         compact
         eyebrow={`Mississauga · Transit & Investing · ${YEAR}`}
         title="Hurontario LRT Real Estate Impact"
-        subtitle="The Hazel McCallion Line runs the length of Hurontario, linking Port Credit, City Centre and Cooksville — here’s how investors should read it, then check the numbers on real listings."
+        subtitle="The Hazel McCallion Line runs the length of Hurontario, linking Port Credit, City Centre and Cooksville - here’s how investors should read it, then check the numbers on real listings."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -114,7 +114,7 @@ export default function HurontarioLrtRealEstatePage() {
             The Hurontario LRT (officially the <strong>Hazel McCallion Line</strong>) brings dedicated light-rail
             service down Hurontario Street, connecting Port Credit, Mississauga City Centre and Cooksville and tying
             into GO Transit. Rapid transit is one of the most reliable long-term supports for rental demand and property
-            values near stations — a <strong>tendency, not a guarantee</strong>, and often partly priced in once a line
+            values near stations - a <strong>tendency, not a guarantee</strong>, and often partly priced in once a line
             is under construction. For an investor, the corridor is a strong foundation; whether a given property is a
             good buy still comes down to its own cap rate, cash flow and break-even rent.
           </p>
@@ -150,11 +150,11 @@ export default function HurontarioLrtRealEstatePage() {
             <li><strong>Bigger tenant pool.</strong> A stop within walking distance lets renters live car-free, widening demand and supporting occupancy and rent.</li>
             <li><strong>Walkability &amp; convenience.</strong> Transit access lifts walk/transit scores, which buyers and tenants increasingly filter for.</li>
             <li><strong>Long-term connectivity is locked in.</strong> The route, stations and GO connections are fixed, so the corridor’s access advantage is durable.</li>
-            <li><strong>But check for priced-in premiums.</strong> Some uplift can already be in the asking price near confirmed stations — always run the actual cash-flow math.</li>
+            <li><strong>But check for priced-in premiums.</strong> Some uplift can already be in the asking price near confirmed stations - always run the actual cash-flow math.</li>
           </ul>
         </div>
 
-        {/* Inline email capture — convert the reader who isn't ready to browse yet */}
+        {/* Inline email capture - convert the reader who isn't ready to browse yet */}
         <InlineCTA variant="newsletter" className="mb-10" />
 
         {/* Visible FAQ (mirrors the schema) */}

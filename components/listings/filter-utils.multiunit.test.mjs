@@ -6,8 +6,8 @@
  * WHY THIS EXISTS. On 2026-08-03 the multi-unit email told ~480 investors there
  * were 11 duplex/triplex/multiplex listings in Mississauga, and the site's
  * Duplex/Multi filter showed "No properties match your filters right now". The
- * email was right — production's /api/listings?multiUnit=1 returned exactly
- * those 11 — but a reader clicking through saw an empty page and concluded the
+ * email was right - production's /api/listings?multiUnit=1 returned exactly
+ * those 11 - but a reader clicking through saw an empty page and concluded the
  * email lied. Two separate causes; this file guards the filter half.
  *
  * The rows below are the REAL 11 from production that day, plus a Fourplex,
@@ -60,13 +60,13 @@ check('exactly 12 matched (11 real + fourplex)', ids.length === 12, `got ${ids.l
 
 console.log('\nEvery type the email can count is matchable by the filter');
 // If these two ever diverge again, the email will describe listings the site
-// cannot show — the exact failure this file exists to prevent.
+// cannot show - the exact failure this file exists to prevent.
 for (const t of ['Duplex', 'Triplex', 'Fourplex', 'Multiplex']) {
   const got = applyFilters([{ id: t, type: t, subType: t, price: 1000000 }], filters);
   check(`${t} is matchable`, got.length === 1);
 }
 
-console.log('\nType buckets are DISJOINT — every listing in exactly one');
+console.log('\nType buckets are DISJOINT - every listing in exactly one');
 // Condo townhouses carry a maintenance fee and freehold townhouses do not, so
 // they are separate buckets. Verified against the live feed: 20/20 rows typed
 // "Condo Townhouse" carry a condo fee; the one "Att/Row/Townhouse" carries none.
@@ -118,7 +118,7 @@ for (const [sub, prop, want] of cases) {
   check(`${sub} -> ${want}`, mapType(sub, prop) === want, `got ${mapType(sub, prop)}`);
 }
 // Every type mapType can produce must land in exactly one CHIP. Checked against
-// the chip row, not the match map — the map also holds the deliberate
+// the chip row, not the match map - the map also holds the deliberate
 // all-multi-unit URL alias, which is a superset and has no chip.
 const CHIPS = PROPERTY_TYPES.filter((t) => t !== 'All');
 const produced = [...new Set(cases.map(([s2, p2]) => mapType(s2, p2)))];
@@ -129,5 +129,5 @@ for (const t of produced) {
 check('the all-multi-unit alias is NOT a chip', !PROPERTY_TYPES.includes('Duplex/Multi'));
 check('every chip has a match rule', CHIPS.every((c) => Array.isArray(PROPERTY_TYPE_MATCH[c])));
 
-console.log(`\n${failures.length ? 'FAILED' : 'PASSED'} — ${pass} checks passed, ${failures.length} failed`);
+console.log(`\n${failures.length ? 'FAILED' : 'PASSED'} - ${pass} checks passed, ${failures.length} failed`);
 if (failures.length) { failures.forEach((f) => console.log(`  - ${f}`)); process.exit(1); }

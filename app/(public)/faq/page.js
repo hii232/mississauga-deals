@@ -33,7 +33,7 @@ const FAQ_DATA = [
       {
         question: 'How is the Deal Score calculated?',
         answer:
-          'The Deal Score (1-10) evaluates each property across multiple investment metrics including estimated monthly cash flow, cap rate, price-to-rent ratio, and days on market. A higher score indicates stronger estimated investment returns at the current asking price. The score is NOT a measure of property quality — it measures return potential.',
+          'The Deal Score (1-10) evaluates each property across multiple investment metrics including estimated monthly cash flow, cap rate, price-to-rent ratio, and days on market. A higher score indicates stronger estimated investment returns at the current asking price. The score is NOT a measure of property quality - it measures return potential.',
       },
       {
         question: 'What does the cash flow estimate include?',
@@ -97,7 +97,7 @@ export default function FAQPage() {
   return (
     <>
       <FAQJsonLd items={allItems} />
-      {/* BreadcrumbList is emitted by app/(public)/faq/layout.js (server) —
+      {/* BreadcrumbList is emitted by app/(public)/faq/layout.js (server) -
           rendering it here too made the page ship the schema twice. */}
 
       {/* Hero */}
@@ -105,12 +105,12 @@ export default function FAQPage() {
         eyebrow="Help Centre"
         title="Frequently Asked Questions"
         // The h1 reads "Frequently Asked Questions" but neither "frequently"
-        // nor "asked" appeared anywhere in the body copy — the same
+        // nor "asked" appeared anywhere in the body copy - the same
         // h1-terms-absent-from-body gap the 2026-07-30 audit flagged on other
         // pages, on a page that audit never crawled. Reworded to carry both
         // terms naturally AND to name what the page actually covers, which the
         // old generic line did not.
-        subtitle="The questions Mississauga investors ask us most frequently — how the deal scores and analysis work, what it's like working with Hamza, and the investment-strategy calls that come up before a first purchase. If yours isn't asked below, send it to me directly."
+        subtitle="The questions Mississauga investors ask us most frequently - how the deal scores and analysis work, what it's like working with Hamza, and the investment-strategy calls that come up before a first purchase. If yours isn't asked below, send it to me directly."
         align="center"
         compact
       />
@@ -168,14 +168,14 @@ export default function FAQPage() {
           );
         })}
 
-        {/* Email capture — converts researchers not ready to reach out directly */}
+        {/* Email capture - converts researchers not ready to reach out directly */}
         <InlineCTA variant="newsletter" className="mt-12" />
 
         {/* CTA */}
         <div className="mt-8 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
           <h3 className="font-heading text-xl font-bold text-white mb-2">Still have questions?</h3>
           <p className="text-white/60 text-sm mb-6">
-            Hamza is happy to chat about your investment goals — no pressure, no obligation.
+            Hamza is happy to chat about your investment goals - no pressure, no obligation.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a

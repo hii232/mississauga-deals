@@ -9,7 +9,7 @@ const PAGE_SIZE = 30;
 
 // All listings gated for non-registered users
 
-// analysisComplete: see listing-grid.js — the pool streams in over ~24 pages
+// analysisComplete: see listing-grid.js - the pool streams in over ~24 pages
 // after `isLoading` has already gone false, so a 0-match filter must not claim
 // the market is empty until the set is settled.
 export function ListingTable({ listings, isRegistered, compareIds, onToggleCompare, analysisComplete = true }) {
@@ -32,7 +32,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
   }
 
   if (listings.length === 0) {
-    // Same high-intent lead moment as the grid view — offer a deal alert rather
+    // Same high-intent lead moment as the grid view - offer a deal alert rather
     // than dead-ending an investor whose specific search has no match right now.
     return (
       <div className="flex min-h-[16rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8">
@@ -165,7 +165,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
 
                   {/* DOM */}
                   <td className={`px-4 py-3 text-slate-600 ${isGated ? 'select-none blur-sm' : ''}`}>
-                    {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'}
+                    {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '-'}
                   </td>
 
                   {/* CAP */}
@@ -209,7 +209,7 @@ export function ListingTable({ listings, isRegistered, compareIds, onToggleCompa
                         href="/signup"
                         className="mt-1 inline-block text-[10px] font-semibold text-accent hover:underline"
                       >
-                        Unlock metrics — free, 10 sec
+                        Unlock metrics - free, 10 sec
                       </Link>
                     )}
                   </td>

@@ -11,8 +11,8 @@ import { HOOD_DATA } from '@/lib/constants';
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // A malformed deal (missing/NaN derived number) must NEVER crash a card and
-// blank the whole homepage deal section. Format defensively — dash, never NaN.
-const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '—');
+// blank the whole homepage deal section. Format defensively - dash, never NaN.
+const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '-');
 
 export function HomeDealCards({ deals, photoMap }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +29,7 @@ export function HomeDealCards({ deals, photoMap }) {
         // The #1 deal is the same property the hero card shows with its cap
         // rate and cash flow fully visible. Locking it here meant asking a
         // visitor to sign up to see numbers they had just read one scroll
-        // earlier — which reads as broken, not as a gate. It stays open as the
+        // earlier - which reads as broken, not as a gate. It stays open as the
         // deliberate free sample; everything after it is gated.
         return (
           <HomeDealCard
@@ -58,13 +58,13 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
       <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
         {photo ? (
           <>
-            {/* Shimmer under the image while it loads — same treatment as the
+            {/* Shimmer under the image while it loads - same treatment as the
                 /listings cards: a cold TRREB photo on flat white reads as
                 broken; covered by the Image the moment it paints. */}
             <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
             <Image
               src={photo}
-              alt={`${deal.address} — ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`}
+              alt={`${deal.address} - ${deal.beds ? deal.beds + " bed " : ""}${deal.subType || deal.type || "property"} for sale in ${deal.neighbourhood || "Mississauga"}`}
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
               priority={priority}
@@ -83,9 +83,9 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
           className="absolute right-1.5 top-1.5 sm:right-2 sm:top-2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white shadow-lg"
           style={{ backgroundColor: scoreHex }}
         >
-          {score == null ? '—' : score}
+          {score == null ? '-' : score}
         </div>
-        {/* Freshness cue — honest "New" from real days-on-market (1–7d; dom=0 is
+        {/* Freshness cue - honest "New" from real days-on-market (1–7d; dom=0 is
             the missing-data fallback, so it's excluded to avoid false positives) */}
         {deal.dom >= 1 && deal.dom <= 7 && (
           <div className="absolute left-1.5 top-1.5 sm:left-2 sm:top-2 rounded-full bg-accent px-1.5 sm:px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-md">
@@ -93,12 +93,12 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
           </div>
         )}
         {/* Investor tags.
-            These carry real investor information — a legal suite, a price cut,
-            a stale listing — so they have to be legible, and measured at 375px
+            These carry real investor information - a legal suite, a price cut,
+            a stale listing - so they have to be legible, and measured at 375px
             they were not: white on bg-success/90 is 2.4:1 and white on
             amber-500/90 or gold/90 is 2.1:1, against the 4.5:1 AA needs for
             10px text. An earlier sweep skipped these as "chips over a photo,
-            meaningless to measure", but that was the wrong call — the chip
+            meaningless to measure", but that was the wrong call - the chip
             carries its OWN background, so the photo barely shows through and
             the ratio is real.
             Now fully opaque (a translucent chip over an arbitrary photo has
@@ -146,13 +146,13 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
         </div>
         <p className="text-[10px] sm:text-xs text-muted mt-0.5">{deal.beds} bed · {deal.baths} bath</p>
 
-        {/* Metrics — gated for anonymous */}
+        {/* Metrics - gated for anonymous */}
         <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1 text-center rounded-lg bg-cloud p-1.5 sm:p-2">
           {/* CAP and the deal score are NEVER gated. The hero card on this
               same page prints a cap rate in full, so locking it on the card
               below showed a visitor two different answers for one property and
               read as a trick rather than a teaser. Cap rate and score are the
-              proof the platform works — they earn the signup. Only the monthly
+              proof the platform works - they earn the signup. Only the monthly
               cash-flow figure (and, on the listing page, the full breakdown,
               BRRR projection and alerts) sits behind the gate. */}
           <div>
@@ -167,21 +167,21 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
               </p>
             ) : (
               <p className={`text-[11px] sm:text-xs font-bold ${cf == null ? 'text-slate-500' : cf >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-                {cf == null ? '—' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
+                {cf == null ? '-' : `${cf >= 0 ? '+' : '-'}$${Math.abs(Math.round(cf))}`}
               </p>
             )}
           </div>
           <div>
-            {/* dom 0 = unknown (feed withholds it on active listings) — show
+            {/* dom 0 = unknown (feed withholds it on active listings) - show
                 what we DO know, days since the record changed, never a bare 0
                 that reads as "listed today". */}
             <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
             <p className="text-[11px] sm:text-xs font-bold text-navy">
-              {deal.dom >= 1 ? deal.dom : deal.domFloor >= 1 ? `${deal.domFloor}+` : '—'}
+              {deal.dom >= 1 ? deal.dom : deal.domFloor >= 1 ? `${deal.domFloor}+` : '-'}
             </p>
           </div>
         </div>
-        {/* The assumption behind the CAP shown above — now rendered for gated
+        {/* The assumption behind the CAP shown above - now rendered for gated
             cards too, because a cap rate with a hidden rent assumption is the
             unverifiable number the whole rent-assumption work set out to fix.
             Short form only: these cards render two-up at 375px, so the full

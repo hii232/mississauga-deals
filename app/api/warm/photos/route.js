@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 // optimizer must fetch the original from TRREB's image origin
 // (trreb-image.ampre.ca), which measured ~30s while throttled and ~1-2s
 // normally. The listings feed sorts by ModificationTimestamp, so the TOP of
-// the feed — exactly what the homepage and /listings show first — is always
+// the feed - exactly what the homepage and /listings show first - is always
 // the newest listings with the coldest photos. This cron pays that first-load
 // cost on a schedule so visitors never do.
 //
@@ -62,7 +62,7 @@ export async function GET(request) {
 
     for (let i = 0; i < targets.length; i += BATCH) {
       // Stop starting new batches when the worst-case batch would blow the
-      // function budget — a partial warm beats a killed function.
+      // function budget - a partial warm beats a killed function.
       if (Date.now() - started > (maxDuration - 45) * 1000) break;
       const batch = await Promise.all(
         targets.slice(i, i + BATCH).map((u) =>
