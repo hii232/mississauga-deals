@@ -18,5 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_alert_sent_listings_sent_at
 
 ALTER TABLE alert_sent_listings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Service role full access on alert_sent_listings"
-  ON alert_sent_listings FOR ALL USING (true) WITH CHECK (true);
+-- No policies on purpose: all app access uses the service role, which
+-- bypasses RLS. A true/true policy here (the old pattern) had no TO clause
+-- and granted the browser-shipped ANON key full access. See
+-- enable_rls_lockdown.sql.

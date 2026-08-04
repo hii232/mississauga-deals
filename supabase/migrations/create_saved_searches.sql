@@ -13,5 +13,7 @@ CREATE INDEX IF NOT EXISTS idx_saved_searches_email ON saved_searches (email);
 
 ALTER TABLE saved_searches ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public inserts" ON saved_searches FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow service role all" ON saved_searches FOR ALL USING (true);
+-- No policies on purpose: all app access uses the service role, which
+-- bypasses RLS. A true/true policy here (the old pattern) had no TO clause
+-- and granted the browser-shipped ANON key full access. See
+-- enable_rls_lockdown.sql.

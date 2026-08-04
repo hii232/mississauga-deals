@@ -16,9 +16,12 @@ CREATE INDEX IF NOT EXISTS idx_blog_posts_published ON blog_posts(published, cre
 
 ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Service role full access on blog_posts"
-  ON blog_posts FOR ALL USING (true) WITH CHECK (true);
+-- No service-role policy: the service role BYPASSES row-level security, so a
+-- policy for it is dead weight - and the true/true one that used to sit here
+-- had no TO clause, which granted the browser-shipped ANON key full
+-- read/write/delete. See enable_rls_lockdown.sql.
 
 CREATE POLICY "Public read published posts"
   ON blog_posts FOR SELECT
+  TO anon, authenticated
   USING (published = true);
