@@ -7,6 +7,7 @@ import { ListingsContainer } from '@/components/listings/listings-container';
 import { RegionSwitcher } from '@/components/listings/region-switcher';
 import { PageHero } from '@/components/layout/page-hero';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
+import { READ_ONLY_HEADER } from '@/lib/listings/gta-screener';
 import { slugifyPlace } from '@/lib/utils/format';
 import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 
@@ -435,6 +436,13 @@ export async function fetchGtaScreenerSummary(city) {
       // One Data Cache entry shared by the hub and all 28 city renders, so a
       // rebuild pays this fetch once rather than 29 times.
       next: { revalidate: 600 },
+      // READ ONLY. This fetch gives up after 4s, so it must never be the thing
+      // that starts a ~4-minute, ~245-request GTA feed walk — it cannot be
+      // around to read the answer. Before this header existed it started one on
+      // every /gta and /gta/[city] render: 116 walks in six hours, ~11,200
+      // upstream requests, 79% of the site's entire serverless traffic, all of
+      // it discarded. The walk belongs to the cron; see app/api/gta-screener.
+      headers: { [READ_ONLY_HEADER]: '1' },
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
