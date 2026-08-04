@@ -12,7 +12,7 @@ const YEAR = new Date().getFullYear();
 export const metadata = {
   title: { absolute: `Mississauga Rent by Bedroom (${YEAR})` },
   description:
-    'What renters actually pay by bedroom count across Mississauga in 2026 — average, lowest and highest neighbourhood, from the site’s own rent model.',
+    'What renters actually pay by bedroom count across Mississauga in 2026 - average, lowest and highest neighbourhood, from the site’s own rent model.',
   keywords: [
     'mississauga rent by bedroom',
     'average rent mississauga 2026',
@@ -36,7 +36,7 @@ export const metadata = {
 };
 
 // BED_LABEL / BEDS drive the table below. Every number in it is computed live
-// from HOOD_RENTS (lib/constants.js) at render time — there is no second,
+// from HOOD_RENTS (lib/constants.js) at render time - there is no second,
 // hand-typed copy that could drift from the same table the cash-flow engine
 // uses for every listing, and no page needs updating when that table is
 // recalibrated against real lease comps (see IMPROVEMENT_BACKLOG.md item 12).
@@ -68,30 +68,30 @@ const RENT_FAQ = [
   {
     question: 'How much does a 2-bedroom apartment rent for in Mississauga?',
     answer:
-      'It varies a lot by neighbourhood. Across the 24 neighbourhoods this site tracks, the typical range runs from the low $2,500s in the most affordable areas up to $3,200+ near the waterfront and downtown core, with a city-wide average in between. The table on this page shows the current average, lowest and highest by bedroom count — sort by the neighbourhood guides for a specific area’s number.',
-    // Rendered under the visible answer only — FAQJsonLd ignores this field,
+      'It varies a lot by neighbourhood. Across the 24 neighbourhoods this site tracks, the typical range runs from the low $2,500s in the most affordable areas up to $3,200+ near the waterfront and downtown core, with a city-wide average in between. The table on this page shows the current average, lowest and highest by bedroom count - sort by the neighbourhood guides for a specific area’s number.',
+    // Rendered under the visible answer only - FAQJsonLd ignores this field,
     // so no HTML ever leaks into the JSON-LD answer string.
     link: { href: '/neighbourhoods', label: 'Browse all neighbourhood guides →' },
   },
   {
     question: 'Which Mississauga neighbourhood has the lowest rent?',
     answer:
-      'Malton consistently has the lowest rent across every bedroom count in this model, which is also why it shows the strongest rental yields for investors on this site — a low purchase price paired with genuinely low rent, not an inflated one. Areas near the waterfront and GO stations (Port Credit, Mineola, Lorne Park) sit at the top of the range — those are priced more for appreciation than for cash flow.',
+      'Malton consistently has the lowest rent across every bedroom count in this model, which is also why it shows the strongest rental yields for investors on this site - a low purchase price paired with genuinely low rent, not an inflated one. Areas near the waterfront and GO stations (Port Credit, Mineola, Lorne Park) sit at the top of the range - those are priced more for appreciation than for cash flow.',
   },
   {
     question: 'Why does rent vary so much between neighbourhoods for the same bedroom count?',
     answer:
-      'Location drives rent independently of purchase price: proximity to transit (GO stations, the Hurontario LRT corridor), employer density near Pearson Airport and City Centre, school catchments, and general desirability all matter to a tenant the way they matter to a buyer. Two 3-bedroom homes can rent for very different amounts even at similar purchase prices — which is exactly why cap rate, not price alone, is what determines whether a property is a good rental investment.',
+      'Location drives rent independently of purchase price: proximity to transit (GO stations, the Hurontario LRT corridor), employer density near Pearson Airport and City Centre, school catchments, and general desirability all matter to a tenant the way they matter to a buyer. Two 3-bedroom homes can rent for very different amounts even at similar purchase prices - which is exactly why cap rate, not price alone, is what determines whether a property is a good rental investment.',
   },
   {
     question: 'Does a legal basement suite change these numbers?',
     answer:
-      'Substantially — a legal second suite adds a separate rent cheque on top of the main unit’s rent shown here, which is what moves many Mississauga properties from negative to positive cash flow. The figures on this page are for the main unit only; listings flagged with a legal or potential suite show the combined total on their own page.',
+      'Substantially - a legal second suite adds a separate rent cheque on top of the main unit’s rent shown here, which is what moves many Mississauga properties from negative to positive cash flow. The figures on this page are for the main unit only; listings flagged with a legal or potential suite show the combined total on their own page.',
   },
   {
     question: 'How are these rent estimates calculated?',
     answer:
-      'They come from the same per-neighbourhood, per-bedroom model that estimates cash flow and cap rate on every listing across the site, periodically checked against real, recently-leased MLS comparables and adjusted where the evidence shows a meaningful gap — see the score methodology page for the full calculation. They are estimates, not a guarantee for any specific unit; condition, parking, and exact location all move the number.',
+      'They come from the same per-neighbourhood, per-bedroom model that estimates cash flow and cap rate on every listing across the site, periodically checked against real, recently-leased MLS comparables and adjusted where the evidence shows a meaningful gap - see the score methodology page for the full calculation. They are estimates, not a guarantee for any specific unit; condition, parking, and exact location all move the number.',
   },
 ];
 
@@ -112,7 +112,7 @@ export default function RentByBedroomPage() {
         compact
         eyebrow={`Mississauga & GTA · Rental Market · ${YEAR}`}
         title={`Mississauga Rent by Bedroom (${YEAR})`}
-        subtitle="What renters actually pay by bedroom count, and how much it swings across the city's 24 neighbourhoods — straight from the same model that scores every listing here."
+        subtitle="What renters actually pay by bedroom count, and how much it swings across the city's 24 neighbourhoods - straight from the same model that scores every listing here."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -164,7 +164,7 @@ export default function RentByBedroomPage() {
         </div>
         <p className="text-xs text-slate-500 mb-10">
           Estimates from this site&apos;s own per-neighbourhood rent model, the same figures used to score every listing
-          &mdash; not a guarantee for any specific unit. Figures are periodically recalibrated against real,
+          - not a guarantee for any specific unit. Figures are periodically recalibrated against real,
           recently-leased MLS comparables; condition, parking and exact location move the number for a real property.
         </p>
 
@@ -188,7 +188,7 @@ export default function RentByBedroomPage() {
         <div className="rounded-2xl bg-navy p-8 text-center">
           <h2 className="font-heading font-bold text-xl text-white mb-2">See rent-backed cash flow on a real listing</h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
-            Every Mississauga listing is scored with its own neighbourhood rent estimate, cap rate and cash flow &mdash;
+            Every Mississauga listing is scored with its own neighbourhood rent estimate, cap rate and cash flow -
             not a city-wide average.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

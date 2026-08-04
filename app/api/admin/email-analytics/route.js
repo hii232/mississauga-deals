@@ -21,7 +21,7 @@ function checkAuth(request) {
  * ?campaign=<key>  report for one campaign (defaults to the most recent)
  *
  * The engaged list is joined back to `leads` so the follow-up list carries a
- * name and phone, not just an address — that is the whole point of the panel.
+ * name and phone, not just an address - that is the whole point of the panel.
  * A missing email_events table is reported as a setup step, not an error: it
  * means the migration hasn't been run yet.
  */

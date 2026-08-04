@@ -3,7 +3,7 @@ export const metadata = {
   description: 'Terms of service for MississaugaInvestor.ca. Understand the conditions for using our real estate investment platform.',
   alternates: { canonical: '/terms' },
   // Own openGraph block. Without one this page inherited the ROOT's,
-  // whose url is the homepage — so every share of this URL showed
+  // whose url is the homepage - so every share of this URL showed
   // homepage branding and pointed crawlers at '/'. Next REPLACES the
   // openGraph object rather than merging it, so the image has to be
   // restated here or the card ships without one.
@@ -15,7 +15,7 @@ export const metadata = {
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Terms of Service | MississaugaInvestor.ca' }],
   },
   // Next.js REPLACES (not merges) the root layout twitter object when a page
-  // defines its own openGraph — without this the page shares text-only on
+  // defines its own openGraph - without this the page shares text-only on
   // X/Twitter/Slack/iMessage.
   twitter: {
     card: 'summary_large_image',
@@ -64,9 +64,9 @@ export default function TermsPage() {
         <section>
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">4. Deal Score Disclaimer</h2>
           <p>
-            This score measures estimated investment return potential only — not property quality, condition,
+            This score measures estimated investment return potential only - not property quality, condition,
             or desirability. Scores are based on mathematical calculations using list price, estimated rental
-            income, and operating costs. A low investment score does not mean the property is undesirable — it
+            income, and operating costs. A low investment score does not mean the property is undesirable - it
             means the current asking price relative to estimated rental income produces lower investor returns.
             Scores update as prices change. This is not an appraisal.
           </p>
@@ -75,7 +75,7 @@ export default function TermsPage() {
             capitalization rate, cash-on-cash return, price-to-rent ratio, and secondary suite potential. These
             scores measure investment return potential for rental property investors. They do not assess property
             quality, condition, neighbourhood desirability, appreciation potential, or suitability for
-            owner-occupants. A property with a low investment score may be an excellent home — it simply means
+            owner-occupants. A property with a low investment score may be an excellent home - it simply means
             the current price-to-rent ratio produces lower cash returns at today&apos;s mortgage rates. All estimates
             are approximate and should not be relied upon for purchase decisions without independent professional
             advice.
@@ -94,13 +94,13 @@ export default function TermsPage() {
           </p>
           {/* VOW consumer terms. TRREB's Virtual Office Website rules require a
               terms-of-use agreement with the consumer BEFORE sold/off-market
-              data is displayed to them — gating behind an email alone is not an
+              data is displayed to them - gating behind an email alone is not an
               agreement. Every capture path that unlocks VOW data now links its
               "by continuing you agree" line here, so this section is the
               substance that acceptance refers to. */}
           <p className="mt-3">
-            Certain data on this Website &mdash; including sold prices, price history and comparable-sale
-            records &mdash; is made available through a Virtual Office Website (&ldquo;VOW&rdquo;) feed and is
+            Certain data on this Website - including sold prices, price history and comparable-sale
+            records - is made available through a Virtual Office Website (&ldquo;VOW&rdquo;) feed and is
             provided for your personal, non-commercial use only, solely to assist you in evaluating properties
             for potential purchase, sale or lease. By registering for access you agree that you (a) have a
             bona fide interest in the purchase, sale or lease of real estate, (b) will not copy, redistribute,

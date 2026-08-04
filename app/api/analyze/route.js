@@ -4,7 +4,7 @@ import { buildAnalysisPrompt, getPromptHash } from '@/lib/analysis-prompt';
 
 // The analysis prompt is grounded in the same live market data the rest of the
 // site publishes, so an analysis can never quote figures the market pages have
-// already moved past. Returns null on any failure — the prompt then omits the
+// already moved past. Returns null on any failure - the prompt then omits the
 // market block entirely rather than reciting stale numbers.
 async function fetchMarketStats(request) {
   try {
@@ -70,7 +70,7 @@ export async function POST(request) {
         });
       }
     } catch {
-      // Cache miss or table doesn't exist — continue to API call
+      // Cache miss or table doesn't exist - continue to API call
     }
   }
 

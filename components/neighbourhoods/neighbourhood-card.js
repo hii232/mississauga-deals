@@ -7,7 +7,7 @@ const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // Measured at 375px: this badge is 10px text, so it needs 4.5:1. `warm` and
 // `cool` already pass comfortably (8.7:1 and 6.8:1) because they put NAVY on a
-// light chip — the pattern that works. The two that used WHITE did not:
+// light chip - the pattern that works. The two that used WHITE did not:
 // red-500 was 3.8:1 and the slate-400 fallback 2.6:1. red-600 takes hot to
 // 4.8:1; the fallback switches to the navy-on-light pattern at 9.8:1.
 const TREND_BADGE = {
@@ -81,12 +81,12 @@ export function NeighbourhoodCard({ name, data, avgPrice, avgDOM, rentYield, isL
           </div>
           <div className="rounded-lg bg-cloud p-2">
             <p className={`text-xs font-bold ${yoy != null && yoy >= 0 ? 'text-emerald-700' : 'text-red-600'}`}>
-              {yoy == null ? '—' : `${yoy >= 0 ? '+' : ''}${yoy}%`}
+              {yoy == null ? '-' : `${yoy >= 0 ? '+' : ''}${yoy}%`}
             </p>
             <p className="text-[10px] text-muted">YoY</p>
           </div>
           <div className="rounded-lg bg-cloud p-2">
-            <p className="text-xs font-bold text-navy">{typeof dom === 'number' ? `${dom}d` : '—'}</p>
+            <p className="text-xs font-bold text-navy">{typeof dom === 'number' ? `${dom}d` : '-'}</p>
             <p className="text-[10px] text-muted">Avg DOM</p>
           </div>
         </div>

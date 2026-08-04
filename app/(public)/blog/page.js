@@ -18,7 +18,7 @@ export const revalidate = 60;
 const POSTS_PER_PAGE = 12;
 const BASE_URL = 'https://www.mississaugainvestor.ca';
 
-// Known categories — used for filter chips without an extra query.
+// Known categories - used for filter chips without an extra query.
 const CATEGORIES = [
   'Neighbourhood Guide',
   'Strategy',
@@ -40,7 +40,7 @@ const categoryColorMap = {
 };
 
 // Override the layout's static canonical and OG URL for deep pages so each
-// paginated URL is its own distinct indexable page — not a duplicate of page 1.
+// paginated URL is its own distinct indexable page - not a duplicate of page 1.
 export async function generateMetadata({ searchParams }) {
   const page = Math.max(1, parseInt(searchParams?.page) || 1);
   if (page <= 1) return {}; // layout's canonical /blog is correct for page 1
@@ -52,7 +52,7 @@ export async function generateMetadata({ searchParams }) {
     openGraph: { url: `${BASE_URL}/blog?page=${page}` },
     twitter: {
       card: 'summary_large_image',
-      title: 'Investment Insights — Mississauga Real Estate Blog by Hamza Nouman',
+      title: 'Investment Insights - Mississauga Real Estate Blog by Hamza Nouman',
       description: 'Expert Mississauga real estate investment analysis and guides by Hamza Nouman.',
       images: ['/opengraph-image'],
     },
@@ -86,7 +86,7 @@ export default async function BlogPage({ searchParams }) {
   if (supabase) {
     // Lightweight query: slug + title only, for the ItemList schema and the
     // total count. Previously `select('*')` fetched full post bodies (content,
-    // HTML, etc.) for every row just to compute read-times on the index page —
+    // HTML, etc.) for every row just to compute read-times on the index page -
     // the source of the 660KB+ page weight on a blog with 120+ posts.
     let allQuery = supabase
       .from('blog_posts')
@@ -102,7 +102,7 @@ export default async function BlogPage({ searchParams }) {
       blogListSchema = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        name: 'MississaugaInvestor.ca — Investment Insights',
+        name: 'MississaugaInvestor.ca - Investment Insights',
         itemListElement: listablePosts.map((p, i) => ({
           '@type': 'ListItem',
           position: i + 1,
@@ -112,7 +112,7 @@ export default async function BlogPage({ searchParams }) {
       };
     }
 
-    // Paginated display query — only the 6 fields each card actually needs.
+    // Paginated display query - only the 6 fields each card actually needs.
     const from = (currentPage - 1) * POSTS_PER_PAGE;
     const to = from + POSTS_PER_PAGE - 1;
     let pageQuery = supabase
@@ -168,7 +168,7 @@ export default async function BlogPage({ searchParams }) {
       {/* Articles */}
       <section className="max-w-5xl mx-auto px-4 py-10 md:py-14">
 
-        {/* Category filter chips — only shown when there are posts to filter */}
+        {/* Category filter chips - only shown when there are posts to filter */}
         {totalCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-8">
             <Link
@@ -261,7 +261,7 @@ export default async function BlogPage({ searchParams }) {
               })}
             </div>
 
-            {/* Pagination — only shown when there are multiple pages */}
+            {/* Pagination - only shown when there are multiple pages */}
             {totalPages > 1 && (
               <nav
                 aria-label="Blog pagination"

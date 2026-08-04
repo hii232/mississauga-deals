@@ -1,20 +1,20 @@
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: { absolute: 'Free Mississauga Deal Alerts — New Listings by Email' },
+  title: { absolute: 'Free Mississauga Deal Alerts - New Listings by Email' },
   description:
     'Free deal alerts: get emailed when a new Mississauga investment property matches your budget, strategy and neighbourhood. Unsubscribe in one click.',
   alternates: { canonical: '/alerts' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Deal Alerts — MississaugaInvestor.ca' }],
-    title: 'Deal Alerts — MississaugaInvestor.ca',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Deal Alerts - MississaugaInvestor.ca' }],
+    title: 'Deal Alerts - MississaugaInvestor.ca',
     description: 'Get notified when new Mississauga investment deals match your criteria.',
     url: 'https://www.mississaugainvestor.ca/alerts',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Deal Alerts — MississaugaInvestor.ca',
+    title: 'Deal Alerts - MississaugaInvestor.ca',
     description: 'Get notified when new Mississauga investment deals match your criteria.',
     images: ['/opengraph-image'],
   },
@@ -29,12 +29,12 @@ const ALERTS_FAQ = [
   {
     question: 'How do Mississauga investment property deal alerts work?',
     answer:
-      'You set your criteria — budget, property type, neighbourhood, and investment strategy (cash flow, BRRR, etc.) — and our system emails you whenever a newly listed or price-reduced Mississauga or GTA property matches. Each alert includes the property\'s cap rate, estimated monthly cash flow, Deal Score, and a link to the full analysis. Alerts are free and sent only when a real match exists; you will not receive a daily email on days with no matching listings.',
+      'You set your criteria - budget, property type, neighbourhood, and investment strategy (cash flow, BRRR, etc.) - and our system emails you whenever a newly listed or price-reduced Mississauga or GTA property matches. Each alert includes the property\'s cap rate, estimated monthly cash flow, Deal Score, and a link to the full analysis. Alerts are free and sent only when a real match exists; you will not receive a daily email on days with no matching listings.',
   },
   {
     question: 'What investment criteria can I filter deal alerts by?',
     answer:
-      'You can filter by maximum purchase price, minimum bedrooms, neighbourhood (any of the 24 Mississauga communities or a specific GTA city), and investment strategy — cash-flow-positive properties, BRRR candidates, or new listings under a certain price. The form also accepts your name so Hamza can personalise the alerts. All filters default to broad settings so you can subscribe with just your email and refine later.',
+      'You can filter by maximum purchase price, minimum bedrooms, neighbourhood (any of the 24 Mississauga communities or a specific GTA city), and investment strategy - cash-flow-positive properties, BRRR candidates, or new listings under a certain price. The form also accepts your name so Hamza can personalise the alerts. All filters default to broad settings so you can subscribe with just your email and refine later.',
   },
   {
     question: 'How often will I receive deal alert emails?',
@@ -44,7 +44,7 @@ const ALERTS_FAQ = [
   {
     question: 'Are the deal alerts really free?',
     answer:
-      'Yes — free to sign up, free to receive, and free to cancel. No credit card is required. You can unsubscribe with one click from any alert email; there is also a List-Unsubscribe header in every message so your email client can unsubscribe you automatically. Your email address is never shared with third parties.',
+      'Yes - free to sign up, free to receive, and free to cancel. No credit card is required. You can unsubscribe with one click from any alert email; there is also a List-Unsubscribe header in every message so your email client can unsubscribe you automatically. Your email address is never shared with third parties.',
   },
   {
     question: 'What is a good cap rate for a Mississauga investment property?',
@@ -64,7 +64,7 @@ export default function AlertsLayout({ children }) {
       <FAQJsonLd items={ALERTS_FAQ} />
       <BreadcrumbJsonLd items={ALERTS_BREADCRUMBS} />
       {children}
-      {/* Server-rendered FAQ section — always visible to Google despite the
+      {/* Server-rendered FAQ section - always visible to Google despite the
           client-rendered form above. Same pattern as compare/layout.js.
           Placed below the form so it never displaces the primary CTA. */}
       <section className="mx-auto max-w-3xl px-4 pb-16 pt-2 sm:px-6">

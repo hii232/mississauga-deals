@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CityscapePanorama } from '@/components/art/cityscape';
 
-// Popular destinations to recover a lost visitor — lead-capture path first.
+// Popular destinations to recover a lost visitor - lead-capture path first.
 const RECOVERY_LINKS = [
   { href: '/alerts', label: 'Deal Alerts' },
   { href: '/listings', label: 'Browse Listings' },
@@ -14,7 +14,7 @@ const RECOVERY_LINKS = [
 export default function NotFound() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-[#0A1122] via-navy to-[#0F1930] flex items-center justify-center px-4 py-16">
-      {/* Night skyline anchored to the bottom — calm, on-brand */}
+      {/* Night skyline anchored to the bottom - calm, on-brand */}
       <CityscapePanorama
         variant="night"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-[45vh] w-full opacity-90"
@@ -31,7 +31,7 @@ export default function NotFound() {
           This page took a wrong turn
         </h1>
         <p className="text-white/75 text-sm sm:text-base mb-8 leading-relaxed max-w-md mx-auto">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved — but the deals
+          The page you&apos;re looking for doesn&apos;t exist or has been moved - but the deals
           are still here. Let&apos;s get you back to finding your next investment.
         </p>
 

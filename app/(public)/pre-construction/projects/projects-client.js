@@ -6,7 +6,7 @@ import { SkylineStrip } from '@/components/art/cityscape';
 import { FALLBACK_PROJECTS } from '@/lib/precon/fallback-projects';
 
 /* ------------------------------------------------------------------ */
-/*  City metadata — icons, colors                                      */
+/*  City metadata - icons, colors                                      */
 /* ------------------------------------------------------------------ */
 
 const CITY_META = {
@@ -40,7 +40,7 @@ function formatPrice(p) {
 
 export default function PreConstructionProjectsClient({ initialProjects = [], fromApi = false }) {
   // Server-rendered data arrives as props (see ./page.js), so crawlers and the
-  // first paint both see the full project list — no loading skeleton flash.
+  // first paint both see the full project list - no loading skeleton flash.
   const [projects, setProjects] = useState(initialProjects);
   const [loading, setLoading] = useState(initialProjects.length === 0);
   const [selectedCity, setSelectedCity] = useState('All Cities');
@@ -48,7 +48,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
   const [searchQuery, setSearchQuery] = useState('');
 
   // Client retry ONLY when the server-side fetch failed and we were handed the
-  // curated fallback (fromApi=false) — the browser may reach /api/precon even
+  // curated fallback (fromApi=false) - the browser may reach /api/precon even
   // when the server render couldn't (transient hiccup, stale ISR shell). When
   // the server data is real, refetching the same 5-min-cached endpoint on
   // every mount would be pure waste.
@@ -138,7 +138,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur text-xs font-medium mb-5">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              {/* Only show a count when it's the real DB list — the 3-item
+              {/* Only show a count when it's the real DB list - the 3-item
                   fallback (or a pre-data render) would read "3+"/"0+", an
                   understatement that contradicts the page's own meta. */}
               {projects.length >= 10 ? `${projects.length}+ Active Projects Across the GTA` : 'Active Projects Across the GTA'}
@@ -162,7 +162,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
                 href="/pre-construction/hst-rebate"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 backdrop-blur text-white font-semibold text-sm hover:bg-white/20 transition no-underline"
               >
-                HST Rebate Guide — Save $130K
+                HST Rebate Guide - Save $130K
               </Link>
             </div>
           </div>
@@ -174,8 +174,8 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
         <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4 md:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <span className="text-2xl">🔥</span>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-navy">Ontario HST Rebate — Save Up to $130,000 on New Builds</p>
-            <p className="text-xs text-slate-600">APS signed between Apr 1, 2026 — Mar 31, 2027. This changes the investment math for every project below.</p>
+            <p className="text-sm font-semibold text-navy">Ontario HST Rebate - Save Up to $130,000 on New Builds</p>
+            <p className="text-xs text-slate-600">APS signed between Apr 1, 2026 - Mar 31, 2027. This changes the investment math for every project below.</p>
           </div>
           <Link href="/pre-construction/hst-rebate" className="flex-shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 no-underline">
             Learn More &rarr;
@@ -315,7 +315,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
                             </div>
                           </div>
                         ) : (
-                          // Dusk-skyline placeholder — same height as the photo
+                          // Dusk-skyline placeholder - same height as the photo
                           // version so grid rows stay even, and on-brand instead
                           // of a lone emoji on grey.
                           <div className="relative h-44 overflow-hidden bg-gradient-to-br from-[#16223D] via-navy to-[#25355C]">
@@ -407,7 +407,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
             </Link>
             <a href="tel:+16476091289" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white/10 text-white font-semibold text-sm hover:bg-white/20 transition no-underline">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-              Call Hamza — 647-609-1289
+              Call Hamza - 647-609-1289
             </a>
           </div>
         </div>

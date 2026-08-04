@@ -33,7 +33,7 @@ export const metadata = {
   },
 };
 
-// Honest, general guidance only — no fabricated premiums, coverage limits, or
+// Honest, general guidance only - no fabricated premiums, coverage limits, or
 // legal requirements. Readers are routed to a licensed insurance broker for a
 // real quote, and the cash-flow tools already budget an insurance line.
 const INS_FAQ = [
@@ -45,29 +45,29 @@ const INS_FAQ = [
   {
     question: 'What does landlord insurance usually cover?',
     answer:
-      'Landlord policies commonly cover the building itself against insured perils (such as fire and certain water damage), liability if someone is injured on the property and you are found responsible, and often loss of rental income if the unit becomes uninhabitable after a covered loss. Policies for a furnished rental may also cover the landlord-owned contents (appliances, furnishings). Exact coverages, limits, and exclusions vary by insurer and property — read the policy and ask your broker what is and isn\'t included.',
+      'Landlord policies commonly cover the building itself against insured perils (such as fire and certain water damage), liability if someone is injured on the property and you are found responsible, and often loss of rental income if the unit becomes uninhabitable after a covered loss. Policies for a furnished rental may also cover the landlord-owned contents (appliances, furnishings). Exact coverages, limits, and exclusions vary by insurer and property - read the policy and ask your broker what is and isn\'t included.',
   },
   {
     question: 'Does landlord insurance cover my tenant\'s belongings?',
     answer:
-      'No. A landlord policy covers your building and your interests, not the tenant\'s personal property. Tenants need their own tenant (renters) insurance to protect their belongings and their personal liability. It is common and reasonable for a landlord to require proof of tenant insurance in the lease — it protects both sides and can reduce disputes after a loss.',
+      'No. A landlord policy covers your building and your interests, not the tenant\'s personal property. Tenants need their own tenant (renters) insurance to protect their belongings and their personal liability. It is common and reasonable for a landlord to require proof of tenant insurance in the lease - it protects both sides and can reduce disputes after a loss.',
   },
   {
     question: 'What affects the cost of rental property insurance?',
     answer:
-      'Cost depends on factors like the property type and rebuild value, its location and age, the coverage limits and deductible you choose, the number of units, whether it\'s a long-term or short-term rental, and your claims history. Because it varies so much, treat any online figure as a rough placeholder and get a real quote for your specific property. Whatever the premium, budget it as an operating expense — the cash-flow analysis on this site already includes an insurance line so your returns reflect it.',
+      'Cost depends on factors like the property type and rebuild value, its location and age, the coverage limits and deductible you choose, the number of units, whether it\'s a long-term or short-term rental, and your claims history. Because it varies so much, treat any online figure as a rough placeholder and get a real quote for your specific property. Whatever the premium, budget it as an operating expense - the cash-flow analysis on this site already includes an insurance line so your returns reflect it.',
   },
   {
     question: 'Is landlord insurance tax-deductible for a rental in Ontario?',
     answer:
-      'Insurance premiums on a rental property are generally treated as a deductible operating expense against rental income, alongside costs like property tax, maintenance, and mortgage interest. Tax treatment depends on your situation, so confirm the specifics with an accountant — this is general information, not tax advice.',
+      'Insurance premiums on a rental property are generally treated as a deductible operating expense against rental income, alongside costs like property tax, maintenance, and mortgage interest. Tax treatment depends on your situation, so confirm the specifics with an accountant - this is general information, not tax advice.',
   },
   // ── Added 2026-08-03 from the Search Console export ────────────────────────
   // Each of the four below answers a cluster this page ALREADY collects
   // impressions for but never addressed in the searcher's own words. The page
   // already ranks #1 for two question-shaped queries ("how to insure a rental
   // property", "what should i ask an insurance broker before buying rental
-  // ..."), which is the evidence that question coverage is what works here —
+  // ..."), which is the evidence that question coverage is what works here -
   // not chasing the ~90 generic national terms ("landlord insurance", "home
   // insurance for rental property") where it sits at position 45-85 against
   // national insurers and never will.
@@ -78,7 +78,7 @@ const INS_FAQ = [
     // never states it in this phrasing.
     question: 'Does home insurance cover a rental property?',
     answer:
-      'Generally not once tenants move in. A homeowner policy is underwritten on the assumption that you live there, and insurers commonly restrict or exclude coverage on a tenant-occupied home — which means a claim can be reduced or denied at the worst possible moment. Renting out a property you own usually requires switching to a landlord (rental dwelling) policy, and renting out part of a home you still live in can also change what your policy will pay. Tell your broker how the property is actually occupied before the first tenant moves in, not after a loss.',
+      'Generally not once tenants move in. A homeowner policy is underwritten on the assumption that you live there, and insurers commonly restrict or exclude coverage on a tenant-occupied home - which means a claim can be reduced or denied at the worst possible moment. Renting out a property you own usually requires switching to a landlord (rental dwelling) policy, and renting out part of a home you still live in can also change what your policy will pay. Tell your broker how the property is actually occupied before the first tenant moves in, not after a loss.',
   },
   {
     // Tax cluster, in the searcher's words: "can you write off home insurance
@@ -89,7 +89,7 @@ const INS_FAQ = [
     // "home insurance", and matching their phrasing is the point.
     question: 'Can you write off home insurance on a rental property?',
     answer:
-      'The premium on a property you rent out is generally deductible against that rental income as an operating expense, in the same bucket as property tax, maintenance and mortgage interest. The insurance on your own home is not — and if you rent out only part of your home, the deductible share is usually apportioned to the rented portion. Where exactly the line falls depends on your situation, so have an accountant confirm it. General information, not tax advice.',
+      'The premium on a property you rent out is generally deductible against that rental income as an operating expense, in the same bucket as property tax, maintenance and mortgage interest. The insurance on your own home is not - and if you rent out only part of your home, the deductible share is usually apportioned to the rented portion. Where exactly the line falls depends on your situation, so have an accountant confirm it. General information, not tax advice.',
   },
   {
     // Wholly uncovered, and the most locally relevant gap: Mississauga's stock
@@ -97,21 +97,21 @@ const INS_FAQ = [
     // landlord insurance" (70), "rental condo insurance for landlords" (64).
     question: 'What insurance does a landlord need for a condo in Mississauga?',
     answer:
-      'A condo splits the coverage in two. The condominium corporation insures the building itself and common elements through its master policy, so a condo landlord is not insuring the structure. What you insure is your own exposure: liability, the unit\'s improvements and betterments (flooring, cabinetry, anything upgraded beyond the builder standard), your landlord-owned contents, loss of rental income, and — importantly — your share of the corporation\'s deductible if a loss originates in your unit. That last one surprises people, because a water escape from one unit can carry a five-figure corporate deductible. Ask your broker for a condo landlord (rented condominium) policy specifically, and read the corporation\'s status certificate to see what its master policy actually covers.',
+      'A condo splits the coverage in two. The condominium corporation insures the building itself and common elements through its master policy, so a condo landlord is not insuring the structure. What you insure is your own exposure: liability, the unit\'s improvements and betterments (flooring, cabinetry, anything upgraded beyond the builder standard), your landlord-owned contents, loss of rental income, and - importantly - your share of the corporation\'s deductible if a loss originates in your unit. That last one surprises people, because a water escape from one unit can carry a five-figure corporate deductible. Ask your broker for a condo landlord (rented condominium) policy specifically, and read the corporation\'s status certificate to see what its master policy actually covers.',
   },
   {
-    // Already position 1 on this phrasing — expanding it as a first-class
+    // Already position 1 on this phrasing - expanding it as a first-class
     // question is the cheapest way to hold and widen that.
     question: 'What should I ask an insurance broker before buying a rental?',
     answer:
-      'Ask five things: whether the policy is written for a tenant-occupied property rather than an owner-occupied one; whether loss of rental income is included and for how long; what the water-damage coverage and deductible look like, since that drives most claims; whether the property type, age of roof, wiring and plumbing affect eligibility or price; and — for a condo — how the policy dovetails with the corporation\'s master policy and its deductible. Get the quote before you waive conditions, not after: an unexpected premium or a refusal to insure is far cheaper to discover while you can still walk away.',
+      'Ask five things: whether the policy is written for a tenant-occupied property rather than an owner-occupied one; whether loss of rental income is included and for how long; what the water-damage coverage and deductible look like, since that drives most claims; whether the property type, age of roof, wiring and plumbing affect eligibility or price; and - for a condo - how the policy dovetails with the corporation\'s master policy and its deductible. Get the quote before you waive conditions, not after: an unexpected premium or a refusal to insure is far cheaper to discover while you can still walk away.',
   },
 ];
 
 const COVERAGE = [
   {
     title: 'The building',
-    body: 'The structure itself against insured perils like fire and certain water damage, up to your policy\'s limits — the core of a landlord policy.',
+    body: 'The structure itself against insured perils like fire and certain water damage, up to your policy\'s limits - the core of a landlord policy.',
   },
   {
     title: 'Liability',
@@ -119,11 +119,11 @@ const COVERAGE = [
   },
   {
     title: 'Loss of rental income',
-    body: 'Replaces rent if an insured loss makes the unit uninhabitable while it\'s repaired — so a fire or flood doesn\'t also wipe out your cash flow.',
+    body: 'Replaces rent if an insured loss makes the unit uninhabitable while it\'s repaired - so a fire or flood doesn\'t also wipe out your cash flow.',
   },
   {
     title: 'Landlord contents',
-    body: 'Landlord-owned items — appliances, and furnishings in a furnished rental. It does NOT cover the tenant\'s belongings (that\'s tenant insurance).',
+    body: 'Landlord-owned items - appliances, and furnishings in a furnished rental. It does NOT cover the tenant\'s belongings (that\'s tenant insurance).',
   },
 ];
 
@@ -142,7 +142,7 @@ export default function RentalPropertyInsurancePage() {
         compact
         eyebrow={`Mississauga · Landlords · ${YEAR}`}
         title="Rental Property Insurance in Mississauga"
-        subtitle="Why a homeowner policy won't protect a tenanted property, what landlord insurance actually covers, and what drives the cost — so you can budget it into the deal properly."
+        subtitle="Why a homeowner policy won't protect a tenanted property, what landlord insurance actually covers, and what drives the cost - so you can budget it into the deal properly."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -151,10 +151,10 @@ export default function RentalPropertyInsurancePage() {
           <h2 className="font-heading font-bold text-lg text-navy mb-2">The short answer</h2>
           <p className="text-sm text-slate-700 leading-relaxed">
             If you rent out a property in Mississauga, you generally need a <strong>landlord policy</strong> (also called
-            rental dwelling insurance) — a standard homeowner policy is built for an owner-occupied home and can limit or
+            rental dwelling insurance) - a standard homeowner policy is built for an owner-occupied home and can limit or
             exclude coverage once the property is tenant-occupied. A landlord policy typically covers the{' '}
             <strong>building</strong>, your <strong>liability</strong>, and often <strong>lost rental income</strong>{' '}
-            after an insured loss — but never the tenant&apos;s belongings, which is why you should require tenant
+            after an insured loss - but never the tenant&apos;s belongings, which is why you should require tenant
             insurance in the lease. Costs vary widely, so get a quote from a licensed broker and budget it as an
             operating expense.
           </p>
@@ -201,7 +201,7 @@ export default function RentalPropertyInsurancePage() {
 
         <p className="text-xs text-slate-500 mb-10">
           General information for investors, not insurance, legal, or tax advice. Coverage, limits, exclusions and
-          pricing vary by insurer and property — confirm the right policy and a real quote with a licensed Ontario
+          pricing vary by insurer and property - confirm the right policy and a real quote with a licensed Ontario
           insurance broker.
         </p>
 

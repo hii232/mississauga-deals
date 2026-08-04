@@ -5,7 +5,7 @@ const SITEMAP_URL = 'https://www.mississaugainvestor.ca/sitemap.xml';
 
 /**
  * GET|POST /api/seo/ping
- * Called by Vercel Cron daily (cron invokes with GET) — pings Google & Bing
+ * Called by Vercel Cron daily (cron invokes with GET) - pings Google & Bing
  * with updated sitemap, then submits new listing URLs to IndexNow.
  */
 export async function GET(request) {
@@ -13,7 +13,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  // Fails CLOSED — the old guard was skipped when CRON_SECRET was unset.
+  // Fails CLOSED - the old guard was skipped when CRON_SECRET was unset.
   const denied = requireCronOrAdmin(request);
   if (denied) return denied;
 
@@ -40,7 +40,7 @@ export async function POST(request) {
   }
 
   try {
-    // 3. IndexNow — submit new listing URLs for instant indexing
+    // 3. IndexNow - submit new listing URLs for instant indexing
     // Public domain, NOT VERCEL_URL (deployment protection 401s server fetches)
     const baseUrl =
       process.env.NODE_ENV === 'development'
@@ -55,12 +55,12 @@ export async function POST(request) {
       const data = await res.json();
       const listings = data.listings || data || [];
 
-      // Only submit fresh listings — the processed API exposes days on
+      // Only submit fresh listings - the processed API exposes days on
       // market, not raw MLS timestamps.
       // `dom >= 1` matters: 0 means the feed gave no age at all
       // (lib/listings/market-timing.js), and `dom <= 3` alone accepted it. So
       // while DOM was withheld on every active listing, this submitted the
-      // first 100 rows of the feed to IndexNow on every run as "new" —
+      // first 100 rows of the feed to IndexNow on every run as "new" -
       // repeatedly re-pinging the same unchanged URLs, which is exactly the
       // behaviour IndexNow asks publishers not to exhibit. Now only listings
       // with a real 1–3 day age are submitted.

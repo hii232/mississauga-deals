@@ -9,10 +9,10 @@ import Link from 'next/link';
  * Variants: 'deals' (default), 'quiz', 'alerts', 'newsletter'
  *
  * Variants with `capture: true` (newsletter, alerts) render an inline email
- * field that subscribes in place — a content reader converts in one tap instead
+ * field that subscribes in place - a content reader converts in one tap instead
  * of being bounced to /alerts to re-find a form. deals/quiz link to their tool.
  */
-// Heroicons SVGs for CTA variant headers — aria-hidden, sized for display above
+// Heroicons SVGs for CTA variant headers - aria-hidden, sized for display above
 // the headline on a dark gradient background.
 const IconChartBar = () => (
   <svg aria-hidden="true" className="mx-auto mb-3 h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -39,7 +39,7 @@ const VARIANTS = {
   deals: {
     icon: <IconChartBar />,
     headline: 'See Today\'s Top Investment Deals',
-    sub: 'Every Mississauga listing scored for cash flow, cap rate, and ROI — updated daily.',
+    sub: 'Every Mississauga listing scored for cash flow, cap rate, and ROI - updated daily.',
     primary: { label: 'Browse Deals', href: '/listings' },
     secondary: { label: 'Take the Quiz', href: '/quiz' },
     gradient: 'from-navy via-navy to-accent/20',
@@ -55,7 +55,7 @@ const VARIANTS = {
   alerts: {
     icon: <IconBell />,
     headline: 'Get Daily Deal Alerts',
-    sub: 'New listings scored and delivered to your inbox every morning — never miss a deal.',
+    sub: 'New listings scored and delivered to your inbox every morning - never miss a deal.',
     capture: true,
     source: 'inline-cta-alerts',
     cta: 'Get Alerts',
@@ -65,7 +65,7 @@ const VARIANTS = {
   newsletter: {
     icon: <IconStar />,
     headline: 'Get the 10 Best Cash-Flowing Deals Every Monday',
-    sub: 'Free weekly email — the highest cash-flow Mississauga investment properties, scored, analyzed, and ranked.',
+    sub: 'Free weekly email - the highest cash-flow Mississauga investment properties, scored, analyzed, and ranked.',
     capture: true,
     source: 'inline-cta-newsletter',
     cta: 'Send Me the Deals',

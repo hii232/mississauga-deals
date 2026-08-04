@@ -43,9 +43,9 @@ export default function SignupPage() {
     // Phone is REQUIRED, by Hamza's explicit decision: he works these leads by
     // phone and an email-only registration is worth far less to him.
     //
-    // Know the cost being accepted here. Unlike the two-step gate modal — where
+    // Know the cost being accepted here. Unlike the two-step gate modal - where
     // the email is POSTed at step 1, so refusing the phone loses only the
-    // enrichment — this page submits everything at once. Nothing is stored
+    // enrichment - this page submits everything at once. Nothing is stored
     // until this handler succeeds, so someone who will not give a number now
     // registers not at all, and their name and email go with it. That is the
     // deliberate trade: fewer registrations, all of them callable.
@@ -53,7 +53,7 @@ export default function SignupPage() {
     // Still validated for shape, so a typo'd number can't reach Hamza as a
     // dead contact.
     if (!form.phone) {
-      setError('Please enter your phone number — it is required to create an account.');
+      setError('Please enter your phone number - it is required to create an account.');
       return;
     }
     if (!isValidPhone(form.phone)) {
@@ -62,7 +62,7 @@ export default function SignupPage() {
     }
     // Caught client-side as well as on the server. /api/lead rejects fakes with
     // a 400, but a mandatory field that bounces back from the network reads as
-    // "the site is broken" rather than "fix this number" — tell them here.
+    // "the site is broken" rather than "fix this number" - tell them here.
     if (isFakePhone(form.phone)) {
       setError('Please enter a real phone number Hamza can reach you at.');
       return;
@@ -95,7 +95,7 @@ export default function SignupPage() {
       const data = await res.json();
       // The server can reject a signup (400 for a fake/invalid phone, 429 when
       // rate-limited). Without this guard the client marked the visitor
-      // "registered" and redirected anyway — silently losing the highest-value
+      // "registered" and redirected anyway - silently losing the highest-value
       // lead (name + email + phone + CASL consent). Surface the real error.
       if (!res.ok) {
         setError(data.error || 'Something went wrong. Please try again.');
@@ -147,7 +147,7 @@ export default function SignupPage() {
         listingPrice={listingCtx.price}
         // Google hands back name + email only. Without this, the button
         // directly above a form that REQUIRES a phone number produced accounts
-        // with no number at all — the easier path yielding the weaker lead.
+        // with no number at all - the easier path yielding the weaker lead.
         // Not set on /login, where a returning user must never be asked.
         collectPhone
       />
@@ -225,7 +225,7 @@ export default function SignupPage() {
             autoComplete="tel"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
-          <p className="mt-1 text-[11px] text-muted">We&apos;ll text you when a new deal matches — the best ones go in days, not weeks.</p>
+          <p className="mt-1 text-[11px] text-muted">We&apos;ll text you when a new deal matches - the best ones go in days, not weeks.</p>
         </div>
 
         <div>
@@ -264,7 +264,7 @@ export default function SignupPage() {
           {loading ? 'Creating account...' : 'Create Free Account'}
         </button>
 
-        {/* VOW terms assent — an account unlocks sold/comp data, and TRREB's
+        {/* VOW terms assent - an account unlocks sold/comp data, and TRREB's
             VOW rules require a terms-of-use agreement before it is shown.
             Substance in /terms §5; same line as the unlock gates. */}
         <p className="mt-3 text-center text-xs leading-relaxed text-muted">

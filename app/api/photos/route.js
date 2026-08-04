@@ -14,8 +14,8 @@ export async function GET(request) {
 
   try {
     const hdrs = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
-    // ?id= used to be dropped into these URLs raw — neither OData-escaped nor
-    // percent-encoded — so a quote rewrote the $filter and an `&` appended
+    // ?id= used to be dropped into these URLs raw - neither OData-escaped nor
+    // percent-encoded - so a quote rewrote the $filter and an `&` appended
     // whole query parameters of the caller's choosing. See lib/listings/odata.js.
     const key = odataKey(id);
     const idLit = odataStr(id);
@@ -60,8 +60,8 @@ export async function GET(request) {
       // A listing's photos essentially never change while it's active, so this
       // is the one place "fetch from MLS once a day" is exactly right: fresh
       // for a day, and served instantly from the CDN for a week beyond that.
-      // Photos are the bulk of upstream media cost — the Media expand returns
-      // ~5 CDN size-variants per photo — and unlike the feeds there is no
+      // Photos are the bulk of upstream media cost - the Media expand returns
+      // ~5 CDN size-variants per photo - and unlike the feeds there is no
       // count or price here that staleness could misstate.
       headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=604800' },
     });

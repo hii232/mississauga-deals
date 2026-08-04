@@ -46,7 +46,7 @@ export async function generateMetadata({ params }) {
   // Reads the SAME live stats the page body does. This used to build the
   // description purely from the curated HOOD_DATA figures while the page
   // rendered live ones, so a search snippet could advertise "$618K" and the
-  // visitor land on "$804K" — the snippet became the wrong number. getHoodStats
+  // visitor land on "$804K" - the snippet became the wrong number. getHoodStats
   // is a plain fetch with revalidate, and Next dedupes identical fetches within
   // a render, so awaiting it here costs no extra upstream call.
   const live = (await getHoodStats())[name];
@@ -56,7 +56,7 @@ export async function generateMetadata({ params }) {
 
   // Sized for the SERP: title <= ~60 chars and description <= ~155 so neither
   // is truncated mid-phrase. The brand is dropped from the title via `absolute`
-  // (og:siteName already makes Google render it separately) — that reclaims 25
+  // (og:siteName already makes Google render it separately) - that reclaims 25
   // characters for the neighbourhood name and the actual query.
   //
   // The live branch omits the year-over-year figure on purpose: priceYoY is a
@@ -145,7 +145,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
       // The price and the YoY come from DIFFERENT sources: avgPrice is the
       // live average ASKING price of active listings when the feed has a
       // sample, while priceYoY is Hamza's curated outlook on SOLD prices. The
-      // old sentence welded them together — "$804K, up 1.8% year over year" —
+      // old sentence welded them together - "$804K, up 1.8% year over year" -
       // which reads as one measurement and is why the homepage card and this
       // page could show different averages for the same neighbourhood with no
       // explanation. Each figure is now attributed to what it actually is.
@@ -200,9 +200,9 @@ export default async function NeighbourhoodGuidePage({ params }) {
         {[
           ['Avg Price', fmtK(avgPrice)],
           ['Price YoY*', `${d.priceYoY >= 0 ? '+' : ''}${d.priceYoY}%`],
-          ['Avg DOM', avgDOM != null ? `${avgDOM} days` : '—'],
+          ['Avg DOM', avgDOM != null ? `${avgDOM} days` : '-'],
           ['Inventory*', d.inventory],
-          ['Rent Yield', rentYield != null ? `${rentYield}%` : '—'],
+          ['Rent Yield', rentYield != null ? `${rentYield}%` : '-'],
           ['Transit Score*', `${d.transitScore}/10`],
           ['School Score*', `${d.schoolScore}/10`],
           ['LRT Corridor', isLRT ? 'Yes' : 'No'],
@@ -217,7 +217,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
         Avg price, DOM &amp; rent yield update live from active listings. <span className="whitespace-nowrap">*Trend, YoY, inventory &amp; scores</span> reflect Hamza&apos;s expert outlook (last reviewed {HOOD_OUTLOOK_AS_OF}).
       </p>
 
-      {/* Hamza's take — headshot added to match the blog-post author-box
+      {/* Hamza's take - headshot added to match the blog-post author-box
           treatment (2026-07-28) for trust and attribution on each of the
           24 neighbourhood guides. White/60 credential line is the same
           opacity as the blog sidebar's "Licensed by RECO" line. */}
@@ -245,7 +245,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
           <p className="text-sm text-navy leading-relaxed">
             <strong>Hurontario LRT corridor:</strong> {name} sits along the new LRT line. Transit
             corridors in the GTA have historically seen above-average rent growth and price
-            appreciation once service opens — a structural tailwind for buy-and-hold investors here.
+            appreciation once service opens - a structural tailwind for buy-and-hold investors here.
           </p>
           <Link
             href="/hurontario-lrt-real-estate"
@@ -278,14 +278,14 @@ export default async function NeighbourhoodGuidePage({ params }) {
       </div>
       <p className="text-[11px] text-muted mb-8">
         Calibrated from TRREB rental reports and public rental platforms, 2025–2026. Whole-house and
-        property-type premiums apply — see <Link href="/score-methodology" className="text-accent no-underline">model assumptions</Link>.
+        property-type premiums apply - see <Link href="/score-methodology" className="text-accent no-underline">model assumptions</Link>.
       </p>
 
       {/* Worked cash flow example */}
       <h2 className="font-heading font-semibold text-xl text-navy mb-3">Sample Cash Flow: 3-Bed at the {name} Average Price</h2>
       <p className="text-sm text-navy/80 leading-relaxed mb-4">
         A 3-bedroom detached home at the {name} average of {fmtK(avgPrice)} with 20% down, a 4.89%
-        five-year fixed mortgage, and 25-year amortization — the same assumptions used for every
+        five-year fixed mortgage, and 25-year amortization - the same assumptions used for every
         deal score on this site:
       </p>
       <div className="rounded-lg border border-gray-100 p-5 mb-2">
@@ -306,8 +306,8 @@ export default async function NeighbourhoodGuidePage({ params }) {
       </div>
       <p className="text-[11px] text-muted mb-8">
         {cf.cashFlow < 0
-          ? 'Negative as-is — typical for Mississauga at today’s rates. Deals that work here usually involve a basement suite, below-asking negotiation, or a larger down payment. '
-          : 'Positive at the neighbourhood average — rare in the GTA. '}
+          ? 'Negative as-is - typical for Mississauga at today’s rates. Deals that work here usually involve a basement suite, below-asking negotiation, or a larger down payment. '
+          : 'Positive at the neighbourhood average - rare in the GTA. '}
         This is an illustration at neighbourhood averages, not a projection for any specific property.
       </p>
 
@@ -332,13 +332,13 @@ export default async function NeighbourhoodGuidePage({ params }) {
         ))}
       </div>
 
-      {/* Inline email capture. Placed after the FAQ (not before — the CTA
+      {/* Inline email capture. Placed after the FAQ (not before - the CTA
           row already serves ready-to-act visitors) to convert the more
           deliberate reader who worked through data + FAQ but isn't yet
           ready to browse or book. One component, all 24 hood guides. */}
       <InlineCTA variant="newsletter" className="mb-10" />
 
-      {/* Deep-dive reading — pillar posts covering this hood specifically,
+      {/* Deep-dive reading - pillar posts covering this hood specifically,
           plus the ranking that puts it in context. Internal links from these
           established pages are how the cluster passes authority to the posts,
           and they give a reader a next step that's ON topic. */}
@@ -379,7 +379,7 @@ export default async function NeighbourhoodGuidePage({ params }) {
       </p>
     </div>
 
-    {/* Sticky mobile CTA — keeps the primary action reachable while scrolling a
+    {/* Sticky mobile CTA - keeps the primary action reachable while scrolling a
         long guide (search visitors land here and may never reach the mid-page
         CTA). z-[150] stays under the cookie banner (z-[200]) until consent;
         lg:hidden because the desktop layout keeps the in-flow CTA in view. */}

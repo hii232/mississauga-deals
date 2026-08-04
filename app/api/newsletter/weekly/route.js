@@ -13,7 +13,7 @@ import { probeSendLock, acquireSendLock } from '@/lib/emails/broadcast-guard';
 
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
-// — worst case ~75s before a single email sends. The old budget could kill
+// - worst case ~75s before a single email sends. The old budget could kill
 // the route mid-walk on a slow upstream, so the send silently never happened.
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -55,7 +55,7 @@ function fmtChange(val) {
 }
 
 // ── Build the email HTML (per-subscriber: greeting, matched deals, blog) ──
-// Editorial design system — "straight out of a magazine":
+// Editorial design system - "straight out of a magazine":
 const PAPER = '#F5F2EC';
 const INK = '#0F2A4A';
 const GOLD = '#A9853B';
@@ -72,7 +72,7 @@ function hairline(m = '28px') {
 }
 
 function buildEmailHTML(stats, date, extras = {}) {
-  // Never fabricate or show "N/A" — a stat with no real data is simply omitted
+  // Never fabricate or show "N/A" - a stat with no real data is simply omitted
   const s = stats || {};
   const activeCount = s.activeCount || null;
   const avgPrice = s.avgPrice ? fmtPrice(s.avgPrice) : null;
@@ -130,7 +130,7 @@ function buildEmailHTML(stats, date, extras = {}) {
 <!-- Preheader: the inbox preview snippet shown next to the subject. Hidden in
      the body but prime open-rate real estate that was previously wasted. -->
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:${PAPER};opacity:0;">
-  ${extras.preheader ? esc(extras.preheader) : "This week’s top cash-flowing Mississauga deals, scored — plus live market stats inside."}
+  ${extras.preheader ? esc(extras.preheader) : "This week’s top cash-flowing Mississauga deals, scored - plus live market stats inside."}
 </div>
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="${PAPER}" style="background:${PAPER};padding:32px 0;">
 <tr><td align="center">
@@ -192,7 +192,7 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
     </tr>`).join('')}
   </table>
   ${s.hotNeighbourhoodsAsOf ? `<p style="font-family:${SERIF};font-size:11px;color:${MUTED};margin:8px 0 0;line-height:1.5;">
-    Neighbourhood averages from our ${esc(s.hotNeighbourhoodsAsOf)} outlook &mdash; the same figures the neighbourhood guides on the site use.
+    Neighbourhood averages from our ${esc(s.hotNeighbourhoodsAsOf)} outlook - the same figures the neighbourhood guides on the site use.
   </p>` : ''}` : ''}
 
   ${extras.blogHtml || ''}
@@ -205,7 +205,7 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
         <img src="https://www.mississaugainvestor.ca/images/hamza-headshot.jpg" alt="Hamza Nouman" width="64" height="64" style="border-radius:50%;display:block;" />
       </td>
       <td style="vertical-align:top;">
-        <div style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};line-height:1.65;">&ldquo;Spotted a deal you want to run the numbers on? Just hit reply &mdash; I read every response.&rdquo;</div>
+        <div style="font-family:${SERIF};font-style:italic;font-size:14px;color:${INK};line-height:1.65;">&ldquo;Spotted a deal you want to run the numbers on? Just hit reply - I read every response.&rdquo;</div>
         <div style="font-family:${SERIF};font-size:14px;font-weight:700;color:${INK};margin-top:10px;">Hamza Nouman</div>
         <div style="font-family:${SERIF};font-size:11px;color:${MUTED};letter-spacing:0.5px;">Sales Representative &middot; Cityscape Real Estate Ltd., Brokerage</div>
         <div style="margin-top:14px;">
@@ -257,7 +257,7 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
 async function getSubscriberProfiles(supabase) {
   const profiles = new Map();
 
-  // Alert subscribers carry name + filters — the personalization source
+  // Alert subscribers carry name + filters - the personalization source
   const { data: searches } = await supabase
     .from('saved_searches')
     .select('email, name, filters')
@@ -272,7 +272,7 @@ async function getSubscriberProfiles(supabase) {
     profiles.set(s.email, p);
   }
 
-  // Leads (registered users + imported contacts) — name only, no saved filters
+  // Leads (registered users + imported contacts) - name only, no saved filters
   const optedOut = new Set();
   try {
     const { data: leads } = await supabase
@@ -299,11 +299,11 @@ async function getSubscriberProfiles(supabase) {
   return profiles;
 }
 
-// Public site URL — never build the internal fetch from request.url: on the
+// Public site URL - never build the internal fetch from request.url: on the
 // weekly cron that resolves to the *.vercel.app deployment host, which sits
 // behind Vercel deployment protection and serves an HTML auth wall (200), so
 // the deals fetch would silently return [] and the newsletter would ship with
-// zero deals — its whole point. Use the public domain (as the market-stats
+// zero deals - its whole point. Use the public domain (as the market-stats
 // fetch above already does).
 const SITE_URL =
   process.env.NODE_ENV === 'development'
@@ -312,7 +312,7 @@ const SITE_URL =
 
 // ── Fetch scored listings once for the whole send ──
 // ALL pages, not page 1. The "top 10 cash-flow deals" used to be selected from
-// the first 200 rows of ~2,500 actives — the top of an 8% sample, so the
+// the first 200 rows of ~2,500 actives - the top of an 8% sample, so the
 // market's actual best deals mostly never reached subscribers.
 async function fetchScoredListings() {
   try {
@@ -354,7 +354,7 @@ function scoreBadgeColor(score) {
   return '#EF4444';
 }
 
-// ── "Picked for you" deals — editorial layout ──
+// ── "Picked for you" deals - editorial layout ──
 function statLine(d, size = 11) {
   const parts = [];
   if (Number.isFinite(d.capRate) && d.capRate > 0) parts.push(`CAP&nbsp;${d.capRate}%`);
@@ -364,8 +364,8 @@ function statLine(d, size = 11) {
 }
 
 // The rent every cash-flow figure above assumes. The site's listing cards state
-// this on every card — an investor's critique was that a cash-flow number with
-// an unstated rent assumption isn't credible — but the newsletter shipped the
+// this on every card - an investor's critique was that a cash-flow number with
+// an unstated rent assumption isn't credible - but the newsletter shipped the
 // figures bare, so the retention channel was the last place the assumption
 // stayed hidden. Reads the SAME fields the card component reads so the two can
 // never disagree, and renders nothing when rent is unknown rather than guessing.
@@ -379,9 +379,9 @@ function rentAssumption(d, size = 11) {
   let extra = '';
   if (units && units.length > 1) extra = ` across ${units.length} units`;
   else if (basement > 0 && base > 0) {
-    extra = ` &mdash; ${money(base)} main + ${money(basement)} ${d.basementTier === 'legal' ? 'legal ' : ''}suite`;
+    extra = ` - ${money(base)} main + ${money(basement)} ${d.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
-  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) - CAP
   // and cash flow for every condo/apt listing are computed on a bedroom/sqft
   // estimate, and the site labels that figure "Condo Fee (est.)" everywhere
   // it's shown. The newsletter rendered the same estimate-derived numbers
@@ -407,7 +407,7 @@ function buildDealsHTML(deals, personalized) {
   const heroHtml = `
   ${kicker(personalized ? 'The Featured Deal &middot; Matched to Your Search' : 'The Featured Deal')}
   ${heroPhoto ? `<a href="${dealUrl(hero)}"><img src="${heroPhoto}" alt="${esc(hero.address)}" width="520" style="width:100%;max-width:520px;height:auto;display:block;" /></a>` : ''}
-  <div style="font-family:${SERIF};font-size:10px;color:${GOLD};letter-spacing:2.5px;text-transform:uppercase;margin-top:16px;">Rated ${Number.isFinite(hero.hamzaScore) ? hero.hamzaScore : '—'} / 10 &nbsp;&middot;&nbsp; ${esc(hero.neighbourhood || 'Mississauga')}</div>
+  <div style="font-family:${SERIF};font-size:10px;color:${GOLD};letter-spacing:2.5px;text-transform:uppercase;margin-top:16px;">Rated ${Number.isFinite(hero.hamzaScore) ? hero.hamzaScore : '-'} / 10 &nbsp;&middot;&nbsp; ${esc(hero.neighbourhood || 'Mississauga')}</div>
   <div style="margin-top:6px;"><a href="${dealUrl(hero)}" style="font-family:${SERIF};font-size:26px;font-weight:700;color:${INK};text-decoration:none;line-height:1.2;">${esc(hero.address)}</a></div>
   <div style="font-family:${SERIF};font-size:21px;color:${INK};margin-top:8px;">${fmtPrice(hero.price)} <span style="font-size:13px;color:${MUTED};font-style:italic;">&middot; ${esc(hero.type || 'Property')}</span></div>
   <div style="margin-top:12px;">${statLine(hero)}</div>
@@ -421,7 +421,7 @@ function buildDealsHTML(deals, personalized) {
       ${p ? `<td width="100" style="padding-right:16px;vertical-align:top;"><a href="${dealUrl(d)}"><img src="${p}" alt="${esc(d.address)}" width="84" height="84" style="display:block;" /></a></td>` : ''}
       <td style="vertical-align:top;">
         <a href="${dealUrl(d)}" style="font-family:${SERIF};font-size:17px;font-weight:700;color:${INK};text-decoration:none;">${esc(d.address)}</a>
-        <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${Number.isFinite(d.hamzaScore) ? d.hamzaScore : '—'}/10</div>
+        <div style="font-family:${SERIF};font-size:12px;font-style:italic;color:${MUTED};margin-top:2px;">${esc(d.neighbourhood || 'Mississauga')} &middot; ${esc(d.type || 'Property')} &middot; Rated ${Number.isFinite(d.hamzaScore) ? d.hamzaScore : '-'}/10</div>
         <div style="margin-top:7px;">${statLine(d, 10)}</div>
         ${rentAssumption(d, 10)}
       </td>
@@ -471,7 +471,7 @@ async function sendEmail(to, subject, html) {
       subject,
       html,
       headers: {
-        // Native one-click unsubscribe in Gmail/Outlook — deliverability signal
+        // Native one-click unsubscribe in Gmail/Outlook - deliverability signal
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
       },
@@ -484,7 +484,7 @@ async function sendEmail(to, subject, html) {
 // The Monday cron no longer mails subscribers directly. It sends ONE draft to
 // the approver (Hamza) with an "Approve & Send" button. The button opens a
 // confirmation page (GET ?approve=1&t=...), and the actual send happens only
-// on the confirm POST — so email-client link prefetchers can never trigger it.
+// on the confirm POST - so email-client link prefetchers can never trigger it.
 import { createHmac } from 'crypto';
 
 const APPROVER =
@@ -499,7 +499,7 @@ function weekKey(date) {
 }
 
 function approvalToken(wk) {
-  // Returns null — NOT a guessable constant — when there is no secret to sign
+  // Returns null - NOT a guessable constant - when there is no secret to sign
   // with. This used to return the literal 'dev', so on any deployment missing
   // CRON_SECRET, `?approve=1&t=dev` mailed the whole subscriber list. Callers
   // treat null as "approval is unavailable"; a null can never equal a
@@ -588,7 +588,7 @@ async function sendToAllSubscribers(supabase, data) {
 // can never render "N/A", "$NaN", or "undefined".
 function buildSubject(personalized, deals, dateLabel) {
   if (personalized) {
-    return `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search — Mississauga Weekly, ${dateLabel}`;
+    return `${deals.length} deal${deals.length === 1 ? '' : 's'} matched to your search - Mississauga Weekly, ${dateLabel}`;
   }
   const top = deals && deals[0];
   if (top) {
@@ -597,26 +597,26 @@ function buildSubject(personalized, deals, dateLabel) {
       return `Top deal this week: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow in ${hood}`;
     }
     if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
-      return `${deals.length} new Mississauga ${deals.length === 1 ? 'deal' : 'deals'} — top pick ${top.capRate.toFixed(1)}% cap rate in ${hood}`;
+      return `${deals.length} new Mississauga ${deals.length === 1 ? 'deal' : 'deals'} - top pick ${top.capRate.toFixed(1)}% cap rate in ${hood}`;
     }
-    return `${deals.length} new Mississauga investment ${deals.length === 1 ? 'deal' : 'deals'} — ${dateLabel}`;
+    return `${deals.length} new Mississauga investment ${deals.length === 1 ? 'deal' : 'deals'} - ${dateLabel}`;
   }
-  return `Mississauga Market Weekly — ${dateLabel}`;
+  return `Mississauga Market Weekly - ${dateLabel}`;
 }
 
 // Build the inbox preview text (shown next to the subject in Gmail / Outlook /
-// Apple Mail). The subject is already dynamic — this makes the preview slot
+// Apple Mail). The subject is already dynamic - this makes the preview slot
 // echo the same hook instead of repeating a static line. The two slots appear
 // together in the inbox thumbnail, so a cash-flow number in both reinforces
 // the signal rather than wasting one of them on boilerplate.
 //
 // Mirror the exact fallback logic from buildSubject so the two are always
-// consistent — both lead with cashFlow, then capRate, then a generic count.
+// consistent - both lead with cashFlow, then capRate, then a generic count.
 function buildPreheader(deals, personalized) {
   const n = deals ? deals.length : 0;
   const top = deals && deals[0];
   if (!top || n === 0) {
-    return "This week's Mississauga market summary — live stats and investor analysis inside.";
+    return "This week's Mississauga market summary - live stats and investor analysis inside.";
   }
   const hood = (top.neighbourhood || top.city || '').toString().trim();
   const where = hood ? ` in ${hood}` : '';
@@ -634,9 +634,9 @@ function buildPreheader(deals, personalized) {
     return `Top deal this week: +$${Math.round(top.cashFlow).toLocaleString()}/mo cash flow${where}${more}.`;
   }
   if (typeof top.capRate === 'number' && isFinite(top.capRate) && top.capRate > 0) {
-    return `Top pick: ${top.capRate.toFixed(1)}% cap rate${where} — ${n} ${n === 1 ? 'property' : 'properties'} scored this week.`;
+    return `Top pick: ${top.capRate.toFixed(1)}% cap rate${where} - ${n} ${n === 1 ? 'property' : 'properties'} scored this week.`;
   }
-  return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} scored this week — cash flow, cap rate and ROI on each.`;
+  return `${n} new Mississauga ${n === 1 ? 'deal' : 'deals'} scored this week - cash flow, cap rate and ROI on each.`;
 }
 
 function approvalBanner(wk, subscriberCount) {
@@ -644,7 +644,7 @@ function approvalBanner(wk, subscriberCount) {
   return `
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
   <tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:20px 24px;text-align:center;">
-    <div style="font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
+    <div style="font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT - waiting for your approval</div>
     <div style="font-size:12px;color:#92400E;margin-bottom:14px;">This is exactly what your ${subscriberCount} subscribers will receive. Nothing sends until you approve.</div>
     <a href="${url}" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-size:14px;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">Review &amp; Approve Send &#8594;</a>
   </td></tr>
@@ -678,7 +678,7 @@ export async function GET(request) {
       ];
       // Preview uses the REAL live stats, not a hardcoded sample. A preview
       // built on frozen numbers is worthless for checking the thing that
-      // actually matters — that the figures subscribers receive are current.
+      // actually matters - that the figures subscribers receive are current.
       const previewStats = await fetchMarketStats();
       const html = buildEmailHTML(
         previewStats || {},
@@ -694,12 +694,12 @@ export async function GET(request) {
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
-    // ?approve=1&t=... — approval confirmation page (from the draft email's
+    // ?approve=1&t=... - approval confirmation page (from the draft email's
     // button). Token-authed; renders a confirm form, sends NOTHING itself.
     if (searchParams.get('approve') === '1') {
       const wk = weekKey(new Date());
       // `tok` is null when CRON_SECRET is absent, and an absent ?t is also null
-      // — comparing them alone would pass. Require a real token explicitly.
+      // - comparing them alone would pass. Require a real token explicitly.
       const tok = approvalToken(wk);
       if (!tok || searchParams.get('t') !== tok) {
         return new Response(
@@ -715,7 +715,7 @@ export async function GET(request) {
           `<h1>Send this week's report?</h1>
            <p>The email you just reviewed will go to <strong>${profiles.size} subscribers</strong>. This cannot be undone.</p>
            <form method="POST" action="/api/newsletter/weekly?approve=1&t=${approvalToken(wk)}">
-             <button type="submit">Yes — Send to ${profiles.size} Subscribers</button>
+             <button type="submit">Yes - Send to ${profiles.size} Subscribers</button>
            </form>`
         ),
         { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
@@ -736,7 +736,7 @@ export async function GET(request) {
     }
 
     // SELF-HEALING: the Monday 14:00 UTC cron silently did not fire on
-    // 2026-07-20 or 2026-07-27 — zero invocations in the logs, so the weekly
+    // 2026-07-20 or 2026-07-27 - zero invocations in the logs, so the weekly
     // channel to ~480 contacts was dead for three weeks with nothing anywhere
     // to notice. A second, DAILY cron now also hits this route (vercel.json,
     // 15:30 UTC), and this dedupe makes that safe: the first successful draft
@@ -745,7 +745,7 @@ export async function GET(request) {
     // daily one is a no-op; if it doesn't, Monday 15:30 (or the next day)
     // catches it. Probe-then-record rather than fail-closed lock-first: this
     // path emails ONE person (the approver), so the worst failure is a
-    // duplicate draft to Hamza — while lock-first would burn the week's key on
+    // duplicate draft to Hamza - while lock-first would burn the week's key on
     // a draft that then failed to build, recreating the missed-week bug this
     // exists to fix.
     const draftWk = weekKey(new Date());
@@ -755,17 +755,17 @@ export async function GET(request) {
       return NextResponse.json({
         success: true,
         mode: 'draft-for-approval',
-        skipped: `Draft for ${draftWk} already sent — the retry cron found nothing to do.`,
+        skipped: `Draft for ${draftWk} already sent - the retry cron found nothing to do.`,
       });
     }
     if (!probe.guardReady && new Date().getUTCDay() !== 1) {
       // Guard table unreachable AND it's not Monday: without dedupe the daily
       // retry would draft every single day. Keep the retry silent off-Monday
       // and let the legacy Monday behaviour stand alone.
-      console.error(`Newsletter: draft dedupe unavailable (${probe.detail || 'no detail'}) — daily retry skipped, Monday cron only.`);
+      console.error(`Newsletter: draft dedupe unavailable (${probe.detail || 'no detail'}) - daily retry skipped, Monday cron only.`);
       return NextResponse.json({
         success: false,
-        skipped: 'Draft dedupe guard unavailable — retry runs only on Mondays until broadcast_sends is reachable.',
+        skipped: 'Draft dedupe guard unavailable - retry runs only on Mondays until broadcast_sends is reachable.',
       });
     }
 
@@ -790,7 +790,7 @@ export async function GET(request) {
 
     const ok = await sendEmail(
       APPROVER,
-      `[APPROVE] Mississauga Market Weekly — ${data.dateLabel} (${profiles.size} subscribers waiting)`,
+      `[APPROVE] Mississauga Market Weekly - ${data.dateLabel} (${profiles.size} subscribers waiting)`,
       draftHtml
     );
 
@@ -813,7 +813,7 @@ export async function GET(request) {
     });
   } catch (err) {
     console.error('Newsletter error:', err);
-    return NextResponse.json({ error: 'Newsletter send failed — see server logs' }, { status: 500 });
+    return NextResponse.json({ error: 'Newsletter send failed - see server logs' }, { status: 500 });
   }
 }
 
@@ -849,7 +849,7 @@ export async function POST(request) {
         );
       }
     } catch {
-      // table missing — skip the guard
+      // table missing - skip the guard
     }
 
     const data = await prepareSendData(request, supabase);
@@ -859,13 +859,13 @@ export async function POST(request) {
       htmlPage(
         'Sent',
         `<h1>&#127881; Sent to ${result.sent} subscribers</h1>
-         <p>${result.personalized} personalized to saved searches, ${result.genericTopDeals} got the top-deals edition${result.failed ? ` — ${result.failed} failed (will appear in Resend logs)` : ''}.</p>
+         <p>${result.personalized} personalized to saved searches, ${result.genericTopDeals} got the top-deals edition${result.failed ? ` - ${result.failed} failed (will appear in Resend logs)` : ''}.</p>
          <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
       ),
       { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
     );
   } catch (err) {
     console.error('Approved send error:', err);
-    return NextResponse.json({ error: 'Newsletter send failed — see server logs' }, { status: 500 });
+    return NextResponse.json({ error: 'Newsletter send failed - see server logs' }, { status: 500 });
   }
 }

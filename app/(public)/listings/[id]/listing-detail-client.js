@@ -57,7 +57,7 @@ function OverviewTab({ listing }) {
     { label: 'Type', value: listing.subType || listing.type },
     { label: 'Bedrooms', value: listing.beds },
     { label: 'Bathrooms', value: listing.baths },
-    { label: 'Days on Market', value: listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—' },
+    { label: 'Days on Market', value: listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '-' },
     { label: 'Price Drop', value: listing.priceDrop ? `${listing.priceDrop}%` : 'None' },
     { label: 'Year Built', value: listing.yearBuilt || 'N/A' },
     { label: 'Status', value: listing.status },
@@ -144,7 +144,7 @@ function HamzaTakeTab({ listing }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
       <div className="mb-3 flex items-center gap-2">
-        {/* Real headshot — matches the neighbourhood guide and blog-post author
+        {/* Real headshot - matches the neighbourhood guide and blog-post author
             box treatments; 32×32 here to match the tab's compact header */}
         <div className="relative h-8 w-8 flex-shrink-0">
           <Image
@@ -167,7 +167,7 @@ function HamzaTakeTab({ listing }) {
 
 // The maintenance reserve is the greater of a % of rent and 1%/yr of property
 // value, so labelling the row "Maintenance (8%)" printed a percentage the
-// number often wasn't — on an expensive freehold the figure shown was the value
+// number often wasn't - on an expensive freehold the figure shown was the value
 // floor, and dragging the % slider left it unchanged. Name whichever term won.
 function maintenanceLabel(basis, maintenancePct) {
   return basis === 'value'
@@ -241,7 +241,7 @@ function MortgageTab({ listing }) {
       {typeof calc.breakEven === 'number' && calc.breakEven > 0 && (
         <div className="rounded-lg border border-slate-200 bg-cloud px-4 py-3 text-xs leading-relaxed text-muted">
           <span className="font-semibold text-navy">Break-even rent: ${calc.breakEven.toLocaleString()}/mo</span>
-          {' — the rent at which this property covers every cost (mortgage, property tax, insurance, '}
+          {' - the rent at which this property covers every cost (mortgage, property tax, insurance, '}
           {listing.condoFee > 0 ? 'condo fee' : 'maintenance'}
           {', vacancy).'}
           {listing.estimatedRent > 0 && (
@@ -255,9 +255,9 @@ function MortgageTab({ listing }) {
       {calc.equityBuild > 0 && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs leading-relaxed text-emerald-900">
           <span className="font-semibold">You build ~${calc.equityBuild.toLocaleString()}/mo in equity.</span>
-          {` Of the $${calc.mortgage.toLocaleString()}/mo mortgage payment, about $${calc.equityBuild.toLocaleString()} pays down principal (year one) — that's money you keep, not a cost.`}
+          {` Of the $${calc.mortgage.toLocaleString()}/mo mortgage payment, about $${calc.equityBuild.toLocaleString()} pays down principal (year one) - that's money you keep, not a cost.`}
           {calc.cashFlow < 0 && calc.equityBuild > Math.abs(calc.cashFlow) &&
-            ` So even at ${fmtNum(calc.cashFlow)} cash flow, your net worth grows — the $${calc.equityBuild.toLocaleString()}/mo of equity outweighs the $${Math.abs(calc.cashFlow).toLocaleString()}/mo shortfall.`}
+            ` So even at ${fmtNum(calc.cashFlow)} cash flow, your net worth grows - the $${calc.equityBuild.toLocaleString()}/mo of equity outweighs the $${Math.abs(calc.cashFlow).toLocaleString()}/mo shortfall.`}
         </div>
       )}
 
@@ -296,7 +296,7 @@ function MortgageTab({ listing }) {
         </div>
         <p className="mt-2 text-[10px] text-muted">
           {calc.municipalLtt > 0
-            ? 'Toronto charges a municipal land transfer tax on top of the provincial one — both are included above, and in the cash-on-cash return.'
+            ? 'Toronto charges a municipal land transfer tax on top of the provincial one - both are included above, and in the cash-on-cash return.'
             : 'Provincial land transfer tax. First-time-buyer rebates are not applied (they do not apply to investment purchases).'}
         </p>
       </div>
@@ -559,13 +559,13 @@ function SoldCompsTab({ listing, onUseAsARV }) {
       {stats && stats.count > 0 && (
         <p className="text-[11px] text-muted text-center">
           Based on {stats.count} closed sale{stats.count === 1 ? '' : 's'}
-          {stats.windowDays ? ` in the last ${stats.windowDays} days` : ' (older sales included — limited recent data in this area)'} near this property.
+          {stats.windowDays ? ` in the last ${stats.windowDays} days` : ' (older sales included - limited recent data in this area)'} near this property.
         </p>
       )}
 
       {/* Current Listing Context */}
       <div className="rounded-lg border border-accent/20 bg-accent/5 p-3">
-        <p className="text-xs font-medium text-accent">Current listing: {listing.address} — ${listing.price.toLocaleString()}</p>
+        <p className="text-xs font-medium text-accent">Current listing: {listing.address} - ${listing.price.toLocaleString()}</p>
       </div>
 
       {/* Comps Table */}
@@ -604,7 +604,7 @@ function SoldCompsTab({ listing, onUseAsARV }) {
                   {comp.closeDate ? new Date(comp.closeDate).toLocaleDateString('en-CA') : 'N/A'}
                 </td>
                 <td className="py-2.5 pr-4 text-muted">
-                  {comp.distance !== null ? comp.distance + ' km' : '—'}
+                  {comp.distance !== null ? comp.distance + ' km' : '-'}
                 </td>
                 <td className="py-2.5">
                   <button
@@ -878,7 +878,7 @@ function PhotoGallery({ photos, listingId, address }) {
       >
         <Image
           src={images[activeIdx]}
-          alt={address ? `${address} — property photo` : 'Property photo'}
+          alt={address ? `${address} - property photo` : 'Property photo'}
           fill
           sizes="(min-width: 1024px) 560px, 100vw"
           priority
@@ -914,7 +914,7 @@ function PhotoGallery({ photos, listingId, address }) {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
-            {activeIdx + 1} / {images.length} — Click to enlarge
+            {activeIdx + 1} / {images.length} - Click to enlarge
           </div>
         )}
       </div>
@@ -931,7 +931,7 @@ function PhotoGallery({ photos, listingId, address }) {
               >
                 <img
                   src={src}
-                  alt={address ? `${address} — photo ${i + 1}` : `Photo ${i + 1}`}
+                  alt={address ? `${address} - photo ${i + 1}` : `Photo ${i + 1}`}
                   className="h-full w-full object-cover"
                   loading="lazy"
                   decoding="async"
@@ -1049,7 +1049,7 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
           </div>
           <p className="mt-2 text-xs text-muted">
             {diff.color === 'green'
-              ? 'This property is listed below estimated market value — potential opportunity for investors.'
+              ? 'This property is listed below estimated market value - potential opportunity for investors.'
               : diff.color === 'red'
                 ? 'This property is listed above estimated market value. Consider negotiating.'
                 : 'This property is priced near its estimated market value.'}
@@ -1101,7 +1101,7 @@ function EstimatedValueTab({ listing, estimatedValue, evLoading }) {
 // ──────────────────────────────────────────
 //  Print-only cash-flow report
 //  Hidden on screen (hidden class); visible only when the browser prints.
-//  Uses DEFAULT_ASSUMPTIONS — the same starting values as the interactive
+//  Uses DEFAULT_ASSUMPTIONS - the same starting values as the interactive
 //  sliders, so the printed numbers match what a visitor sees when they open
 //  the Mortgage / Cap Rate tabs fresh.
 // ──────────────────────────────────────────
@@ -1136,7 +1136,7 @@ function PrintCashFlowReport({ listing }) {
     listing.city || listing.neighbourhood
   );
   const today = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
-  const S = { /* inline-style helpers for print — Tailwind classes are inert in print: context for some values */
+  const S = { /* inline-style helpers for print - Tailwind classes are inert in print: context for some values */
     h2: { fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #CBD5E1', paddingBottom: '4px', marginBottom: '8px', marginTop: 0 },
     td: { padding: '2px 0', color: '#64748B' },
     tdR: { textAlign: 'right' },
@@ -1150,7 +1150,7 @@ function PrintCashFlowReport({ listing }) {
       <div style={{ borderBottom: '2px solid #1B2A4A', paddingBottom: '10px', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#2563EB', margin: '0 0 2px' }}>MississaugaInvestor.ca</p>
-          {/* Not an h1 — this print-only block is always in the DOM, and two h1s
+          {/* Not an h1 - this print-only block is always in the DOM, and two h1s
               per page is an SEO defect. Same inline styles, so print is unchanged. */}
           <p style={{ fontSize: '17px', fontWeight: 700, margin: '0 0 3px' }}>{listing.address}</p>
           <p style={{ fontSize: '11px', color: '#64748B', margin: 0 }}>
@@ -1245,7 +1245,7 @@ function PrintCashFlowReport({ listing }) {
       {/* Footer */}
       <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '9px', fontSize: '9px', color: '#64748B' }}>
         <p style={{ margin: '0 0 3px' }}>
-          <strong>Assumptions:</strong> {da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr amort · Canadian semi-annual compounding · ${da.monthlyInsurance}/mo insurance · maintenance reserve = greater of {da.maintenancePercent}% of rent or {da.maintenanceValueFloorPercent}% of value/yr (condo fee replaces it) · {da.vacancyPercent}% vacancy · rent estimated from neighbourhood MLS comps. All figures are estimates — verify with a licensed professional before making an investment decision.
+          <strong>Assumptions:</strong> {da.downPaymentPercent}% down · {da.annualInterestRate}% rate · {da.amortizationYears}yr amort · Canadian semi-annual compounding · ${da.monthlyInsurance}/mo insurance · maintenance reserve = greater of {da.maintenancePercent}% of rent or {da.maintenanceValueFloorPercent}% of value/yr (condo fee replaces it) · {da.vacancyPercent}% vacancy · rent estimated from neighbourhood MLS comps. All figures are estimates - verify with a licensed professional before making an investment decision.
         </p>
         <p style={{ margin: 0 }}>Prepared by Hamza Nouman · RECO-registered Investor Specialist · 647-609-1289 · hamza@nouman.ca · MississaugaInvestor.ca</p>
       </div>
@@ -1469,7 +1469,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
     }
   }, [listing]);
 
-  // Fetch estimated value once listing is loaded — but only for a visitor who
+  // Fetch estimated value once listing is loaded - but only for a visitor who
   // has actually unlocked it. Fetching it while gated would put the very figure
   // being gated into the browser anyway.
   useEffect(() => {
@@ -1510,7 +1510,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
 
   const scoreColor = scoreColorHex(listing.hamzaScore);
   const isGated = !isAuthenticated;
-  // Reveal the gated tab in place once the email lands — no reload, no bounce.
+  // Reveal the gated tab in place once the email lands - no reload, no bounce.
   const unlock = () => setIsAuthenticated(true);
 
   // Carry the property through to the booking + signup forms so the lead
@@ -1541,7 +1541,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
         ]}
       />
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 w-full">
-        {/* Navigation: Back + Prev/Next — hidden in print (report has its own header) */}
+        {/* Navigation: Back + Prev/Next - hidden in print (report has its own header) */}
         <div className="print:hidden">
           <ListingNav currentId={params.id} />
         </div>
@@ -1555,7 +1555,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
           {/* Right Column: Header Info */}
           <div className="lg:col-span-2 min-w-0">
             <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-              {/* Score Badge — always visible */}
+              {/* Score Badge - always visible */}
               <div className="mb-4 flex items-start justify-between">
                 <div
                   className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
@@ -1617,7 +1617,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 ${listing.price.toLocaleString()}
               </p>
 
-              {/* Primary CTA — desktop (mobile uses the sticky bar) */}
+              {/* Primary CTA - desktop (mobile uses the sticky bar) */}
               <div className="mt-4 hidden gap-2 lg:flex">
                 <Link
                   href={bookHref}
@@ -1692,12 +1692,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   {listing.beds} bed / {listing.baths} bath
                 </span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-navy">
-                  {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'} DOM
+                  {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '-'} DOM
                 </span>
                 {/* Real square footage flows from the feed as of 2026-07-27 but
                     was never displayed. TREB serves it as a banded range
                     ("700-799" -> 750), so the value is honest only with the
-                    tilde — sqftApproximate is set exactly when the number is a
+                    tilde - sqftApproximate is set exactly when the number is a
                     band midpoint rather than a measured area. Hidden at 0. */}
                 {listing.sqft > 0 && (
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-navy">
@@ -1706,20 +1706,20 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 )}
               </div>
 
-              {/* Investor signal badges — mirrors the listing-card photo overlay
+              {/* Investor signal badges - mirrors the listing-card photo overlay
                   row so investors get the same at-a-glance read when they land
                   directly on the detail page (the most common path from SEO and
                   shared links). Uses opaque colours instead of /90 translucent:
                   these render on white, not over a photo, so the lighter tints
-                  would fail WCAG AA — emerald-700 5.5:1, amber-700 5.0:1,
+                  would fail WCAG AA - emerald-700 5.5:1, amber-700 5.0:1,
                   accent 5.2:1 all pass on white with white text.
                   cashFlow is from processListings (default assumptions), matching
-                  the card's signal — the gated tab shows the slider-adjusted
+                  the card's signal - the gated tab shows the slider-adjusted
                   value, which is always revealed on signup. */}
               {(() => {
                 // "New" is an UPPER bound on age, so it needs the exact feed
                 // DOM (0 = unknown). "Motivated" is a LOWER bound, so the
-                // provable floor is the right evidence — and matches both the
+                // provable floor is the right evidence - and matches both the
                 // card badge and the MOTIVATED filter chip.
                 const isNew = listing.dom >= 1 && listing.dom <= 7;
                 const isMotivated = Math.max(listing.domFloor || 0, listing.dom || 0) >= 45;
@@ -1798,12 +1798,12 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   {/* Explain the CAP-positive / CF-negative case exactly when it occurs */}
                   {listing.capRate > 0 && listing.cashFlow < 0 && (
                     <p className="mt-2 text-[11px] leading-relaxed text-muted">
-                      Cap rate is the all-cash yield (before financing); cash flow is after the mortgage. A positive cap rate with slightly negative cash flow is normal at today&apos;s rates — most of that gap is principal you keep as equity.
+                      Cap rate is the all-cash yield (before financing); cash flow is after the mortgage. A positive cap rate with slightly negative cash flow is normal at today&apos;s rates - most of that gap is principal you keep as equity.
                     </p>
                   )}
                 </>
               ) : (
-                /* Was a "Sign Up Free — 10 Seconds" link to /signup: the last
+                /* Was a "Sign Up Free - 10 Seconds" link to /signup: the last
                    click-then-page-load capture path on this page. It sent a
                    visitor who was reading a specific property away to a form,
                    and the metrics they wanted were two navigations behind it.
@@ -1818,11 +1818,11 @@ export default function PropertyDetailClient({ initialListing = null }) {
                   </p>
                   <InlineEmailCapture
                     id="summary-unlock-email"
-                    source="Listing — Summary Metrics"
+                    source="Listing - Summary Metrics"
                     tone="light"
                     stack
                     listing={leadListing}
-                    buttonLabel="Unlock — Free"
+                    buttonLabel="Unlock - Free"
                     note="Free forever. No credit card. Unsubscribe anytime."
                     onCaptured={unlock}
                   />
@@ -1839,7 +1839,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
           </div>
         </div>
 
-        {/* Investment Analysis — titled section w/ dusk skyline divider.
+        {/* Investment Analysis - titled section w/ dusk skyline divider.
             Hidden in print: the PrintCashFlowReport below replaces this. */}
         <div className="mt-10 print:hidden">
           <div className="mb-4 flex items-center gap-3">
@@ -1881,7 +1881,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
                 listing={leadListing}
-                source="Listing — Estimated Value"
+                source="Listing - Estimated Value"
                 title="What is this property really worth?"
                 valueLine="An independent estimate from comparable sales nearby, with the range and the comps it was built from."
               >
@@ -1893,9 +1893,9 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
                 listing={leadListing}
-                source="Listing — Sold Comps"
+                source="Listing - Sold Comps"
                 title="See what nearby homes actually sold for"
-                valueLine="Real sold prices, dates and distances for comparable properties — the numbers that tell you whether this one is priced right."
+                valueLine="Real sold prices, dates and distances for comparable properties - the numbers that tell you whether this one is priced right."
               >
                 <SoldCompsTab
                   listing={listing}
@@ -1912,9 +1912,9 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
                 listing={leadListing}
-                source="Listing — Mortgage"
+                source="Listing - Mortgage"
                 title="Your monthly payment on this property"
-                valueLine="Full mortgage breakdown at today's rates — payment, principal vs interest, CMHC insurance and land transfer tax."
+                valueLine="Full mortgage breakdown at today's rates - payment, principal vs interest, CMHC insurance and land transfer tax."
               >
                 <MortgageTab listing={listing} />
               </AuthGate>
@@ -1924,9 +1924,9 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
                 listing={leadListing}
-                source="Listing — Cap Rate"
+                source="Listing - Cap Rate"
                 title="Does this property actually cash flow?"
-                valueLine="Cap rate, net operating income, cash-on-cash return and monthly cash flow — with every assumption adjustable."
+                valueLine="Cap rate, net operating income, cash-on-cash return and monthly cash flow - with every assumption adjustable."
               >
                 <CapRateTab listing={listing} />
               </AuthGate>
@@ -1936,9 +1936,9 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 isAuthenticated={!isGated}
                 onUnlock={unlock}
                 listing={leadListing}
-                source="Listing — BRRR"
+                source="Listing - BRRR"
                 title="Run the BRRR numbers on this property"
-                valueLine="Buy, renovate, rent, refinance — see the capital left in the deal and the return after refinancing."
+                valueLine="Buy, renovate, rent, refinance - see the capital left in the deal and the return after refinancing."
               >
                 <BRRRTab listing={listing} initialARV={arvFromComps} />
               </AuthGate>
@@ -1946,13 +1946,13 @@ export default function PropertyDetailClient({ initialListing = null }) {
           </div>
         </div>
 
-        {/* Print-only cash-flow report — replaces the interactive UI when the
+        {/* Print-only cash-flow report - replaces the interactive UI when the
             visitor prints or saves as PDF. Invisible on screen. */}
         <PrintCashFlowReport listing={listing} />
 
-        {/* Cash-Flow Report PDF — lead magnet (section 1c-B)
+        {/* Cash-Flow Report PDF - lead magnet (section 1c-B)
             For unregistered visitors: email capture (unlocks this AND all the
-            gated analysis tabs in one go — no need to hit two separate gates).
+            gated analysis tabs in one go - no need to hit two separate gates).
             For registered visitors: one-click print / Save as PDF. */}
         <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 sm:p-6 print:hidden">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1961,18 +1961,18 @@ export default function PropertyDetailClient({ initialListing = null }) {
                 Get the Full Cash-Flow Report
               </h3>
               <p className="mt-1 text-sm text-muted">
-                A one-page PDF: cap rate, cash flow, mortgage breakdown, NOI and total cash to close — all assumptions in one printable summary.
+                A one-page PDF: cap rate, cash flow, mortgage breakdown, NOI and total cash to close - all assumptions in one printable summary.
               </p>
             </div>
             {isGated ? (
               <div className="w-full sm:w-72 flex-shrink-0">
                 <InlineEmailCapture
                   id="report-download-email"
-                  source="Listing — Cash Flow Report PDF"
+                  source="Listing - Cash Flow Report PDF"
                   tone="light"
                   stack
                   listing={leadListing}
-                  buttonLabel="Get Report — Free"
+                  buttonLabel="Get Report - Free"
                   note="Also unlocks cap rate, sold comps & mortgage detail."
                   onCaptured={unlock}
                 />
@@ -1993,7 +1993,7 @@ export default function PropertyDetailClient({ initialListing = null }) {
         </div>
       </div>
 
-      {/* Mobile sticky primary CTA — one clear action, always reachable.
+      {/* Mobile sticky primary CTA - one clear action, always reachable.
           z-[150] keeps it under the cookie banner (z-[200]) until consent.
           Hidden in print: the sticky bar overlaps the report on paper. */}
       <div

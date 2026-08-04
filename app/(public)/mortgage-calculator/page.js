@@ -4,7 +4,7 @@ import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { CityscapePanorama } from '@/components/art/cityscape';
 import InlineCTA from '@/components/ui/inline-cta';
 
-// Answers mirror exactly what the calculator implements — keep in sync with calc logic
+// Answers mirror exactly what the calculator implements - keep in sync with calc logic
 const CALC_FAQ = [
   {
     question: 'Why do Canadian mortgage payments differ from US calculator results?',
@@ -124,7 +124,7 @@ export default function MortgageCalculatorPage() {
     const totalMonthlyExpenses = monthlyMortgage + monthlyTax + insurance + monthlyMaint + monthlyVacancy + monthlyMgmt;
     const monthlyCashFlow = rent - totalMonthlyExpenses;
 
-    // NOI — no mortgage
+    // NOI - no mortgage
     const annualGrossRent = rent * 12;
     const annualVacancyLoss = annualGrossRent * (vacancy / 100);
     const egi = annualGrossRent - annualVacancyLoss;
@@ -185,7 +185,7 @@ export default function MortgageCalculatorPage() {
             Income Property Mortgage & Cash Flow Calculator
           </h1>
           <p className="text-white/60 text-sm md:text-base max-w-xl mx-auto">
-            Built for Mississauga income properties: Canadian semi-annual compounding, CMHC insurance, the federal stress test, itemized expenses, rental cash flow and Ontario land transfer tax — calculated correctly for investors.
+            Built for Mississauga income properties: Canadian semi-annual compounding, CMHC insurance, the federal stress test, itemized expenses, rental cash flow and Ontario land transfer tax - calculated correctly for investors.
           </p>
         </div>
         <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-16 w-full opacity-90 md:h-24" />
@@ -208,12 +208,12 @@ export default function MortgageCalculatorPage() {
               </div>
               {downPct < calc.minDownPct - 0.01 && (
                 <p className="mt-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  Below the federal minimum down payment for this price ({calc.minDownPct.toFixed(1)}% — 5% of the first $500K plus 10% of the rest; 20% at $1.5M+).
+                  Below the federal minimum down payment for this price ({calc.minDownPct.toFixed(1)}% - 5% of the first $500K plus 10% of the rest; 20% at $1.5M+).
                 </p>
               )}
               {downPct < 20 && amort > 25 && (
                 <p className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-                  Insured mortgages (under 20% down) are capped at 25-year amortization — 30 years is only
+                  Insured mortgages (under 20% down) are capped at 25-year amortization - 30 years is only
                   available to first-time buyers or on new builds. Numbers below assume your lender approves it.
                 </p>
               )}
@@ -254,7 +254,7 @@ export default function MortgageCalculatorPage() {
                 {calc.monthlyCashFlow >= 0 ? '+' : '-'}${fmt(Math.abs(Math.round(calc.monthlyCashFlow)))}
               </p>
               <p className="text-[10px] text-muted mt-1">
-                {calc.monthlyCashFlow >= 0 ? 'Positive — this property covers its costs' : 'Negative — you\'d need to cover the shortfall'}
+                {calc.monthlyCashFlow >= 0 ? 'Positive - this property covers its costs' : 'Negative - you\'d need to cover the shortfall'}
               </p>
             </div>
 
@@ -330,7 +330,7 @@ export default function MortgageCalculatorPage() {
         </p>
       </section>
 
-      {/* FAQ — visible content backing the FAQPage JSON-LD above */}
+      {/* FAQ - visible content backing the FAQPage JSON-LD above */}
       <section className="max-w-3xl mx-auto px-4 pb-14">
         <h2 className="font-heading font-bold text-xl text-navy mb-5">
           How This Calculator Works
@@ -360,7 +360,7 @@ export default function MortgageCalculatorPage() {
         </p>
       </section>
 
-      {/* Lead capture — running mortgage/cash-flow numbers is high buying
+      {/* Lead capture - running mortgage/cash-flow numbers is high buying
           intent, but this tool page had no email-capture path. */}
       <div className="max-w-3xl mx-auto px-4 pb-14">
         <InlineCTA variant="newsletter" />

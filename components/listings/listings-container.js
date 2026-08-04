@@ -25,7 +25,7 @@ const ListingMap = dynamic(() => import('./listing-map').then(m => m.ListingMap)
 
 // ── Top Picks Card ──
 // isRegistered gates the actual VALUES, not just their opacity. The overlay
-// below used to be the only gate — a CSS blur-sm over the real numbers — so
+// below used to be the only gate - a CSS blur-sm over the real numbers - so
 // "Top N cash-flowing deals are locked" sat directly above CAP/CF/CoC text
 // that was still genuinely present and legible in the DOM (blur is a paint
 // effect, not a data boundary). Now an unregistered visitor never receives
@@ -53,13 +53,13 @@ function TopPickCard({ listing, photo, isRegistered }) {
           className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
-          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
+          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '-'}
         </div>
         {/* CF+ badge. Unconditional here because the parent TopPicks already
-            filters to cashFlow > 0 before rendering this card — every listing
+            filters to cashFlow > 0 before rendering this card - every listing
             in this carousel genuinely qualifies.
             bg-emerald-500/90 measured 2.39:1 for white text over a light
-            photo — opaque emerald-700 = 5.48:1, same fix as its twin on the
+            photo - opaque emerald-700 = 5.48:1, same fix as its twin on the
             main listing-card.js badge. */}
         <span className="absolute left-2 top-2 rounded-full bg-emerald-700 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
           Cash Flowing
@@ -76,7 +76,7 @@ function TopPickCard({ listing, photo, isRegistered }) {
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CF/mo</p>
-            <p className="text-[11px] font-bold text-emerald-700 truncate">{isRegistered ? (Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '—') : '••••'}</p>
+            <p className="text-[11px] font-bold text-emerald-700 truncate">{isRegistered ? (Number.isFinite(listing.cashFlow) ? `${listing.cashFlow >= 0 ? '+' : '-'}$${Math.abs(Math.round(listing.cashFlow)).toLocaleString()}` : '-') : '••••'}</p>
           </div>
           <div className="min-w-0">
             <p className="text-[10px] font-medium uppercase text-slate-500">CoC</p>
@@ -109,7 +109,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
     <div className="relative">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {/* trophy icon — CLAUDE.md prohibits emoji in code */}
+          {/* trophy icon - CLAUDE.md prohibits emoji in code */}
           <svg className="h-4 w-4 flex-none text-gold" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
           </svg>
@@ -166,7 +166,7 @@ function TopPicks({ listings, photoMap, isRegistered }) {
 
 // initialSummary: a whole-market Deal Screener aggregate computed server-side
 // over the ENTIRE active feed (/api/market-stats already walks it, so this
-// costs no extra request — the /listings server render fetches that endpoint
+// costs no extra request - the /listings server render fetches that endpoint
 // anyway). It lets the dashboard state correct market-wide figures from the
 // first paint instead of publishing whatever the first 30 rows happen to say.
 // Absent (GTA pages, or a feed that came back short) simply means the
@@ -189,7 +189,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   // Every page of the feed is in. Until this flips, the Deal Screener must not
-  // present any max/count over `listings` as a settled figure — see
+  // present any max/count over `listings` as a settled figure - see
   // lib/listings/screener-metrics.js for the measured damage that caused.
   const [analysisComplete, setAnalysisComplete] = useState(false);
 
@@ -197,7 +197,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
   // Read city from URL (set by GTA mega-menu) or from the `city` prop.
   // The prop is used on path-segment pages (/gta/[city]) where no ?city= is
-  // present in the URL — the city is in the pathname, not the query string.
+  // present in the URL - the city is in the pathname, not the query string.
   const cityFromUrl = searchParams.get('city') || '';
   const cityParam = cityProp || cityFromUrl;
   // Region scope for saved searches: a specific city on /gta/[city] or
@@ -208,7 +208,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   // Preserve ?city=X when the city came from a query param (legacy /gta?city=
   // URLs redirect to /gta/[city], but this keeps the URL sync safe if ever
   // called from a non-redirected context). Do NOT add ?city= when the city
-  // lives in the pathname — the path already carries it.
+  // lives in the pathname - the path already carries it.
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
@@ -272,7 +272,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
         setPhotoMap((prev) => ({ ...prev, ...photos }));
       }
     } catch {
-      // Batch failed — fall back to individual calls for this chunk
+      // Batch failed - fall back to individual calls for this chunk
       for (const id of ids) {
         fetch('/api/photos?id=' + encodeURIComponent(id) + '&limit=1')
           .then((r) => (r.ok ? r.json() : null))
@@ -310,7 +310,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
       fetchPhotoBatch(batch);
     }
 
-    // Queue the rest — 25 at a time, fire 2 parallel batches every 500ms
+    // Queue the rest - 25 at a time, fire 2 parallel batches every 500ms
     if (rest.length > 0) {
       photoQueueRef.current.push(...rest);
 
@@ -345,7 +345,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   //    2+. This used to bail out entirely whenever SSR provided ANY rows
   //    ("if (initialListings.length > 0) return"), which meant the site was
   //    permanently capped at whatever the server's single page fetched
-  //    (~198 rows) even though the real feed has thousands — every count
+  //    (~198 rows) even though the real feed has thousands - every count
   //    claim above ~200 was comparing against data the page never loaded.
   // Either way, remaining pages load in the background and get appended.
   useEffect(() => {
@@ -360,7 +360,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
         let totalPages;
 
         if (initialListings.length === 0) {
-          // Cold start — fetch page 1 ourselves and show it immediately.
+          // Cold start - fetch page 1 ourselves and show it immediately.
           const res = await fetch(apiEndpoint + '?limit=100&page=1' + cityQs);
           if (!res.ok) {
             // Feed down: stop the skeletons and show an honest error state
@@ -377,16 +377,16 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
             if (page1Processed.length > 0) setListings(page1Processed);
           }
         } else {
-          // SSR already gave us page 1 (processed) — work out how many more
+          // SSR already gave us page 1 (processed) - work out how many more
           // pages exist from the real total instead of guessing.
           // Prefer the API's own page count. Deriving it here from the
           // POST-filter total over the RAW page size computed 13 where the
-          // API said 14 — the last page was never fetched and its listings
+          // API said 14 - the last page was never fetched and its listings
           // were unreachable everywhere on the site.
           totalPages = initialPages > 0 ? initialPages : initialTotal > 0 ? Math.ceil(initialTotal / 200) : 1;
         }
 
-        // Whichever base we started from — SSR's already-processed rows, or
+        // Whichever base we started from - SSR's already-processed rows, or
         // this run's own page 1. Processed exactly ONCE now: the old code
         // re-ran processListings(page1Raw) inside every merge, re-underwriting
         // the same 100 listings once per batch on a cold start.
@@ -402,7 +402,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           // A worker POOL, not fixed waves. The old loop awaited a whole batch
           // of five before requesting the next five, so the slowest page in
           // each batch held up every request behind it and the number of
-          // in-flight requests drained to zero between batches — 25 pages cost
+          // in-flight requests drained to zero between batches - 25 pages cost
           // five full round trips of the SLOWEST page each. A pool keeps
           // CONCURRENCY requests in flight continuously instead. Peak
           // concurrency is essentially unchanged (5 → 6, matching the
@@ -417,8 +417,8 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           let lastFlush = 0;
 
           // Rebuild the visible list from the contiguous run of pages that have
-          // landed. Contiguous, not "whatever finished", so page order — and
-          // therefore the rendered order — is byte-identical to the old
+          // landed. Contiguous, not "whatever finished", so page order - and
+          // therefore the rendered order - is byte-identical to the old
           // sequential-batch behaviour even though the fetches complete out of
           // order.
           const flush = (force) => {
@@ -443,7 +443,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           };
 
           // Each page is underwritten ONCE, as it arrives. The old code re-ran
-          // processListings over the whole accumulated array on every batch —
+          // processListings over the whole accumulated array on every batch -
           // ~7,500 listings' worth of mortgage/NOI/cap-rate/score math for a
           // 2,500-listing market, all of it on the phone's main thread, and it
           // grew quadratically with the GTA hub's 100 pages. Now it is linear.
@@ -475,7 +475,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           );
 
           // One retry for pages that dropped. These used to be swallowed
-          // silently and lost for the whole session — a dropped page is ~100
+          // silently and lost for the whole session - a dropped page is ~100
           // listings missing from the counts, the map and the filters, with
           // nothing to say so. Sequential, so a retry storm can't hammer the
           // feed.
@@ -528,13 +528,13 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
     <div className="space-y-6">
       {/* Deal Screener */}
       {/* marketTotal: prefer the canonical site-wide count (market-stats
-          activeCount — the same number the homepage, /about and /sell quote)
+          activeCount - the same number the homepage, /about and /sell quote)
           so one crawl never reads different totals on different pages;
           initialTotal (the feed's own browsable count) is the fallback and
           still drives the pagination math. */}
       {/* analysisComplete/loadedCount/summary: see deal-screener.js. The
           server summary describes the WHOLE market, so it is only handed over
-          while no filter narrows the set — the moment a filter is on, the only
+          while no filter narrows the set - the moment a filter is on, the only
           honest answer for an unfinished load is a skeleton. */}
       <DealScreener
         listings={filtered}
@@ -545,17 +545,17 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
         summary={unfiltered ? initialSummary : null}
       />
 
-      {/* Top Picks — highest-scored CF+ deals */}
+      {/* Top Picks - highest-scored CF+ deals */}
       <TopPicks listings={listings} photoMap={photoMap} isRegistered={isRegistered} />
 
       {/* Investor Filters */}
-      {/* totalCount is the MARKET total, not the loaded slice — passing
+      {/* totalCount is the MARKET total, not the loaded slice - passing
           listings.length made the "of N" clause unreachable (equal to
           resultCount when unfiltered), so the SSR view read "Showing 199
           investment properties" as if that were the whole market. */}
       <InvestorFilters filters={filters} setFilters={setFilters} resultCount={filtered.length} totalCount={Math.max(displayTotal || initialTotal || 0, listings.length)} popularHoods={popularHoods} searchCity={searchCity} />
 
-      {/* Motivated-seller context band — the email campaign and social links
+      {/* Motivated-seller context band - the email campaign and social links
           land people on /listings?sort=dom with zero explanation of what
           they're looking at. Shown only in that sort so the page narrates the
           view ("longest-waiting sellers first") and routes the intent into the
@@ -565,7 +565,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           <div className="flex items-start gap-3">
             <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-gold" aria-hidden="true" />
             <p className="text-sm text-navy">
-              <span className="font-bold">Motivated-seller view:</span> sorted by days on market —
+              <span className="font-bold">Motivated-seller view:</span> sorted by days on market -
               longest-waiting sellers first. A seller who has already cut their price once is far
               more likely to negotiate again.
             </p>
@@ -579,7 +579,7 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
         </div>
       )}
 
-      {/* Signup prompt — show when not registered */}
+      {/* Signup prompt - show when not registered */}
       {!isRegistered && filtered.length > 0 && (
         <div className="flex items-center justify-between rounded-xl border border-accent/20 bg-gradient-to-r from-accent/5 to-emerald-50 px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">

@@ -37,7 +37,7 @@ function SkeletonCard() {
   );
 }
 
-// analysisComplete / loadedCount: `isLoading` only covers the FIRST page — it
+// analysisComplete / loadedCount: `isLoading` only covers the FIRST page - it
 // flips false as soon as SSR's 30 rows exist, while ~24 more pages are still
 // streaming in. A filter matching nothing in that partial pool used to render
 // the confident dead-end "No properties match your filters right now", which
@@ -45,7 +45,7 @@ function SkeletonCard() {
 //
 // This bit hard on multi-unit. The feed is ordered ModificationTimestamp desc
 // and every duplex/triplex/multiplex in Mississauga was last touched 12+ days
-// ago, so they load LAST — filtering to Duplex/Multi in the first seconds
+// ago, so they load LAST - filtering to Duplex/Multi in the first seconds
 // reliably showed "no properties" while 11 of them genuinely existed, which is
 // exactly what made the multi-unit email read as a lie.
 //
@@ -57,7 +57,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
   const [cardClicks, setCardClicks] = useState(0);
   const [signupTrigger, setSignupTrigger] = useState('gate');
 
-  // Derived from THIS result set's own spread, not a hand-picked constant —
+  // Derived from THIS result set's own spread, not a hand-picked constant -
   // see computeBelowMarketCutoff for why a fixed -3% badged ~70% of cards.
   const belowMarketCutoff = useMemo(() => computeBelowMarketCutoff(listings), [listings]);
 
@@ -83,7 +83,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
 
   // Track card clicks for view-limit gate
   const handleCardClick = useCallback(() => {
-    if (accessVerified) return; // registered users — no limit
+    if (accessVerified) return; // registered users - no limit
     const newCount = cardClicks + 1;
     setCardClicks(newCount);
     if (newCount >= FREE_CARD_CLICKS) {
@@ -113,7 +113,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
         <div className="mb-6 flex items-center justify-center gap-3 rounded-xl bg-accent/5 border border-accent/10 px-4 py-3">
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
           <p className="text-sm font-medium text-accent">
-            Analyzing investment properties — scoring deals in real time...
+            Analyzing investment properties - scoring deals in real time...
           </p>
         </div>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -133,7 +133,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
           </svg>
           <p className="mt-3 text-sm font-semibold text-navy">We couldn't load listings right now</p>
-          <p className="mt-1 text-xs text-muted">The data feed hiccuped — it usually recovers in a moment.</p>
+          <p className="mt-1 text-xs text-muted">The data feed hiccuped - it usually recovers in a moment.</p>
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={onRetry} className="rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-white hover:bg-accent-dark transition">Try Again</button>
             <a href="tel:+16476091289" className="text-sm font-semibold text-navy hover:text-accent no-underline">or call 647-609-1289</a>
@@ -143,7 +143,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
     );
   }
 
-  // Nothing matches YET, but the pool is still arriving — say so instead of
+  // Nothing matches YET, but the pool is still arriving - say so instead of
   // declaring the market empty. Same honesty rule the Deal Screener already
   // follows: no set-dependent claim until the set is settled.
   if (listings.length === 0 && !analysisComplete) {
@@ -164,7 +164,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
 
   if (listings.length === 0) {
     // A specific search that returns nothing right now is a high-intent lead
-    // moment — not a dead end. Route the investor to a deal alert so they hear
+    // moment - not a dead end. Route the investor to a deal alert so they hear
     // the instant a matching property lists (new deals are added daily).
     return (
       <div className="flex min-h-[16rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8">
@@ -249,7 +249,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
             onClick={() => { setSignupTrigger('gate'); setShowSignupModal(true); }}
             className="rounded-lg bg-white px-6 py-3 text-sm font-bold text-navy transition hover:bg-white/90"
           >
-            Unlock All Deals — Free
+            Unlock All Deals - Free
           </button>
           <p className="mt-2 text-[11px] text-white/40">No credit card. No spam. 10 seconds.</p>
         </div>
@@ -295,7 +295,7 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
       )}
 
       {/* When only part of the market is loaded (SSR serves one page; the
-          rest streams in), say so — "of 199" while the header claims ~2,500
+          rest streams in), say so - "of 199" while the header claims ~2,500
           read as a hard cap to anyone (or any crawler) counting cards. */}
       <p className="py-4 text-center text-xs text-slate-500">
         {marketTotal > listings.length

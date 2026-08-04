@@ -19,7 +19,7 @@ const GOALS = [
   { value: '', label: 'What are you looking for?' },
   { value: 'sell-now', label: 'I want to sell for the most' },
   { value: 'valuation', label: "Just want to know what it's worth" },
-  { value: 'planning', label: 'Planning ahead — exploring options' },
+  { value: 'planning', label: 'Planning ahead - exploring options' },
 ];
 
 const SELL_TIMELINES = [
@@ -33,7 +33,7 @@ const SELL_TIMELINES = [
 
 /**
  * Seller lead form for the /sell page. Posts to /api/lead with source
- * 'seller-valuation' (labelled "Seller — Home Valuation" / "🏡 Seller" in
+ * 'seller-valuation' (labelled "Seller - Home Valuation" / "🏡 Seller" in
  * Hamza's inbox + CRM). Kept as its own client component so the page stays a
  * server component with SEO metadata + structured data.
  */
@@ -110,20 +110,20 @@ export function ValuationForm({ id }) {
   return (
     <div id={id} className="card p-6 scroll-mt-24">
       <h2 className="font-heading font-semibold text-lg text-navy">Get your free home valuation</h2>
-      <p className="mt-1 mb-5 text-xs text-muted">See what your home is worth — and how to sell it for the most. No obligation.</p>
+      <p className="mt-1 mb-5 text-xs text-muted">See what your home is worth - and how to sell it for the most. No obligation.</p>
 
       {error && (
         <div role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-danger">{error}</div>
       )}
 
-      {/* Progressive-disclosure form — mirrors the /pre-construction VIP form pattern.
+      {/* Progressive-disclosure form - mirrors the /pre-construction VIP form pattern.
           Only the 3 required fields (name / email / address) are visible on open;
           the qualifying selects (phone / type / goal / timeline) sit in a native
           <details> so the submit button sits above the fold at 375px. A single POST
-          fires regardless of whether the disclosure is open — no lead can be stranded
+          fires regardless of whether the disclosure is open - no lead can be stranded
           mid-flow, and all four optional fields still submit when visible. */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Primary fields — always visible */}
+        {/* Primary fields - always visible */}
         <div>
           <label htmlFor="sv-name" className="mb-1 block text-sm font-medium text-navy">
             Name <span className="text-red-600" aria-hidden="true">*</span>
@@ -181,7 +181,7 @@ export function ValuationForm({ id }) {
           {loading ? 'Submitting…' : 'Get My Free Home Valuation'}
         </button>
 
-        {/* Optional qualifying fields — collapsed by default */}
+        {/* Optional qualifying fields - collapsed by default */}
         <details className="group">
           <summary className="flex cursor-pointer select-none list-none items-center gap-1.5 text-xs font-medium text-accent hover:text-accent-dark [&::-webkit-details-marker]:hidden">
             <svg
@@ -194,7 +194,7 @@ export function ValuationForm({ id }) {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            Tell us more — helps Hamza prepare your valuation (optional)
+            Tell us more - helps Hamza prepare your valuation (optional)
           </summary>
           <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
             <div>

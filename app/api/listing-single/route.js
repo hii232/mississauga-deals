@@ -9,14 +9,14 @@ export const dynamic = 'force-dynamic';
 const BASE = 'https://query.ampre.ca/odata';
 const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 
-// mapType now lives in lib/property-types.js — one rule, imported here.
+// mapType now lives in lib/property-types.js - one rule, imported here.
 
 function addr(l) {
   return [l.UnitNumber ? l.UnitNumber + '-' : '', l.StreetNumber || '', l.StreetName || '', l.StreetSuffix || '']
     .filter(Boolean).join(' ').trim() || l.UnparsedAddress || 'Address on Request';
 }
 
-// Same normalization as the feed routes — AssociationFee arrives with a
+// Same normalization as the feed routes - AssociationFee arrives with a
 // frequency, and an annual fee shown as monthly would be a wrong number.
 function normalizeCondoFee(fee, frequency) {
   if (!fee || fee <= 0) return 0;
@@ -29,10 +29,10 @@ function normalizeCondoFee(fee, frequency) {
 
 // Guaranteed-safe core. The probed fields (real listing dates for DOM,
 // CityRegion, LivingAreaRange, AssociationFee…) are appended per-request from
-// probeSupportedFields — this route previously kept its own hardcoded list and
-// silently fell out of sync with the feeds: the DETAIL page showed dom "—",
+// probeSupportedFields - this route previously kept its own hardcoded list and
+// silently fell out of sync with the feeds: the DETAIL page showed dom "-",
 // neighbourhood "Mississauga" and an ESTIMATED condo fee while the card for
-// the same listing showed dom 25, "Cooksville" and the real fee — so cash
+// the same listing showed dom 25, "Cooksville" and the real fee - so cash
 // flow and cash-on-cash visibly disagreed between card and detail.
 const SEL = [
   'ListingKey', 'ListingId', 'ListPrice', 'OriginalListPrice',
@@ -45,7 +45,7 @@ const SEL = [
 
 /**
  * GET /api/listing-single?id=W12638790
- * Fetches a single listing by ListingKey — no city filter, works for any TREB listing.
+ * Fetches a single listing by ListingKey - no city filter, works for any TREB listing.
  * Used as fallback when a GTA listing isn't found in the Mississauga listings API.
  */
 export async function GET(request) {
@@ -65,7 +65,7 @@ export async function GET(request) {
     // encoded $filter, so it needs percent-encoding on top of the OData escape.
     const pathId = odataKey(id);
     const headers = { Authorization: 'Bearer ' + TOK, Accept: 'application/json' };
-    // Ask the feed what this token may select (memoised 1h) and use ALL of it —
+    // Ask the feed what this token may select (memoised 1h) and use ALL of it -
     // byte-identical field surface to the listings feeds, so the numbers
     // derived downstream cannot disagree between the card and this page.
     const supported = await probeSupportedFields(TOK);
@@ -78,7 +78,7 @@ export async function GET(request) {
     // detail page is server-rendered from this endpoint, so with no photos in
     // the payload the server HTML for all ~5,400 listing pages carried:
     //   - a RealEstateListing JSON-LD with NO `image` (PropertyJsonLd only
-    //     emits `image` when photos exist) — and images are what earn the
+    //     emits `image` when photos exist) - and images are what earn the
     //     rich result for a property listing
     //   - no LCP image in the markup at all; the hero only appeared after a
     //     separate client fetch to /api/photos, an endpoint the backlog
@@ -87,7 +87,7 @@ export async function GET(request) {
     // feed settles on the core+media tier and returns real photo URLs), so
     // asking for it here is safe. Degrades exactly as before if it is ever
     // rejected: `expand` is dropped and the client fetch still fills photos in.
-    // Byte-identical to the listings feed's ACCEPTED expand — the only diff was
+    // Byte-identical to the listings feed's ACCEPTED expand - the only diff was
     // the missing MediaKey, and this exact form is proven against production.
     const EXPAND = '&$expand=' + encodeURIComponent('Media($select=MediaURL,MediaKey;$orderby=Order)');
     const sel = '$select=' + encodeURIComponent(FULL_SEL);
@@ -127,7 +127,7 @@ export async function GET(request) {
       ? Math.round(((l.OriginalListPrice - price) / l.OriginalListPrice) * 100)
       : 0;
     const rem = l.PublicRemarks || '';
-    // Same computation as the feeds — real listing dates first, feed DOM
+    // Same computation as the feeds - real listing dates first, feed DOM
     // second, never the sync stamp. See lib/listings/market-timing.js.
     const dom = computeDaysOnMarket(l);
     const daysSinceUpdate = computeDaysSinceUpdate(l);
@@ -146,7 +146,7 @@ export async function GET(request) {
     const listing = {
       id: l.ListingKey,
       // ListingId is VOW-suppressed (null) on active listings, but ListingKey
-      // IS the MLS number ('W13607630') — a null mlsId on every record just
+      // IS the MLS number ('W13607630') - a null mlsId on every record just
       // looks broken to anyone reading the API.
       mlsId: l.ListingId || l.ListingKey,
       price,
@@ -187,10 +187,10 @@ export async function GET(request) {
       { listing },
       {
         headers: {
-          // Fresh ≤1h, served instantly for a day — matching the feeds; see
+          // Fresh ≤1h, served instantly for a day - matching the feeds; see
           // the split explained in /api/listings. The FRESH window sat at
           // 86400 once and that was a real bug (detail fixes invisible for a
-          // day while the cards updated in 15 minutes) — it stays ≤1h. The
+          // day while the cards updated in 15 minutes) - it stays ≤1h. The
           // long stale-while-revalidate is the load-speed side: at this
           // site's traffic a 3600 SWR window was cold for nearly every
           // visitor, so each detail view paid a live AMPRE query.

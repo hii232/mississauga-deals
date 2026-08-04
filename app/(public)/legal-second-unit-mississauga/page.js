@@ -34,7 +34,7 @@ export const metadata = {
   },
 };
 
-// General guidance only — sourced from Ontario Building Code (Part 9) and
+// General guidance only - sourced from Ontario Building Code (Part 9) and
 // City of Mississauga zoning policy. Confirm ALL requirements and current
 // permit fees directly with the City of Mississauga Building Division before
 // proceeding: 905-615-4030 or mississauga.ca/building.
@@ -42,7 +42,7 @@ const SUITE_FAQ = [
   {
     question: 'Do I need a building permit to add a second unit in Mississauga?',
     answer:
-      'Yes. Any significant construction or renovation to create a second residential unit — including framing, plumbing, electrical, HVAC, fire separation and egress modifications — requires a building permit from the City of Mississauga Building Division. Doing the work without a permit is a bylaw violation, can make the unit illegal to rent, and can cause problems when you sell. Permits are applied for at the City\'s Building Division (mississauga.ca/building) or in person at Mississauga Civic Centre.',
+      'Yes. Any significant construction or renovation to create a second residential unit - including framing, plumbing, electrical, HVAC, fire separation and egress modifications - requires a building permit from the City of Mississauga Building Division. Doing the work without a permit is a bylaw violation, can make the unit illegal to rent, and can cause problems when you sell. Permits are applied for at the City\'s Building Division (mississauga.ca/building) or in person at Mississauga Civic Centre.',
   },
   {
     question: 'What are the key Ontario Building Code requirements for a second unit?',
@@ -52,7 +52,7 @@ const SUITE_FAQ = [
   {
     question: 'Does a legal second unit need its own separate street entrance?',
     answer:
-      'Ontario Building Code does NOT require a second unit to have a separate exterior entrance that faces the street. A side or rear entrance is common and acceptable. What is required is that each unit has its own safe means of egress — which is typically the existing front door shared with the main unit, plus the unit\'s own exit path from its sleeping areas through egress windows that meet minimum size requirements. Confirm the acceptable egress configuration for your specific layout with your contractor and the City.',
+      'Ontario Building Code does NOT require a second unit to have a separate exterior entrance that faces the street. A side or rear entrance is common and acceptable. What is required is that each unit has its own safe means of egress - which is typically the existing front door shared with the main unit, plus the unit\'s own exit path from its sleeping areas through egress windows that meet minimum size requirements. Confirm the acceptable egress configuration for your specific layout with your contractor and the City.',
   },
   {
     question: 'How long does the Mississauga building permit process take for a second unit?',
@@ -62,14 +62,14 @@ const SUITE_FAQ = [
   {
     question: 'How much does a legal second unit add to my cash flow?',
     answer:
-      'A legal basement suite in Mississauga typically rents for roughly $1,800 to $2,600 per month for a 1–2 bedroom unit, depending on neighbourhood, size, and finish level. On a property already carrying a mortgage, that rent often flips a slightly negative cash flow into positive — it\'s the most common single lever that makes a Mississauga property pencil out. Use the mortgage calculator on this site to model the full picture: mortgage, property tax, insurance, maintenance, vacancy, and the added rent.',
+      'A legal basement suite in Mississauga typically rents for roughly $1,800 to $2,600 per month for a 1–2 bedroom unit, depending on neighbourhood, size, and finish level. On a property already carrying a mortgage, that rent often flips a slightly negative cash flow into positive - it\'s the most common single lever that makes a Mississauga property pencil out. Use the mortgage calculator on this site to model the full picture: mortgage, property tax, insurance, maintenance, vacancy, and the added rent.',
   },
 ];
 
 const REQUIREMENTS = [
   {
     title: 'Ceiling height',
-    body: 'The Ontario Building Code requires a minimum ceiling height of 1.95 m (approximately 6\'5") throughout the habitable floor area of the secondary suite. Measure your basement carefully before purchasing — this is the most common reason a basement cannot become a legal suite.',
+    body: 'The Ontario Building Code requires a minimum ceiling height of 1.95 m (approximately 6\'5") throughout the habitable floor area of the secondary suite. Measure your basement carefully before purchasing - this is the most common reason a basement cannot become a legal suite.',
   },
   {
     title: 'Egress windows',
@@ -89,7 +89,7 @@ const REQUIREMENTS = [
   },
   {
     title: 'Zoning compliance',
-    body: 'Ontario\'s Planning Act requires all Mississauga residential zones to permit at least one secondary unit in a detached, semi-detached, or rowhouse. Confirm your property\'s specific zoning and any site-specific conditions at mississauga.ca/building before starting — most residential properties qualify, but some older plans or heritage properties may have restrictions.',
+    body: 'Ontario\'s Planning Act requires all Mississauga residential zones to permit at least one secondary unit in a detached, semi-detached, or rowhouse. Confirm your property\'s specific zoning and any site-specific conditions at mississauga.ca/building before starting - most residential properties qualify, but some older plans or heritage properties may have restrictions.',
   },
 ];
 
@@ -97,7 +97,7 @@ const STEPS = [
   {
     num: '01',
     title: 'Assess your property',
-    body: 'Check ceiling height throughout the basement — 1.95 m is the common gatekeeping number. Identify where egress windows will go and whether electrical and HVAC capacity supports a second unit.',
+    body: 'Check ceiling height throughout the basement - 1.95 m is the common gatekeeping number. Identify where egress windows will go and whether electrical and HVAC capacity supports a second unit.',
   },
   {
     num: '02',
@@ -132,7 +132,7 @@ export default function LegalSecondUnitPage() {
         compact
         eyebrow={`Mississauga · Investors · ${YEAR}`}
         title="Legal Second Unit in Mississauga"
-        subtitle="Ontario Building Code requirements, the permit process, and the cash-flow math for adding a legal basement suite — the most common way a Mississauga property flips from negative to positive cash flow."
+        subtitle="Ontario Building Code requirements, the permit process, and the cash-flow math for adding a legal basement suite - the most common way a Mississauga property flips from negative to positive cash flow."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -144,7 +144,7 @@ export default function LegalSecondUnitPage() {
             Adding a <strong>legal second unit</strong> (basement suite or accessory apartment) in Mississauga is{' '}
             <strong>permitted in virtually every residential zone</strong> and is often the single biggest lever that
             makes a property cash-flow positive. You need a <strong>City of Mississauga building permit</strong> and the
-            finished unit must meet Ontario Building Code minimums — primarily around ceiling height, egress windows,
+            finished unit must meet Ontario Building Code minimums - primarily around ceiling height, egress windows,
             fire separation, and smoke/CO alarms. The permit process typically takes several months end to end, and all
             electrical work requires a separate ESA permit. Once the final inspection passes, the unit is legal to rent.
           </p>
@@ -162,7 +162,7 @@ export default function LegalSecondUnitPage() {
           A legal basement suite in Mississauga typically adds{' '}
           <strong>$1,800–$2,600 per month in rental income</strong> depending on the neighbourhood, size, and finish.
           On a property already carrying a mortgage, that second rent often flips a slightly negative monthly cash flow
-          into positive — it is the most common structural reason a Mississauga property pencils out for a buy-and-hold
+          into positive - it is the most common structural reason a Mississauga property pencils out for a buy-and-hold
           investor. An <em>illegal</em> suite adds the same income but carries significant risk: lender problems at
           renewal, insurance gaps, tenant tribunal exposure, and liability if there is a fire. A permitted, inspected
           suite removes those risks.
@@ -224,7 +224,7 @@ export default function LegalSecondUnitPage() {
 
         <p className="text-xs text-slate-500 mb-10">
           General guidance based on the Ontario Building Code and City of Mississauga zoning policy as of {YEAR}.
-          Requirements, permit fees and processing times change — confirm all specifics with the{' '}
+          Requirements, permit fees and processing times change - confirm all specifics with the{' '}
           <strong>City of Mississauga Building Division</strong> (905-615-4030, mississauga.ca/building) and a licensed
           contractor before proceeding. Not legal, engineering, or tax advice.
         </p>
@@ -235,7 +235,7 @@ export default function LegalSecondUnitPage() {
             Find properties where the second-suite math already works
           </h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
-            Browse Mississauga listings scored for cash flow — filtered to properties with legal suites, suite
+            Browse Mississauga listings scored for cash flow - filtered to properties with legal suites, suite
             potential, or positive-cash-flow at current rates.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -246,7 +246,7 @@ export default function LegalSecondUnitPage() {
               href="/book-call"
               className="btn-secondary !bg-white/10 !border-white/20 !text-white hover:!bg-white/20 !px-6 no-underline text-center"
             >
-              Talk to Hamza — Free Call
+              Talk to Hamza - Free Call
             </Link>
           </div>
         </div>

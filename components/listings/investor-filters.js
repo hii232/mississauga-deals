@@ -196,7 +196,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
               className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                 isActive
                   // emerald-500 measured 2.54:1 for white text on this active
-                  // filter-pill state — emerald-700 = 5.48:1. Same failure as
+                  // filter-pill state - emerald-700 = 5.48:1. Same failure as
                   // the badges fixed elsewhere this morning.
                   ? 'bg-emerald-700 text-white'
                   : 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
@@ -406,7 +406,7 @@ export function InvestorFilters({ filters, setFilters, resultCount, totalCount, 
                         className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                           isActive
                             // emerald-500 measured 2.54:1 for white text on this active
-                  // filter-pill state — emerald-700 = 5.48:1. Same failure as
+                  // filter-pill state - emerald-700 = 5.48:1. Same failure as
                   // the badges fixed elsewhere this morning.
                   ? 'bg-emerald-700 text-white'
                             : 'bg-emerald-50 text-emerald-700 border border-emerald-200'

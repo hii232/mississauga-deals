@@ -20,7 +20,7 @@ const supabase =
  * RESEND_WEBHOOK_SECRET configured, every request is rejected rather than
  * trusted (see lib/emails/resend-webhook.js, 37 tests).
  *
- * Status codes matter here — Svix retries on non-2xx:
+ * Status codes matter here - Svix retries on non-2xx:
  *   401  bad/missing signature   → retrying is correct, it may be misconfig
  *   200  accepted, or a duplicate, or an event type we don't track
  *   500  storage failed          → retry, the unique event_id makes that safe
@@ -46,7 +46,7 @@ export async function POST(request) {
   try {
     payload = JSON.parse(raw);
   } catch {
-    // Signed but unparseable — retrying won't help, so 200 to stop the loop.
+    // Signed but unparseable - retrying won't help, so 200 to stop the loop.
     return NextResponse.json({ ok: true, ignored: 'unparseable body' });
   }
 

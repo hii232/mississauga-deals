@@ -5,17 +5,17 @@ import SignupGateModal from '@/components/ui/signup-gate-modal';
 import { trackConversion } from '@/lib/track-conversion';
 
 /**
- * Email-first capture, inline — no page navigation before the email is taken.
+ * Email-first capture, inline - no page navigation before the email is taken.
  *
  * The email is POSTed to /api/lead the moment it is submitted, BEFORE anything
  * else is asked for. The signup gate's own step 1 keeps the email client-side
  * and only posts on completion or skip, which loses the lead outright if the
- * visitor closes the tab — that gap is the reason this exists. Name and phone
+ * visitor closes the tab - that gap is the reason this exists. Name and phone
  * are then collected by the SAME SignupGateModal, opened at step 2 so nobody is
  * asked for their email twice.
  *
  * Giving a real email is the whole price of entry, so once it lands the visitor
- * is marked fully registered even if they dismiss the profile step — otherwise
+ * is marked fully registered even if they dismiss the profile step - otherwise
  * the CTA promises access and then withholds it.
  *
  * `tone` picks the palette: 'dark' sits on the navy hero, 'light' on a white card.
@@ -32,7 +32,7 @@ export function InlineEmailCapture({
   // stores listing_id/address/price and renders a property block with a
   // "View listing →" link in the notification email, but this component only
   // ever posted {email, source}, so every email captured on a listing page
-  // reached Hamza without saying WHICH property — the single most useful fact
+  // reached Hamza without saying WHICH property - the single most useful fact
   // for the follow-up. Passed on to the profile modal too, so the completed
   // profile lands against the same property instead of a bare "Sign Up".
   listing = null,
@@ -71,7 +71,7 @@ export function InlineEmailCapture({
         }),
       });
       const data = await res.json().catch(() => ({}));
-      // Never fake success on a rejection (429 rate-limit, 400) — that would
+      // Never fake success on a rejection (429 rate-limit, 400) - that would
       // mark them registered while the lead never reached Hamza.
       if (!res.ok) {
         setError(data.error || 'Something went wrong. Please try again.');
@@ -90,7 +90,7 @@ export function InlineEmailCapture({
     setModalOpen(true);
   }
 
-  // Called whether they complete the profile or dismiss it — the email is
+  // Called whether they complete the profile or dismiss it - the email is
   // already banked either way, so access is theirs.
   function finish() {
     setModalOpen(false);
@@ -140,7 +140,7 @@ export function InlineEmailCapture({
         <p className={`mt-2 text-xs ${dark ? 'text-white/70' : 'text-muted'}`}>{note}</p>
       )}
 
-      {/* Email is already saved at this point — this only completes the profile. */}
+      {/* Email is already saved at this point - this only completes the profile. */}
       <SignupGateModal
         open={modalOpen}
         initialEmail={email.trim()}

@@ -7,12 +7,12 @@ import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed
 import InlineCTA from '@/components/ui/inline-cta';
 import { StickyMobileCTA } from '@/components/layout/sticky-mobile-cta';
 
-// ISR: nothing here is request-dependent — the live count fetch carries its
+// ISR: nothing here is request-dependent - the live count fetch carries its
 // own revalidate. Without this the page rendered dynamically on every hit.
 export const revalidate = 3600;
 
 export const metadata = {
-  title: { absolute: 'About Hamza Nouman — Mississauga Investment REALTOR®' },
+  title: { absolute: 'About Hamza Nouman - Mississauga Investment REALTOR®' },
   description:
     'Hamza Nouman, licensed Sales Representative with Cityscape Real Estate in Mississauga. Investment properties, cash-flow analysis and data-driven advice.',
   keywords: [
@@ -31,7 +31,7 @@ export const metadata = {
     canonical: '/about',
   },
   openGraph: {
-    title: 'About Hamza Nouman — Mississauga Real Estate Investment Specialist',
+    title: 'About Hamza Nouman - Mississauga Real Estate Investment Specialist',
     description:
       'Licensed Sales Representative with Cityscape Real Estate Ltd.. Specializing in Mississauga investment properties and data-driven real estate analysis.',
     url: 'https://www.mississaugainvestor.ca/about',
@@ -46,13 +46,13 @@ export const metadata = {
         url: '/images/hamza-headshot.jpg',
         width: 800,
         height: 800,
-        alt: 'Hamza Nouman — Mississauga Real Estate Investment Specialist',
+        alt: 'Hamza Nouman - Mississauga Real Estate Investment Specialist',
       },
     ],
   },
   twitter: {
     card: 'summary',
-    title: 'Hamza Nouman — Mississauga Real Estate Investment Specialist',
+    title: 'Hamza Nouman - Mississauga Real Estate Investment Specialist',
     description:
       'Licensed Sales Representative with Cityscape Real Estate Ltd.. Creator of MississaugaInvestor.ca.',
     images: ['/images/hamza-headshot.jpg'],
@@ -62,7 +62,7 @@ export const metadata = {
 export default async function AboutPage() {
   // Live from Google; null hides every rating claim on the page.
   const googleRating = await fetchGoogleRating();
-  // Same live count the homepage hero uses — see lib/listings/properties-analyzed.js
+  // Same live count the homepage hero uses - see lib/listings/properties-analyzed.js
   // for why this replaced a hand-set PLATFORM_STATS constant.
   const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
   const breadcrumbs = [
@@ -72,7 +72,7 @@ export default async function AboutPage() {
 
   return (
     <>
-      {/* PersonJsonLd is NOT rendered here — the root layout (app/layout.js)
+      {/* PersonJsonLd is NOT rendered here - the root layout (app/layout.js)
           already emits it on every page, and duplicating the Person node made
           /about ship two identical Person schemas. ProfilePage's mainEntity
           references the shared @id, so nothing is lost. */}
@@ -86,7 +86,7 @@ export default async function AboutPage() {
             <div className="relative flex-shrink-0 w-48 h-48 md:w-64 md:h-64">
               <Image
                 src="/images/hamza-headshot.jpg"
-                alt="Hamza Nouman — Mississauga Real Estate Investment Specialist at Cityscape Real Estate Ltd."
+                alt="Hamza Nouman - Mississauga Real Estate Investment Specialist at Cityscape Real Estate Ltd."
                 fill
                 priority
                 sizes="(min-width: 768px) 256px, 192px"
@@ -178,7 +178,7 @@ export default async function AboutPage() {
             <Link href="/" className="text-accent hover:text-accent/80">
               MississaugaInvestor.ca
             </Link>{' '}
-            — a data-driven investment property platform that scores every active MLS listing for
+            - a data-driven investment property platform that scores every active MLS listing for
             cash flow, cap rate, and overall investment potential. The platform analyzes{' '}
             {propertiesAnalyzed} properties across 24 Mississauga neighbourhoods, giving investors
             a quantitative edge in identifying the best opportunities.
@@ -228,7 +228,7 @@ export default async function AboutPage() {
           </h2>
           <p className="text-navy/80 leading-relaxed mb-4">
             Licensed since 2020 with the Real Estate Council of Ontario (RECO), Hamza Nouman operates
-            under Cityscape Real Estate Ltd., Brokerage — one of Canada's most trusted real estate
+            under Cityscape Real Estate Ltd., Brokerage - one of Canada's most trusted real estate
             brands. He holds a background in technology and data analytics, which he leverages to build
             tools like MississaugaInvestor.ca that give his clients a competitive advantage in the market.
           </p>
@@ -237,7 +237,7 @@ export default async function AboutPage() {
             making set him apart in the real estate industry.
           </p>
 
-          {/* Newsletter capture — low-friction next step for visitors who like
+          {/* Newsletter capture - low-friction next step for visitors who like
               what they see but aren&apos;t ready to call: follow the weekly deals
               before committing to a conversation. */}
           <InlineCTA variant="newsletter" className="mt-10 mb-10 not-prose" />

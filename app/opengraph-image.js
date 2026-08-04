@@ -1,14 +1,14 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'MississaugaInvestor.ca — Mississauga Real Estate Investment Deals';
+export const alt = 'MississaugaInvestor.ca - Mississauga Real Estate Investment Deals';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
 export default function Image() {
   // Brand "Mississauga dusk" palette (from tailwind.config.js): navy #1B2A4A,
   // accent #2563EB, gold #F59E0B, text-secondary #94A3B8, muted #64748B.
-  // Evergreen capability chips only — no market stats that would silently go
+  // Evergreen capability chips only - no market stats that would silently go
   // stale on a static, un-refreshable social card (the brand's most-shared asset).
   const chips = [
     'Live MLS Listings',
@@ -39,7 +39,7 @@ export default function Image() {
             padding: '40px 60px',
           }}
         >
-          {/* Wordmark — matches the site header/footer (white + accent-blue .ca) */}
+          {/* Wordmark - matches the site header/footer (white + accent-blue .ca) */}
           <div
             style={{
               display: 'flex',

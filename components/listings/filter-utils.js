@@ -1,6 +1,6 @@
 /**
  * Filter utilities for investor-focused listing filters.
- * Pure functions — no React dependencies.
+ * Pure functions - no React dependencies.
  */
 
 // Relative, not '@/': it keeps this module importable by bare node, which is
@@ -23,13 +23,13 @@ export function isFixerUpper(remarks) {
 
 // ── "Below Market" badge cutoff ──
 // evDiffPct compares each listing's price to a rough neighbourhood-average
-// estimate — a formula with real spread, so a fixed -3% cutoff badged
+// estimate - a formula with real spread, so a fixed -3% cutoff badged
 // roughly 70% of any given result set "Below Market" (a badge on almost
-// everything is a badge on nothing — it stops meaning "this one is a genuine
+// everything is a badge on nothing - it stops meaning "this one is a genuine
 // standout"). Instead of guessing a new fixed number, derive the cutoff from
 // the ACTUAL spread of whatever result set is on screen: the value at its
 // own 15th percentile, so only the listings genuinely in the bottom slice of
-// this search read as underpriced. Never LOOSER than -3% — a thin or tight
+// this search read as underpriced. Never LOOSER than -3% - a thin or tight
 // result set (fewer than 10 priced listings, or one where even the 15th
 // percentile is barely negative) should never start badging something that
 // is only marginally under its estimate.
@@ -46,10 +46,10 @@ export function computeBelowMarketCutoff(listings) {
 // ── Days-on-market accessors ──
 // Two DIFFERENT numbers, and the difference decides which claims are legal:
 //
-//   domExact(l) — the feed's own days-on-market. 0 = UNKNOWN, never "listed
+//   domExact(l) - the feed's own days-on-market. 0 = UNKNOWN, never "listed
 //     today" (lib/listings/market-timing.js). The only value that supports an
 //     "at MOST N days" claim ("New", a DOM range's upper bound).
-//   domFloorOf(l) — provable LOWER bound (feed DOM, or how long we have been
+//   domFloorOf(l) - provable LOWER bound (feed DOM, or how long we have been
 //     seeing the listing ourselves). Supports "at LEAST N days" claims
 //     (Motivated, longest-first sorting). It cannot support an upper bound:
 //     a floor of 10 is equally consistent with a real 10 or a real 300.
@@ -90,7 +90,7 @@ export const DEFAULT_FILTERS = {
 // Chip label -> the canonical types it selects. HARDCODED and exact: every
 // bucket is disjoint, so a listing appears under one chip and one only.
 // "Condo Town" is its own bucket because a condo townhouse carries a monthly
-// maintenance fee and a freehold townhouse does not — the biggest single
+// maintenance fee and a freehold townhouse does not - the biggest single
 // difference in carrying cost between them, and the reason lumping them
 // together misrepresents both.
 export const PROPERTY_TYPE_MATCH = {
@@ -102,12 +102,12 @@ export const PROPERTY_TYPE_MATCH = {
   // Split by down payment, not by name: an owner-occupied duplex can go 5%
   // down under CMHC's rules, a triplex/fourplex needs 10%, and 5+ units is
   // commercial financing. Fourplex and Multiplex ride with Triplex because
-  // Mississauga has zero active fourplexes and two multiplexes — separate
+  // Mississauga has zero active fourplexes and two multiplexes - separate
   // chips would sit empty, which is its own kind of lie.
   Duplex: DUPLEX_TYPES,
   'Triplex+': TRIPLEX_PLUS_TYPES,
 
-  // ALL multi-unit in one URL. No chip — the chips split by down payment —
+  // ALL multi-unit in one URL. No chip - the chips split by down payment -
   // but this is the key the multi-unit email links to, because that email
   // describes all 11 duplex/triplex/multiplex listings and must land on all
   // 11. It is also the alias that keeps the already-sent email's links alive:
@@ -121,15 +121,15 @@ export const PROPERTY_TYPES = ['All', 'Detached', 'Semi', 'Town', 'Condo Town', 
 
 // ── Strategy Chips ──
 export const STRATEGY_CHIPS = [
-  { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive — estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
-  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate 5% or above — higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
-  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days — more negotiating leverage', filter: (l) => domFloorOf(l) >= 45 }, // floor = provable minimum, so 45+ is only ever claimed when true
+  { key: 'cf', label: 'Cash Flowing', tooltip: 'Cash flow positive - estimated monthly rent exceeds all expenses including mortgage', filter: (l) => l.cashFlow > 0 },
+  { key: 'highcap', label: 'HIGH CAP', tooltip: 'Cap rate 5% or above - higher rental yield relative to purchase price', filter: (l) => l.capRate >= 5 },
+  { key: 'motivated', label: 'MOTIVATED', tooltip: 'On market 45+ days - more negotiating leverage', filter: (l) => domFloorOf(l) >= 45 }, // floor = provable minimum, so 45+ is only ever claimed when true
   // Tooltip used to read "Below assessed value with renovation potential",
-  // which describes a filter this chip has never applied — it tests time on
+  // which describes a filter this chip has never applied - it tests time on
   // market and the size of the price cut, not assessed value. Now it states
   // the actual rule, so an investor can judge the result set against it.
-  { key: 'brrr', label: 'BRRR', tooltip: 'On market 60+ days AND already cut 5%+ — a seller with room to negotiate on a value-add buy', filter: (l) => domFloorOf(l) >= 60 && l.priceDrop >= 5 },
-  { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing — indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
+  { key: 'brrr', label: 'BRRR', tooltip: 'On market 60+ days AND already cut 5%+ - a seller with room to negotiate on a value-add buy', filter: (l) => domFloorOf(l) >= 60 && l.priceDrop >= 5 },
+  { key: 'reduced', label: 'REDUCED', tooltip: 'Price has been reduced since original listing - indicates seller flexibility', filter: (l) => l.priceDrop > 0 },
   // Exact DOM only, never the floor: "within 3 days" is an UPPER bound, and a
   // lower bound cannot establish one. dom 0 = unknown, not new.
   { key: 'new', label: 'NEW', tooltip: 'Listed within the last 3 days', filter: (l) => { const d = domExact(l); return d >= 1 && d <= 3; } },
@@ -137,15 +137,15 @@ export const STRATEGY_CHIPS = [
   // Reads the SAME basementTier the listing card badges, instead of a private
   // one-phrase regex. The old filter was /legal basement/ alone, while the
   // site's LEGAL_SUITE_KEYWORDS recognises seven phrasings ("legal suite",
-  // "registered basement", "legal bsmt", …) — so a listing the card showed as
+  // "registered basement", "legal bsmt", …) - so a listing the card showed as
   // legal was missed by the filter that exists to find exactly those.
   // Tooltip also corrected: it promised "or has potential", which is a
   // DIFFERENT tier (22 of 99 real rows) that this filter has never included.
-  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Remarks state a legal or registered second suite — not merely a separate entrance or finished basement', filter: (l) => l.basementTier === 'legal' },
-  { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale — potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
-  { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work — keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
-  { key: 'hightransit', label: 'HIGH TRANSIT', tooltip: 'Transit score 7+ — near GO stations, LRT, major bus routes', filter: (l) => (l.transitScore || 0) >= 7 },
-  { key: 'topschools', label: 'TOP SCHOOLS', tooltip: 'School score 8+ — highly rated school district', filter: (l) => (l.schoolScore || 0) >= 8 },
+  { key: 'suite', label: 'LEGAL SUITE', tooltip: 'Remarks state a legal or registered second suite - not merely a separate entrance or finished basement', filter: (l) => l.basementTier === 'legal' },
+  { key: 'pos', label: 'POWER OF SALE', tooltip: 'Lender-forced sale - potential below-market pricing opportunity', filter: (l) => isPowerOfSale(l.remarks) },
+  { key: 'fixer', label: 'FIXER UPPER', tooltip: 'Property needs work - keywords like TLC, fixer upper, handyman special detected in listing remarks', filter: (l) => isFixerUpper(l.remarks) },
+  { key: 'hightransit', label: 'HIGH TRANSIT', tooltip: 'Transit score 7+ - near GO stations, LRT, major bus routes', filter: (l) => (l.transitScore || 0) >= 7 },
+  { key: 'topschools', label: 'TOP SCHOOLS', tooltip: 'School score 8+ - highly rated school district', filter: (l) => (l.schoolScore || 0) >= 8 },
 ];
 
 // ── Sort Options ──
@@ -158,7 +158,7 @@ export const SORT_OPTIONS = [
   { key: 'dom', label: 'DOM (Longest First)', fn: (a, b) => domFloorOf(b) - domFloorOf(a) },
   // Unknown age (0) must sort LAST here, not first. Ascending on a raw
   // 0-means-unknown value put every listing whose age the feed withholds at
-  // the very top of "Newest First" — presenting no-data listings as the
+  // the very top of "Newest First" - presenting no-data listings as the
   // freshest inventory on the page, on the sort an investor uses precisely to
   // find what just came to market. Harmless while every listing was 0 (the
   // sort was a no-op); wrong the moment real DOM started flowing beside them.
@@ -238,7 +238,7 @@ export function deserializeFilters(searchParams) {
   if (dmin) f.domRange = [Number(dmin) || 0, f.domRange[1]];
   const dmax = searchParams.get('dmax');
   if (dmax) f.domRange = [f.domRange[0], Number(dmax) || 365];
-  // Accept both `hoods` (plural, from the filter UI) and `hood` (singular — used
+  // Accept both `hoods` (plural, from the filter UI) and `hood` (singular - used
   // by the neighbourhood guides' "View Live Listings in {Hood}" CTA, the homepage
   // popular-hood chips + hood cards, market-pulse, and the /neighbourhoods index).
   // Only `hoods` was read before, so every `?hood=` link silently landed on the
@@ -292,7 +292,7 @@ export function countActiveFilters(filters) {
 // ── Is this the whole set? ──
 // True when applyFilters would return every listing handed to it (only the
 // SORT differs, which reorders but never removes). Callers use this to decide
-// whether a whole-market aggregate still describes what is on screen — the
+// whether a whole-market aggregate still describes what is on screen - the
 // moment any filter narrows the set, it does not.
 //
 // Deliberately checks the three membership filters countActiveFilters ignores
@@ -322,7 +322,7 @@ export function applyFilters(listings, filters) {
 
   // Property type
   if (filters.propertyType !== 'All') {
-    // Equality against a closed set — never a substring test. Substring
+    // Equality against a closed set - never a substring test. Substring
     // matching produced three real bugs: "Detached" swallowing
     // "Semi-Detached", "Duplex/Multi" silently dropping "Fourplex", and condo
     // townhouses showing under both Town and Condo.
@@ -364,7 +364,7 @@ export function applyFilters(listings, filters) {
   // different evidence:
   //   - a MAX ("under 30 days") is an upper-bound claim, so it needs the exact
   //     feed DOM. The old test used raw `l.dom`, where 0 = unknown, so every
-  //     listing of unknown age passed any range starting at 0 — a card reading
+  //     listing of unknown age passed any range starting at 0 - a card reading
   //     "45+ DOM" would sit inside a "max 30 days" result set.
   //   - a MIN only ("60+ days") is satisfied by the provable floor, so a
   //     listing we have watched for 60 days still qualifies even when the feed

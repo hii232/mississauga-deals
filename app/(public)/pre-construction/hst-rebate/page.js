@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 
-// Q&A mirrors the on-page content below — keep both in sync if the program changes
+// Q&A mirrors the on-page content below - keep both in sync if the program changes
 const HST_FAQ = [
   {
     question: 'How much is the Ontario HST rebate on new homes?',
@@ -31,24 +31,24 @@ const HST_FAQ = [
 ];
 
 export const metadata = {
-  title: { absolute: 'Ontario HST Rebate on New Homes 2026 — Up to $130K' },
+  title: { absolute: 'Ontario HST Rebate on New Homes 2026 - Up to $130K' },
   description:
     'Ontario HST rebate on new homes: up to $130,000 off a qualifying new build. Who qualifies, the savings tiers by price, and the April 2026 deadline.',
   alternates: { canonical: '/pre-construction/hst-rebate' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000' }],
-    title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Ontario HST Rebate on New Homes 2026 - Save Up to $130,000' }],
+    title: 'Ontario HST Rebate on New Homes 2026 - Save Up to $130,000',
     description:
       'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',
     url: 'https://www.mississaugainvestor.ca/pre-construction/hst-rebate',
   },
   // Next.js REPLACES (not merges) the root layout twitter object when a page
-  // defines its own openGraph — without this the HST rebate page shares
+  // defines its own openGraph - without this the HST rebate page shares
   // text-only on X/Twitter/Slack/iMessage.
   twitter: {
     card: 'summary_large_image',
-    title: 'Ontario HST Rebate on New Homes 2026 — Save Up to $130,000',
+    title: 'Ontario HST Rebate on New Homes 2026 - Save Up to $130,000',
     description:
       'Save up to $130,000 on new homes in Mississauga. Full breakdown of the Ontario HST rebate for buyers and investors.',
     images: ['/opengraph-image'],
@@ -160,7 +160,7 @@ export default function HSTRebatePage() {
             />
           </div>
           <p className="text-xs text-muted mt-4 leading-relaxed">
-            On a $750,000 new build in Mississauga, you could save approximately $97,500 in HST — money that
+            On a $750,000 new build in Mississauga, you could save approximately $97,500 in HST - money that
             stays in your pocket or goes toward a larger down payment.
           </p>
         </section>
@@ -169,7 +169,7 @@ export default function HSTRebatePage() {
         <section>
           <h2 className="section-title mb-2">Who Qualifies?</h2>
           <p className="section-subtitle mb-6">
-            This rebate is not limited to first-time buyers — investors qualify too
+            This rebate is not limited to first-time buyers - investors qualify too
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <QualifyCard
@@ -217,7 +217,7 @@ export default function HSTRebatePage() {
               <span className="text-accent font-bold text-lg mt-0.5">3</span>
               <div>
                 <p className="text-sm font-semibold text-navy">Closing Date Flexibility</p>
-                <p className="text-xs text-muted">The APS signing date determines eligibility. Closing can occur after March 31, 2027 — common for pre-construction purchases with 2-4 year timelines.</p>
+                <p className="text-xs text-muted">The APS signing date determines eligibility. Closing can occur after March 31, 2027 - common for pre-construction purchases with 2-4 year timelines.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -294,7 +294,7 @@ export default function HSTRebatePage() {
           </div>
         </section>
 
-        {/* Visible FAQ — the page declared FAQPage schema for these five Q&As
+        {/* Visible FAQ - the page declared FAQPage schema for these five Q&As
             but never rendered them. Google requires FAQ structured data to be
             visible on the page it is declared on: without this the page gets no
             rich-result eligibility and is exposed to a structured-data manual
@@ -335,7 +335,7 @@ export default function HSTRebatePage() {
               href="tel:+16476091289"
               className="btn-primary !text-base !px-8 !py-3.5 no-underline"
             >
-              Call Hamza — 647-609-1289
+              Call Hamza - 647-609-1289
             </a>
             <Link
               href="/pre-construction"

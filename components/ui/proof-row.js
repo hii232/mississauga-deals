@@ -6,7 +6,7 @@ import { PLATFORM_STATS } from '@/lib/constants';
 /**
  * Real aggregate proof, shown at the point of decision.
  *
- * Every figure here is sourced or omitted — there are no defaults to fall back
+ * Every figure here is sourced or omitted - there are no defaults to fall back
  * on. The active count comes from the live feed via /api/market-stats, the
  * rating from Google via /api/google-rating (the Places key never reaches the
  * browser), and the neighbourhood count from the same PLATFORM_STATS constant

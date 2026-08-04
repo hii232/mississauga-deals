@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { fetchGoogleRating, googleRatingFreshness } from '@/lib/google-rating';
 
 // Client components (the signup gate, the header trust bar) can't call the
-// Places API directly — the key must never reach the browser. This route is the
+// Places API directly - the key must never reach the browser. This route is the
 // one server-side hop they go through, and it returns exactly the two numbers.
 export const revalidate = 21600; // 6h, matching lib/google-rating.js
 

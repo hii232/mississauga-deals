@@ -1,7 +1,7 @@
 import { CityscapePanorama } from '@/components/art/cityscape';
 
 /**
- * Shared compact hero for secondary pages — navy dusk band with the
+ * Shared compact hero for secondary pages - navy dusk band with the
  * Mississauga skyline. Keeps every page on the same visual identity.
  *
  * Props: eyebrow (small label), title, subtitle, children (CTAs/search),

@@ -1,11 +1,11 @@
 import { ImageResponse } from 'next/og';
 
-// Apple touch icon — the tile iOS uses when a visitor adds the site to their
+// Apple touch icon - the tile iOS uses when a visitor adds the site to their
 // home screen. Flagged as missing by the Seobility audit; without it iOS
 // screenshots the page and uses that, which looks broken.
 //
 // Generated rather than committed as a binary so it stays in sync with the
-// brand gradient in public/icon.svg (which iOS cannot use — apple-touch-icon
+// brand gradient in public/icon.svg (which iOS cannot use - apple-touch-icon
 // must be a raster format). 180x180 is the size current iOS devices request.
 export const size = { width: 180, height: 180 };
 export const contentType = 'image/png';

@@ -7,23 +7,23 @@ import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 import { processListings } from '@/lib/listings/process-listings';
 import { fetchFeedPages, slimForSSR, SSR_CARD_ROWS } from '@/lib/listings/fetch-feed';
 
-// SERVER-RENDERED. This page previously shipped a header, an h1 and a footer —
+// SERVER-RENDERED. This page previously shipped a header, an h1 and a footer -
 // the listings themselves were fetched client-side, so Googlebot received an
 // empty shell and none of the inventory was indexable. That made the site's
 // highest-value commercial page invisible for the query it targets.
 //
 // ISR: the HTML is built on the server and re-used for 10 minutes, so a
 // crawler always gets a full page without every request hitting the MLS feed.
-// ListingsContainer keeps ALL its interactivity — it takes these rows as
+// ListingsContainer keeps ALL its interactivity - it takes these rows as
 // initialListings and skips its own fetch when they are present, so filters,
 // sorting, the map and the gate behave exactly as before.
-// DYNAMIC, deliberately — do not "fix" this back to ISR without reading this.
+// DYNAMIC, deliberately - do not "fix" this back to ISR without reading this.
 //
 // The 2026-07-31 audit correctly found that a headers() call was silently
 // disabling this file's `revalidate = 600`, and the SITE_URL constant turned
 // real ISR on. Measured consequence on production: the Vercel build cannot
 // reach the site's own /api/listings while building, so the first prerender
-// baked with ZERO listings — 12 minutes after deploy this page served 0 cards
+// baked with ZERO listings - 12 minutes after deploy this page served 0 cards
 // and no ItemList schema.
 //
 // ISR did eventually heal it (20 listings ~50 min post-deploy), so the empty
@@ -31,8 +31,8 @@ import { fetchFeedPages, slimForSSR, SSR_CARD_ROWS } from '@/lib/listings/fetch-
 // deploy leaves the site's highest-value commercial page empty for crawlers
 // for tens of minutes, every deploy, and the healed render was measurably
 // thinner than a dynamic one (2 vs 33 cap-rate figures in the HTML for 20 vs
-// 30 listings). Rendering per request costs a server render — which is what
-// this page did for months — and guarantees full inventory on every crawl
+// 30 listings). Rendering per request costs a server render - which is what
+// this page did for months - and guarantees full inventory on every crawl
 // with no cold window.
 //
 // The SITE_URL fix below is kept: it is correct independent of caching mode
@@ -42,52 +42,52 @@ export const dynamic = 'force-dynamic';
 // Buying-side questions for the money page. Deliberately DISTINCT from the
 // /faq set (which covers the product, the deal score and Hamza) so the two
 // pages never publish duplicate FAQ markup competing for the same rich result.
-// Every figure quoted here is one the site's own engine uses — the $2,500
+// Every figure quoted here is one the site's own engine uses - the $2,500
 // legal / $500 inspection line items and the land-transfer treatment come
 // straight from getClosingCosts, so this copy can't drift from the calculator.
 const LISTINGS_FAQ = [
   {
     question: 'Are these all the investment properties for sale in Mississauga?',
     answer:
-      'Yes — this page lists every active residential listing in Mississauga from the TRREB/PropTx MLS feed, not a hand-picked selection. Each one is scored automatically for cash flow, cap rate and cash-on-cash return, so a listing appears whether or not the numbers work. Use the filters to narrow by price, beds, property type, neighbourhood or strategy.',
+      'Yes - this page lists every active residential listing in Mississauga from the TRREB/PropTx MLS feed, not a hand-picked selection. Each one is scored automatically for cash flow, cap rate and cash-on-cash return, so a listing appears whether or not the numbers work. Use the filters to narrow by price, beds, property type, neighbourhood or strategy.',
   },
   {
     question: 'How much down payment do I need for an investment property in Ontario?',
     answer:
-      'A property you will not live in requires at least 20% down — mortgage default insurance is not available on non-owner-occupied rentals, so the low-down-payment options open to primary residences do not apply. If you plan to live in one unit of a two-to-four-unit property, less may be possible. Every figure on this page assumes 20% down; you can change that assumption on any listing page or in the mortgage calculator.',
+      'A property you will not live in requires at least 20% down - mortgage default insurance is not available on non-owner-occupied rentals, so the low-down-payment options open to primary residences do not apply. If you plan to live in one unit of a two-to-four-unit property, less may be possible. Every figure on this page assumes 20% down; you can change that assumption on any listing page or in the mortgage calculator.',
   },
   {
     question: 'What closing costs should I budget on top of the down payment?',
     answer:
-      'Land transfer tax is the big one, and it is charged on a sliding scale — on a $1,000,000 purchase the Ontario tax alone is $16,475. Properties in the City of Toronto pay a municipal land transfer tax on top of that, roughly doubling it. Budget about $2,500 for legal fees and title insurance and a few hundred more for the inspection. The cash-to-close figure on each listing page adds all of this up for you.',
+      'Land transfer tax is the big one, and it is charged on a sliding scale - on a $1,000,000 purchase the Ontario tax alone is $16,475. Properties in the City of Toronto pay a municipal land transfer tax on top of that, roughly doubling it. Budget about $2,500 for legal fees and title insurance and a few hundred more for the inspection. The cash-to-close figure on each listing page adds all of this up for you.',
   },
   {
     question: 'Does a legal basement suite change the numbers?',
     answer:
-      'Substantially — a second suite adds a second rent cheque against the same mortgage, which is what moves many Mississauga properties from negative to positive cash flow. Listings flagged as having a legal suite have that income counted in full; where a suite looks possible but is not confirmed legal, the income is discounted before it reaches the score, so an unverified basement never flatters a deal.',
+      'Substantially - a second suite adds a second rent cheque against the same mortgage, which is what moves many Mississauga properties from negative to positive cash flow. Listings flagged as having a legal suite have that income counted in full; where a suite looks possible but is not confirmed legal, the income is discounted before it reaches the score, so an unverified basement never flatters a deal.',
   },
   {
     question: 'Which Mississauga neighbourhoods have the best cash flow?',
     answer:
-      'Cash flow generally improves as you move away from the waterfront — the lower entry prices in areas like Malton, Cooksville and Mississauga Valleys carry rents that are far closer to their purchase prices than Port Credit or Lorne Park. Rather than trusting a static ranking, sort this page by cash flow, or read the neighbourhood guides, which are rebuilt from live listing data.',
+      'Cash flow generally improves as you move away from the waterfront - the lower entry prices in areas like Malton, Cooksville and Mississauga Valleys carry rents that are far closer to their purchase prices than Port Credit or Lorne Park. Rather than trusting a static ranking, sort this page by cash flow, or read the neighbourhood guides, which are rebuilt from live listing data.',
   },
 ];
 
 // Title/H1/intro exact-match the high-intent GSC query "investment properties
-// for sale mississauga" (pos ~14, real impressions — the money keyword).
+// for sale mississauga" (pos ~14, real impressions - the money keyword).
 export const metadata = {
   title: { absolute: 'Investment Properties for Sale in Mississauga' },
   description:
-    'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    'Every active Mississauga investment property, scored for cash flow, cap rate and ROI - with legal-suite detection and price-drop alerts. Free to browse.',
   alternates: { canonical: '/listings' },
   // Own openGraph block. Without one this page inherited the ROOT's,
-  // whose url is the homepage — so every share of this URL showed
+  // whose url is the homepage - so every share of this URL showed
   // homepage branding and pointed crawlers at '/'. Next REPLACES the
   // openGraph object rather than merging it, so the image has to be
   // restated here or the card ships without one.
   openGraph: {
     title: 'Investment Properties for Sale in Mississauga',
-    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI - with legal-suite detection and price-drop alerts. Free to browse.',
     url: 'https://www.mississaugainvestor.ca/listings',
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Investment Properties for Sale in Mississauga' }],
@@ -95,7 +95,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Investment Properties for Sale in Mississauga',
-    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI — with legal-suite detection and price-drop alerts. Free to browse.',
+    description: 'Every active Mississauga investment property, scored for cash flow, cap rate and ROI - with legal-suite detection and price-drop alerts. Free to browse.',
     images: ['/opengraph-image'],
   },
 };
@@ -111,18 +111,18 @@ async function fetchInitialListings() {
   try {
     // Origin WITHOUT request APIs: the old headers() call here marked the
     // route dynamic, which silently disabled this file's own
-    // `revalidate = 600` — the primary money page paid full SSR + feed fetch
+    // `revalidate = 600` - the primary money page paid full SSR + feed fetch
     // on every request, crawls included. VERCEL-gated (not NODE_ENV) so local
     // `next start` cannot point at the live domain.
     const origin =
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
-    // Shared feed fetch (lib/listings/fetch-feed.js) — same query path as
+    // Shared feed fetch (lib/listings/fetch-feed.js) - same query path as
     // /gta and the homepage.
     //
     // limit: SSR_CARD_ROWS (30), not the 100 this used to ask for. The grid
     // renders 30 cards and the ItemList uses 20, so rows 31-100 were always
-    // discarded by slimForSSR — but they were NOT free: the Media $expand
+    // discarded by slimForSSR - but they were NOT free: the Media $expand
     // returns ~5 CDN size-variants per photo, so a 100-row page drags roughly
     // 18k media rows across the wire and the cost scales linearly with rows.
     //
@@ -132,7 +132,7 @@ async function fetchInitialListings() {
     //   /listings  limit=100,           2.5k-row Mssga feed -> 0 listings, no ItemList
     //   /          limit=100 x 25 pages                     -> 0 deals ("Top Deals" empty)
     // The page querying the LARGER feed was the one that worked, so the feed
-    // size is not the variable — the per-page media payload is. Runtime log
+    // size is not the variable - the per-page media payload is. Runtime log
     // for the two failures: `fetch-feed: /api/listings page 1 failed
     // (TimeoutError) after 8000ms` (and 15000ms on the homepage).
     //
@@ -145,7 +145,7 @@ async function fetchInitialListings() {
     });
     if (!data) return { listings: [], total: 0, displayTotal: 0, pages: 0 };
     const rows = processListings(rawRows);
-    // browsableTotal excludes the commercial/lease rows the site never shows —
+    // browsableTotal excludes the commercial/lease rows the site never shows -
     // see /api/listings. Using the raw @odata.count here would advertise ~60
     // listings a visitor can never reach.
     const feedTotal = Number(data.browsableTotal ?? data.total) || rows.length;
@@ -153,12 +153,12 @@ async function fetchInitialListings() {
     // page quotes (/api/market-stats activeCount, same URL + same revalidate →
     // shared cache entry). Before this, each surface sampled its own count at
     // its own cache moment, so one crawl read 2,547 on the homepage, 2,555 on
-    // /about and 2,591 here — three live numbers for one fact. feedTotal keeps
+    // /about and 2,591 here - three live numbers for one fact. feedTotal keeps
     // driving the pagination math; only the CLAIM is unified.
     let displayTotal = feedTotal;
     // The SAME response also carries a whole-market Deal Screener aggregate,
-    // computed server-side over the entire active feed. Free here — this fetch
-    // already happens — and it is what lets the dashboard print correct
+    // computed server-side over the entire active feed. Free here - this fetch
+    // already happens - and it is what lets the dashboard print correct
     // CF+/best-cap/best-cash-flow/price-drop figures in the first paint
     // instead of ~25 client round trips later. Null when the feed came back
     // short; the dashboard then shows skeletons rather than a partial answer.
@@ -173,7 +173,7 @@ async function fetchInitialListings() {
     } catch {}
     // initialPages is consumed by ListingsContainer to background-load the
     // REST of the feed, and it pages at limit=100 (see its fetch calls). It is
-    // therefore a page count AT 100 ROWS — which is what `data.pages` used to
+    // therefore a page count AT 100 ROWS - which is what `data.pages` used to
     // be only because this fetch also asked for 100.
     //
     // Now that the SSR fetch asks for 30, `data.pages` is ceil(total/30): the
@@ -181,7 +181,7 @@ async function fetchInitialListings() {
     // of the feed. Recomputed here at the container's own page size, using the
     // API's own formula (Math.ceil(total / limit), app/api/listings/route.js).
     //
-    // From data.total — the RAW @odata.count — not browsableTotal. Deriving it
+    // From data.total - the RAW @odata.count - not browsableTotal. Deriving it
     // from the post-filter count computed 13 where the truth was 14, and
     // page 14's listings were permanently unreachable (measured on production:
     // real $2.8M-$4M listings lived there).
@@ -191,26 +191,26 @@ async function fetchInitialListings() {
   } catch (err) {
     // MUST log. This catch previously swallowed silently, and when a stale
     // `${proto}://${host}` reference survived the headers()→origin refactor it
-    // threw a ReferenceError on every production render — the money page
+    // threw a ReferenceError on every production render - the money page
     // served zero server-rendered cards and zero ItemList schema for 50
     // minutes with NOTHING in the logs to say why. The env-less build could
     // not catch it either: the feed fetch fails first there and returns early,
     // so the faulty line never executes at build time.
-    console.error('listings SSR: initial fetch failed —', err);
+    console.error('listings SSR: initial fetch failed -', err);
     return { listings: [], total: 0, displayTotal: 0, pages: 0, summary: null };
   }
 }
 
 // ItemList of the inventory actually rendered on this page. This was
 // deliberately deferred back on 2026-07-21 with the note "listings are
-// client-fetched, no server data for an ItemList" — that blocker disappeared
+// client-fetched, no server data for an ItemList" - that blocker disappeared
 // when the page became server-rendered, so the money page can finally declare
 // its collection to search engines.
 //
 // Capped at the first 20: an ItemList is a summary, and declaring 200 items
 // bloats the HTML for no ranking benefit. Each entry is a bare position+url
 // pointing at the listing's own page, which carries the full RealEstateListing
-// markup — no prices or metrics are restated here, so this schema can never
+// markup - no prices or metrics are restated here, so this schema can never
 // drift from the numbers on the cards.
 function buildItemList(listings) {
   if (!listings.length) return null;
@@ -218,7 +218,7 @@ function buildItemList(listings) {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: 'Investment Properties for Sale in Mississauga',
-    // Must match the ItemList actually emitted below (20 entries) — this
+    // Must match the ItemList actually emitted below (20 entries) - this
     // declared the loaded-slice size (199) against a 20-item list, an
     // internally inconsistent schema object.
     numberOfItems: Math.min(listings.length, 20),
@@ -250,7 +250,7 @@ export default async function ListingsPage() {
         />
       )}
 
-      {/* Compact dusk PageHero — matches the /gta page identity and gives the
+      {/* Compact dusk PageHero - matches the /gta page identity and gives the
           site's #1 commercial page the same premium brand treatment as every
           other major page. The h1 lives inside PageHero so the exact money
           keyword "investment properties for sale mississauga" is preserved for
@@ -259,16 +259,16 @@ export default async function ListingsPage() {
         compact
         eyebrow="Mississauga · Live MLS Data"
         title="Investment Properties for Sale in Mississauga"
-        subtitle="Every active listing scored for cash flow, cap rate, and ROI — free to browse."
+        subtitle="Every active listing scored for cash flow, cap rate, and ROI - free to browse."
       />
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6">
-          {/* text-slate-400 measured 2.56:1 on white for this 12px caption —
+          {/* text-slate-400 measured 2.56:1 on white for this 12px caption -
               fails AA. slate-500 (4.76:1) passes. */}
           <p className="text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
-            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage - so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
           <p className="mt-1.5 text-sm text-slate-500">
             <span className="text-slate-500">Investor guides:</span>{' '}
@@ -288,12 +288,12 @@ export default async function ListingsPage() {
               Legal second unit guide
             </Link>
           </p>
-          {/* Region switcher — Mississauga is the flagship default, but any GTA
+          {/* Region switcher - Mississauga is the flagship default, but any GTA
               city is one tap away. */}
           <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <RegionSwitcher current="mississauga" />
             <span className="text-xs text-slate-500">
-              Now covering the whole GTA — switch to Toronto, Brampton, Oakville, Hamilton &amp; more.
+              Now covering the whole GTA - switch to Toronto, Brampton, Oakville, Hamilton &amp; more.
             </span>
           </div>
         </div>
@@ -310,7 +310,7 @@ export default async function ListingsPage() {
 
         {/* Server-rendered buying guidance. The listings themselves arrive
             client-side, so without this the highest-value commercial page
-            offers a crawler four short paragraphs — thin for the query it
+            offers a crawler four short paragraphs - thin for the query it
             targets. Mirrors the FAQ schema above it exactly. */}
         <section className="mt-12">
           <h2 className="font-heading text-xl font-bold text-navy">

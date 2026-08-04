@@ -3,18 +3,18 @@ import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 export const metadata = {
   title: { absolute: 'Compare Investment Properties Side by Side' },
   description:
-    'Compare Mississauga investment properties side by side — price, deal score, cash flow, cap rate, cash-on-cash return and suite potential.',
+    'Compare Mississauga investment properties side by side - price, deal score, cash flow, cap rate, cash-on-cash return and suite potential.',
   alternates: { canonical: '/compare' },
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Compare Investment Properties — MississaugaInvestor.ca' }],
-    title: 'Compare Investment Properties — MississaugaInvestor.ca',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Compare Investment Properties - MississaugaInvestor.ca' }],
+    title: 'Compare Investment Properties - MississaugaInvestor.ca',
     description: 'Side-by-side investment comparison: cash flow, cap rate, deal score, and more.',
     url: 'https://www.mississaugainvestor.ca/compare',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Compare Investment Properties — MississaugaInvestor.ca',
+    title: 'Compare Investment Properties - MississaugaInvestor.ca',
     description: 'Side-by-side investment comparison: cash flow, cap rate, deal score, and more.',
     images: ['/opengraph-image'],
   },
@@ -27,11 +27,11 @@ const COMPARE_FAQ = [
   },
   {
     question: 'How does deal score help me compare properties?',
-    answer: 'The Deal Score (1–10) rolls cap rate, cash flow, price-to-rent ratio, and days-on-market into a single number, so you can see at a glance which property offers better overall returns — not just the cheapest one. The winner badge highlights the highest-scoring property across your selection.',
+    answer: 'The Deal Score (1–10) rolls cap rate, cash flow, price-to-rent ratio, and days-on-market into a single number, so you can see at a glance which property offers better overall returns - not just the cheapest one. The winner badge highlights the highest-scoring property across your selection.',
   },
   {
     question: 'How is estimated rent calculated?',
-    answer: 'Rent is estimated from CMHC lease-comp data for the property\'s bedroom count and neighbourhood, adjusted for suite potential. The monthly costs row uses a 20% down payment, the Bank of Canada 5-year fixed stress-test rate, and Mississauga\'s property tax rate — the same inputs the listing detail page shows.',
+    answer: 'Rent is estimated from CMHC lease-comp data for the property\'s bedroom count and neighbourhood, adjusted for suite potential. The monthly costs row uses a 20% down payment, the Bank of Canada 5-year fixed stress-test rate, and Mississauga\'s property tax rate - the same inputs the listing detail page shows.',
   },
   {
     question: 'How do I add properties to compare?',

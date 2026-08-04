@@ -16,7 +16,7 @@ import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
 
 // ISR, not per-request SSR. This page used to call headers() (only to build
-// its own base URL) which forced a FULL dynamic render — and the render
+// its own base URL) which forced a FULL dynamic render - and the render
 // awaits a whole-feed walk before sending a byte. With warm caches that's
 // fine; after a deploy purge against a throttled upstream it was a measured
 // 56-SECOND TTFB for every visitor on the money page. Cached HTML with
@@ -24,7 +24,7 @@ import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-car
 // feed walk happens off the request path, at most once per 5 minutes.
 export const revalidate = 300;
 
-// Public domain, NOT request headers — headers() is what forced dynamic
+// Public domain, NOT request headers - headers() is what forced dynamic
 // rendering. Same constant+trade-off as app/image-sitemap.xml/route.js
 // (previews read production data; dev reads localhost).
 const SITE_URL =
@@ -33,28 +33,28 @@ const SITE_URL =
     : 'https://www.mississaugainvestor.ca';
 
 export const metadata = {
-  title: { absolute: 'Mississauga Investment Properties — Scored for Cash Flow' },
-  description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — with free weekly deal alerts. Investor analysis by Hamza Nouman, RECO licensed.',
+  title: { absolute: 'Mississauga Investment Properties - Scored for Cash Flow' },
+  description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality - with free weekly deal alerts. Investor analysis by Hamza Nouman, RECO licensed.',
   alternates: {
     canonical: '/',
   },
   // Without these, the homepage inherits the root layout's generic openGraph/
-  // twitter blocks — "MississaugaInvestor.ca — Mississauga Real Estate
-  // Investment Deals" — instead of the more specific page title. Next.js
+  // twitter blocks - "MississaugaInvestor.ca - Mississauga Real Estate
+  // Investment Deals" - instead of the more specific page title. Next.js
   // REPLACES (not merges) the root layout twitter object when a layout segment
   // defines its own openGraph, so both must be declared together.
   openGraph: {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Mississauga Investment Properties — Scored for Cash Flow' }],
-    title: 'Mississauga Investment Properties — Scored for Cash Flow',
-    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Mississauga Investment Properties - Scored for Cash Flow' }],
+    title: 'Mississauga Investment Properties - Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality - free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
     url: 'https://www.mississaugainvestor.ca/',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mississauga Investment Properties — Scored for Cash Flow',
-    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality — free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
+    title: 'Mississauga Investment Properties - Scored for Cash Flow',
+    description: 'Every Mississauga listing scored for cash flow, cap rate and deal quality - free weekly deal alerts and investor analysis by Hamza Nouman, RECO licensed.',
     images: ['/opengraph-image'],
   },
 };
@@ -75,7 +75,7 @@ async function fetchLiveStats() {
 
     // Every value stays null when the API doesn't supply it. The old defaults
     // (28 days, $970K, 97.2%) were a frozen February snapshot that rendered as
-    // though it were live — StatsBar now omits any tile it has no real number
+    // though it were live - StatsBar now omits any tile it has no real number
     // for, so a gap is visible instead of a plausible-looking stale figure.
     const count = data.activeCount || null;
     const avgDom = data.mississaugaAvgLDOM || data.avgDOM || null;
@@ -85,8 +85,8 @@ async function fetchLiveStats() {
       : data.salesToListRatio
         ? (data.salesToListRatio * 100).toFixed(1) + '%'
         : null;
-    // WRONG NUMBER FIXED: this fell back to `data.avgPrice` — the average of
-    // ACTIVE LIST prices — and then labelled it "Avg. Sold". Whenever the sold
+    // WRONG NUMBER FIXED: this fell back to `data.avgPrice` - the average of
+    // ACTIVE LIST prices - and then labelled it "Avg. Sold". Whenever the sold
     // figure was unavailable the stats bar printed the list average twice under
     // two different labels, which is why Avg Price and Avg Sold both read
     // $1.01M while the same bar claimed a 97% sale-to-list ratio: those three
@@ -108,7 +108,7 @@ async function fetchLiveStats() {
       salesToList,
       avgSoldPrice: fmtPrice(avgSoldPrice),
       // Passed through only so the stats bar can attribute "Avg. Sold" to its
-      // real source in the caption below — it is TRREB's monthly Market Watch
+      // real source in the caption below - it is TRREB's monthly Market Watch
       // figure, not a live number, and must say so rather than sit next to a
       // live "Avg. Price" tile implying both are equally current.
       tRREBMonth: data.tRREBMonth || null,
@@ -124,7 +124,7 @@ async function fetchLiveStats() {
 // ─────────────────────────────────────────────
 async function fetchTopDeals() {
   try {
-    // Fetch all pages for an accurate total via the shared feed fetch —
+    // Fetch all pages for an accurate total via the shared feed fetch -
     // this sat on its own fetch with revalidate 3600, so the homepage kept
     // serving hour-old (or, across deploys, DAYS-old) feed data after every
     // fix. See lib/listings/fetch-feed.js.
@@ -144,7 +144,7 @@ async function fetchTopDeals() {
     //   = 45s, with fetchLiveStats (8s) running in PARALLEL, not after.
     // Regeneration is off the request path (ISR, revalidate 300), so this
     // budget is only ever spent by a background regenerate or a build.
-    // nomedia=1: this walk ranks deals and counts rows — it never renders a
+    // nomedia=1: this walk ranks deals and counts rows - it never renders a
     // photo from them. The top 4 get their images from the per-id /api/photos
     // calls below, and HomeDealCards reads ONLY that photoMap. So every media
     // row in ~2,500 listings was pure cost, and the Media $expand is the
@@ -153,8 +153,8 @@ async function fetchTopDeals() {
     // That cost is what emptied this section. Measured on production
     // 2026-08-01: "Top Investment Deals" rendered zero cards, runtime log
     // `fetch-feed: /api/listings page 1 failed (TimeoutError) after 15000ms`,
-    // while /gta — same helper, same deployment, a feed ~10x larger, but only
-    // 30 rows per page — rendered its 30 listings fine in the same minute.
+    // while /gta - same helper, same deployment, a feed ~10x larger, but only
+    // 30 rows per page - rendered its 30 listings fine in the same minute.
     // Raising the budget again would only make visitors wait longer for the
     // same oversized payload; not asking for the photos removes it.
     const { listings: raw, first: data } = await fetchFeedPages(SITE_URL, '/api/listings', {
@@ -172,7 +172,7 @@ async function fetchTopDeals() {
     // the same handful of large Malton houses score highest on cash flow, so
     // three of the four homepage deals were 6-7 bedroom houses in one
     // neighbourhood and the page read as a rooming-house board rather than an
-    // investment platform. This does NOT touch the scoring — every deal shown
+    // investment platform. This does NOT touch the scoring - every deal shown
     // is still a genuine top scorer, and if diversity can't be met (thin feed,
     // one-neighbourhood inventory) it falls back to filling by score so the
     // section is never short.
@@ -197,12 +197,12 @@ async function fetchTopDeals() {
     }
     const top = picked;
 
-    // Fetch photos for top 4 deals — individual calls (reliable, 100% hit rate)
+    // Fetch photos for top 4 deals - individual calls (reliable, 100% hit rate)
     let photoMap = {};
     try {
       const photoPromises = top.map(async (d) => {
         try {
-          // revalidate, not no-store — a no-store fetch forces the whole page
+          // revalidate, not no-store - a no-store fetch forces the whole page
           // dynamic, undoing the ISR this page depends on. Top-deal photos
           // changing within 5 minutes is not a real concern.
           const r = await fetch(`${SITE_URL}/api/photos?id=${encodeURIComponent(d.id)}&limit=1`, {
@@ -222,13 +222,13 @@ async function fetchTopDeals() {
     // How many of the processed listings are actually cash-flow positive at
     // 20% down (by the site's stated rent model). Powers the hero's honesty
     // hook: "only N of M cash flow" is the most differentiated true claim the
-    // site can make — Hamza's read, and the data supports it.
+    // site can make - Hamza's read, and the data supports it.
     const cfPlusCount = processed.filter((l) => Number.isFinite(l.cashFlow) && l.cashFlow > 0).length;
 
     // slimForSSR before returning: the deal objects are serialized into the
     // page payload as client-component props, and each carried its FULL
     // photos + images arrays (~40 signed URLs each) while HomeDealCards reads
-    // ONLY photoMap — measured at ~337KB of dead photo URLs in the homepage
+    // ONLY photoMap - measured at ~337KB of dead photo URLs in the homepage
     // HTML. Same cure /listings already uses; every computed number is kept.
     return { deals: slimForSSR(top, 4), photoMap, totalCount: processed.length, hoodStats, cfPlusCount };
   } catch {
@@ -237,7 +237,7 @@ async function fetchTopDeals() {
 }
 
 // ─────────────────────────────────────────────
-//   HERO — floating live deal card (real photo in production)
+//   HERO - floating live deal card (real photo in production)
 // ─────────────────────────────────────────────
 function HeroDealCard({ deal, photo }) {
   // Fallback when the feed is unavailable: top neighbourhood by yield (real data)
@@ -305,11 +305,11 @@ function HeroDealCard({ deal, photo }) {
             {deal.cashFlow >= 0 ? '+' : ''}${Math.round(deal.cashFlow).toLocaleString()}/mo
           </span>
           <span className="rounded-md bg-cloud px-2 py-1 text-[10px] font-bold text-navy">
-            {deal.dom >= 1 ? `${deal.dom} DOM` : deal.domFloor >= 1 ? `${deal.domFloor}+ DOM` : 'DOM —'}
+            {deal.dom >= 1 ? `${deal.dom} DOM` : deal.domFloor >= 1 ? `${deal.domFloor}+ DOM` : 'DOM -'}
           </span>
         </div>
         {/* The rent behind those numbers. This card is the first metric an
-            investor sees on the site — an unexplained 6.9% cap here is exactly
+            investor sees on the site - an unexplained 6.9% cap here is exactly
             what reads as marketing math. */}
         {deal.estimatedRent > 0 && (
           <p className="mt-1.5 text-[10px] text-slate-500">
@@ -328,7 +328,7 @@ function HeroDealCard({ deal, photo }) {
 
 function TrustChips({ googleRating }) {
   const chips = [
-    // Only claim a Google rating when Google actually gave us one — the chip
+    // Only claim a Google rating when Google actually gave us one - the chip
     // disappears rather than asserting a number nobody verified.
     ...(googleRating
       ? [{
@@ -385,7 +385,7 @@ function StatIcon({ name }) {
 function StatsBar({ liveStats }) {
   // No hardcoded fallback numbers. This used to fall back to a frozen
   // {$970K, $964K, 5.2mo, 28 days} snapshot, so any hiccup in the stats API
-  // silently redisplayed months-old figures under a "Live MLS data" chip —
+  // silently redisplayed months-old figures under a "Live MLS data" chip -
   // indistinguishable from working. A stat we can't source is now simply
   // omitted, and if none are available the whole band disappears rather than
   // presenting stale numbers as current.
@@ -412,15 +412,15 @@ function StatsBar({ liveStats }) {
   // that once made them print the SAME figure under two labels was removed
   // earlier this week), but they are NOT two equally-live numbers: Avg. Price
   // is today's active asking prices, while Avg. Sold is TRREB's Market Watch
-  // monthly sold average — a curated figure that lags by design, the same as
+  // monthly sold average - a curated figure that lags by design, the same as
   // every other TRREB stat on this site. Sitting them side by side with no
   // attribution risks exactly two things this codebase treats as equally
   // serious: (1) the Malton $804K-vs-$618K confusion already fixed on the
-  // neighbourhood guides — two correct numbers, insufficiently distinguished
-  // — and (2) presenting a monthly TRREB figure as if it were live, which is
+  // neighbourhood guides - two correct numbers, insufficiently distinguished
+  // - and (2) presenting a monthly TRREB figure as if it were live, which is
   // the specific dishonesty the tRREBMonth/tRREBAsOf freshness system exists
   // to prevent everywhere else on the site. Only rendered when both tiles are
-  // present AND the month is known — an unattributed "Avg. Sold" is exactly
+  // present AND the month is known - an unattributed "Avg. Sold" is exactly
   // the ambiguity being fixed, so this never states the TRREB source without
   // being able to name which month it is.
   const showPriceSoldNote = s.tRREBMonth
@@ -446,7 +446,7 @@ function StatsBar({ liveStats }) {
         {showPriceSoldNote && (
           <p className="mt-3 text-center text-xs text-slate-500 lg:text-left">
             <span className="font-medium text-slate-500">Avg. Price</span> is today&apos;s active asking prices;{' '}
-            <span className="font-medium text-slate-500">Avg. Sold</span> is TRREB&apos;s {s.tRREBMonth} Market Watch average — the gap reflects the mix of what&apos;s currently listed, not a discount either figure is wrong about.
+            <span className="font-medium text-slate-500">Avg. Sold</span> is TRREB&apos;s {s.tRREBMonth} Market Watch average - the gap reflects the mix of what&apos;s currently listed, not a discount either figure is wrong about.
           </p>
         )}
       </div>
@@ -455,7 +455,7 @@ function StatsBar({ liveStats }) {
 }
 
 // ─────────────────────────────────────────────
-//   HOW IT WORKS — illustrated steps
+//   HOW IT WORKS - illustrated steps
 // ─────────────────────────────────────────────
 function HowItWorks() {
   const steps = [
@@ -487,7 +487,7 @@ function HowItWorks() {
           <h2 className="section-title mb-3">How It Works</h2>
           {/* Reinforces the h1 ("Mississauga Investment Property Finder") in
               body copy. The Seobility audit flagged "finder" as appearing in
-              the h1 and nowhere else on the page — the heading and the content
+              the h1 and nowhere else on the page - the heading and the content
               were not corroborating each other. This section subtitle is
               unconditional (no feed dependency), so the term is always present
               even when the live-stats hooks above are hidden. */}
@@ -499,11 +499,11 @@ function HowItWorks() {
               {/* A real numbered badge, not the old 5%-opacity watermark. The
                   watermark sat immediately before the illustration, whose SVG
                   used to carry decorative <text> ("8.6", "$"), so extracted
-                  page text read "018.6" and "02$" — garbled for anything
+                  page text read "018.6" and "02$" - garbled for anything
                   reading the page as text, Google included, while looking
                   fine on screen. The scene art is now pure vector shapes
                   (no <text> at all), and this legible badge sits in its own
-                  block above the illustration with clear margin — verified
+                  block above the illustration with clear margin - verified
                   clean at 375px, no visual or text-extraction collision.
                   White on accent measures 5.2:1. */}
               <div className="mx-auto mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-white">
@@ -529,14 +529,14 @@ function AgentProfile({ googleRating, propertiesAnalyzed }) {
       <SkylineStrip className="pointer-events-none absolute inset-x-0 bottom-0 h-12 w-full" opacity={0.05} />
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center gap-10 md:gap-16">
-          {/* Photo — layered frame treatment */}
+          {/* Photo - layered frame treatment */}
           <div className="flex-shrink-0">
             <div className="relative">
               <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-accent/25 via-transparent to-gold/25" aria-hidden="true" />
               <div className="absolute -left-5 -top-5 h-20 w-20 rounded-2xl border-2 border-accent/20" aria-hidden="true" />
               <img
                 src="/images/hamza-headshot.jpg"
-                alt="Hamza Nouman — Mississauga Investment Specialist"
+                alt="Hamza Nouman - Mississauga Investment Specialist"
                 className="relative w-56 h-56 md:w-72 md:h-72 rounded-2xl object-cover object-top shadow-xl"
               />
               <div className="absolute -bottom-3 -right-3 bg-accent text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -551,7 +551,7 @@ function AgentProfile({ googleRating, propertiesAnalyzed }) {
               Hamza Nouman
             </h2>
             <p className="text-accent font-semibold text-sm mb-3">
-              Sales Representative — Cityscape Real Estate Ltd., Brokerage
+              Sales Representative - Cityscape Real Estate Ltd., Brokerage
             </p>
             <div className="mb-5 flex flex-wrap justify-center gap-2 md:justify-start">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-3 py-1 text-[11px] font-bold text-success">
@@ -569,7 +569,7 @@ function AgentProfile({ googleRating, propertiesAnalyzed }) {
             </div>
 
             <p className="text-sm text-navy/80 leading-relaxed mb-4">
-              I specialize in helping investors find cash-flowing properties in Mississauga. Every listing on this platform is scored and analyzed so you can make data-driven decisions — not emotional ones.
+              I specialize in helping investors find cash-flowing properties in Mississauga. Every listing on this platform is scored and analyzed so you can make data-driven decisions - not emotional ones.
             </p>
             <p className="text-sm text-navy/80 leading-relaxed mb-6">
               Whether you are looking for your first rental property or building a portfolio, I provide the market expertise and analytical tools to help you invest with confidence.
@@ -688,7 +688,7 @@ function GoogleReviews({ googleRating }) {
 }
 
 // ─────────────────────────────────────────────
-//   CTA SECTION — night skyline band
+//   CTA SECTION - night skyline band
 // ─────────────────────────────────────────────
 function CTASection() {
   return (
@@ -706,7 +706,7 @@ function CTASection() {
               line was the bare claim; the conditions below are the same ones
               the full band on /book-call and /quiz already states. */}
           <p className="text-emerald-400 text-sm font-semibold mb-8">
-            Close with Hamza — first month&apos;s mortgage on us, applied as a credit on
+            Close with Hamza - first month&apos;s mortgage on us, applied as a credit on
             closing. All investment properties qualify.
           </p>
           <div className="flex flex-col items-center gap-4 max-w-md mx-auto">
@@ -755,7 +755,7 @@ function NeighbourhoodPreview({ hoodStats = {} }) {
         <p className="section-subtitle mx-auto">Avg price, days-on-market &amp; yield are live from active Mississauga listings; the trend and year-over-year are Hamza&apos;s outlook.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* 4 cards stacked ran 2.2 screens on mobile — the longest block on the
+        {/* 4 cards stacked ran 2.2 screens on mobile - the longest block on the
             page. Show the top 2 on phones (the "Explore all 24" link sits right
             below); all 4 from sm up, where they cost one or two grid rows. */}
         {topHoods.map(({ name, data, avgPrice, avgDOM, rentYield, isLive }, idx) => (
@@ -798,19 +798,19 @@ export default async function HomePage() {
 
   // Live listing count for the hero, straight from the active listing feed.
   // Rounded down to the hundred for large counts so it never overstates; the
-  // exact number for smaller counts; and null when the feed returns nothing —
+  // exact number for smaller counts; and null when the feed returns nothing -
   // in which case the hero omits the number rather than fabricate one (the old
   // code fell back to a hardcoded "2,000+", which overstated the real ~few-hundred
   // Mississauga inventory whenever totalCount was < 500 or the feed was down).
   // ONE number for every count claim on this page. liveStats.count is
-  // /api/market-stats `activeCount` — the same value the stats bar below
+  // /api/market-stats `activeCount` - the same value the stats bar below
   // renders, and the same one /about and /sell read. The hero used to format
   // its own copy of this count differently ("2,500+" vs the bar's "2,547"),
   // which read as two contradictory facts about our own inventory. Falls back
   // to the locally-counted total only if market-stats is unavailable.
   const heroCount = formatLiveCount(liveStats?.count ?? topDeals.totalCount);
   // Same live figure, same rounding rule, used for the bio's "Properties
-  // Analyzed" stat too — this used to be a hand-set PLATFORM_STATS constant
+  // Analyzed" stat too - this used to be a hand-set PLATFORM_STATS constant
   // ("1,800+") that drifted below the hero's own live count on the same
   // page, so a visitor could see the platform claim to have analyzed FEWER
   // properties than it was showing active right above it. Falls back to the
@@ -821,13 +821,13 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Hero — dusk skyline with live deal card */}
+      {/* Hero - dusk skyline with live deal card */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#141F38] via-navy to-[#2A3B63]">
         <div className="relative z-10 max-w-7xl mx-auto px-4 pt-10 pb-36 sm:pt-16 md:pt-24 md:pb-48">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr,320px]">
             <div className="max-w-2xl">
               {/* Only claim "Live Data" when the market-stats API actually
-                  returned — otherwise the StatsBar shows curated fallback
+                  returned - otherwise the StatsBar shows curated fallback
                   numbers, and labelling those "Live" would be misleading. */}
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-6">
                 {liveStats ? (
@@ -849,10 +849,10 @@ export default async function HomePage() {
                 <span className="bg-gradient-to-r from-[#6EA8FF] to-accent bg-clip-text text-transparent">Property Finder</span>
               </h1>
               <p className="text-white text-lg md:text-xl font-semibold leading-snug mb-3 max-w-xl">
-                {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties — Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
+                {heroCount ? `${heroCount} ` : ''}Mississauga Investment Properties - Cash Flow, Cap Rate &amp; Deal Score Calculated on Every Listing.
               </p>
               {/* The honest hook. Computed live from the same processed set the
-                  deal cards use — never hardcoded, hidden entirely when the
+                  deal cards use - never hardcoded, hidden entirely when the
                   feed is down. Positive-CF scarcity is the site's most
                   differentiated TRUE claim: most Mississauga listings do not
                   cash flow at today's rates, and saying so out loud is what
@@ -862,10 +862,10 @@ export default async function HomePage() {
                 <p className="text-white/90 text-sm md:text-base leading-snug mb-3 max-w-xl">
                   Right now only{' '}
                   <span className="font-bold text-[#8AB6FF]">{topDeals.cfPlusCount.toLocaleString()}</span>{' '}
-                  of {topDeals.totalCount.toLocaleString()} cash flow at 20% down — we flag every one.
+                  of {topDeals.totalCount.toLocaleString()} cash flow at 20% down - we flag every one.
                 </p>
               )}
-              {/* Claim, not an action — hidden on mobile so it doesn't push the
+              {/* Claim, not an action - hidden on mobile so it doesn't push the
                   email capture below the fold. */}
               <div className="hidden sm:inline-flex items-center gap-2 bg-accent/15 border border-accent/30 rounded-full px-4 py-1.5 mb-6">
                 <span className="text-[#8AB6FF] text-sm font-bold">The Only Platform That Does It.</span>
@@ -876,7 +876,7 @@ export default async function HomePage() {
 
               {/* Capture first, then the secondary browse paths. On mobile the
                   "Popular:" chips wrapped to two rows and pushed the email field
-                  underneath the cookie banner — i.e. the primary conversion
+                  underneath the cookie banner - i.e. the primary conversion
                   action was invisible in the first viewport on the #1 page. */}
               <HeroEmailCapture count={heroCount} />
 
@@ -888,7 +888,7 @@ export default async function HomePage() {
                     /neighbourhoods/[slug] page (HOOD_DATA drives both this
                     list and that route's generateStaticParams), and the guide
                     carries its own email capture plus a link on into the
-                    filtered listings — so this loses no browsing path while
+                    filtered listings - so this loses no browsing path while
                     giving the crawler a static, indexable destination. */}
                 {['Cooksville', 'Churchill Meadows', 'City Centre', 'Port Credit', 'Erin Mills', 'Malton'].map((hood) => (
                   <Link
@@ -906,7 +906,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Floating live deal card — real listing photo in production */}
+            {/* Floating live deal card - real listing photo in production */}
             <div className="hidden justify-center lg:flex">
               <div className="relative">
                 <div className="absolute -inset-6 rounded-3xl bg-accent/20 blur-2xl" aria-hidden="true" />
@@ -956,10 +956,10 @@ export default async function HomePage() {
                 <span className="text-success text-xs font-bold">EXCLUSIVE OFFER</span>
               </div>
               <h2 className="font-heading font-bold text-2xl md:text-3xl text-navy mb-2">
-                Close With Hamza — First Month&apos;s Mortgage On Us
+                Close With Hamza - First Month&apos;s Mortgage On Us
               </h2>
               <p className="text-slate-600 text-sm md:text-base leading-relaxed mb-4 max-w-2xl">
-                Buy an investment property through MississaugaInvestor.ca and we cover your first mortgage payment —
+                Buy an investment property through MississaugaInvestor.ca and we cover your first mortgage payment -
                 so you cash flow from day one. No vacancy stress while you find your tenant.
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
@@ -977,9 +977,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* GTA coverage band — Mississauga is home base, but the platform covers the whole GTA.
+      {/* GTA coverage band - Mississauga is home base, but the platform covers the whole GTA.
           Light-themed to pair with the navy seller band below (buyer/light + seller/dark). */}
-      {/* Secondary audiences — GTA investors and sellers. Previously two full-width
+      {/* Secondary audiences - GTA investors and sellers. Previously two full-width
           bands (2.4 screens of promo on mobile, back-to-back with the mortgage
           offer above). Condensed to a compact two-up so the page reaches How It
           Works / neighbourhoods / proof far sooner. Same two destinations. */}
@@ -994,7 +994,7 @@ export default async function HomePage() {
                 Investing beyond Mississauga?
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                Every listing scored for cash flow and cap rate — across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
+                Every listing scored for cash flow and cap rate - across Toronto, Peel, Halton, York, Durham &amp; Hamilton.
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton'].map((c) => (
@@ -1022,7 +1022,7 @@ export default async function HomePage() {
                 Thinking of selling?
               </h2>
               <p className="mt-1.5 text-sm leading-relaxed text-white/70">
-                Get a free, data-backed valuation and a plan to sell for the most — priced with real market data, zero obligation.
+                Get a free, data-backed valuation and a plan to sell for the most - priced with real market data, zero obligation.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/60">
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free valuation</span>
@@ -1050,7 +1050,7 @@ export default async function HomePage() {
       {/* No mobile sticky capture bar on this page (unlike the long-form
           guide/blog pages that use it): the hero's own email capture sits at
           the very top of the homepage and is always the first thing a mobile
-          visitor sees, so the sticky bar had nothing to compensate for — it
+          visitor sees, so the sticky bar had nothing to compensate for - it
           only ever overlapped that same hero capture instead. Verified at a
           real 375x667 viewport (iPhone SE-class, and what any 375x812 phone
           shows before the browser chrome collapses): the fixed bottom bar

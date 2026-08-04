@@ -7,7 +7,7 @@ import { trackConversion } from '@/lib/track-conversion';
  * Compact one-field email capture for the blog post sidebar.
  *
  * A cold organic reader lands mid-article from Google. The sidebar's other
- * cards all ask for commitment — a quiz, a phone call, a booking. This is the
+ * cards all ask for commitment - a quiz, a phone call, a booking. This is the
  * ask that matches their temperature: one field, weekly deals, done. Uses the
  * same /api/newsletter/subscribe endpoint as every other capture (it also
  * records the lead), with its own source tag so Hamza can see the blog
@@ -35,7 +35,7 @@ export function SidebarEmailCapture() {
       trackConversion('newsletter_subscribe', { source: 'blog-sidebar' });
       try { localStorage.setItem('user_email', email.trim().toLowerCase()); } catch {}
     } catch {
-      // Real failure state — never fake success on a rejected submit.
+      // Real failure state - never fake success on a rejected submit.
       setState('error');
     }
   }
@@ -53,7 +53,7 @@ export function SidebarEmailCapture() {
     <div className="rounded-xl border border-accent/20 bg-accent/5 p-5">
       <p className="font-heading text-sm font-bold text-navy">Get the top deals every Monday</p>
       <p className="mt-1 text-xs leading-relaxed text-slate-600">
-        The highest cash-flow Mississauga listings — scored and ranked, free.
+        The highest cash-flow Mississauga listings - scored and ranked, free.
       </p>
       <form onSubmit={submit} className="mt-3 space-y-2">
         <input

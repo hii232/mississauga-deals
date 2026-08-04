@@ -3,12 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { unsubscribeUrl } from '@/lib/unsubscribe-token';
 import { tagRecipient } from '@/lib/emails/recipient-token';
 
-// Instant expectation-setting welcome — fire-and-forget, never blocks signup
+// Instant expectation-setting welcome - fire-and-forget, never blocks signup
 async function sendWelcomeEmail(email) {
   if (!process.env.RESEND_API_KEY) return;
   const SERIF = "Georgia,'Times New Roman',serif";
   const html = `
-<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F5F2EC;opacity:0;">You're in — your first Mississauga Market Weekly lands Monday: top-scored deals, cap rates &amp; cash flow. Here's what to expect.</div>
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F5F2EC;opacity:0;">You're in - your first Mississauga Market Weekly lands Monday: top-scored deals, cap rates &amp; cash flow. Here's what to expect.</div>
 <table width="100%" cellpadding="0" cellspacing="0" bgcolor="#F5F2EC" style="background:#F5F2EC;padding:32px 0;"><tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;"><tr><td style="padding:0 40px;">
   <div style="border-top:3px solid #0F2A4A;border-bottom:1px solid #0F2A4A;height:2px;margin-bottom:22px;"></div>
@@ -19,7 +19,7 @@ async function sendWelcomeEmail(email) {
     You're in. Here's exactly what to expect:
   </div>
   <div style="font-family:${SERIF};font-size:14px;color:#3d3a33;line-height:1.8;margin-top:14px;">
-    <strong>What:</strong> the Mississauga Market Weekly &mdash; the week's top-scored investment deals with cap rates and cash flow, live market numbers, and one worthwhile read.<br/>
+    <strong>What:</strong> the Mississauga Market Weekly - the week's top-scored investment deals with cap rates and cash flow, live market numbers, and one worthwhile read.<br/>
     <strong>When:</strong> Monday mornings. One email a week, nothing else.<br/>
     <strong>From:</strong> Hamza Nouman, licensed Sales Representative, Cityscape Real Estate Ltd.
   </div>
@@ -44,7 +44,7 @@ async function sendWelcomeEmail(email) {
       body: JSON.stringify({
         from: process.env.RESEND_FROM_EMAIL || 'MississaugaInvestor <notifications@mississaugainvestor.ca>',
         to: email,
-        subject: "You're in — the Mississauga Market Weekly arrives Monday",
+        subject: "You're in - the Mississauga Market Weekly arrives Monday",
         html: tagRecipient(html, email),
         headers: {
           'List-Unsubscribe': `<${unsubscribeUrl(email)}>`,
@@ -110,7 +110,7 @@ export async function POST(request) {
       utm_campaign: utm_campaign || null,
     });
 
-    // Fire-and-forget — the signup response never waits on the welcome email
+    // Fire-and-forget - the signup response never waits on the welcome email
     sendWelcomeEmail(normalizedEmail);
 
     return NextResponse.json({

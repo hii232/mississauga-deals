@@ -37,7 +37,7 @@ export default function Footer() {
           {/* Quick Links.
               These column headings are h2, not h4. They used to be h4 with no
               h3 or h2 anywhere in the footer, so every page on the site ended
-              in a skipped heading level — measured across all 34 public routes,
+              in a skipped heading level - measured across all 34 public routes,
               18 showed an h2->h4 jump and the rest h1->h4, entirely from here.
               Skipping levels breaks the heading outline screen-reader users
               navigate by and muddies the document structure crawlers read.
@@ -90,7 +90,7 @@ export default function Footer() {
               <li>Cooksville · City Centre</li>
               <li>Meadowvale · Malton</li>
             </ul>
-            {/* GTA-wide coverage — Mississauga stays the focus above, but the
+            {/* GTA-wide coverage - Mississauga stays the focus above, but the
                 platform now scores listings across the whole GTA. */}
             <p className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-white/60">Across the GTA</p>
             <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
@@ -163,9 +163,9 @@ export default function Footer() {
 
           {/* Deal Score Disclaimer */}
           <p className="text-[11px] text-white/60 leading-relaxed">
-            This score measures estimated investment return potential only — not property quality, condition,
+            This score measures estimated investment return potential only - not property quality, condition,
             or desirability. Scores are based on mathematical calculations using list price, estimated rental
-            income, and operating costs. A low investment score does not mean the property is undesirable — it
+            income, and operating costs. A low investment score does not mean the property is undesirable - it
             means the current asking price relative to estimated rental income produces lower investor returns.
             Scores update as prices change. This is not an appraisal. Hamza Nouman, Sales Representative,
             Cityscape Real Estate Ltd., Brokerage.

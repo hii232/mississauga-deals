@@ -1,9 +1,9 @@
-// These components only emit a <script type="application/ld+json"> tag — no
-// hooks, no interactivity — so they render fine as server components. Without
+// These components only emit a <script type="application/ld+json"> tag - no
+// hooks, no interactivity - so they render fine as server components. Without
 // 'use client' the JSON-LD still lands in the SSR HTML (unchanged for SEO) but
 // stops shipping this module into every page's client bundle.
 
-// ── Person Schema — Hamza Nouman identity for Google Knowledge Panel ──
+// ── Person Schema - Hamza Nouman identity for Google Knowledge Panel ──
 export function PersonJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
@@ -68,13 +68,13 @@ export function PersonJsonLd() {
   );
 }
 
-// ── Organization + LocalBusiness Schema — rendered on every page via root layout ──
+// ── Organization + LocalBusiness Schema - rendered on every page via root layout ──
 export function OrganizationJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': ['RealEstateAgent', 'LocalBusiness'],
     '@id': 'https://www.mississaugainvestor.ca/#organization',
-    name: 'Hamza Nouman — MississaugaInvestor.ca',
+    name: 'Hamza Nouman - MississaugaInvestor.ca',
     alternateName: 'MississaugaInvestor.ca',
     url: 'https://www.mississaugainvestor.ca',
     logo: 'https://www.mississaugainvestor.ca/opengraph-image',
@@ -117,7 +117,7 @@ export function OrganizationJsonLd() {
     },
     priceRange: '$$',
     // NOTE: no aggregateRating here. This LocalBusiness/RealEstateAgent schema
-    // renders on EVERY page via the root layout — listings, blog, tools, legal —
+    // renders on EVERY page via the root layout - listings, blog, tools, legal -
     // where those reviews aren't shown. A self-serving rating on pages that
     // don't display the underlying reviews is exactly the pattern Google's
     // rich-results policy prohibits, and risks the whole markup being discarded
@@ -164,7 +164,7 @@ export function OrganizationJsonLd() {
   );
 }
 
-// ── WebSite Search Schema — for sitelinks search box in Google ──
+// ── WebSite Search Schema - for sitelinks search box in Google ──
 export function WebSiteJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
@@ -198,7 +198,7 @@ export function WebSiteJsonLd() {
   );
 }
 
-// ── BreadcrumbList Schema — for rich snippets in SERP ──
+// ── BreadcrumbList Schema - for rich snippets in SERP ──
 export function BreadcrumbJsonLd({ items }) {
   if (!items?.length) return null;
 
@@ -221,7 +221,7 @@ export function BreadcrumbJsonLd({ items }) {
   );
 }
 
-// ── Property Listing Schema — for individual listing detail pages ──
+// ── Property Listing Schema - for individual listing detail pages ──
 // Map our listing type/subType to the closest schema.org Residence subtype so
 // the property entity is described precisely for search engines.
 function residenceType(listing) {
@@ -236,7 +236,7 @@ export function PropertyJsonLd({ listing }) {
 
   const num = (v) => (typeof v === 'number' && isFinite(v) && v > 0 ? v : null);
 
-  // The property itself — nested under `about` so the RealEstateListing (the
+  // The property itself - nested under `about` so the RealEstateListing (the
   // page) and the residence (the property) are modelled correctly.
   const about = {
     '@type': residenceType(listing),
@@ -266,7 +266,7 @@ export function PropertyJsonLd({ listing }) {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
-    name: `${listing.address} — ${listing.city || 'Mississauga'}`,
+    name: `${listing.address} - ${listing.city || 'Mississauga'}`,
     url: `https://www.mississaugainvestor.ca/listings/${listing.id}`,
     description: `${listing.type || 'Property'} for sale at ${listing.address}, ${listing.city || 'Mississauga'}. ${listing.beds || 0} bed, ${listing.baths || 0} bath. Analyzed by Hamza Nouman at MississaugaInvestor.ca.`,
     datePosted: listing.listDate || undefined,
@@ -292,7 +292,7 @@ export function PropertyJsonLd({ listing }) {
   );
 }
 
-// ── Article Schema — for blog posts ──
+// ── Article Schema - for blog posts ──
 export function ArticleJsonLd({ post }) {
   if (!post) return null;
 
@@ -322,7 +322,7 @@ export function ArticleJsonLd({ post }) {
       name: 'MississaugaInvestor.ca',
       logo: {
         '@type': 'ImageObject',
-        // /images/og-image.jpg never existed (404) — use the generated brand image
+        // /images/og-image.jpg never existed (404) - use the generated brand image
         url: 'https://www.mississaugainvestor.ca/opengraph-image',
       },
     },
@@ -339,7 +339,7 @@ export function ArticleJsonLd({ post }) {
   );
 }
 
-// ── FAQ Schema — for pages with FAQ-like content ──
+// ── FAQ Schema - for pages with FAQ-like content ──
 export function FAQJsonLd({ items }) {
   if (!items?.length) return null;
 
@@ -364,12 +364,12 @@ export function FAQJsonLd({ items }) {
   );
 }
 
-// ── ProfilePage Schema — for the about page (Google Knowledge Panel) ──
+// ── ProfilePage Schema - for the about page (Google Knowledge Panel) ──
 export function ProfilePageJsonLd() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
-    name: 'Hamza Nouman — Mississauga Real Estate Investment Specialist',
+    name: 'Hamza Nouman - Mississauga Real Estate Investment Specialist',
     url: 'https://www.mississaugainvestor.ca/about',
     dateCreated: '2024-01-01',
     dateModified: new Date().toISOString().split('T')[0],

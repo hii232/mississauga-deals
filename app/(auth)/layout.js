@@ -9,7 +9,7 @@ export const metadata = {
 
 // A function, not a static array: the middle benefit quotes how many listings
 // we cover, and this is the LAST thing a visitor reads before handing over an
-// email — the highest-intent surface on the site. It was pinned to the hand-set
+// email - the highest-intent surface on the site. It was pinned to the hand-set
 // PLATFORM_STATS constant ("1,800+"), so signup promised access to fewer
 // listings than the homepage that sent the visitor here advertised.
 function buildBenefits(propertiesAnalyzed) {
@@ -21,7 +21,7 @@ function buildBenefits(propertiesAnalyzed) {
 }
 
 // Base trust chips. The Google rating is prepended at render time only when
-// Google actually returns one — never hardcoded.
+// Google actually returns one - never hardcoded.
 const TRUST = ['Licensed by RECO', 'Live MLS data · PropTx'];
 
 export default async function AuthLayout({ children }) {
@@ -31,7 +31,7 @@ export default async function AuthLayout({ children }) {
   const trust = googleRating ? [googleRatingLabel(googleRating), ...TRUST] : TRUST;
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
-      {/* Brand panel — desktop only; gives conversion context beside the form */}
+      {/* Brand panel - desktop only; gives conversion context beside the form */}
       <aside className="relative hidden overflow-hidden bg-gradient-to-b from-[#0F1930] via-navy to-[#16223D] p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <CityscapePanorama
           variant="night"
@@ -53,7 +53,7 @@ export default async function AuthLayout({ children }) {
               exactly what RECO's misleading-advertising rule prohibits. If a
               count is ever wanted it must be read live from Supabase. */}
           <p className="mt-3 text-sm leading-relaxed text-white/75">
-            Screen deals with real cap rates, cash flow, and comps — not guesswork.
+            Screen deals with real cap rates, cash flow, and comps - not guesswork.
           </p>
 
           <ul className="mt-8 space-y-3">
@@ -93,7 +93,7 @@ export default async function AuthLayout({ children }) {
           {children}
           {/* RECO registrant identification. The site footer doesn't render on
               the (auth) layout, and on mobile the brand panel above is hidden
-              entirely — so without this line the signup and login pages carried
+              entirely - so without this line the signup and login pages carried
               no registrant or brokerage name at all. Advertising must clearly
               identify both; "Licensed by RECO" in a trust chip is not that. */}
           <p className="mt-8 text-center text-xs text-muted">

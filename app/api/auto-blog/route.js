@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 // Delegated to lib/api-auth so this fails CLOSED. The previous version compared
 // the header against `Bearer ${process.env.CRON_SECRET}` directly, so with
 // CRON_SECRET unset the expected value rendered as the literal string
-// "Bearer undefined" — sending exactly that header authenticated you.
+// "Bearer undefined" - sending exactly that header authenticated you.
 function isAuthorized(request) {
   return isCronAuthorized(request) || isAdminAuthorized(request);
 }
@@ -84,13 +84,13 @@ const TOPIC_TEMPLATES = [
     category: 'Guide',
     angles: [
       'complete guide to buying your first investment property in Mississauga',
-      // 'understanding cash flow analysis for Mississauga rentals' removed —
+      // 'understanding cash flow analysis for Mississauga rentals' removed -
       // it and Strategy's "how to analyze a rental property deal in under 5
       // minutes" are the same topic in different words. The dedup check below
       // compares a candidate angle against PUBLISHED TITLES, and the two ended
       // up published as different enough phrasing ("...Cash Flow Analysis...
       // Investor Guide" vs "The 5-Minute...Rental Property Analysis System")
-      // that the check missed it — both posts are real, live, and splitting
+      // that the check missed it - both posts are real, live, and splitting
       // the same search intent (GSC: pos 5.90/82 impr and pos 5.81/62 impr).
       // Removing the redundant angle from the source closes this for good,
       // since no title-similarity heuristic can be trusted to catch every
@@ -121,13 +121,13 @@ const TOPIC_TEMPLATES = [
 // ── Duplicate-topic detection ──
 //
 // A real GSC export showed this generator publishing near-duplicate posts on
-// the same topic under different wording — e.g. three separate "rent vs buy"
+// the same topic under different wording - e.g. three separate "rent vs buy"
 // posts and three separate "cap rate / cash flow / ROI" posts, none breaking
 // out of the bottom half of page one because they split the same search
 // intent three ways. Root cause: the old check split on whitespace only (a
 // trailing comma or colon stuck to the keyword, e.g. "rate," or "mississauga:",
 // broke every substring match), filtered to words over 4 chars (discarding
-// exactly the short, topic-defining words this domain uses most — "cap",
+// exactly the short, topic-defining words this domain uses most - "cap",
 // "rent", "buy", "roi"), and compared raw words with no stemming, so
 // "renting"/"rent", "buying"/"buy" and "rates"/"rate" were treated as
 // unrelated. Fixed below with punctuation stripping, a stopword list for
@@ -150,7 +150,7 @@ const TOPIC_STOPWORDS = new Set([
   'impact', 'values', 'first', 'time',
 ]);
 
-// Not a real stemmer — just enough to fold the specific variants this
+// Not a real stemmer - just enough to fold the specific variants this
 // generator actually produces ("renting"/"rent", "buying"/"buy", "rates"/
 // "rate") onto a shared root. The plural strip runs first and only removes a
 // lone trailing 's' (never the whole "es"), so "rates" -> "rate", not "rat".
@@ -185,13 +185,13 @@ function sharesTopicWith(angle, otherText, minMatches = 2) {
 // Dedicated, hand-built pages already targeting these exact queries (see
 // IMPROVEMENT_BACKLOG.md section 5a). The evergreen rotation had no awareness
 // of them and picked "insurance considerations for Mississauga rental
-// properties" and "mortgage options for investment properties in Ontario" —
+// properties" and "mortgage options for investment properties in Ontario" -
 // producing blog posts that directly compete with /rental-property-insurance
 // -mississauga and /mortgage-calculator for the query each page was built to
 // win (GSC showed the dedicated insurance page at position 55 while a blog
-// post on the same topic sat at position 12 — the page built to win the
+// post on the same topic sat at position 12 - the page built to win the
 // query was losing to the site's own blog). Each entry's terms are hand-
-// picked to be specific enough that only a genuine collision matches — single
+// picked to be specific enough that only a genuine collision matches - single
 // generic words like "cash flow" are deliberately left out; they recur across
 // too many unrelated angles to safely gate on alone.
 const RESERVED_PAGE_TOPICS = [
@@ -223,7 +223,7 @@ function pickTopic(existingTitles) {
   });
 
   if (available.length === 0) {
-    // All topics covered — pick a market analysis with current month
+    // All topics covered - pick a market analysis with current month
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const now = new Date();
     return {
@@ -237,7 +237,7 @@ function pickTopic(existingTitles) {
 }
 
 // ── Trending headlines from the site's own RSS aggregator ──
-// Self-hosted feed pipeline (lib/news/fetch-feeds.js) — no external AI service.
+// Self-hosted feed pipeline (lib/news/fetch-feeds.js) - no external AI service.
 async function fetchTrendingHeadlines() {
   try {
     const articles = await fetchAllFeeds();
@@ -290,7 +290,7 @@ async function fetchMarketData() {
   }
 }
 
-// Format the live figures for the prompt. Every field is guarded — a missing
+// Format the live figures for the prompt. Every field is guarded - a missing
 // value is simply omitted rather than printed as "undefined", and if the whole
 // fetch failed we say nothing about rates at all instead of asserting a stale
 // number. Silence beats a wrong figure.
@@ -300,7 +300,7 @@ function buildMarketBlock(s) {
   const pct = (n) => (typeof n === 'number' && isFinite(n) ? n + '%' : null);
   const lines = [];
 
-  const board = s.tRREBMonth ? ` (TRREB Market Watch, ${s.tRREBMonth} — the latest monthly board data, NOT today's live figure)` : '';
+  const board = s.tRREBMonth ? ` (TRREB Market Watch, ${s.tRREBMonth} - the latest monthly board data, NOT today's live figure)` : '';
   const avg = money(s.mississaugaAvgPrice);
   const med = money(s.mississaugaMedianPrice);
   if (avg) lines.push(`- Mississauga average sale price: ${avg}${med ? `, median ${med}` : ''}${board}`);
@@ -318,7 +318,7 @@ function buildMarketBlock(s) {
     r.fixed1yr ? `1-year fixed ${pct(r.fixed1yr)}` : null,
   ].filter(Boolean);
   if (postedBits.length) {
-    lines.push(`- POSTED mortgage rates (Bank of Canada, via TRREB — NOT the rate a borrower is quoted): ${postedBits.join(', ')}`);
+    lines.push(`- POSTED mortgage rates (Bank of Canada, via TRREB - NOT the rate a borrower is quoted): ${postedBits.join(', ')}`);
   }
   const contractBits = [
     r.contractRateAssumption ? `~${pct(r.contractRateAssumption)} 5-year fixed` : null,
@@ -355,11 +355,11 @@ function buildMarketBlock(s) {
       hist.map((m) =>
         `- ${m.month}: ${m.sales} sales, avg ${money(m.avgPrice)}, median ${money(m.medianPrice)}, ${m.activeListings} active, ${m.monthsInventory} months inventory, ${m.ldom} days on market`
       ).join('\n') +
-      `\nUse this to describe the actual direction of travel — cite the specific months you're comparing. Don't extrapolate past the last row or invent months that aren't listed.\n`
+      `\nUse this to describe the actual direction of travel - cite the specific months you're comparing. Don't extrapolate past the last row or invent months that aren't listed.\n`
     : '';
 
   return lines.length
-    ? `\n## Current market figures (the site's own published data — use these)\n${lines.join('\n')}\n${trend}`
+    ? `\n## Current market figures (the site's own published data - use these)\n${lines.join('\n')}\n${trend}`
     : '';
 }
 
@@ -373,17 +373,17 @@ function buildDataBlock() {
   return rows.join('\n');
 }
 
-// ── Structured output schema — guarantees valid JSON, no regex parsing ──
+// ── Structured output schema - guarantees valid JSON, no regex parsing ──
 const BLOG_POST_SCHEMA = {
   type: 'object',
   properties: {
     // <=60 / <=155: Google renders about 60 characters of a title and 155 of a
-    // description, and the spec used to ask for 50-70 and "max 180" — which is
+    // description, and the spec used to ask for 50-70 and "max 180" - which is
     // why every top-performing post in the 2026-08-03 Search Console export had
     // its hook cut off in the SERP. Front-load matters: the tail is what gets
     // truncated, so the keyword and the payoff must come first.
-    title: { type: 'string', description: 'MAX 60 characters — hard limit, Google truncates beyond it. Includes "Mississauga". Front-load the search term and the hook; do not save the payoff for the end.' },
-    excerpt: { type: 'string', description: 'MAX 155 characters — hard limit, Google truncates beyond it. A hook, not a summary. No percentages or dollar figures: they go stale and Google keeps serving them.' },
+    title: { type: 'string', description: 'MAX 60 characters - hard limit, Google truncates beyond it. Includes "Mississauga". Front-load the search term and the hook; do not save the payoff for the end.' },
+    excerpt: { type: 'string', description: 'MAX 155 characters - hard limit, Google truncates beyond it. A hook, not a summary. No percentages or dollar figures: they go stale and Google keeps serving them.' },
     content: { type: 'string', description: 'The full blog post in Markdown, 1300-1800 words' },
     category: {
       type: 'string',
@@ -414,13 +414,13 @@ async function generateBlogPost({ headlines, topic, existingTitles, marketStats 
     ? `## What's trending right now
 These are real headlines from Canadian real estate and business news feeds over the past week:
 
-${headlines.map((h) => `- [${h.source}${h.date ? ', ' + new Date(h.date).toISOString().split('T')[0] : ''}] ${h.title}${h.snippet ? ' — ' + h.snippet : ''}`).join('\n')}
+${headlines.map((h) => `- [${h.source}${h.date ? ', ' + new Date(h.date).toISOString().split('T')[0] : ''}] ${h.title}${h.snippet ? ' - ' + h.snippet : ''}`).join('\n')}
 
-Pick the ONE story (or tightly connected cluster) that matters most for Mississauga and GTA housing — rate decisions, housing policy, local development, and market data beat generic national business stories. Write the post about what that story actually means for someone buying an investment property in Mississauga right now. Name the story plainly; don't assume the reader saw the news.`
+Pick the ONE story (or tightly connected cluster) that matters most for Mississauga and GTA housing - rate decisions, housing policy, local development, and market data beat generic national business stories. Write the post about what that story actually means for someone buying an investment property in Mississauga right now. Name the story plainly; don't assume the reader saw the news.`
     : `## Topic
 Write about: ${topic.angle}`;
 
-  const prompt = `You are ghostwriting a blog post for Hamza Nouman — a licensed real estate Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario, who runs MississaugaInvestor.ca, a data-driven investment property platform. The post is published under his name, in his voice, in first person.
+  const prompt = `You are ghostwriting a blog post for Hamza Nouman - a licensed real estate Sales Representative with Cityscape Real Estate Ltd. in Mississauga, Ontario, who runs MississaugaInvestor.ca, a data-driven investment property platform. The post is published under his name, in his voice, in first person.
 
 Today is ${currentMonth} ${now.getDate()}, ${currentYear}. Everything must read as current as of this date.
 
@@ -430,33 +430,33 @@ ${topicBlock}
 Recent posts already on the blog:
 ${existingTitles.slice(0, 30).map((t) => `- ${t}`).join('\n')}
 
-Hard rule: if a news story was already covered by ANY recent post above — even from a different angle, even if your take would be better — do not write about that story again. A story counts as covered when the post is about the same underlying event (same rate decision, same policy announcement, same report). Pick the next-most-consequential uncovered story instead. If nothing in the headlines is both consequential and uncovered, ignore the headlines and write a fresh evergreen piece grounded in the neighbourhood data below.
+Hard rule: if a news story was already covered by ANY recent post above - even from a different angle, even if your take would be better - do not write about that story again. A story counts as covered when the post is about the same underlying event (same rate decision, same policy announcement, same report). Pick the next-most-consequential uncovered story instead. If nothing in the headlines is both consequential and uncovered, ignore the headlines and write a fresh evergreen piece grounded in the neighbourhood data below.
 
-The site also has dedicated pages already built and ranking for these exact queries — writing a blog post that covers the same core question just competes with the site's own page for the same search result, so avoid these as your main topic (a passing mention or internal link to one is fine):
-${RESERVED_PAGE_TOPICS.map((r) => `- ${r.page} — covers: ${r.terms.join(' / ')}`).join('\n')}
+The site also has dedicated pages already built and ranking for these exact queries - writing a blog post that covers the same core question just competes with the site's own page for the same search result, so avoid these as your main topic (a passing mention or internal link to one is fine):
+${RESERVED_PAGE_TOPICS.map((r) => `- ${r.page} - covers: ${r.terms.join(' / ')}`).join('\n')}
 
 ## Real platform data you may cite
 Current neighbourhood figures from MississaugaInvestor.ca's own dataset:
 ${buildDataBlock()}
 ${buildMarketBlock(marketStats)}
-Accuracy rules — these matter more than style:
-- The figures above are what the site itself publishes. Never state a number that contradicts them (especially mortgage rates — quote the rate given, not a remembered one).
+Accuracy rules - these matter more than style:
+- The figures above are what the site itself publishes. Never state a number that contradicts them (especially mortgage rates - quote the rate given, not a remembered one).
 - Monthly board figures are labelled with their report month. If you cite one, say which month it's from; never present it as today's number.
 - If you don't have a real figure for something, write around it or use an openly framed approximation ("roughly", "in the low $X00Ks"). Never invent a precise statistic, a percentage, or a source.
 
 ## Voice
-Write like Hamza actually talks to a client over coffee: direct, plain words, short paragraphs, contractions, a little opinionated. Take a position and defend it with numbers. One concrete, personal observation (something I tell clients, something I noticed at showings this month) is worth more than three statistics. It should read like a person who walks these streets every week — not a content mill.
+Write like Hamza actually talks to a client over coffee: direct, plain words, short paragraphs, contractions, a little opinionated. Take a position and defend it with numbers. One concrete, personal observation (something I tell clients, something I noticed at showings this month) is worth more than three statistics. It should read like a person who walks these streets every week - not a content mill.
 
-Avoid AI-writing tells: no "in today's fast-paced market", "navigating the landscape", "it's important to note", "game-changer", "delve". Don't open with a throat-clearing summary of what the post will cover — start inside the story. Vary sentence length. Prose first; use a list only when a list is genuinely the clearest form.
+Avoid AI-writing tells: no "in today's fast-paced market", "navigating the landscape", "it's important to note", "game-changer", "delve". Never use an em dash anywhere (title, excerpt, or body) - use a comma, colon, or full stop instead; the site's copy carries none and one in a generated post stands out. Don't open with a throat-clearing summary of what the post will cover - start inside the story. Vary sentence length. Prose first; use a list only when a list is genuinely the clearest form.
 
 ## Requirements
-- Title: 50–70 characters, includes "Mississauga", include ${currentYear} if it fits naturally.
-- Content: 1300–1800 words of Markdown with ## and ### headings. Go deep enough to actually answer the question a reader searched for — a thin post that restates the headline is worse than no post. Ground the story in Mississauga specifics: at least three neighbourhoods with concrete numbers from the data above, and at least one worked example an investor can follow (a real purchase price, the rent it supports, and what that leaves per month).
-- Use ONE Markdown table where a genuine side-by-side comparison helps (neighbourhoods, property types, rate scenarios) — GitHub-flavoured pipe tables render properly on the site. Keep it to 3–5 rows and 3–4 columns so it stays readable on a phone. Don't force a table into a post that doesn't need one.
-- Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section — three or four specific, actionable takeaways, not a summary — and a soft pointer to the deal scores on MississaugaInvestor.ca.
-- Internal links: weave in 2–3 Markdown links where they genuinely help the reader, using ONLY these exact relative paths — [current listings](/listings), [mortgage calculator](/mortgage-calculator), [market data](/market-pulse), [recent sold prices](/recent-sales), [deal alerts](/alerts), or a neighbourhood guide as /neighbourhoods/<name-in-lowercase-with-hyphens> for a neighbourhood you discuss. Never invent any other URL, and never use absolute URLs for internal links.
-- This is educational commentary from a licensed sales representative, not financial advice — keep claims honest and verifiable.
-- Brokerage: Hamza is with Cityscape Real Estate Ltd., Brokerage. NEVER name any other brokerage, past or present — misattributing a registrant's brokerage is a RECO compliance violation.`;
+- Title: 50–60 characters (the schema's MAX 60 is the hard limit - Google truncates beyond it), includes "Mississauga", include ${currentYear} if it fits naturally.
+- Content: 1300–1800 words of Markdown with ## and ### headings. Go deep enough to actually answer the question a reader searched for - a thin post that restates the headline is worse than no post. Ground the story in Mississauga specifics: at least three neighbourhoods with concrete numbers from the data above, and at least one worked example an investor can follow (a real purchase price, the rent it supports, and what that leaves per month).
+- Use ONE Markdown table where a genuine side-by-side comparison helps (neighbourhoods, property types, rate scenarios) - GitHub-flavoured pipe tables render properly on the site. Keep it to 3–5 rows and 3–4 columns so it stays readable on a phone. Don't force a table into a post that doesn't need one.
+- Mention MississaugaInvestor.ca once, naturally. End with a short "What this means for investors" section - three or four specific, actionable takeaways, not a summary - and a soft pointer to the deal scores on MississaugaInvestor.ca.
+- Internal links: weave in 2–3 Markdown links where they genuinely help the reader, using ONLY these exact relative paths - [current listings](/listings), [mortgage calculator](/mortgage-calculator), [market data](/market-pulse), [recent sold prices](/recent-sales), [deal alerts](/alerts), or a neighbourhood guide as /neighbourhoods/<name-in-lowercase-with-hyphens> for a neighbourhood you discuss. Never invent any other URL, and never use absolute URLs for internal links.
+- This is educational commentary from a licensed sales representative, not financial advice - keep claims honest and verifiable.
+- Brokerage: Hamza is with Cityscape Real Estate Ltd., Brokerage. NEVER name any other brokerage, past or present - misattributing a registrant's brokerage is a RECO compliance violation.`;
 
   const response = await anthropic.beta.messages.create({
     model: 'claude-fable-5',
@@ -490,7 +490,7 @@ Avoid AI-writing tells: no "in today's fast-paced market", "navigating the lands
 async function fetchCoverImage(keywords) {
   try {
     const searchTerms = keywords || 'mississauga real estate';
-    // Use Unsplash source URL — free, no API key, returns a random matching photo
+    // Use Unsplash source URL - free, no API key, returns a random matching photo
     // We'll use the search API via the public endpoint
     const queries = [
       searchTerms,
@@ -517,7 +517,7 @@ async function fetchCoverImage(keywords) {
         if (data.results && data.results.length > 0) {
           // Pick a random one from top 5 for variety
           const pick = data.results[Math.floor(Math.random() * Math.min(data.results.length, 5))];
-          // Use the regular size (1080px wide) — good for blog covers
+          // Use the regular size (1080px wide) - good for blog covers
           return pick.urls?.regular || pick.urls?.small || null;
         }
       }
@@ -533,7 +533,7 @@ async function fetchCoverImage(keywords) {
 // ── Ping search engines to index the new post immediately ──
 // Overlap of significant title words (0..1, against the smaller title). Two
 // posts about the same story share its distinctive nouns even when phrased
-// differently — e.g. "tiny condo glut" appears across all three 2026-07-20 dupes.
+// differently - e.g. "tiny condo glut" appears across all three 2026-07-20 dupes.
 function titleSimilarity(a, b) {
   const STOP = new Set(['the','and','for','what','why','how','your','you','with','now','here','heres','means','should','could','will','just','this','that','are','its','not','buy','play','2025','2026','2027','mississauga','gta','real','estate','investors','investor','buyers','buyer','market','property','properties','home','homes']);
   const toks = (t) =>
@@ -559,7 +559,7 @@ async function pingSearchEngines(slug) {
 
   const results = [];
 
-  // IndexNow — pings Bing, Yandex, Seznam, Naver simultaneously
+  // IndexNow - pings Bing, Yandex, Seznam, Naver simultaneously
   if (indexNowKey) {
     try {
       const res = await fetch('https://api.indexnow.org/indexnow', {
@@ -581,7 +581,7 @@ async function pingSearchEngines(slug) {
     }
   }
 
-  // Google Ping — sitemap ping (still works as of 2026)
+  // Google Ping - sitemap ping (still works as of 2026)
   try {
     const res = await fetch(
       `https://www.google.com/ping?sitemap=https://${siteHost}/sitemap.xml`
@@ -633,7 +633,7 @@ export async function GET(request) {
     // Render-time sanitizing already hides these, but the DATA should be clean:
     // older posts name Hamza's previous brokerage in their author bios (a RECO
     // compliance problem on indexed pages) and some carry U+FFFD em-dashes.
-    // Rewrite any dirty row in place. Idempotent — clean rows never match.
+    // Rewrite any dirty row in place. Idempotent - clean rows never match.
     try {
       const { data: fullPosts } = await supabase
         .from('blog_posts')
@@ -676,7 +676,7 @@ export async function GET(request) {
         .select('slug');
 
       if (!seedErr && seeded?.length) {
-        // Ping for the batch, then stop for today — five pillar posts landing
+        // Ping for the batch, then stop for today - five pillar posts landing
         // at once IS the day's publishing. The AI post resumes tomorrow, which
         // also avoids generating a near-duplicate of a topic just seeded.
         const indexResults = await pingSearchEngines(seeded[0].slug);
@@ -687,7 +687,7 @@ export async function GET(request) {
           indexing: indexResults,
         });
       }
-      // Seed insert failed — log and continue to normal generation rather than
+      // Seed insert failed - log and continue to normal generation rather than
       // losing the day's post over it.
       if (seedErr) console.error('Seed publish failed:', seedErr.message);
     }
@@ -710,7 +710,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'Generated post missing title or content' }, { status: 500 });
     }
 
-    // HARD duplicate guard — the prompt-level "don't re-cover a story" rule is
+    // HARD duplicate guard - the prompt-level "don't re-cover a story" rule is
     // not reliable on its own (2026-07-20: three near-identical BoC posts).
     // Better to publish nothing today than a duplicate.
     const recentTitles = existingTitles.slice(0, 20);

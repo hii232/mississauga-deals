@@ -12,7 +12,7 @@ export function HeroSearch() {
     if (query.trim()) {
       // Must be `q`: that's the param /listings reads (deserializeFilters) and
       // writes (serializeFilters), and the one the WebSite SearchAction schema
-      // advertises. Using `search` here silently dropped the term — the hero
+      // advertises. Using `search` here silently dropped the term - the hero
       // search navigated to /listings but showed unfiltered results.
       router.push(`/listings?q=${encodeURIComponent(query.trim())}`);
     } else {

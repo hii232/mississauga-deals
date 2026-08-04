@@ -34,7 +34,7 @@ export async function GET(request) {
   // Build type filter
   const typeLower = type.toLowerCase();
   const typeMap = {
-    // Was PropertyType eq 'Residential'/'Residential Freehold' — that field is a
+    // Was PropertyType eq 'Residential'/'Residential Freehold' - that field is a
     // broad TRREB category shared by semi-detached, townhouse, duplex, triplex
     // and multiplex too, so a "detached" query pulled in cheaper subtypes as
     // comps and could understate the CMA estimate for the site's most common
@@ -57,7 +57,7 @@ export async function GET(request) {
   }
 
   try {
-    // Query 1: Narrow — same FSA, same type, similar beds, last 6 months
+    // Query 1: Narrow - same FSA, same type, similar beds, last 6 months
     const fsa = postal && postal.length >= 3 ? postal.substring(0, 3) : '';
     const narrowFilters = [
       "StandardStatus eq 'Closed'",
@@ -81,7 +81,7 @@ export async function GET(request) {
     let data = resp.ok ? await resp.json() : { value: [] };
     let comps = data.value || [];
 
-    // Query 2: Broader — same city, same type if too few comps
+    // Query 2: Broader - same city, same type if too few comps
     if (comps.length < 5) {
       const broadFilters = [
         "StandardStatus eq 'Closed'",
@@ -121,7 +121,7 @@ export async function GET(request) {
         comps: [],
         message: 'Not enough comparable sales data',
       // SHORT cache, unlike the success path below: this is the empty answer,
-      // and new sales close daily — a long window would freeze "not enough
+      // and new sales close daily - a long window would freeze "not enough
       // data" on the panel for a day after the data arrived. Same
       // empty-heals-fast rule as /api/gta-screener's incomplete branch.
       }, { headers: { 'Cache-Control': 's-maxage=900, stale-while-revalidate=3600' } });
@@ -182,7 +182,7 @@ export async function GET(request) {
       ? Math.round(topComps.reduce((s, c) => s + c.closePrice * c.weight, 0) / totalWeight)
       : 0;
 
-    // Trimmed range (exclude outliers — use 10th and 90th percentile)
+    // Trimmed range (exclude outliers - use 10th and 90th percentile)
     const prices = topComps.map((c) => c.closePrice).sort((a, b) => a - b);
     const p10Idx = Math.floor(prices.length * 0.1);
     const p90Idx = Math.ceil(prices.length * 0.9) - 1;

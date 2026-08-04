@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'MI Admin — MississaugaInvestor.ca',
+  title: 'MI Admin - MississaugaInvestor.ca',
   robots: { index: false, follow: false },
 };
 

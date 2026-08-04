@@ -9,7 +9,7 @@ const YEAR = new Date().getFullYear();
 
 export const metadata = {
   title: { absolute: `Townhouse or Condo: Which Is the Better Investment?` },
-  description: `Townhouse or condo for a GTA rental? How fees, land value, appreciation, cash flow and tenant demand compare — with the numbers side by side.`,
+  description: `Townhouse or condo for a GTA rental? How fees, land value, appreciation, cash flow and tenant demand compare - with the numbers side by side.`,
   keywords: [
     'townhouse or condo better investment',
     'townhouse vs condo investment',
@@ -33,29 +33,29 @@ export const metadata = {
   },
 };
 
-// Honest, general comparison — no fabricated price/appreciation figures. The
+// Honest, general comparison - no fabricated price/appreciation figures. The
 // real numbers for any specific property come from the (audited) listing
 // analysis + mortgage calculator, which readers are routed to.
 const TVC_FAQ = [
   {
     question: 'Is a townhouse or condo a better investment in the GTA?',
     answer:
-      'Neither wins outright — it depends on your goal. Condos usually have a lower entry price, handle exterior maintenance for you, and are easier to rent and resell, but their monthly fees are higher and rise over time, which eats into cash flow. Townhouses often carry lower fees (freehold townhomes have none) and include a land component, which tends to support stronger long-term appreciation and gives you more control, but they cost more up front and — if freehold — put maintenance on you. If your priority is monthly cash flow and simplicity, a condo can suit; if it is long-term equity and appreciation, a townhouse often edges ahead.',
+      'Neither wins outright - it depends on your goal. Condos usually have a lower entry price, handle exterior maintenance for you, and are easier to rent and resell, but their monthly fees are higher and rise over time, which eats into cash flow. Townhouses often carry lower fees (freehold townhomes have none) and include a land component, which tends to support stronger long-term appreciation and gives you more control, but they cost more up front and - if freehold - put maintenance on you. If your priority is monthly cash flow and simplicity, a condo can suit; if it is long-term equity and appreciation, a townhouse often edges ahead.',
   },
   {
-    question: 'Not all townhouses are freehold — does that matter?',
+    question: 'Not all townhouses are freehold - does that matter?',
     answer:
-      'It matters a lot. A freehold townhouse has no condo fee and you own the land it sits on. A condo or common-element (POTL) townhouse still charges a monthly fee — usually lower than a high-rise condo, but a real cost that reduces cash flow. Always check the fee (and what it covers) before comparing a townhouse to a condo; the label alone does not tell you the carrying cost.',
+      'It matters a lot. A freehold townhouse has no condo fee and you own the land it sits on. A condo or common-element (POTL) townhouse still charges a monthly fee - usually lower than a high-rise condo, but a real cost that reduces cash flow. Always check the fee (and what it covers) before comparing a townhouse to a condo; the label alone does not tell you the carrying cost.',
   },
   {
     question: 'Do condo fees make condos a worse investment?',
     answer:
-      'Not automatically, but they are the single biggest reason a condo can look cheaper yet cash-flow worse than a townhouse. A fee of several hundred dollars a month is money that never builds equity, and fees tend to climb faster than rent in older buildings. The fee can be worth it when it covers heat, water, and amenities tenants pay up for — the point is to price it in. Our listing analysis and mortgage calculator include the actual condo fee in cash flow and cap rate, so the comparison is apples-to-apples.',
+      'Not automatically, but they are the single biggest reason a condo can look cheaper yet cash-flow worse than a townhouse. A fee of several hundred dollars a month is money that never builds equity, and fees tend to climb faster than rent in older buildings. The fee can be worth it when it covers heat, water, and amenities tenants pay up for - the point is to price it in. Our listing analysis and mortgage calculator include the actual condo fee in cash flow and cap rate, so the comparison is apples-to-apples.',
   },
   {
     question: 'Which appreciates more, a townhouse or a condo?',
     answer:
-      'Over long holding periods, properties with a larger land component have historically tended to appreciate faster, which generally favours townhouses (especially freehold) over high-rise condos. That is a tendency, not a guarantee — location, transit access, and supply matter more than property type in any given area. Condos in supply-constrained, transit-rich nodes can still perform well. Model your specific price, rent, and area rather than assuming a type-level winner.',
+      'Over long holding periods, properties with a larger land component have historically tended to appreciate faster, which generally favours townhouses (especially freehold) over high-rise condos. That is a tendency, not a guarantee - location, transit access, and supply matter more than property type in any given area. Condos in supply-constrained, transit-rich nodes can still perform well. Model your specific price, rent, and area rather than assuming a type-level winner.',
   },
   {
     question: 'Which is easier to rent out and manage?',
@@ -90,7 +90,7 @@ export default function TownhouseVsCondoPage() {
         compact
         eyebrow={`Mississauga & GTA · Investing · ${YEAR}`}
         title="Townhouse or Condo: Which Is the Better Investment?"
-        subtitle="Condo fees, the land component, appreciation, cash flow, and tenant demand pull in different directions — here's how to weigh them, then run the numbers on a real Mississauga listing."
+        subtitle="Condo fees, the land component, appreciation, cash flow, and tenant demand pull in different directions - here's how to weigh them, then run the numbers on a real Mississauga listing."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -99,8 +99,8 @@ export default function TownhouseVsCondoPage() {
           <h2 className="font-heading font-bold text-lg text-navy mb-2">The short answer</h2>
           <p className="text-sm text-slate-700 leading-relaxed">
             There is no universal winner. A <strong>condo</strong> usually costs less to get into, is easier to rent and
-            manage, and hands off maintenance — but its monthly fees are higher and climb over time, dragging on cash
-            flow. A <strong>townhouse</strong> — especially freehold — carries lower or no fees and includes a land
+            manage, and hands off maintenance - but its monthly fees are higher and climb over time, dragging on cash
+            flow. A <strong>townhouse</strong> - especially freehold - carries lower or no fees and includes a land
             component, which tends to support stronger long-term appreciation and more control, at a higher entry price
             and (if freehold) more maintenance. Pick for your goal: <strong>cash flow &amp; simplicity → condo</strong>;{' '}
             <strong>long-term equity &amp; appreciation → townhouse</strong>. Then check the actual numbers on the
@@ -137,11 +137,11 @@ export default function TownhouseVsCondoPage() {
           </table>
         </div>
         <p className="text-xs text-slate-500 mb-10">
-          General tendencies for the Mississauga/GTA market — not a rule for any specific property. A condo or
+          General tendencies for the Mississauga/GTA market - not a rule for any specific property. A condo or
           common-element (POTL) townhouse still has a monthly fee; a freehold townhouse does not.
         </p>
 
-        {/* Inline email capture — convert the reader who isn't ready to browse yet */}
+        {/* Inline email capture - convert the reader who isn't ready to browse yet */}
         <InlineCTA variant="newsletter" className="mb-10" />
 
         {/* Visible FAQ (mirrors the schema) */}
@@ -159,7 +159,7 @@ export default function TownhouseVsCondoPage() {
         <div className="rounded-2xl bg-navy p-8 text-center">
           <h2 className="font-heading font-bold text-xl text-white mb-2">Run the numbers on a real property</h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
-            Every Mississauga listing is scored for cash flow and cap rate — with the actual condo fee included — so you
+            Every Mississauga listing is scored for cash flow and cap rate - with the actual condo fee included - so you
             can compare a townhouse and a condo on the same basis.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

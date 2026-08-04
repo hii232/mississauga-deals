@@ -4,16 +4,16 @@
 const PUBLIC_ORIGIN = 'https://www.mississaugainvestor.ca';
 
 // Social share row. The Seobility audit flagged the site as offering few
-// sharing options — every share is a potential referring domain, which is also
+// sharing options - every share is a potential referring domain, which is also
 // the site's weakest external-factors metric.
 //
 // Deliberately a SERVER component: these are plain prefilled share URLs, so
 // they need no client JS, no third-party SDK, and no tracking pixel. Official
 // share widgets (the Facebook SDK in particular) load ~100kB and set cookies
-// before the visitor has clicked anything — a real Core Web Vitals and privacy
+// before the visitor has clicked anything - a real Core Web Vitals and privacy
 // cost for a button most visitors never press.
 export default function ShareButtons({ url, title, className = '' }) {
-  // Absolute URL required — share endpoints reject relative paths.
+  // Absolute URL required - share endpoints reject relative paths.
   const abs = url.startsWith('http') ? url : `${PUBLIC_ORIGIN}${url}`;
   const u = encodeURIComponent(abs);
   const t = encodeURIComponent(title);

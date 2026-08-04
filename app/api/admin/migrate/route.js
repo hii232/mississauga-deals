@@ -20,7 +20,7 @@ export async function POST(request) {
     .limit(1);
 
   if (testErr && testErr.message.includes('access_revoked')) {
-    // Column doesn't exist — we can't add it via REST API
+    // Column doesn't exist - we can't add it via REST API
     // Return instructions
     return NextResponse.json({
       error: 'Column access_revoked does not exist. Run this SQL in Supabase dashboard:',

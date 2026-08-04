@@ -11,14 +11,14 @@ const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
 // A malformed listing (missing/NaN derived number) must NEVER crash the card and
 // blank the whole listings grid. Format defensively; show a dash, never NaN.
-const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '—');
-const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() : '—');
+const pct1 = (v) => (typeof v === 'number' && isFinite(v) ? v.toFixed(1) + '%' : '-');
+const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() : '-');
 
 /**
  * The rent every metric on the card is derived from, stated plainly.
  *
  * A 6.9% cap rate on a 7-bed Malton detached looks like fantasy until you can
- * see it assumes ~$3,900 for the main unit plus ~$2,000 for a legal basement —
+ * see it assumes ~$3,900 for the main unit plus ~$2,000 for a legal basement -
  * a normal Malton structure, not per-bedroom rooming-house math. Showing the
  * split is the difference between a number an investor can audit and one they
  * dismiss. Renders nothing if we have no rent, rather than inventing one.
@@ -26,7 +26,7 @@ const money = (v) => (typeof v === 'number' && isFinite(v) ? v.toLocaleString() 
 // Alt text for a listing photo. A bare address tells an image-search crawler
 // (and a screen-reader user) nothing about what the picture shows; these
 // images only entered the HTML when /listings became server-rendered, so
-// they are newly worth describing. Every part is optional — a listing missing
+// they are newly worth describing. Every part is optional - a listing missing
 // beds or type simply yields a shorter sentence, never "undefined".
 function photoAlt(listing) {
   const bits = [];
@@ -37,7 +37,7 @@ function photoAlt(listing) {
   const where = listing.neighbourhood && listing.neighbourhood !== listing.city
     ? `${listing.neighbourhood}, ${listing.city || 'Mississauga'}`
     : (listing.city || 'Mississauga');
-  return `${listing.address} — ${[specs, kind].filter(Boolean).join(' ')} for sale in ${where}`;
+  return `${listing.address} - ${[specs, kind].filter(Boolean).join(' ')} for sale in ${where}`;
 }
 
 function RentAssumption({ listing }) {
@@ -58,7 +58,7 @@ function RentAssumption({ listing }) {
     breakdown = `${money(base)} main + ${money(basement)} ${listing.basementTier === 'legal' ? 'legal ' : ''}suite`;
   }
 
-  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) — CAP
+  // The feed never supplies a real condo fee (see IMPROVEMENT_BACKLOG) - CAP
   // and cash flow below are computed on a bedroom/sqft estimate for every
   // condo/apt listing. The card's own breakdown line already labels this
   // "Condo Fee (est.)"; this is the same disclosure at the point where a
@@ -106,13 +106,13 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-accent/30 hover:shadow-lg">
-      {/* Photo — links to detail page */}
+      {/* Photo - links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
         {photo ? (
           <>
             {/* Shimmer under the image while it loads. A cold TRREB photo can
                 take seconds (or, under upstream throttle, much longer), and
-                until now the card sat on flat white — which reads as broken.
+                until now the card sat on flat white - which reads as broken.
                 The Image renders on top and simply covers this when painted;
                 no state, no layout shift. */}
             <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 to-slate-200" aria-hidden="true" />
@@ -133,15 +133,15 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Score badge — always visible (curiosity hook) */}
+        {/* Score badge - always visible (curiosity hook) */}
         <div
           className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shadow-md"
           style={{ backgroundColor: scoreHex }}
         >
-          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '—'}
+          {typeof listing.hamzaScore === 'number' && isFinite(listing.hamzaScore) ? listing.hamzaScore : '-'}
         </div>
 
-        {/* Freshness cue — honest "New" from real days-on-market. Only 1–7 days:
+        {/* Freshness cue - honest "New" from real days-on-market. Only 1–7 days:
             dom=0 is the missing-data fallback (process-listings), so excluding it
             means the badge never false-positives on a listing of unknown age. */}
         {listing.dom >= 1 && listing.dom <= 7 && (
@@ -152,14 +152,14 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         )}
 
         {/* Tags row. Every badge here was translucent (/90) white-on-colour over
-            a photo — the same class of failure fixed on this card's "Cash
+            a photo - the same class of failure fixed on this card's "Cash
             Flowing" badge and the homepage's investor tags. Measured all four:
             `success` is the SAME hex as emerald-500 (#10B981, confirmed in
             tailwind.config.js) so "Legal Suite" had the identical 2.39:1
-            failure already fixed elsewhere under a different token name —
+            failure already fixed elsewhere under a different token name -
             moved to opaque emerald-700 (5.48:1) to match. "Suite Potential"
             and "LRT" (bg-accent/90, #2563EB) measured 4.46:1, a near-miss just
-            under AA — dropping the /90 alone is enough: opaque accent is
+            under AA - dropping the /90 alone is enough: opaque accent is
             5.17:1. "Fin. Basement" (bg-slate-500/90) measured 4.04:1; opaque
             slate-500 is 4.76:1, also enough without darkening. All four are
             fully opaque now, matching the established reasoning: a translucent
@@ -188,7 +188,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           )}
           {listing.cashFlow > 0 && (
             // bg-emerald-500/90 composited over a light photo measured 2.39:1
-            // for white text — the same failure fixed on the homepage's
+            // for white text - the same failure fixed on the homepage's
             // investor-tag badges this morning, recurring here on the primary
             // /listings grid card. Opaque emerald-700 = 5.48:1, and opaque
             // avoids the unpredictable contrast a translucent chip has over an
@@ -259,7 +259,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           <span className="capitalize">{listing.type}</span>
         </div>
 
-        {/* Neighbourhood — linked to the investment guide for Mississauga hoods,
+        {/* Neighbourhood - linked to the investment guide for Mississauga hoods,
             plain text for GTA cities without a guide. The listing detail page
             already links here; matching that pattern on the card passes link
             equity from /listings (the site's highest-traffic page) to the 24
@@ -287,28 +287,28 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         {/* The rent assumption every metric below is derived from. Hidden, a
             6.9% cap on a 7-bed detached reads as marketing math; shown with its
             main-unit + basement split, it's a claim an investor can check. This
-            is never gated — the assumption must be auditable even before signup,
+            is never gated - the assumption must be auditable even before signup,
             or the numbers aren't credible in the first place. */}
         <RentAssumption listing={listing} />
 
         {/* Metrics row */}
         <div className="relative">
           <div className="grid grid-cols-4 gap-2 rounded-lg bg-cloud p-2.5 text-center">
-            {/* dom 0 means UNKNOWN, not "listed today" — the feed withholds
+            {/* dom 0 means UNKNOWN, not "listed today" - the feed withholds
                 days-on-market on active listings (lib/listings/market-timing.js).
                 Printing a bare 0 read as "brand new" on every card. When the
                 real figure is missing we show a dash and, where we have it, the
                 honest thing we DO know: how long since the listing last changed. */}
             {/* Real DOM plain; otherwise the provable minimum as "N+" (on
-                market AT LEAST N days — see market-timing.js); dash when
+                market AT LEAST N days - see market-timing.js); dash when
                 nothing is known. Never a bare fabricated number. */}
             <div>
               <p className="text-[10px] font-medium uppercase text-slate-500">DOM</p>
               <p className="text-sm font-bold text-navy">
-                {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '—'}
+                {listing.dom >= 1 ? listing.dom : listing.domFloor >= 1 ? `${listing.domFloor}+` : '-'}
               </p>
             </div>
-            {/* CAP is never gated — see home-deal-cards: the same property's cap
+            {/* CAP is never gated - see home-deal-cards: the same property's cap
                 rate is printed elsewhere on the site, so locking it here showed
                 two answers for one property. Cash-on-cash and monthly cash flow
                 (the financed, assumption-heavy numbers) stay behind the gate. */}
@@ -319,7 +319,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             {isGated ? (
               <>
                 {/* This used to print the literal word "Free" in the value
-                    slot — same bold styling as a real number — so the row
+                    slot - same bold styling as a real number - so the row
                     read as "CoC: Free" / "Cash Flow/mo: Free", as if the
                     RETURN were free rather than the unlock being free. A
                     masked placeholder can't be misread as a figure. */}
@@ -348,14 +348,14 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
             )}
           </div>
 
-          {/* Gated CTA overlay — inline signup trigger */}
+          {/* Gated CTA overlay - inline signup trigger */}
           {isGated && (
             <div className="mt-1.5 text-center">
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onSignupClick?.(); }}
                 className="text-[11px] font-medium text-accent hover:text-accent/80 cursor-pointer bg-transparent border-none"
               >
-                See cash flow &amp; cash-on-cash — free, 10 sec →
+                See cash flow &amp; cash-on-cash - free, 10 sec →
               </button>
             </div>
           )}
@@ -365,12 +365,12 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
         {(listing.transitScore > 0 || listing.schoolScore > 0) && (
           <div className="mt-1.5 flex items-center gap-3 text-[10px] text-slate-500">
             {listing.transitScore > 0 && (
-              <span title="Transit Score — proximity to GO, LRT, MiWay, highways">
+              <span title="Transit Score - proximity to GO, LRT, MiWay, highways">
                 🚇 Transit: <span className="font-semibold text-navy">{listing.transitScore}/10</span>
               </span>
             )}
             {listing.schoolScore > 0 && (
-              <span title="School Score — school quality ratings in the area">
+              <span title="School Score - school quality ratings in the area">
                 🏫 Schools: <span className="font-semibold text-navy">{listing.schoolScore}/10</span>
               </span>
             )}
@@ -402,7 +402,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
           </div>
         )}
 
-        {/* Actions — always visible */}
+        {/* Actions - always visible */}
         <div className="mt-3 flex items-center justify-between">
           {/* Compare checkbox */}
           <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-500 hover:text-navy">

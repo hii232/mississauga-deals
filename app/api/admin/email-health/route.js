@@ -2,15 +2,15 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // Whether the daily alert emails are actually going out has been unverifiable
-// from inside the product — the only evidence lived in Vercel's cron logs and
+// from inside the product - the only evidence lived in Vercel's cron logs and
 // the Resend dashboard, so "are my emails sending?" needed someone to go and
 // look somewhere else. This route answers it from data the app already writes.
 //
 // The evidence is deliberately indirect but SOUND: alert_sent_listings rows are
 // written ONLY after Resend accepts a send (a rejected send stays eligible and
 // records nothing), so a recent row proves a real delivery. The one thing it
-// cannot prove is the reverse — a run where no subscriber had new matches
-// legitimately sends nothing and writes nothing — so this route reports that
+// cannot prove is the reverse - a run where no subscriber had new matches
+// legitimately sends nothing and writes nothing - so this route reports that
 // ambiguity instead of crying failure.
 
 const supabase =
@@ -30,7 +30,7 @@ export async function GET(request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Sender configuration. The key itself is never returned — only whether it
+  // Sender configuration. The key itself is never returned - only whether it
   // exists, and the from-address, which is public on every email anyway.
   const from = process.env.RESEND_FROM_EMAIL || null;
   const config = {
@@ -103,7 +103,7 @@ export async function GET(request) {
   let note = '';
   if (!config.resendConfigured) {
     status = 'critical';
-    note = 'RESEND_API_KEY is not set — no email can send at all.';
+    note = 'RESEND_API_KEY is not set - no email can send at all.';
   } else if (!subscribers) {
     status = 'idle';
     note = 'No saved searches yet, so there is nobody to send a daily alert to.';
@@ -111,11 +111,11 @@ export async function GET(request) {
     status = 'critical';
     note =
       `${subscribers} saved search${subscribers === 1 ? '' : 'es'} exist but no alert delivery has ever been recorded. ` +
-      'Either the cron is not firing or Resend is rejecting every send — check the run output at /api/alerts/send.';
+      'Either the cron is not firing or Resend is rejecting every send - check the run output at /api/alerts/send.';
   } else if (hoursSinceAlert > 48) {
     status = 'warn';
     note =
-      `Last recorded delivery was ${hoursSinceAlert} hours ago. This is only a problem if listings matched — ` +
+      `Last recorded delivery was ${hoursSinceAlert} hours ago. This is only a problem if listings matched - ` +
       'a run where no subscriber had a new match correctly sends nothing and records nothing.';
   } else {
     note = `Last recorded delivery ${hoursSinceAlert} hour${hoursSinceAlert === 1 ? '' : 's'} ago.`;

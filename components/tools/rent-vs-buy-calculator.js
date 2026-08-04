@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 
-// ─── Math helpers (self-contained — no server-side import) ────────────────────
+// ─── Math helpers (self-contained - no server-side import) ────────────────────
 
 /**
  * Canadian fixed-rate mortgages compound semi-annually.
@@ -15,7 +15,7 @@ function calcMortgagePayment(loanAmount, annualRate, amortYears) {
   return loanAmount * (em * Math.pow(1 + em, n)) / (Math.pow(1 + em, n) - 1);
 }
 
-/** Ontario LTT — marginal brackets as of 2025 */
+/** Ontario LTT - marginal brackets as of 2025 */
 function calcOntarioLTT(price) {
   let ltt = 0;
   if (price > 2000000) {
@@ -258,7 +258,7 @@ export default function RentVsBuyCalculator() {
                   Buying builds <strong>${fmt(calc.principalMo)}/mo</strong> in equity and your monthly wealth
                   advantage over renting is <strong>${fmt(calc.netMoGain)}/mo</strong>. At that rate,
                   the <strong>${fmt(calc.closingCosts)}</strong> in closing costs are recouped in roughly{' '}
-                  <strong>{calc.breakEvenYrs} years</strong> — after that, buying is clearly ahead.
+                  <strong>{calc.breakEvenYrs} years</strong> - after that, buying is clearly ahead.
                 </p>
               </>
             ) : (
@@ -267,7 +267,7 @@ export default function RentVsBuyCalculator() {
                   At these numbers, buying&apos;s non-recoverable costs (<strong>${fmt(calc.pureExpense)}/mo</strong> in
                   interest, tax, maintenance, and insurance) exceed the comparable rent plus equity built
                   (<strong>${fmt(calc.principalMo)}/mo</strong>). The gap is{' '}
-                  <strong>${fmt(Math.abs(calc.netMoGain))}/mo</strong> in renting&apos;s favour — buying only pulls
+                  <strong>${fmt(Math.abs(calc.netMoGain))}/mo</strong> in renting&apos;s favour - buying only pulls
                   ahead through <strong>price appreciation</strong>. Adjust the inputs or scroll up for guidance on
                   what changes the math.
                 </p>

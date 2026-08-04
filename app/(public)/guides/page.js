@@ -22,20 +22,20 @@ export const metadata = {
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
     images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: `Mississauga Real Estate Investor Guides (${YEAR})` }],
     title: `Mississauga Real Estate Investor Guides (${YEAR})`,
-    description: 'Free, honest guides for Mississauga real estate investors — cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
+    description: 'Free, honest guides for Mississauga real estate investors - cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
     url: `${BASE}/guides`,
   },
   twitter: {
     card: 'summary_large_image',
     title: `Mississauga Real Estate Investor Guides (${YEAR})`,
-    description: 'Free, honest guides for Mississauga real estate investors — cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
+    description: 'Free, honest guides for Mississauga real estate investors - cash flow, rent vs buy, townhouse vs condo, the LRT, and landlord insurance.',
     images: ['/opengraph-image'],
   },
 };
 
-// Hub-level FAQ — questions a visitor landing on /guides would ask.
+// Hub-level FAQ - questions a visitor landing on /guides would ask.
 // Distinct from the per-guide FAQs (each guide page carries its own).
-// Google requires these to be visible on the page — see the FAQ section below.
+// Google requires these to be visible on the page - see the FAQ section below.
 const GUIDES_FAQ = [
   {
     question: 'What real estate investor guides are available on this site?',
@@ -45,7 +45,7 @@ const GUIDES_FAQ = [
   {
     question: 'Are these Mississauga real estate investor guides free?',
     answer:
-      'Yes — every guide is free to read with no account required. The site is published by Hamza Nouman, a licensed Mississauga real estate Sales Representative, to help investors make more informed decisions.',
+      'Yes - every guide is free to read with no account required. The site is published by Hamza Nouman, a licensed Mississauga real estate Sales Representative, to help investors make more informed decisions.',
   },
   {
     question: 'Which guide should I read first as a new Mississauga investor?',
@@ -55,7 +55,7 @@ const GUIDES_FAQ = [
   {
     question: 'Do these guides include current 2026 Mississauga market data?',
     answer:
-      'Yes. The guides are updated for 2026 and reference current average prices, rent ranges, and financing assumptions. Each guide links to live tools — the mortgage calculator, the investor score, and neighbourhood data pages — so the numbers you act on reflect today\'s market.',
+      'Yes. The guides are updated for 2026 and reference current average prices, rent ranges, and financing assumptions. Each guide links to live tools - the mortgage calculator, the investor score, and neighbourhood data pages - so the numbers you act on reflect today\'s market.',
   },
   {
     question: 'Can I use these guides if I\'m investing outside Mississauga?',
@@ -94,7 +94,7 @@ export default function GuidesIndexPage() {
         compact
         eyebrow={`Mississauga · Investing · ${YEAR}`}
         title="Mississauga Real Estate Investor Guides"
-        subtitle="Straight-talking guides for Mississauga and GTA investors — real numbers, no fluff, each one links straight to the tools and listings so you can act on it."
+        subtitle="Straight-talking guides for Mississauga and GTA investors - real numbers, no fluff, each one links straight to the tools and listings so you can act on it."
       />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -112,7 +112,7 @@ export default function GuidesIndexPage() {
           ))}
         </div>
 
-        {/* FAQ section — content must be visible for FAQPage rich results (Google policy) */}
+        {/* FAQ section - content must be visible for FAQPage rich results (Google policy) */}
         <section className="mt-14" aria-label="Frequently asked questions about our investor guides">
           <h2 className="font-heading font-bold text-xl text-navy mb-6">Common Questions</h2>
           <div className="space-y-4">
@@ -131,7 +131,7 @@ export default function GuidesIndexPage() {
           </div>
         </section>
 
-        {/* Inline email capture — this is a search-traffic landing, so capture */}
+        {/* Inline email capture - this is a search-traffic landing, so capture */}
         <InlineCTA variant="newsletter" className="mt-12" />
 
         {/* CTA */}

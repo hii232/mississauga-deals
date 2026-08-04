@@ -1,5 +1,5 @@
 // The shared (auth) layout sets a static "Sign In" title (for /login), which
-// /signup inherited verbatim — every "Sign Up" page and CTA on the site sent
+// /signup inherited verbatim - every "Sign Up" page and CTA on the site sent
 // visitors to a page whose browser tab and SERP title said "Sign In". This
 // nested layout overrides just the title for this segment; /login keeps the
 // parent's "Sign In".

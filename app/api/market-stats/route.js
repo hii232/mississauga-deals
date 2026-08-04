@@ -8,7 +8,7 @@ import { computeScreenerMetrics } from '@/lib/listings/screener-metrics';
 
 export const dynamic = 'force-dynamic';
 
-// Which neighbourhoods to feature, and WHY — the editorial part. The `hood` key
+// Which neighbourhoods to feature, and WHY - the editorial part. The `hood` key
 // is the HOOD_DATA lookup; `name` is the display label, which differs for
 // Square One / City Centre. No prices here on purpose: see hotNeighbourhoods.
 const HOT_NEIGHBOURHOODS = [
@@ -42,16 +42,16 @@ export function tRREBFreshness(asOf, now = new Date()) {
     tRREBMonthsBehind: monthsBehind,
     tRREBIsStale: isStale,
     tRREBRefreshNote: isStale
-      ? `Need new market data — the TRREB Market Watch figures are ${monthsBehind} months behind. Upload the latest Market Watch PDF to refresh them.`
+      ? `Need new market data - the TRREB Market Watch figures are ${monthsBehind} months behind. Upload the latest Market Watch PDF to refresh them.`
       : null,
   };
 }
 
-// ── Mississauga monthly history — TRREB Market Watch ─────
+// ── Mississauga monthly history - TRREB Market Watch ─────
 // One row per published report, transcribed from the PDF (page 3, Mississauga
 // row). Nothing here is interpolated, smoothed or estimated: if a month has no
 // report on hand it is simply absent. Add older months by sending the matching
-// Market Watch PDF — see the refresh process in CLAUDE.md.
+// Market Watch PDF - see the refresh process in CLAUDE.md.
 const mississaugaMonthly = [
   { month: 'Feb 2026', report: 'MW2602', sales: 345, avgPrice: 963747,  medianPrice: 850000, newListings: 940,  activeListings: 1748, snlr: 32.4, monthsInventory: 5.2, spLp: 96, ldom: 36 },
   { month: 'Mar 2026', report: 'MW2603', sales: 452, avgPrice: 966615,  medianPrice: 860000, newListings: 1322, activeListings: 1933, snlr: 32.7, monthsInventory: 5.2, spLp: 97, ldom: 36 },
@@ -65,12 +65,12 @@ async function fetchLiveListingStats(baseUrl) {
   try {
     // THE SAME fetch path the /listings page uses (lib/listings/fetch-feed.js).
     // This function kept its own loop with limit=200 cache keys after the
-    // pages moved off them — and Next's Data Cache persists across deploys,
+    // pages moved off them - and Next's Data Cache persists across deploys,
     // so every stat here (activeCount, avgDOM, the radar) was computed from
     // PRE-FIX cached rows: avgDOM read 75 and every neighbourhood read
     // "Mississauga" while the live feed had long been fixed. One shared fetch
     // path means the stats and the pages can never read different data again.
-    // nomedia=1: a pure aggregate — this file computes counts, averages, the
+    // nomedia=1: a pure aggregate - this file computes counts, averages, the
     // radar and the screener summary, and reads no photo from any row. The
     // Media $expand is the dominant cost of a feed request, so asking for it
     // on a 25-page walk was buying ~450k media rows to throw all of them away.
@@ -85,7 +85,7 @@ async function fetchLiveListingStats(baseUrl) {
 
     // How much of the feed actually landed. On a cold fill some page fetches
     // time out and are skipped, so the first computation after a deploy can
-    // run on ~85% of the inventory — verified live: activeCount froze at
+    // run on ~85% of the inventory - verified live: activeCount froze at
     // 2,159 of ~2,555 under the 24h cache. The caller uses this to shorten
     // the cache on an incomplete fill so it self-heals in minutes instead of
     // publishing an undercount for a day.
@@ -95,7 +95,7 @@ async function fetchLiveListingStats(baseUrl) {
     const count = raw.length;
 
     // FIELD NAMES: /api/listings returns MAPPED listings (price, dom, type,
-    // subType) — not the raw MLS names (ListPrice, DaysOnMarket, PropertyType).
+    // subType) - not the raw MLS names (ListPrice, DaysOnMarket, PropertyType).
     // This code read the raw names, so every filter below matched NOTHING and
     // each "live" stat silently fell through to its fallback: avg DOM served a
     // hardcoded 28, avg price served the TRREB monthly figure, and every
@@ -110,12 +110,12 @@ async function fetchLiveListingStats(baseUrl) {
     const typeOf = (l) => `${l.type ?? l.PropertyType ?? ''} ${l.subType ?? l.PropertySubType ?? ''}`;
 
     // Compute avg DOM from active listings.
-    // dom 0 means UNKNOWN, not "listed today" — the feed withholds
+    // dom 0 means UNKNOWN, not "listed today" - the feed withholds
     // days-on-market on active listings (lib/listings/market-timing.js), so
     // every row currently arrives as 0. This used to accept 0 as a real value
     // (the filter only excluded null), which averaged a page of unknowns into a
     // confident-looking "Avg DOM" on the homepage stats bar and /market-pulse.
-    // The old `: 28` fallback was worse still — a hardcoded number published
+    // The old `: 28` fallback was worse still - a hardcoded number published
     // under a "Live MLS Data" label. Now: only genuine values count, and when
     // there are none the stat is null so every consumer omits the tile rather
     // than inventing one.
@@ -124,7 +124,7 @@ async function fetchLiveListingStats(baseUrl) {
       ? Math.round(withDom.reduce((s, l) => s + domOf(l), 0) / withDom.length)
       : null;
     // Median resists the long tail (a handful of 300+ day listings drags the
-    // mean) — for "how fast does inventory move" it is the honest headline.
+    // mean) - for "how fast does inventory move" it is the honest headline.
     const sortedDoms = withDom.map(domOf).sort((a, b) => a - b);
     const medianDOM = sortedDoms.length > 0
       ? (sortedDoms.length % 2
@@ -133,7 +133,7 @@ async function fetchLiveListingStats(baseUrl) {
       : null;
 
     // Average ACTIVE LIST price. It used to fall back to the latest TRREB
-    // monthly average when the feed returned nothing — but that figure is an
+    // monthly average when the feed returned nothing - but that figure is an
     // average SOLD price, a different measurement. The fallback therefore
     // published a sold average under a list-price label, and since the sold
     // tile reads from the same TRREB number the homepage showed "Avg Price"
@@ -148,7 +148,7 @@ async function fetchLiveListingStats(baseUrl) {
 
     // Classify each listing into exactly ONE bucket, most specific first.
     // Order matters: "Semi-Detached" contains the substring "Detached", and
-    // "Condo Townhouse" contains "Townhouse" — the previous independent
+    // "Condo Townhouse" contains "Townhouse" - the previous independent
     // substring filters double-counted semis as detached and condo-towns as
     // freehold towns, inflating both averages.
     function classify(l) {
@@ -180,7 +180,7 @@ async function fetchLiveListingStats(baseUrl) {
     // ── Motivated-seller radar (Hamza, 2026-07-27) ──
     // dom >= 60: sitting for two months. Computed across the WHOLE active
     // feed (this function pages all of it), never a single page. dom 0 means
-    // UNKNOWN and is excluded — a listing with no known age is never called
+    // UNKNOWN and is excluded - a listing with no known age is never called
     // stale. priceDrop is the mapped percentage discount from
     // OriginalListPrice, so > 0 means the seller has already cut at least 1%.
     const STALE_DOM = 60;
@@ -189,7 +189,7 @@ async function fetchLiveListingStats(baseUrl) {
     const stalePct = count > 0 ? Math.round((staleCount / count) * 1000) / 10 : 0;
     const cutOf = (l) => Number(l.priceDrop ?? l.priceReduction) || 0;
     const staleWithPriceCut = staleRows.filter((l) => cutOf(l) > 0).length;
-    // neighbourhood is the board's own community (CityRegion) — non-canonical
+    // neighbourhood is the board's own community (CityRegion) - non-canonical
     // names appear under their real label rather than being remapped.
     const staleByNeighbourhood = {};
     for (const l of staleRows) {
@@ -208,7 +208,7 @@ async function fetchLiveListingStats(baseUrl) {
     //
     // Why it matters: /listings streams the feed into the browser ~100 rows at
     // a time, and its dashboard used to compute "CF+ deals", "best cap", "best
-    // cash flow" and "price drops" over whatever had arrived — publishing "0
+    // cash flow" and "price drops" over whatever had arrived - publishing "0
     // cash flowing deals · best cash flow -$278/mo" at 30 of 2,493 rows, which
     // settled to "1 · +$41/mo" seconds later. Handing the page a correct
     // whole-market answer up front removes the lie AND the wait: the numbers
@@ -223,7 +223,7 @@ async function fetchLiveListingStats(baseUrl) {
         const deals = processListings(raw);
         if (deals.length > 0) screener = computeScreenerMetrics(deals);
       } catch (err) {
-        console.error('market-stats: screener aggregate failed —', err);
+        console.error('market-stats: screener aggregate failed -', err);
       }
     }
 
@@ -272,20 +272,20 @@ export async function GET() {
     ? +((100 + soldStats.avgNegotiationGap) / 100).toFixed(3)
     : 0.972;
 
-  // ── TRREB Market Watch June 2026 — Mississauga Sold Data ──
-  // Source: TRREB MW2606 (June 2026, released July 3 2026) — Mississauga rows on
+  // ── TRREB Market Watch June 2026 - Mississauga Sold Data ──
+  // Source: TRREB MW2606 (June 2026, released July 3 2026) - Mississauga rows on
   // pages 3 (all types), 7 (detached), 9 (semi), 11 (Att/Row/Townhouse), 15
-  // (condo apartment). Every figure below is copied straight from the report —
+  // (condo apartment). Every figure below is copied straight from the report -
   // nothing derived, nothing averaged across categories.
   //
   // `townhouse` is freehold Att/Row/Townhouse and `condo` is Condo Apartment,
   // matching how the live-listing buckets above are mapped. Condo Townhouse
   // (91 sales, $726,749 avg) and Link (1) are reported separately by TRREB and
-  // are intentionally not folded in here — merging them would mean averaging
+  // are intentionally not folded in here - merging them would mean averaging
   // medians, which isn't valid. `all` carries the true Mississauga total.
   //
   // yoy is TRREB's GTA-wide year-over-year change by home type (page 1). Market
-  // Watch does NOT publish a per-municipality YoY, so this is a GTA figure —
+  // Watch does NOT publish a per-municipality YoY, so this is a GTA figure -
   // never relabel it as Mississauga-specific.
   const tRREBSold = {
     all:          { sales: 567, avgPrice: 1014120, medianPrice: 880000,  yoy: -3.9 },
@@ -332,12 +332,12 @@ export async function GET() {
     // the radar below; the TRREB sold-market DOM figures keep their own
     // clearly-named fields (avgSoldDOM, mississaugaAvgLDOM/PDOM).
     medianDOM: liveListings?.medianDOM ?? null,
-    // Motivated-seller radar — whole-feed counts, see fetchLiveListingStats.
+    // Motivated-seller radar - whole-feed counts, see fetchLiveListingStats.
     staleCount: liveListings?.staleCount ?? 0,
     stalePct: liveListings?.stalePct ?? 0,
     staleWithPriceCut: liveListings?.staleWithPriceCut ?? 0,
     staleByNeighbourhood: liveListings?.staleByNeighbourhood ?? {},
-    // null (not a hardcoded 28) when the feed supplies no real days-on-market —
+    // null (not a hardcoded 28) when the feed supplies no real days-on-market -
     // consumers already omit the tile rather than print an invented figure.
     avgDOM: liveListings?.avgDOM ?? null,
     // LIVE list-price average only. Falling back to tRREBSold.all.avgPrice
@@ -348,7 +348,7 @@ export async function GET() {
     // substitution in its caption, so there it is disclosed, not disguised.)
     avgPrice: liveListings?.avgPrice || null,
     avgPrices,
-    // Whole-market Deal Screener aggregate (or null on a short fill) — see
+    // Whole-market Deal Screener aggregate (or null on a short fill) - see
     // fetchLiveListingStats. Consumed by the /listings server render so the
     // dashboard's set-dependent tiles are correct at first paint.
     screener: liveListings?.screener ?? null,
@@ -362,11 +362,11 @@ export async function GET() {
     tRREBMonth: 'June 2026',
     // Machine-readable as-of date for the monthly TRREB snapshot (last day of the
     // report month). Consumers use this to show honest "as of" labels and detect
-    // staleness — the monthly sold/volume/YoY figures are NOT live and must never
+    // staleness - the monthly sold/volume/YoY figures are NOT live and must never
     // be presented as today's numbers. Keep in sync with tRREBMonth above.
     tRREBAsOf: '2026-06-30',
     // Self-reporting staleness. TRREB publishes Market Watch in the first days of
-    // each month, and these figures can only be refreshed by hand from that PDF —
+    // each month, and these figures can only be refreshed by hand from that PDF -
     // which is exactly how they silently sat five months out of date. Anything
     // rendering this data can now SEE that it's old instead of trusting it, and
     // the admin dashboard surfaces a "need new market data" banner.
@@ -416,12 +416,12 @@ export async function GET() {
     },
     rates: {
       // IMPORTANT: the fixed rates TRREB reprints are the Bank of Canada
-      // CONVENTIONAL MORTGAGE series — i.e. POSTED rates. Posted rates run well
+      // CONVENTIONAL MORTGAGE series - i.e. POSTED rates. Posted rates run well
       // above the discounted contract rates a borrower is actually quoted (with
       // prime at 4.5%, nobody is signing a 6.09% five-year fixed). Never present
-      // these as "the rate you'll get" — label them posted wherever they render.
+      // these as "the rate you'll get" - label them posted wherever they render.
       posted: true,
-      // variable is NOT published in Market Watch — kept as a broker-sourced
+      // variable is NOT published in Market Watch - kept as a broker-sourced
       // estimate of a real contract rate, which is why it sits below the posted
       // fixed rates rather than above them.
       variable: 4.45,
@@ -434,7 +434,7 @@ export async function GET() {
       contractRateAssumption: DEFAULT_ASSUMPTIONS.annualInterestRate,
       // Federal stress test = greater of CONTRACT rate + 2% or 5.25%. It keys off
       // the contract rate, not the posted rate. This was hardcoded to 8.09
-      // (posted 6.09 + 2) — about 1.2 points too harsh — and that number was fed
+      // (posted 6.09 + 2) - about 1.2 points too harsh - and that number was fed
       // verbatim to every AI listing analysis and every generated blog post,
       // making qualifying look harder than it is.
       stressTest: +Math.max(DEFAULT_ASSUMPTIONS.annualInterestRate + 2, 5.25).toFixed(2),
@@ -447,7 +447,7 @@ export async function GET() {
     },
     // Prices come from HOOD_DATA, not from a second hardcoded copy. They used
     // to be typed here as well, and the two had drifted: Churchill Meadows was
-    // $1,100,000 here against $843,000 in HOOD_DATA — a 30% gap on the same
+    // $1,100,000 here against $843,000 in HOOD_DATA - a 30% gap on the same
     // figure. That matters because these rows are emailed: the weekly
     // newsletter renders them under "Where Prices Are Moving", so a subscriber
     // was told $1.1M and then landed on a neighbourhood guide saying $843K.
@@ -464,7 +464,7 @@ export async function GET() {
     // can say what they are rather than implying they are this month's live
     // average. The newsletter states it under the table.
     hotNeighbourhoodsAsOf: HOOD_OUTLOOK_AS_OF,
-    // Mississauga sales by home type — TRREB MW2606 (June 2026), the per-type
+    // Mississauga sales by home type - TRREB MW2606 (June 2026), the per-type
     // pages. The count key is `sales`, NOT a month name: baking "feb2026" into
     // the key is part of why nobody noticed this data had gone stale.
     salesByType: {
@@ -476,7 +476,7 @@ export async function GET() {
     },
     // Full monthly history, every row transcribed from a published TRREB Market
     // Watch report (the `report` field names the source issue). The previous
-    // series ran back to Apr 2025 on round invented numbers — those are gone
+    // series ran back to Apr 2025 on round invented numbers - those are gone
     // rather than left to be charted as if they were real. Extend backwards by
     // sending older Market Watch PDFs; never interpolate a missing month.
     mississaugaMonthly,
@@ -488,7 +488,7 @@ export async function GET() {
 
   return NextResponse.json(stats, {
     // 24h per spec when the fill is COMPLETE. An incomplete cold fill (page
-    // timeouts skipped — measured: 2,159 of 2,555 rows on the first run after
+    // timeouts skipped - measured: 2,159 of 2,555 rows on the first run after
     // deploy) gets 15 minutes instead, so the undercount self-heals on the
     // next request (the failed pages aren't cached, and by then the API is
     // warm) rather than being frozen into the daily numbers.

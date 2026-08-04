@@ -21,17 +21,17 @@ export const dynamic = 'force-dynamic';
 // Dated campaign id. Powers the approval token AND the broadcast_sends
 // idempotency guard, so this send can happen at most once.
 //
-// NOTE: this format is designed to repeat — the picks change every week — but
+// NOTE: this format is designed to repeat - the picks change every week - but
 // each edition must mint a NEW dated key (e.g. offer-picks-2026-W32).
 //
 // A daily cron (vercel.json) mails the approver a fresh draft until the
 // campaign sends; after the send, the broadcast_sends row turns the cron into
 // a silent no-op (remove the entry when convenient). The cron cannot cause a
-// duplicate: the send is FAIL-CLOSED on broadcast_sends — if the lock row
+// duplicate: the send is FAIL-CLOSED on broadcast_sends - if the lock row
 // cannot be written, the approve step refuses instead of sending unprotected.
 const CAMPAIGN = 'offer-picks-2026-08-01';
 
-// The email's primary CTA is "just reply to this email — it comes straight to
+// The email's primary CTA is "just reply to this email - it comes straight to
 // me." Without an explicit reply_to that is FALSE: replies land on the
 // from-address (notifications@…), not in Hamza's inbox. For a campaign whose
 // whole conversion mechanism is the reply, that is the difference between
@@ -57,7 +57,7 @@ function approvalToken() {
 // ── The picks, assembled live at compose time ────────────────────────────────
 // Listings come from /api/listings (live MLS), the offer anchors from
 // /api/market-stats' TRREB salesByType. The selection and the arithmetic live
-// in lib/emails/offer-picks-data.js, which is unit-tested — this function only
+// in lib/emails/offer-picks-data.js, which is unit-tested - this function only
 // fetches and hands off, so the numbers a subscriber sees are the ones the
 // tests cover.
 async function fetchPicks(origin) {
@@ -77,7 +77,7 @@ async function fetchPicks(origin) {
   const month = stats?.tRREBMonth;
   const monthsBehind = Number(stats?.tRREBMonthsBehind ?? 0);
   if (monthsBehind > 3) {
-    return { data: null, reason: `TRREB anchors are ${monthsBehind} months behind — too stale to price offers from` };
+    return { data: null, reason: `TRREB anchors are ${monthsBehind} months behind - too stale to price offers from` };
   }
 
   const picks = pickDeals(listings, salesByType, 3);
@@ -85,7 +85,7 @@ async function fetchPicks(origin) {
 }
 
 // Dev-only layout fixture for ?preview=1&sample=1. Addresses are stamped
-// SAMPLE deliberately — see the note at the preview branch. Never reachable in
+// SAMPLE deliberately - see the note at the preview branch. Never reachable in
 // production, and no code path other than that branch reads it.
 const SAMPLE_DATA = {
   month: 'June 2026',
@@ -144,7 +144,7 @@ async function sendEmail(to, subject, html, text) {
       // long-standing spam signal; filters expect a text part.
       ...(text ? { text } : {}),
       reply_to: REPLY_TO,
-      // Campaign tag — this is what the Resend webhook reads to attribute
+      // Campaign tag - this is what the Resend webhook reads to attribute
       // opens/clicks to a campaign. Subjects are generated from live data and
       // change between editions, so they are not a stable key.
       tags: [{ name: 'campaign', value: CAMPAIGN }],
@@ -171,21 +171,21 @@ button,a.btn{display:inline-block;background:#2563EB;color:#fff;border:none;curs
 }
 
 function approvalBanner(count, data, origin, guardReady) {
-  // Built from the origin actually serving this request — a draft generated on
+  // Built from the origin actually serving this request - a draft generated on
   // a preview deployment must approve on THAT preview, not on production.
   const url = `${origin}/api/broadcast/offer-picks?approve=1&t=${approvalToken()}`;
   const lines = data.picks.map((p) =>
-    `${p.listing.address} — ask $${Math.round(p.listing.price).toLocaleString('en-CA')}, `
+    `${p.listing.address} - ask $${Math.round(p.listing.price).toLocaleString('en-CA')}, `
     + `open $${Math.round(p.offer.offer).toLocaleString('en-CA')} (${p.offer.pctOfAsk}%), `
     + `${p.offer.dom}d${p.offer.priceDrop >= 1 ? `, cut ${p.offer.priceDrop}%` : ''}`
   ).join('<br>');
   return `<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto 4px;"><tr><td style="padding:16px 12px 0;">
   <table width="100%" cellpadding="0" cellspacing="0"><tr><td bgcolor="#FEF3C7" style="background:#FEF3C7;border:2px solid #F59E0B;border-radius:12px;padding:18px 22px;text-align:center;">
-    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT — waiting for your approval</div>
+    <div style="font-family:system-ui,sans-serif;font-size:14px;font-weight:800;color:#92400E;margin-bottom:4px;">&#9998; DRAFT - waiting for your approval</div>
     <div style="font-family:system-ui,sans-serif;font-size:12px;color:#92400E;margin-bottom:8px;">This is exactly what your <strong>${count}</strong> contact${count === 1 ? '' : 's'} will receive. Nothing sends until you click below.</div>
-    ${guardReady ? '' : `<div style="font-family:system-ui,sans-serif;font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin:0 0 8px;text-align:left;">&#9888; Duplicate-send protection is NOT active &mdash; the broadcast_sends table is missing in Supabase, and the send button below will REFUSE until it exists. Fix first: Supabase &rarr; SQL Editor &rarr; paste &amp; run:<pre style="background:#0F172A;color:#E2E8F0;padding:10px;border-radius:6px;font-size:11px;line-height:1.5;overflow:auto;margin:8px 0 0;">${BROADCAST_SENDS_SQL}</pre></div>`}
+    ${guardReady ? '' : `<div style="font-family:system-ui,sans-serif;font-size:12px;font-weight:700;color:#B91C1C;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:8px;padding:10px 12px;margin:0 0 8px;text-align:left;">&#9888; Duplicate-send protection is NOT active - the broadcast_sends table is missing in Supabase, and the send button below will REFUSE until it exists. Fix first: Supabase &rarr; SQL Editor &rarr; paste &amp; run:<pre style="background:#0F172A;color:#E2E8F0;padding:10px;border-radius:6px;font-size:11px;line-height:1.5;overflow:auto;margin:8px 0 0;">${BROADCAST_SENDS_SQL}</pre></div>`}
     <div style="font-family:system-ui,sans-serif;font-size:11px;color:#92400E;text-align:left;line-height:1.7;margin-bottom:8px;">
-      <strong>Check these three before sending — your name is on the offer numbers:</strong><br>${lines}
+      <strong>Check these three before sending - your name is on the offer numbers:</strong><br>${lines}
     </div>
     <div style="font-family:system-ui,sans-serif;font-size:11px;color:#92400E;margin-bottom:14px;">Offer anchors: TRREB ${data.month}. The send re-fetches listings and re-validates fresh.</div>
     <a href="${url}" style="display:inline-block;background:#0F2A4A;color:#ffffff;font-family:system-ui,sans-serif;font-size:14px;font-weight:700;padding:12px 26px;border-radius:8px;text-decoration:none;">Review &amp; Send to ${count} &#8594;</a>
@@ -224,7 +224,7 @@ export async function GET(request) {
       }
       // Layout review with no reachable feed. Dev-only, opt-in, and every
       // address is stamped SAMPLE so it cannot be mistaken for a real listing
-      // — which is the line that matters: inventing a PLAUSIBLE property to
+      // - which is the line that matters: inventing a PLAUSIBLE property to
       // preview an email that tells people what to bid is not acceptable, but
       // an obviously-fake one for checking padding is fine.
       if (searchParams.get('sample') === '1' && process.env.NODE_ENV === 'development') {
@@ -244,7 +244,7 @@ export async function GET(request) {
         // a plausible-looking property to preview the layout is not a thing
         // this file will do.
         return NextResponse.json(
-          { error: 'Cannot preview — live listings or TRREB anchors unavailable', detail: reason },
+          { error: 'Cannot preview - live listings or TRREB anchors unavailable', detail: reason },
           { status: 503 }
         );
       }
@@ -283,7 +283,7 @@ export async function GET(request) {
           `<h1>Send this week&rsquo;s picks?</h1>
            <p>It will go to <strong>${recipients.length} contact${recipients.length === 1 ? '' : 's'}</strong>, with listings and offer numbers re-fetched and re-validated live at send time. This can't be undone.</p>
            <form method="POST" action="/api/broadcast/offer-picks?approve=1&t=${approvalToken()}">
-             <button type="submit">Yes — Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
+             <button type="submit">Yes - Send to ${recipients.length} Contact${recipients.length === 1 ? '' : 's'}</button>
            </form>`
         ),
         { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
@@ -307,13 +307,13 @@ export async function GET(request) {
       return NextResponse.json({
         alreadySent: true,
         campaign: CAMPAIGN,
-        note: 'Campaign already sent — no draft emailed.',
+        note: 'Campaign already sent - no draft emailed.',
       });
     }
     const { data, reason } = await fetchPicks(selfOrigin(request));
     if (!data) {
       return NextResponse.json(
-        { error: 'Picks unavailable or failed validation — not drafting', detail: reason },
+        { error: 'Picks unavailable or failed validation - not drafting', detail: reason },
         { status: 500 }
       );
     }
@@ -322,7 +322,7 @@ export async function GET(request) {
     const draftHtml = approvalBanner(recipients.length, data, selfOrigin(request), probe.guardReady) + html;
     const ok = await sendEmail(
       APPROVER,
-      `[APPROVE] This week's picks — send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
+      `[APPROVE] This week's picks - send to ${recipients.length} contact${recipients.length === 1 ? '' : 's'}?`,
       draftHtml,
       buildOfferPicksText({ email: APPROVER, name: 'Hamza', data })
     );
@@ -331,7 +331,7 @@ export async function GET(request) {
       mode: 'draft-for-approval',
       draftSentTo: APPROVER,
       guardReady: probe.guardReady,
-      ...(probe.guardReady ? {} : { warning: 'broadcast_sends missing — the send will refuse until the migration runs. The draft explains the fix.' }),
+      ...(probe.guardReady ? {} : { warning: 'broadcast_sends missing - the send will refuse until the migration runs. The draft explains the fix.' }),
       recipients: recipients.length,
       picks: data.picks.map((p) => ({
         address: p.listing.address, ask: p.listing.price,
@@ -345,7 +345,7 @@ export async function GET(request) {
   }
 }
 
-// ── POST ?approve=1&t=... — the approved send ─────────────────────────────────
+// ── POST ?approve=1&t=... - the approved send ─────────────────────────────────
 export async function POST(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -362,18 +362,18 @@ export async function POST(request) {
     }
 
     // Re-fetch and re-validate BEFORE the idempotency guard burns the one shot
-    // this campaign gets. Listings go stale fast — a property sold since the
+    // this campaign gets. Listings go stale fast - a property sold since the
     // draft must not be mailed out with an offer number attached.
     const { data, reason } = await fetchPicks(selfOrigin(request));
     if (!data) {
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked — picks failed validation</h1><p>${reason || 'Live listings or the TRREB anchors were unavailable.'} Nothing was sent.</p>`),
+        htmlPage('Not sent', `<h1>Send blocked - picks failed validation</h1><p>${reason || 'Live listings or the TRREB anchors were unavailable.'} Nothing was sent.</p>`),
         { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
       );
     }
 
     // FAIL-CLOSED idempotency. The old behaviour proceeded without the guard
-    // when broadcast_sends was missing — and the table was in fact missing,
+    // when broadcast_sends was missing - and the table was in fact missing,
     // which is how this database got the same campaign twice. The mass-send
     // now happens ONLY if the lock row was actually written.
     const lock = await acquireSendLock(supabase, CAMPAIGN, APPROVER);
@@ -385,7 +385,7 @@ export async function POST(request) {
     }
     if (lock.outcome !== 'acquired') {
       return new Response(
-        htmlPage('Not sent', `<h1>Send blocked &mdash; duplicate protection unavailable</h1>
+        htmlPage('Not sent', `<h1>Send blocked - duplicate protection unavailable</h1>
          <p>The broadcast_sends table could not be written (${String(lock.detail || '').replace(/[<>&]/g, ' ')}), so nothing is stopping this campaign from going out twice. <strong>Nothing was sent.</strong></p>
          <p>Run this once in Supabase &rarr; SQL Editor, then click the approve button again:</p>
          <pre style="text-align:left;background:#0F172A;color:#E2E8F0;padding:14px;border-radius:8px;font-size:12px;line-height:1.5;overflow:auto;">${BROADCAST_SENDS_SQL}</pre>`),
@@ -407,7 +407,7 @@ export async function POST(request) {
         'Sent',
         `<h1>&#127881; Sent to ${bulk.sent} contact${bulk.sent === 1 ? '' : 's'}</h1>
          <p>${bulk.failed || bulk.remaining.length
-            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted &mdash; the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
+            ? `<strong>${bulk.failed} failed${bulk.remaining.length ? `, ${bulk.remaining.length} not attempted - the run hit its time limit` : ''}.</strong> ${Object.entries(bulk.reasons).map(([st, v]) => `HTTP ${st} &times;${v.count}`).join(', ') || ''} Re-approve to send the rest.`
             : 'Every email went out successfully.'}</p>
          <a class="btn" href="https://www.mississaugainvestor.ca/admin">Open Admin</a>`
       ),

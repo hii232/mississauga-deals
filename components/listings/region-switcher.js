@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 
-// GTA city grouping — mirrors the header GTA mega-menu (header.js GTA_GROUPS).
+// GTA city grouping - mirrors the header GTA mega-menu (header.js GTA_GROUPS).
 // Kept here so the switcher is self-contained; keep the two in sync.
 const GTA_GROUPS = [
   { region: 'Peel', cities: ['Brampton', 'Caledon'] },
@@ -20,7 +20,7 @@ function cityValue(city) {
 }
 
 /**
- * Region switcher — lets a visitor jump between Mississauga (the flagship
+ * Region switcher - lets a visitor jump between Mississauga (the flagship
  * /listings page), All GTA, and any individual GTA city (the /gta?city= pages)
  * from one control. No feed change: it just navigates to the right existing
  * page, each of which keeps its own SEO.

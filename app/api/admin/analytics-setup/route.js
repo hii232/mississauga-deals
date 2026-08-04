@@ -36,7 +36,7 @@ CREATE INDEX IF NOT EXISTS email_events_type_idx ON email_events (type);
 CREATE INDEX IF NOT EXISTS email_events_occurred_idx ON email_events (occurred_at DESC);`;
 
 
-// The deal-alert repeat-send guard. NOT analytics — an ACTIVE defect: while
+// The deal-alert repeat-send guard. NOT analytics - an ACTIVE defect: while
 // this table is absent the daily alert route logs "repeat-send guard
 // unavailable" and sends anyway, so the DOM<=3 "new listing" window lets the
 // same property headline a subscriber's alert up to four days running. That is
@@ -44,7 +44,7 @@ CREATE INDEX IF NOT EXISTS email_events_occurred_idx ON email_events (occurred_a
 //
 // Differs from supabase/migrations/create_alert_sent_listings.sql in one way,
 // deliberately: that file ends with a bare CREATE POLICY, and Postgres has no
-// CREATE POLICY IF NOT EXISTS — so re-running it errors on an existing policy.
+// CREATE POLICY IF NOT EXISTS - so re-running it errors on an existing policy.
 // DROP POLICY IF EXISTS first makes this safe to paste twice, which matters
 // when it's being pasted on a phone.
 export const ALERT_SENT_LISTINGS_SQL = `CREATE TABLE IF NOT EXISTS alert_sent_listings (
@@ -86,7 +86,7 @@ async function tableStatus(name) {
  *
  * The field names differ between Resend's list and detail shapes depending on
  * API version, so accept either spelling rather than reporting "off" for a
- * setting that is actually on — a false "off" here would send Hamza to toggle
+ * setting that is actually on - a false "off" here would send Hamza to toggle
  * something that's already correct.
  */
 function readTracking(d) {
@@ -110,7 +110,7 @@ async function resendDomain() {
     if (!match) return { ok: false, detail: `No domain found in Resend matching ${want}` };
 
     // The LIST response is a summary (id / name / status) and does not carry
-    // the tracking flags — reading them from here yielded null, which this
+    // the tracking flags - reading them from here yielded null, which this
     // route then honestly reported as "unknown" even after a PATCH that Resend
     // had accepted. The flags live on the per-domain DETAIL endpoint, so fetch
     // that and prefer it; fall back to whatever the list gave if the detail
@@ -130,7 +130,7 @@ async function resendDomain() {
         if (t.open !== null || t.click !== null) { tracking = t; source = 'detail'; }
       }
     } catch {
-      // Detail lookup is best-effort — the list values (or nulls) stand.
+      // Detail lookup is best-effort - the list values (or nulls) stand.
     }
     return { ok: true, id: match.id, name: match.name, status: match.status, source, ...tracking };
   } catch (e) {
@@ -162,8 +162,8 @@ export async function GET(request) {
       how: 'Supabase → SQL Editor → paste & Run',
       sql: ALERT_SENT_LISTINGS_SQL,
       detail: alerts.ok
-        ? 'active — subscribers will not be re-sent the same listing'
-        : 'MISSING — daily alerts are sending with no repeat-send guard, so the same listing can headline a subscriber\u2019s alert up to 4 days running',
+        ? 'active - subscribers will not be re-sent the same listing'
+        : 'MISSING - daily alerts are sending with no repeat-send guard, so the same listing can headline a subscriber\u2019s alert up to 4 days running',
     },
     {
       key: 'email_events',
@@ -186,12 +186,12 @@ export async function GET(request) {
       envVar: 'RESEND_WEBHOOK_SECRET',
       detail: process.env.RESEND_WEBHOOK_SECRET
         ? 'secret is set'
-        : 'RESEND_WEBHOOK_SECRET not set — the endpoint rejects everything until it is',
+        : 'RESEND_WEBHOOK_SECRET not set - the endpoint rejects everything until it is',
     },
     {
       key: 'tracking',
       title: 'Open & click tracking',
-      // Unknown (null) is NOT done — never claim a setting is on when the API
+      // Unknown (null) is NOT done - never claim a setting is on when the API
       // didn't say so.
       done: domain.ok && domain.open === true && domain.click === true,
       manual: false,
@@ -200,7 +200,7 @@ export async function GET(request) {
         ? (domain.detail || 'could not read domain from Resend')
         : `${domain.name}: opens ${domain.open === true ? 'ON' : domain.open === false ? 'OFF' : 'unknown'}, clicks ${domain.click === true ? 'ON' : domain.click === false ? 'OFF' : 'unknown'}`
           + (domain.open === null || domain.click === null
-              ? ' — Resend did not report these flags, so this may already be ON; confirm in Resend → Domains'
+              ? ' - Resend did not report these flags, so this may already be ON; confirm in Resend → Domains'
               : ''),
     },
     {
@@ -218,7 +218,7 @@ export async function GET(request) {
     steps,
     allDone: steps.every((s) => s.done),
     webhookUrl: `${SITE}/api/webhooks/resend`,
-    note: 'Tracking is not retroactive — a campaign sent while it is off has no open data, permanently.',
+    note: 'Tracking is not retroactive - a campaign sent while it is off has no open data, permanently.',
   });
 }
 
@@ -227,7 +227,7 @@ export async function GET(request) {
  *
  * Flips open + click tracking ON for the sending domain via the Resend API,
  * using the key the app already holds. This is the one setup step that can be
- * done without a dashboard — but it is still a deliberate button press rather
+ * done without a dashboard - but it is still a deliberate button press rather
  * than something the status GET does on its own, because it changes settings
  * on Hamza's Resend account.
  *
@@ -268,7 +268,7 @@ export async function POST(request) {
     }, { status: 502 });
   }
 
-  // Re-read rather than trusting the write — the panel should reflect what
+  // Re-read rather than trusting the write - the panel should reflect what
   // Resend actually reports now, not what we asked for.
   const after = await resendDomain();
   return NextResponse.json({

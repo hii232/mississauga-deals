@@ -11,12 +11,12 @@ import { READ_ONLY_HEADER } from '@/lib/listings/gta-screener';
 import { slugifyPlace } from '@/lib/utils/format';
 import { getTaxRate, hasExplicitTaxRate } from '@/lib/constants';
 
-// Room for the 25s cache-seeding feed fetch below — without this the page
+// Room for the 25s cache-seeding feed fetch below - without this the page
 // function itself can be killed at the platform default before the fetch
 // resolves, which reproduces the empty shell with a longer fuse.
 export const maxDuration = 60;
 
-// 5-question FAQ for the /gta hub — DELIBERATELY DISTINCT from /listings FAQ
+// 5-question FAQ for the /gta hub - DELIBERATELY DISTINCT from /listings FAQ
 // (which covers: down payment 20%, closing costs, legal suites, Mississauga
 // neighbourhoods). FAQPage schema requires every answer to be visible on the
 // page; the card grid below renders all five verbatim. Questions target
@@ -30,17 +30,17 @@ const GTA_FAQ = [
   {
     question: 'Does Toronto charge an extra land transfer tax on investment properties?',
     answer:
-      "Yes. The City of Toronto and its amalgamated districts (Etobicoke, North York, Scarborough, East York and York) levy a Municipal Land Transfer Tax (MLTT) on top of Ontario's provincial LTT — roughly doubling the land-transfer cost. On a $1,000,000 purchase the provincial tax alone is approximately $16,475; Toronto's MLTT adds another $16,475, for a combined total of roughly $33,000. Every Toronto-area listing on this site includes both taxes in its closing-cost and cash-on-cash return calculation.",
+      "Yes. The City of Toronto and its amalgamated districts (Etobicoke, North York, Scarborough, East York and York) levy a Municipal Land Transfer Tax (MLTT) on top of Ontario's provincial LTT - roughly doubling the land-transfer cost. On a $1,000,000 purchase the provincial tax alone is approximately $16,475; Toronto's MLTT adds another $16,475, for a combined total of roughly $33,000. Every Toronto-area listing on this site includes both taxes in its closing-cost and cash-on-cash return calculation.",
   },
   {
     question: 'How do property tax rates affect cash-flow estimates across GTA cities?',
     answer:
-      "Each listing's cash flow, cap rate and Deal Score are costed with that city's researched municipal property tax rate — a real carrying cost most listing sites leave out. Rates vary widely: Toronto is the lowest at 0.63%; Mississauga is 0.84%; Brampton is 1.13%; Oshawa is the highest at 1.31%. On a $900,000 property, the difference between a Toronto listing (0.63% ≈ $472/mo) and an Oshawa listing (1.31% ≈ $983/mo) is over $500 per month of added carrying cost — a difference that shows up directly in the cash flow figures on each listing card.",
+      "Each listing's cash flow, cap rate and Deal Score are costed with that city's researched municipal property tax rate - a real carrying cost most listing sites leave out. Rates vary widely: Toronto is the lowest at 0.63%; Mississauga is 0.84%; Brampton is 1.13%; Oshawa is the highest at 1.31%. On a $900,000 property, the difference between a Toronto listing (0.63% ≈ $472/mo) and an Oshawa listing (1.31% ≈ $983/mo) is over $500 per month of added carrying cost - a difference that shows up directly in the cash flow figures on each listing card.",
   },
   {
     question: 'Are Deal Scores calculated the same way across all GTA cities?',
     answer:
-      'Yes — the Deal Score algorithm, weights and assumptions are identical for every city. The per-city inputs that differ are: the municipal property tax rate (researched for each municipality), the rent estimate (calibrated to local market levels rather than Mississauga rents), and closing costs (which include Toronto\'s Municipal Land Transfer Tax for Toronto-area listings). A 7/10 in Brampton and a 7/10 in Mississauga are genuinely comparable scores built on the same model with city-appropriate inputs.',
+      'Yes - the Deal Score algorithm, weights and assumptions are identical for every city. The per-city inputs that differ are: the municipal property tax rate (researched for each municipality), the rent estimate (calibrated to local market levels rather than Mississauga rents), and closing costs (which include Toronto\'s Municipal Land Transfer Tax for Toronto-area listings). A 7/10 in Brampton and a 7/10 in Mississauga are genuinely comparable scores built on the same model with city-appropriate inputs.',
   },
   {
     question: 'How are rents estimated for GTA investment properties outside Mississauga?',
@@ -60,8 +60,8 @@ export function cityToSlug(city) {
 // Exported so the sitemap and gta/[city]/page.js can reference each city.
 // `place` is the one genuinely city-specific clause each page gets: the named
 // communities, transit line or landmark that actually distinguishes this
-// municipality from its 27 siblings. It is deliberately QUALITATIVE — real
-// place names, GO/subway lines, geography, institutions — and contains no
+// municipality from its 27 siblings. It is deliberately QUALITATIVE - real
+// place names, GO/subway lines, geography, institutions - and contains no
 // statistic, price or count, because nothing on this page can source one.
 // (Rents, tax and market figures come from lib/constants.js and the feed;
 // they are never restated here.) `sub` below is composed from it.
@@ -97,11 +97,11 @@ export const CITY_COPY = {
 };
 
 // These 27 `sub` strings were templated twice over. First they were all
-// "Active {city} listings — scored and analyzed"; an earlier pass rebuilt them
-// as "Active {city} listings in {region} — cash flow, cap rate and deal score
+// "Active {city} listings - scored and analyzed"; an earlier pass rebuilt them
+// as "Active {city} listings in {region} - cash flow, cap rate and deal score
 // costed with {city}'s {rate}% property tax", which swapped in a REAL figure
 // but still left 27 descriptions identical apart from a city name, a region
-// and a percentage — and byte-identical for the five Toronto districts (all
+// and a percentage - and byte-identical for the five Toronto districts (all
 // 0.63%) and the three Hamilton communities (all 1.26%), since those share
 // their parent city's rate. Used as the meta description, the OG/Twitter
 // description AND the visible hero subtitle, that is the near-duplicate,
@@ -109,8 +109,8 @@ export const CITY_COPY = {
 // the sitemap submits at priority 0.7.
 //
 // Now the distinguishing content leads: each page opens with its own `place`
-// clause (real communities/transit/geography, above), and the tax rate — still
-// read from the SAME table the cash-flow engine uses, never restated by hand —
+// clause (real communities/transit/geography, above), and the tax rate - still
+// read from the SAME table the cash-flow engine uses, never restated by hand -
 // follows as the differentiator. A city without its own researched rate (King)
 // gets no rate rather than a fabricated one. Toronto keeps its hand-written
 // aggregate copy: it already names five sub-areas and is unique as written.
@@ -119,12 +119,12 @@ Object.keys(CITY_COPY).forEach((city) => {
   if (!copy.place) return;
   const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
   copy.sub = rate
-    ? `Active ${city} listings ${copy.place} — deal scores, cash flow and cap rates costed at ${(rate * 100).toFixed(2)}% property tax.`
-    : `Active ${city} listings ${copy.place} — every listing scored for cash flow, cap rate and deal quality.`;
+    ? `Active ${city} listings ${copy.place} - deal scores, cash flow and cap rates costed at ${(rate * 100).toFixed(2)}% property tax.`
+    : `Active ${city} listings ${copy.place} - every listing scored for cash flow, cap rate and deal quality.`;
 });
 
 // Region display order for the hub's city directory. Any region that appears
-// in CITY_COPY but is missing here still renders — appended after these — so a
+// in CITY_COPY but is missing here still renders - appended after these - so a
 // new region can never silently drop its cities out of the directory.
 const REGION_ORDER = [
   'City of Toronto',
@@ -140,7 +140,7 @@ const REGION_ORDER = [
  *
  * The hub already DECLARES all 28 city pages in its ItemList JSON-LD, but it
  * linked only the nine hero chips: measured on the built hub HTML, 9 anchors
- * against 28 schema URLs. Structured data is not a crawl path — anchors are.
+ * against 28 schema URLs. Structured data is not a crawl path - anchors are.
  * The nineteen unlinked pages included the five Toronto districts and three
  * Hamilton communities, whose only inbound links anywhere on the site were the
  * sibling lists on their own parent-city page (the header mega-menu renders
@@ -150,8 +150,8 @@ const REGION_ORDER = [
  * reachable from the hub that advertises them rather than sitting three clicks
  * deep behind a dropdown.
  *
- * Groups are derived from CITY_COPY.region — the same object the ItemList and
- * the sitemap iterate — so the visible list cannot drift from either.
+ * Groups are derived from CITY_COPY.region - the same object the ItemList and
+ * the sitemap iterate - so the visible list cannot drift from either.
  */
 export function GtaMarketDirectory() {
   const regions = Object.keys(CITY_COPY).map((c) => CITY_COPY[c].region);
@@ -172,7 +172,7 @@ export function GtaMarketDirectory() {
         Investment properties by GTA municipality
       </h2>
       <p className="mt-1 text-sm text-slate-600">
-        Every market this site scores — {Object.keys(CITY_COPY).length} city and district pages, each with
+        Every market this site scores - {Object.keys(CITY_COPY).length} city and district pages, each with
         its own listings, municipal property tax rate and cash-flow analysis.
       </p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -183,7 +183,7 @@ export function GtaMarketDirectory() {
             </h3>
             <ul className="mt-2 space-y-1 text-sm">
               {/* Mississauga is in Peel but has its own flagship page, not a
-                  /gta/[city] one — a Peel list without it reads as an omission. */}
+                  /gta/[city] one - a Peel list without it reads as an omission. */}
               {g.region === 'Peel Region' && (
                 <li>
                   <Link
@@ -216,13 +216,13 @@ export function GtaMarketDirectory() {
 // Server-rendered, genuinely per-city content for the 28 indexable
 // /gta?city= pages. Before this, everything below each page's h1 + one-line
 // subtitle was byte-identical across all 28 (the listings themselves are
-// client-fetched, so a crawler saw only skeletons) — 28 near-duplicate thin
+// client-fetched, so a crawler saw only skeletons) - 28 near-duplicate thin
 // pages, which is why they sit unranked despite unique titles.
 //
 // Every figure here is READ from the same constants the cash-flow engine uses,
 // never restated by hand, so this copy can't drift from the numbers on the
 // cards. The tax rate prints only when the municipality has its own researched
-// rate — a city on the generic fallback shows no rate rather than a fake one.
+// rate - a city on the generic fallback shows no rate rather than a fake one.
 export function CityInvestorNotes({ city, copy }) {
   const rate = hasExplicitTaxRate(city) ? getTaxRate(city) : null;
   const siblings = Object.keys(CITY_COPY).filter(
@@ -232,7 +232,7 @@ export function CityInvestorNotes({ city, copy }) {
   const faqItems = [];
   faqItems.push({
     question: `What investment metrics does MississaugaInvestor.ca show for ${city} properties?`,
-    answer: `Each ${city} listing includes a Deal Score (1–10), estimated monthly cash flow, cap rate, and cash-on-cash return. All figures use a 20% down payment, the Bank of Canada 5-year stress-test rate, and ${city}'s ${rate ? `${(rate * 100).toFixed(2)}%` : 'actual'} municipal property tax rate — costs most listing sites leave out. ${city} is part of ${copy.region}${copy.place ? `, and the listings here run ${copy.place}` : ''}.`,
+    answer: `Each ${city} listing includes a Deal Score (1–10), estimated monthly cash flow, cap rate, and cash-on-cash return. All figures use a 20% down payment, the Bank of Canada 5-year stress-test rate, and ${city}'s ${rate ? `${(rate * 100).toFixed(2)}%` : 'actual'} municipal property tax rate - costs most listing sites leave out. ${city} is part of ${copy.region}${copy.place ? `, and the listings here run ${copy.place}` : ''}.`,
   });
   if (rate) {
     faqItems.push({
@@ -244,7 +244,7 @@ export function CityInvestorNotes({ city, copy }) {
     const sibSample = siblings.slice(0, 4).join(', ');
     faqItems.push({
       question: `How does ${city} compare to other ${copy.region} investment markets?`,
-      answer: `${city} is one of ${siblings.length + 1} ${copy.region} markets tracked on this site. You can also browse listings in ${sibSample}${siblings.length > 4 ? ' and others' : ''} — each with the same deal scoring and cash-flow analysis.`,
+      answer: `${city} is one of ${siblings.length + 1} ${copy.region} markets tracked on this site. You can also browse listings in ${sibSample}${siblings.length > 4 ? ' and others' : ''} - each with the same deal scoring and cash-flow analysis.`,
     });
   }
 
@@ -255,12 +255,12 @@ export function CityInvestorNotes({ city, copy }) {
       <h2 className="font-heading text-lg font-bold text-navy">Investing in {city}</h2>
       <p className="mt-2 text-sm leading-relaxed text-muted">
         {city} is part of {copy.region}
-        {copy.place ? <> — listings here run {copy.place}</> : null}.{' '}
+        {copy.place ? <> - listings here run {copy.place}</> : null}.{' '}
         {rate ? (
           <>
             Cash flow, cap rate and deal score here are costed with {city}&rsquo;s{' '}
             <strong className="font-semibold text-navy">{(rate * 100).toFixed(2)}%</strong> property tax rate whenever a
-            listing doesn&rsquo;t report its own tax figure — municipal tax varies widely across the GTA, and it is a real
+            listing doesn&rsquo;t report its own tax figure - municipal tax varies widely across the GTA, and it is a real
             monthly cost most listing sites leave out entirely.
           </>
         ) : (
@@ -269,7 +269,7 @@ export function CityInvestorNotes({ city, copy }) {
             including property tax, insurance and maintenance as monthly costs.
           </>
         )}{' '}
-        {/* "an Oshawa/Ajax/Aurora/Ancaster/East York listing", not "a Oshawa listing" — five of the
+        {/* "an Oshawa/Ajax/Aurora/Ancaster/East York listing", not "a Oshawa listing" - five of the
             28 city names start with a vowel and read as a typo without the article agreeing. */}
         Rents are estimated per city, so {/^[AEIOU]/.test(city) ? 'an' : 'a'} {city} listing is not scored on
         Mississauga rent assumptions.
@@ -312,28 +312,28 @@ export function CityInvestorNotes({ city, copy }) {
 }
 
 // Per-city metadata is generated in gta/[city]/page.js. This export covers
-// only the /gta hub view — any ?city= request is immediately redirected before
+// only the /gta hub view - any ?city= request is immediately redirected before
 // a search engine ever reads these tags.
 export function generateMetadata() {
   return {
-    title: { absolute: 'GTA Investment Properties — Scored for Cash Flow' },
+    title: { absolute: 'GTA Investment Properties - Scored for Cash Flow' },
     description:
-      'Investment properties across the GTA — Toronto, Brampton, Vaughan, Oakville and Hamilton — each scored for cash flow, cap rate and deal quality.',
+      'Investment properties across the GTA - Toronto, Brampton, Vaughan, Oakville and Hamilton - each scored for cash flow, cap rate and deal quality.',
     alternates: { canonical: '/gta' },
     openGraph: {
-      title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
-      description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
+      title: 'GTA Investment Properties - Toronto, Brampton, Vaughan & More',
+      description: 'Scored investment properties across the Greater Toronto Area - cash flow, cap rates, and deal scores on thousands of listings.',
       url: 'https://www.mississaugainvestor.ca/gta',
       // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More' }],
+      images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'GTA Investment Properties - Toronto, Brampton, Vaughan & More' }],
     },
     // Next.js REPLACES (not merges) the root layout twitter object when a page
-    // defines its own openGraph — without an explicit twitter block the /gta hub
+    // defines its own openGraph - without an explicit twitter block the /gta hub
     // shares text-only on X/Twitter/Slack/iMessage.
     twitter: {
       card: 'summary_large_image',
-      title: 'GTA Investment Properties — Toronto, Brampton, Vaughan & More',
-      description: 'Scored investment properties across the Greater Toronto Area — cash flow, cap rates, and deal scores on thousands of listings.',
+      title: 'GTA Investment Properties - Toronto, Brampton, Vaughan & More',
+      description: 'Scored investment properties across the Greater Toronto Area - cash flow, cap rates, and deal scores on thousands of listings.',
       images: ['/opengraph-image'],
     },
   };
@@ -343,8 +343,8 @@ export function generateMetadata() {
 // client-only in the first place handled explicitly rather than avoided.
 //
 // The original note was right that the WHOLE-GTA query (30+ cities) can be
-// slow. So: the fetch is capped by AbortSignal.timeout and any failure — slow
-// feed, upstream error, abort — returns [] and hands rendering back to
+// slow. So: the fetch is capped by AbortSignal.timeout and any failure - slow
+// feed, upstream error, abort - returns [] and hands rendering back to
 // ListingsContainer's own client fetch, which is exactly today's behaviour.
 // The server render can therefore never hang the page; the upside is that when
 // the feed answers in time (the normal case, and always for the single-city
@@ -358,7 +358,7 @@ export async function fetchGtaListings(city) {
   // 25s. Verified against production runtime logs: the GTA feed call answers
   // 200 every time but takes LONGER than the old timeout on a cache-seeding
   // render (24.5k-row filter + $count + media expand + the field probe on a
-  // cold API instance) — so the SSR fetch aborted, the page shipped an empty
+  // cold API instance) - so the SSR fetch aborted, the page shipped an empty
   // shell, and the API logged a 200 nobody consumed. With the fetch cached at
   // revalidate 300 and served stale-while-revalidate, exactly ONE render per
   // 5 minutes pays this budget; every other render gets the cached rows
@@ -367,7 +367,7 @@ export async function fetchGtaListings(city) {
   const timeoutMs = 25000;
   try {
     // Origin WITHOUT request APIs. The old `headers()` call here marked every
-    // consumer dynamic — and because this try/catch swallowed the
+    // consumer dynamic - and because this try/catch swallowed the
     // DynamicServerError that headers() throws during prerender, all 28
     // /gta/[city] SSG pages were silently baked with `{ listings: [] }`:
     // permanently empty server HTML on the exact landing pages the sitemap
@@ -379,23 +379,23 @@ export async function fetchGtaListings(city) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
     const qs = city ? `&city=${encodeURIComponent(city)}` : '';
-    // Shared feed fetch — see lib/listings/fetch-feed.js.
+    // Shared feed fetch - see lib/listings/fetch-feed.js.
     //
     // limit = SSR_CARD_ROWS (30), not the default 100. This fetch was asking
-    // for 100 rows and then handing exactly 30 to slimForSSR — 70 rows of pure
+    // for 100 rows and then handing exactly 30 to slimForSSR - 70 rows of pure
     // waste on the single call that was blowing its 25s budget. Runtime logs
     // showed `fetch-feed: /api/listings-gta page 1 failed (TimeoutError)` on
     // essentially every /gta/[city] regeneration, so all 28 city pages baked
     // their hero/FAQ/schema with ZERO server-rendered listings (real visitors
-    // still got them from the client fetch — an SEO gap, not a broken page).
+    // still got them from the client fetch - an SEO gap, not a broken page).
     // Row count is the lever that matters here: the Media $expand returns
     // roughly 5 CDN size-variants per photo, so the payload is dominated by
-    // media rows and falls with $top more or less linearly — a 100-row GTA
+    // media rows and falls with $top more or less linearly - a 100-row GTA
     // page drags ~18k media rows, 30 rows drags ~5.4k. Nothing rendered
     // changes: the server paints 30 cards either way, `total`/`browsableTotal`
     // come from the upstream $count (independent of $top), and the client
     // container still background-fetches the full feed on mount and replaces
-    // this slice. The alternative — making the city pages fully dynamic — was
+    // this slice. The alternative - making the city pages fully dynamic - was
     // rejected: it would risk this timeout on EVERY request, not one per five
     // minutes.
     const { listings: raw, first: data } = await fetchFeedPages(origin, '/api/listings-gta', {
@@ -408,20 +408,20 @@ export async function fetchGtaListings(city) {
     // browsableTotal excludes the commercial/lease rows the site never shows.
     return { listings: processListings(raw), total: Number(data.browsableTotal ?? data.total) || 0 };
   } catch {
-    return { listings: [], total: 0 }; // client fetch takes over — same as before this change
+    return { listings: [], total: 0 }; // client fetch takes over - same as before this change
   }
 }
 
 /**
  * The whole-market Deal Screener aggregate for this page's scope, or null.
  *
- * Reads the CACHED /api/gta-screener body — one GTA feed walk, grouped by city
- * (lib/listings/gta-screener.js) — so /gta and /gta/[city] can state correct
+ * Reads the CACHED /api/gta-screener body - one GTA feed walk, grouped by city
+ * (lib/listings/gta-screener.js) - so /gta and /gta/[city] can state correct
  * market-wide CF+/best-cap/best-cash-flow/price-drop figures at first paint
  * instead of showing skeletons for the whole background load, the way
  * /listings has done since the Mississauga aggregate landed.
  *
- * Every failure path returns null, and null means skeletons — today's
+ * Every failure path returns null, and null means skeletons - today's
  * behaviour. That includes: a cold cache (the 4s abort fires long before the
  * walk could finish; the ISR render must never wait on it), an incomplete
  * walk, and any city the walk cannot cover honestly. Nothing false is ever
@@ -437,7 +437,7 @@ export async function fetchGtaScreenerSummary(city) {
       // rebuild pays this fetch once rather than 29 times.
       next: { revalidate: 600 },
       // READ ONLY. This fetch gives up after 4s, so it must never be the thing
-      // that starts a ~4-minute, ~245-request GTA feed walk — it cannot be
+      // that starts a ~4-minute, ~245-request GTA feed walk - it cannot be
       // around to read the answer. Before this header existed it started one on
       // every /gta and /gta/[city] render: 116 walks in six hours, ~11,200
       // upstream requests, 79% of the site's entire serverless traffic, all of
@@ -459,14 +459,14 @@ export default async function GtaListingsPage({ searchParams }) {
 
   // Old query-param URLs (/gta?city=Toronto) permanently redirect to path-segment
   // pages (/gta/toronto). This fixes "Duplicate, Google chose different canonical
-  // than user" in GSC — query params are treated as filter variants of /gta, not
+  // than user" in GSC - query params are treated as filter variants of /gta, not
   // distinct pages, so Google never respected the ?city= self-canonicals.
   if (city && CITY_COPY[city]) {
     permanentRedirect('/gta/' + cityToSlug(city));
   }
 
   const copy = CITY_COPY[city]; // always null here since valid cities redirect above
-  // In PARALLEL — the summary fetch must not add to this render's wall clock.
+  // In PARALLEL - the summary fetch must not add to this render's wall clock.
   const [{ listings: initialListings, total: initialTotal }, summary] = await Promise.all([
     fetchGtaListings(city),
     fetchGtaScreenerSummary(city),
@@ -475,7 +475,7 @@ export default async function GtaListingsPage({ searchParams }) {
   const h1 = copy ? copy.h1 : 'GTA Investment Properties';
   const sub = copy
     ? copy.sub
-    : 'The most recently updated listings across the Greater Toronto Area — scored and analyzed'; // ~24.5k GTA listings exist; the page loads the freshest slice, so "all" was an overclaim
+    : 'The most recently updated listings across the Greater Toronto Area - scored and analyzed'; // ~24.5k GTA listings exist; the page loads the freshest slice, so "all" was an overclaim
 
   const chips = city
     ? []
@@ -493,7 +493,7 @@ export default async function GtaListingsPage({ searchParams }) {
   ];
 
   // On the hub view (no city) mark /gta as the collection page for all the
-  // per-city pages — mirrors the ItemList on /neighbourhoods so search engines
+  // per-city pages - mirrors the ItemList on /neighbourhoods so search engines
   // understand the directory and can discover/rank each of the 28 city pages.
   const cityListSchema = !city
     ? {
@@ -526,7 +526,7 @@ export default async function GtaListingsPage({ searchParams }) {
                 </span>
               ) : (
                 // Clickable so a visitor can jump straight to the city (they
-                // looked tappable but were plain text) — also crawlable links.
+                // looked tappable but were plain text) - also crawlable links.
                 <Link
                   key={c}
                   href={`/gta/${cityToSlug(c)}`}
@@ -554,20 +554,20 @@ export default async function GtaListingsPage({ searchParams }) {
               </a>
             </div>
           )}
-          {/* Region switcher — jump to Mississauga, All GTA, or any city. */}
+          {/* Region switcher - jump to Mississauga, All GTA, or any city. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3">
             <RegionSwitcher current={city ? city : 'all-gta'} />
             <span className="text-xs text-slate-500">
-              Switch area — Mississauga, all GTA, or any city.
+              Switch area - Mississauga, all GTA, or any city.
             </span>
           </div>
           {/* CAP-vs-cash-flow clarifier (matches /listings) so GTA investors
               aren't confused by a positive cap rate next to negative cash flow. */}
           <p className="mt-3 text-xs text-slate-500">
             <span className="font-medium text-slate-500">CAP</span> is the all-cash yield (before financing);{' '}
-            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage — so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
+            <span className="font-medium text-slate-500">cash flow</span> is after the mortgage - so a positive cap rate can still show slightly negative cash flow at today&apos;s rates.
           </p>
-          {/* Internal links to the investor guides — passes link equity from the
+          {/* Internal links to the investor guides - passes link equity from the
               GTA pages and gives search visitors a useful next step. */}
           <p className="mt-2 text-sm text-slate-500">
             <span className="text-slate-500">Investor guides:</span>{' '}
@@ -596,7 +596,7 @@ export default async function GtaListingsPage({ searchParams }) {
         {/* Hub-only: the crawlable counterpart to the ItemList schema above. */}
         {!city && <GtaMarketDirectory />}
 
-        {/* Server-rendered FAQ section — required for FAQPage schema (Google
+        {/* Server-rendered FAQ section - required for FAQPage schema (Google
             mandates the answers be visible on the page, not only in JSON-LD).
             Hub-only (!city): city pages already get FAQPage via CityInvestorNotes.
             Question set is DISJOINT from /listings FAQ (which covers down payment,

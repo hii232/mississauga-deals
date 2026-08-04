@@ -16,7 +16,7 @@ const TOK = process.env.AMPRE_VOW_TOKEN || process.env.AMPRE_TOKEN;
 // property rents for, but the feed returns all of them together and the
 // median was computed over the mix. Measured against production 2026-07-26:
 // Cooksville (L5A) detached returned a $3,200 median while the whole-house
-// leases inside that same result were $4,200 / $4,400 / $5,750 / $6,500 —
+// leases inside that same result were $4,200 / $4,400 / $5,750 / $6,500 -
 // dragged down by a "Lower Unit" at $1,900 and a "BSMT" at $1,700. The site
 // compares this median against estimateRent(), which is a WHOLE-property
 // figure (basement income is added separately), so the mix made the
@@ -36,7 +36,7 @@ function classifyUnit(address) {
   // most common form, but it has to be tested against the STREET segment only:
   // the full string continues ", Mississauga, ON L4T 1P3", so anchoring to the
   // end of the whole address never matches. Splitting on the first comma also
-  // keeps the trap cases safe — "88 Upper Middle Road" and "5100 Lower Base
+  // keeps the trap cases safe - "88 Upper Middle Road" and "5100 Lower Base
   // Line" end in Road/Line, so the level word is not in final position.
   const street = a.split(',')[0].trim();
   if (PARTIAL_UNIT.test(a) || BARE_LEVEL.test(street)) return 'partial';
@@ -66,7 +66,7 @@ export async function GET(request) {
   const lat = parseFloat(searchParams.get('lat') || '0');
   const lng = parseFloat(searchParams.get('lng') || '0');
   // Forward Sortation Area (first 3 postal chars, e.g. L4T = Malton). The
-  // lat/lng params were accepted but NEVER used in the lease query — every
+  // lat/lng params were accepted but NEVER used in the lease query - every
   // result came from the whole city while the response was labelled "nearby".
   // FSA is the filter the MLS feed can actually apply.
   const fsa = (searchParams.get('fsa') || '').trim().toUpperCase().slice(0, 3);
@@ -114,7 +114,7 @@ export async function GET(request) {
       }, { headers: { 'Cache-Control': 's-maxage=3600, stale-while-revalidate=86400' } });
     }
 
-    // No comps found — not cached; empty result could change as new leases close
+    // No comps found - not cached; empty result could change as new leases close
     return NextResponse.json({
       comps: [],
       median: 0,

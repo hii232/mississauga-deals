@@ -36,7 +36,7 @@ const TOPIC_COLORS = {
   'Policy & Govt': 'bg-purple-600/90 text-white',
 };
 
-/* ── market ticker — LIVE from /api/market-stats; never hardcoded ───────── */
+/* ── market ticker - LIVE from /api/market-stats; never hardcoded ───────── */
 
 function fmtTickerPrice(p) {
   if (!p) return null;
@@ -260,7 +260,7 @@ export function NewsClient({ articles, sources, topics }) {
           </button>
         </div>
 
-        {/* ── Market Ticker — hidden entirely until real data arrives ── */}
+        {/* ── Market Ticker - hidden entirely until real data arrives ── */}
         {marketStats.length > 0 && (
         <div className="rounded-xl border border-slate-200 bg-white shadow-sm mb-6 overflow-hidden">
           <div className="flex items-center overflow-x-auto scrollbar-thin">
@@ -354,7 +354,7 @@ export function NewsClient({ articles, sources, topics }) {
           </div>
         ) : (
           <>
-            {/* Featured grid — top 3 articles */}
+            {/* Featured grid - top 3 articles */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
               {featuredArticles.map((article, i) => (
                 <div
@@ -367,7 +367,7 @@ export function NewsClient({ articles, sources, topics }) {
               ))}
             </div>
 
-            {/* Remaining articles — compact list */}
+            {/* Remaining articles - compact list */}
             {remainingArticles.length > 0 && (
               <div className="space-y-3">
                 {remainingArticles.map((article, i) => (

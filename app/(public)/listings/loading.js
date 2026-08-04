@@ -5,7 +5,7 @@ export default function ListingsLoading() {
         {/* NOT an <h1>, and not different wording from the real page.
             This skeleton streams ahead of the server-rendered page, so both
             ended up in the HTML a crawler receives: /listings was serving TWO
-            h1s, and the FIRST one — the one that carries the most weight — was
+            h1s, and the FIRST one - the one that carries the most weight - was
             this placeholder's "Mississauga Investment Properties" rather than
             the exact-match "Investment Properties for Sale in Mississauga"
             the page targets. A loading placeholder is not the page heading,

@@ -12,7 +12,7 @@ const TYPES = ['Condo', 'Townhome', 'Mixed'];
 const STATUSES = ['Selling', 'Coming Soon'];
 
 function formatPrice(p) {
-  if (!p) return '—';
+  if (!p) return '-';
   if (p >= 1000000) return `$${(p / 1000000).toFixed(1)}M`;
   return `$${Math.round(p / 1000)}K`;
 }
@@ -389,7 +389,7 @@ export default function AdminPreconPage() {
       {/* Projects List */}
       {filtered.length === 0 ? (
         <div className="bg-[#141B2D] border border-white/[0.06] rounded-2xl p-12 text-center">
-          <p className="text-white/30 text-sm mb-4">{projects.length === 0 ? 'No projects yet — import existing data or add your first project' : 'No projects match your filters'}</p>
+          <p className="text-white/30 text-sm mb-4">{projects.length === 0 ? 'No projects yet - import existing data or add your first project' : 'No projects match your filters'}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -426,7 +426,7 @@ export default function AdminPreconPage() {
                   </div>
                   <h3 className="text-sm font-bold text-white truncate">{project.name}</h3>
                   <p className="text-xs text-white/30 truncate">
-                    {project.developer} · {project.city} — {project.area}
+                    {project.developer} · {project.city} - {project.area}
                     {project.price_from ? ` · From ${formatPrice(project.price_from)}` : ''}
                   </p>
                 </div>

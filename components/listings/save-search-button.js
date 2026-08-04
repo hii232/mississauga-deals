@@ -59,7 +59,7 @@ export function SaveSearchButton({ filters, city }) {
         hasBasementSuite: filters.hasBasementSuite || false,
         isPowerOfSale: filters.isPowerOfSale || false,
         sortKey: filters.sortKey || 'score',
-        // Region scope — which feed/city the daily cron matches this search against
+        // Region scope - which feed/city the daily cron matches this search against
         city: city || 'Mississauga',
       };
 

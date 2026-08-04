@@ -7,7 +7,7 @@ const BASE = 'https://www.mississaugainvestor.ca';
 
 // FAQ items mirror the visible h2/h3 content on this page.
 // Answers are sourced from the same DEFAULT_ASSUMPTIONS constants used in the
-// assumptions table — changing the engine automatically keeps the schema correct.
+// assumptions table - changing the engine automatically keeps the schema correct.
 const SCORE_FAQ = [
   {
     question: 'What is a deal score on MississaugaInvestor.ca?',
@@ -22,14 +22,14 @@ const SCORE_FAQ = [
     question: 'How is the deal score calculated?',
     answer:
       'The deal score is a weighted combination of five investment factors: ' +
-      'Cash Flow Analysis (35% weight) — estimated monthly rental income minus mortgage, taxes, ' +
+      'Cash Flow Analysis (35% weight) - estimated monthly rental income minus mortgage, taxes, ' +
       'insurance, maintenance, and vacancy; ' +
-      'Yield / Cap Rate (25% weight) — net operating income divided by property price; ' +
-      'Cash-on-Cash Return (15% weight) — annual cash flow divided by total cash invested including ' +
+      'Yield / Cap Rate (25% weight) - net operating income divided by property price; ' +
+      'Cash-on-Cash Return (15% weight) - annual cash flow divided by total cash invested including ' +
       'down payment, land transfer tax, and closing costs; ' +
-      'Value Assessment (10% weight) — gross rent multiplier plus bonuses for longer days on market ' +
+      'Value Assessment (10% weight) - gross rent multiplier plus bonuses for longer days on market ' +
       'and price reductions; ' +
-      'Market Signals (15% weight) — basement suite potential, transit access, and school quality.',
+      'Market Signals (15% weight) - basement suite potential, transit access, and school quality.',
   },
   {
     question: 'What assumptions does the cash flow calculation use?',
@@ -48,11 +48,11 @@ const SCORE_FAQ = [
     question: 'What do the different deal score ranges mean?',
     answer:
       'Deal scores are grouped into four tiers: ' +
-      '8.0 or above is a Strong Deal — the property shows above-average cash flow and investment metrics; ' +
-      '6.5 to 7.9 is a Good Deal — solid investment fundamentals at current market prices; ' +
-      '5.0 to 6.4 is Average — typical for the current Mississauga market; ' +
-      'below 5.0 is Below Average — cash flow is negative or very thin at the listed price. ' +
-      'A low investment score does not mean the property is undesirable — it means the asking price ' +
+      '8.0 or above is a Strong Deal - the property shows above-average cash flow and investment metrics; ' +
+      '6.5 to 7.9 is a Good Deal - solid investment fundamentals at current market prices; ' +
+      '5.0 to 6.4 is Average - typical for the current Mississauga market; ' +
+      'below 5.0 is Below Average - cash flow is negative or very thin at the listed price. ' +
+      'A low investment score does not mean the property is undesirable - it means the asking price ' +
       'produces lower investor returns at today\'s rates.',
   },
   {
@@ -68,24 +68,24 @@ const SCORE_FAQ = [
 ];
 
 export const metadata = {
-  title: { absolute: 'How the Deal Score Works — Methodology & Sources' },
+  title: { absolute: 'How the Deal Score Works - Methodology & Sources' },
   description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
   alternates: { canonical: '/score-methodology' },
   // Own openGraph block. Without one this page inherited the ROOT's,
-  // whose url is the homepage — so every share of this URL showed
+  // whose url is the homepage - so every share of this URL showed
   // homepage branding and pointed crawlers at '/'. Next REPLACES the
   // openGraph object rather than merging it, so the image has to be
   // restated here or the card ships without one.
   openGraph: {
-    title: 'How the Deal Score Works — Methodology & Sources',
+    title: 'How the Deal Score Works - Methodology & Sources',
     description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
     url: 'https://www.mississaugainvestor.ca/score-methodology',
     // 1200x630 = /opengraph-image's real size (verified in app/opengraph-image.js)
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works — Methodology & Sources' }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'How the Deal Score Works - Methodology & Sources' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'How the Deal Score Works — Methodology & Sources',
+    title: 'How the Deal Score Works - Methodology & Sources',
     description: 'Learn how MississaugaInvestor.ca calculates deal scores for Mississauga investment properties using cash flow, cap rate, and more.',
     images: ['/opengraph-image'],
   },
@@ -105,7 +105,7 @@ export default function ScoreMethodologyPage() {
         compact
         eyebrow="Methodology"
         title="How the Deal Score Works"
-        subtitle="The data sources and investment formulas behind every property rating — so you can trust the number."
+        subtitle="The data sources and investment formulas behind every property rating - so you can trust the number."
       />
       <div className="max-w-3xl mx-auto px-4 py-12">
 
@@ -117,7 +117,7 @@ export default function ScoreMethodologyPage() {
           suite potential. These scores measure investment return potential for rental property investors.
           They do not assess property quality, condition, neighbourhood desirability, appreciation potential,
           or suitability for owner-occupants. A property with a low investment score may be an excellent
-          home — it simply means the current price-to-rent ratio produces lower cash returns at today&apos;s
+          home - it simply means the current price-to-rent ratio produces lower cash returns at today&apos;s
           mortgage rates. All estimates are approximate and should not be relied upon for purchase decisions
           without independent professional advice.
         </p>
@@ -178,7 +178,7 @@ export default function ScoreMethodologyPage() {
               </div>
               <p className="text-xs text-muted">
                 Gross rent multiplier (price-to-rent ratio), plus bonus points for longer days on
-                market and price reductions — both of which may represent negotiation opportunities.
+                market and price reductions - both of which may represent negotiation opportunities.
               </p>
             </div>
 
@@ -197,7 +197,7 @@ export default function ScoreMethodologyPage() {
         </section>
 
         <section>
-          <h2 className="font-heading font-semibold text-xl text-navy mb-3">Model Assumptions — Every Input, Disclosed</h2>
+          <h2 className="font-heading font-semibold text-xl text-navy mb-3">Model Assumptions - Every Input, Disclosed</h2>
           <p>
             Every cash flow, cap rate, and score on this site is computed from the same set of
             assumptions, applied identically to every listing. Nothing is hidden. If your financing
@@ -210,12 +210,12 @@ export default function ScoreMethodologyPage() {
               <tbody>
                 {/* Read from DEFAULT_ASSUMPTIONS, never retyped. These were
                     hardcoded strings, so changing the engine would have left
-                    this page quietly describing the wrong model — the exact
+                    this page quietly describing the wrong model - the exact
                     "a wrong number is the worst bug" failure, on the page whose
                     whole job is disclosing the model. */}
                 {[
                   ['Down payment', `${DEFAULT_ASSUMPTIONS.downPaymentPercent}% (investment-property minimum)`],
-                  ['Mortgage rate', `${DEFAULT_ASSUMPTIONS.annualInterestRate}% — 5-year fixed, Canadian semi-annual compounding`],
+                  ['Mortgage rate', `${DEFAULT_ASSUMPTIONS.annualInterestRate}% - 5-year fixed, Canadian semi-annual compounding`],
                   ['Amortization', `${DEFAULT_ASSUMPTIONS.amortizationYears} years`],
                   ['Property tax', 'Actual listed tax when available; otherwise the municipal residential rate (e.g., Mississauga ~0.84% of price)'],
                   ['Insurance', `$${DEFAULT_ASSUMPTIONS.monthlyInsurance}/month`],
@@ -239,7 +239,7 @@ export default function ScoreMethodologyPage() {
             TRREB rental market reports and public rental platforms (2025–2026), with adjustments
             by property type (detached +$250/mo, condo −$150/mo, purpose-built multi-unit +$800/mo).
             Where a neighbourhood is unknown, a conservative GTA price-to-rent ratio is used as a
-            fallback. Rent estimates are estimates — always verify against current lease comps
+            fallback. Rent estimates are estimates - always verify against current lease comps
             before offering.
           </p>
 
@@ -251,7 +251,7 @@ export default function ScoreMethodologyPage() {
           <ul className="list-disc pl-6 space-y-1.5 mt-2">
             <li>
               <strong>Legal suite</strong> (listing states &ldquo;legal basement,&rdquo; &ldquo;registered
-              suite,&rdquo; etc.): full basement market rent is added — roughly $1,400–$2,000/mo depending
+              suite,&rdquo; etc.): full basement market rent is added - roughly $1,400–$2,000/mo depending
               on basement bedrooms.
             </li>
             <li>
@@ -313,7 +313,7 @@ export default function ScoreMethodologyPage() {
           <h2 className="font-heading font-semibold text-xl text-navy mb-3">Score Ranges</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
             <div className="text-center p-3 rounded-lg bg-emerald-50 border border-emerald-200">
-              {/* emerald-500 measured 2.54:1 for white text — its blue-600
+              {/* emerald-500 measured 2.54:1 for white text - its blue-600
                   sibling badge below already passes at 5.17:1. emerald-700 = 5.48:1. */}
               <div className="w-10 h-10 rounded-full bg-emerald-700 text-white font-bold text-sm flex items-center justify-center mx-auto mb-2">8+</div>
               <p className="text-xs font-semibold text-emerald-800">Strong Deal</p>
@@ -345,10 +345,10 @@ export default function ScoreMethodologyPage() {
           </ul>
         </section>
 
-        {/* FAQ section — the FAQJsonLd above requires this content to be
+        {/* FAQ section - the FAQJsonLd above requires this content to be
             visible on-page (Google FAQPage policy: schema-only Q&A that the
             visitor can't see is ineligible for rich results and can draw a
-            manual action). Renders SCORE_FAQ verbatim — same accordion
+            manual action). Renders SCORE_FAQ verbatim - same accordion
             pattern as /guides. */}
         <section className="not-prose mt-10" aria-label="Common questions about the deal score">
           <h2 className="font-heading font-bold text-xl text-navy mb-6">Common Questions</h2>
@@ -371,9 +371,9 @@ export default function ScoreMethodologyPage() {
         {/* Bottom Disclaimer */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 mt-8">
           <p className="text-[11px] text-gray-500 leading-relaxed">
-            This score measures estimated investment return potential only — not property quality, condition,
+            This score measures estimated investment return potential only - not property quality, condition,
             or desirability. Scores are based on mathematical calculations using list price, estimated rental
-            income, and operating costs. A low investment score does not mean the property is undesirable — it
+            income, and operating costs. A low investment score does not mean the property is undesirable - it
             means the current asking price relative to estimated rental income produces lower investor returns.
             Scores update as prices change. This is not an appraisal. Hamza Nouman, Sales Representative,
             Cityscape Real Estate Ltd., Brokerage.

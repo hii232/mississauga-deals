@@ -13,7 +13,7 @@ const HERO = {
   eyebrow: 'Side-by-side analysis',
   title: 'Compare Properties',
   subtitle:
-    'Weigh Mississauga investment properties side by side — price, cash flow, cap rate, and deal score, with the better value on each metric highlighted.',
+    'Weigh Mississauga investment properties side by side - price, cash flow, cap rate, and deal score, with the better value on each metric highlighted.',
 };
 
 const METRICS = [
@@ -23,7 +23,7 @@ const METRICS = [
   { key: 'baths', label: 'Baths', format: (v) => v ?? '--' },
   { key: 'sqft', label: 'Sq Ft', format: (v, l) => v > 0 ? (l?.sqftApproximate ? '~' : '') + v.toLocaleString() : 'N/A' },
   { key: 'pricePerSqFt', label: '$/SqFt', format: (v, l) => v > 0 ? (l?.sqftApproximate ? '~$' : '$') + v : 'N/A', best: 'low' },
-  { key: 'dom', label: 'Days on Market', format: (v) => (v >= 1 ? `${v} days` : '—'), best: 'high' }, // 0 = unknown, never "0 days"
+  { key: 'dom', label: 'Days on Market', format: (v) => (v >= 1 ? `${v} days` : '-'), best: 'high' }, // 0 = unknown, never "0 days"
   { key: 'hamzaScore', label: 'Deal Score', format: (v) => `${v}/10`, best: 'high' },
   { key: 'estimatedRent', label: 'Est. Monthly Rent', format: (v) => fmtCurrency(v) + '/mo', best: 'high' },
   { key: 'monthlyExpenses', label: 'Monthly Costs', format: (v) => fmtCurrency(v) + '/mo', best: 'low' },
@@ -146,7 +146,7 @@ export default function ComparePage() {
         <div className="flex items-center gap-4">
           {listings.length > 0 && (
             <span className="text-sm text-muted">
-              Comparing {listings.length} propert{listings.length === 1 ? 'y' : 'ies'} — green highlights the better value
+              Comparing {listings.length} propert{listings.length === 1 ? 'y' : 'ies'} - green highlights the better value
             </span>
           )}
           {listings.length > 0 && (
@@ -252,7 +252,7 @@ export default function ComparePage() {
 
                           // text-success (#10B981) and text-red-500 (#EF4444) as
                           // FOREGROUND text on this table's white/cloud rows
-                          // measured 2.42-2.54:1 and 3.60-3.76:1 — fails AA on
+                          // measured 2.42-2.54:1 and 3.60-3.76:1 - fails AA on
                           // the exact cash-flow figures this tool exists to let
                           // an investor compare at a glance. emerald-700 and
                           // red-600 both pass (5.2-5.5:1 and 4.6-4.8:1),
@@ -301,7 +301,7 @@ export default function ComparePage() {
                   const best = listings.reduce((a, b) => a.cashFlow > b.cashFlow ? a : b);
                   return (
                     <div className="rounded-lg bg-cloud p-3">
-                      {/* text-slate-400 measured 2.45:1 on bg-cloud at 10px —
+                      {/* text-slate-400 measured 2.45:1 on bg-cloud at 10px -
                           fails AA. slate-500 is 4.55:1. Same fix as the table
                           cells below and the badges/captions fixed elsewhere
                           this week. */}
@@ -339,7 +339,7 @@ export default function ComparePage() {
         </div>
       )}
 
-      {/* Inline lead capture — comparing listings is high buying intent, but the
+      {/* Inline lead capture - comparing listings is high buying intent, but the
           page had no capture path. */}
       <InlineCTA variant="alerts" className="mt-12" />
       </div>

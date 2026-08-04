@@ -37,10 +37,10 @@ export async function GET(request) {
     }
 
     // OnMarketDate / ListingContractDate / OriginalEntryTimestamp are the toxic
-    // group — naming any of them makes AMPRE reject the whole query (see
+    // group - naming any of them makes AMPRE reject the whole query (see
     // lib/listings/ampre-fields.js for how they were isolated). Asking for them
     // here meant this query ALWAYS failed into the fallback below, which also
-    // drops CloseDate — so the price history lost the real sold date and fell
+    // drops CloseDate - so the price history lost the real sold date and fell
     // back to ModificationTimestamp. CloseDate itself is proven good: it
     // returns real values on /api/sold-comps.
     const sel = [

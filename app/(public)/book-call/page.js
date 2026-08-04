@@ -4,22 +4,22 @@ import { fetchGoogleRating } from '@/lib/google-rating';
 import { BreadcrumbJsonLd, FAQJsonLd } from '@/components/seo/json-ld';
 
 export const metadata = {
-  title: { absolute: 'Book a Call — Free 30-Min Investor Consultation' },
+  title: { absolute: 'Book a Call - Free 30-Min Investor Consultation' },
   description: 'Book a free 30-minute call with Hamza Nouman, REALTOR®. Talk Mississauga investment properties, pre-construction and the Ontario HST rebate.',
   alternates: { canonical: '/book-call' },
   openGraph: {
     // Branded fallback OG (Next replaces, not merges, the parent openGraph).
     // Dimensions match /opengraph-image's own `size` export exactly (1200x630
-    // PNG, verified there) — declaring them lets social crawlers reserve the
+    // PNG, verified there) - declaring them lets social crawlers reserve the
     // right preview aspect without fetching the image first.
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Book a Call — Free 30-Min Consultation with Hamza Nouman' }],
-    title: 'Book a Call — Free 30-Min Consultation with Hamza Nouman',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Book a Call - Free 30-Min Consultation with Hamza Nouman' }],
+    title: 'Book a Call - Free 30-Min Consultation with Hamza Nouman',
     description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
     url: 'https://www.mississaugainvestor.ca/book-call',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Book a Call — Free 30-Min Consultation with Hamza Nouman',
+    title: 'Book a Call - Free 30-Min Consultation with Hamza Nouman',
     description: 'Schedule a free consultation to discuss Mississauga investment properties, pre-construction condos, and the Ontario HST rebate.',
     images: ['/opengraph-image'],
   },
@@ -33,7 +33,7 @@ export default async function BookCallPage({ searchParams }) {
   const listingAddress = typeof searchParams?.addr === 'string' ? searchParams.addr : '';
   const listingPrice = typeof searchParams?.price === 'string' ? searchParams.price : '';
 
-  // Server-side — keeps the Places API key out of the browser. The rating
+  // Server-side - keeps the Places API key out of the browser. The rating
   // block is conditionally rendered so a null response hides it cleanly rather
   // than showing a broken or empty chip. Same pattern as /about.
   const googleRating = await fetchGoogleRating();
@@ -91,7 +91,7 @@ export default async function BookCallPage({ searchParams }) {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Risk reversal, echoed at the point of commitment. The "first month's
           mortgage on us" offer is the strongest reason to book, but it lived
-          only in one homepage band — so every visitor arriving straight here
+          only in one homepage band - so every visitor arriving straight here
           from a listing's "Book a Viewing" (the highest-intent path on the
           site) reached the calendar never having seen it. Same copy as the
           homepage band, on-brand accent tint, above the calendar so it is read
@@ -105,18 +105,18 @@ export default async function BookCallPage({ searchParams }) {
             Exclusive offer
           </span>
           <p className="text-sm leading-relaxed text-navy">
-            <span className="font-semibold">Close with Hamza and your first month&rsquo;s mortgage is on us</span> —
+            <span className="font-semibold">Close with Hamza and your first month&rsquo;s mortgage is on us</span> -
             applied as a credit on closing, so you cash flow from day one. All investment properties qualify.
           </p>
         </div>
       </div>
 
-      {/* Trust-signal strip — compact credential bar placed right before the
+      {/* Trust-signal strip - compact credential bar placed right before the
           calendar so the visitor's last impression before choosing a time slot
           is social proof + professional legitimacy.
 
           Sourcing rules:
-          - Rating: server-side fetchGoogleRating() — null hides the chip.
+          - Rating: server-side fetchGoogleRating() - null hides the chip.
             Stars are decorative (aria-hidden); the number is the readable claim.
           - RECO + brokerage: permanent factual credential, always shown.
           - "Free · no pressure": echoes the page commitment at the decision point.
@@ -179,7 +179,7 @@ export default async function BookCallPage({ searchParams }) {
         listingPrice={listingPrice}
       />
 
-      {/* Disclosure footer — repeated credential note below the calendar for
+      {/* Disclosure footer - repeated credential note below the calendar for
           anyone who scrolled past the strip. */}
       <div className="mt-12 text-center space-y-2">
         <p className="text-xs text-muted">

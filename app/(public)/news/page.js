@@ -27,7 +27,7 @@ export const metadata = {
 };
 
 // Cache the aggregated-feed render for 30 min (ISR). Without this the page was
-// fully dynamic — re-fetching every external RSS feed on every request, which
+// fully dynamic - re-fetching every external RSS feed on every request, which
 // slows TTFB/LCP (a Core Web Vitals cost) and needlessly hammers the sources.
 export const revalidate = 1800;
 
@@ -50,7 +50,7 @@ export default async function NewsPage() {
         compact
         eyebrow="Live market news"
         title="GTA Real Estate News & Market Intelligence"
-        subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports — curated for investors and updated continuously."
+        subtitle="The latest GTA real estate news, Bank of Canada rate decisions, and market reports - curated for investors and updated continuously."
       />
       <NewsClient articles={articles} sources={sources} topics={topics} />
     </div>

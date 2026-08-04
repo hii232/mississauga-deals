@@ -120,7 +120,7 @@ export async function GET(request) {
     // these utm_source values IS a click-through from that email. Aggregated
     // per campaign: total visits, today, and which pages were clicked.
     // (PageTracker dedupes per path per session, so this counts distinct page
-    // visits per session — not raw taps; per-recipient opens/clicks live in
+    // visits per session - not raw taps; per-recipient opens/clicks live in
     // Resend, since page_views intentionally stores no personal identifiers.)
     const EMAIL_SOURCES = {
       announcement: 'Announcement (platform launch)',
@@ -154,7 +154,7 @@ export async function GET(request) {
     // ── Who clicked (per-person email attribution) ──
     // Outbound email links carry mi=<HMAC(email)>; re-derive each lead's token
     // here and match, so clicks resolve to a callable contact (name/email/
-    // phone). Only sends AFTER the token rollout carry mi — older sends show
+    // phone). Only sends AFTER the token rollout carry mi - older sends show
     // up in the campaign totals but can't be attributed to a person.
     let clickers = [];
     try {
@@ -198,7 +198,7 @@ export async function GET(request) {
           }));
       }
     } catch {
-      // attribution is additive — never break the dashboard over it
+      // attribution is additive - never break the dashboard over it
     }
 
     const response = NextResponse.json({
