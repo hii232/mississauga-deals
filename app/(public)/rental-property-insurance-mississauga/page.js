@@ -212,7 +212,19 @@ export default function RentalPropertyInsurancePage() {
             Insurance is one line in the cash-flow math. Model the mortgage, tax, insurance and maintenance on a real
             Mississauga price, or browse listings already scored for cash flow.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          {/* Landlord cross-link - same audience, different job: insurance readers
+            are owners, and the rent-check page is the capture surface for them.
+            Anchor text distinct from every other internal link. */}
+        <p className="mb-8 text-sm leading-relaxed text-navy/80">
+          While you&apos;re reviewing the costs of running your rental: is the rent itself still
+          right?{' '}
+          <Link href="/landlords" className="font-medium text-accent hover:text-accent-dark">
+            Request a free rent check from recent signed leases
+          </Link>{' '}
+          - it takes a minute and often pays for the insurance premium.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/mortgage-calculator" className="btn-primary !px-6 no-underline text-center">
               Mortgage Calculator
             </Link>

@@ -185,6 +185,18 @@ export default function RentByBedroomPage() {
           ))}
         </div>
 
+        {/* Landlord cross-link: this page's second audience is owners checking
+            their own rent - /landlords is the capture surface built for them.
+            Distinct anchor text (internal-link rule: never the same anchor as
+            another destination). */}
+        <p className="mb-8 text-sm leading-relaxed text-navy/80">
+          Own a rental and wondering where <em>your</em> unit falls in these ranges?{' '}
+          <Link href="/landlords" className="font-medium text-accent hover:text-accent-dark">
+            Get a free rent check for your rental
+          </Link>{' '}
+          - we pull the recent signed leases for units like yours and call or text you the range.
+        </p>
+
         <div className="rounded-2xl bg-navy p-8 text-center">
           <h2 className="font-heading font-bold text-xl text-white mb-2">See rent-backed cash flow on a real listing</h2>
           <p className="text-white/70 text-sm mb-6 max-w-md mx-auto">
