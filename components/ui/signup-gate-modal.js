@@ -121,7 +121,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
     // phone, never the lead itself. The "skip" link below stays as the honest
     // way out, so nobody is trapped in the modal over a field they won't give.
     if (!phone) {
-      setError('Please enter a phone number so Hamza can reach you.');
+      setError("Please enter a phone number - it's where we'll text your top pick.");
       return;
     }
     // Shared validator, not a local "10+ digits" check: that looser rule let an
@@ -132,7 +132,7 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
       return;
     }
     if (isFakePhone(phone)) {
-      setError('Please enter a real phone number Hamza can reach you at.');
+      setError('Please enter a real phone number we can text you at.');
       return;
     }
 
@@ -307,14 +307,19 @@ export default function SignupGateModal({ open, onClose, onSuccess, trigger = 'g
                 </svg>
               </div>
               <h2 className="text-xl font-bold text-white">Almost There!</h2>
-              {/* The old line - "complete your profile to get deal alerts &
-                  first month's mortgage on us" - read as if finishing the form
-                  earned the mortgage credit. The actual condition is closing a
-                  purchase with Hamza, and an inducement ad that hides its
-                  condition is misleading advertising (RECO). State it. */}
+              {/* The phone ask is now an EXCHANGE, not "complete your profile":
+                  a personally-written text with this week's top pick. "We", not
+                  "Hamza" (Hamza's call, 2026-08-05), and it is a MANUAL promise
+                  - there is no automated texting anywhere in this codebase, and
+                  none may be added on the back of this line. Hamza (or team)
+                  sends these by hand, so the promise must stay one he can honor
+                  at current lead volume. The mortgage-credit inducement keeps
+                  its RECO-required condition (close with Hamza). */}
               <p className="mt-1 text-sm text-white/60">
-                Complete your profile to get deal alerts - and when you close with Hamza,
-                your first month&apos;s mortgage is on us as a credit on closing.
+                Leave your number and we&apos;ll text you our top cash-flow pick this
+                week - a real listing and the numbers behind it. No spam, no robo-texts.
+                And when you close with Hamza, your first month&apos;s mortgage is on us
+                as a credit on closing.
               </p>
             </div>
 

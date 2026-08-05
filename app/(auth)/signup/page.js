@@ -64,7 +64,7 @@ export default function SignupPage() {
     // a 400, but a mandatory field that bounces back from the network reads as
     // "the site is broken" rather than "fix this number" - tell them here.
     if (isFakePhone(form.phone)) {
-      setError('Please enter a real phone number Hamza can reach you at.');
+      setError('Please enter a real phone number we can text you at.');
       return;
     }
 
@@ -225,6 +225,12 @@ export default function SignupPage() {
             autoComplete="tel"
             className="block w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm text-navy placeholder-slate-400 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
+          {/* The reason the number is worth giving, stated where it is asked.
+              "We", never "Hamza", and hand-sent only - no automated texting
+              exists in this codebase and none may be added on this promise. */}
+          <p className="mt-1 text-xs text-muted">
+            We&apos;ll text you our top cash-flow pick this week. No spam, no robo-texts.
+          </p>
           <p className="mt-1 text-[11px] text-muted">We&apos;ll text you when a new deal matches - the best ones go in days, not weeks.</p>
         </div>
 

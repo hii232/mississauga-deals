@@ -14,6 +14,7 @@ import { HomeDealCards } from '@/components/home/home-deal-cards';
 import { CityscapePanorama, SkylineStrip } from '@/components/art/cityscape';
 import { BrowseScene, AnalysisScene, ConnectScene } from '@/components/art/scene-icons';
 import { NeighbourhoodCard } from '@/components/neighbourhoods/neighbourhood-card';
+import { fetchInvestorCount } from '@/components/sell/investor-list-band';
 
 // ISR, not per-request SSR. This page used to call headers() (only to build
 // its own base URL) which forced a FULL dynamic render - and the render
@@ -790,10 +791,13 @@ export default async function HomePage() {
   // Google rating is fetched alongside the other data. It returns null when the
   // Places API is not configured or the call fails, and every consumer hides the
   // claim in that case rather than falling back to a hardcoded number.
-  const [liveStats, topDeals, googleRating] = await Promise.all([
+  const [liveStats, topDeals, googleRating, investorCount] = await Promise.all([
     fetchLiveStats(),
     fetchTopDeals(),
     fetchGoogleRating(),
+    // Floored live count over the leads table; null hides the number in the
+    // seller card (omit-never-fake). See /api/investor-count.
+    fetchInvestorCount(),
   ]);
 
   // Live listing count for the hero, straight from the active listing feed.
@@ -1021,12 +1025,17 @@ export default async function HomePage() {
               <h2 className="mt-1.5 font-heading text-xl font-bold text-white">
                 Thinking of selling?
               </h2>
+              {/* The pitch only this site can make: the listing goes in front
+                  of the site's own registered investor list. The count is the
+                  live floored /api/investor-count figure; when null the copy
+                  says "our registered investor list" and claims no number. */}
               <p className="mt-1.5 text-sm leading-relaxed text-white/70">
-                Get a free, data-backed valuation and a plan to sell for the most - priced with real market data, zero obligation.
+                Get a free, data-backed valuation - and if it&apos;s an income property, your
+                listing goes in front of {investorCount ? `${investorCount.toLocaleString()}+ registered investors` : 'our registered investor list'} the day it lists.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/60">
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Free valuation</span>
-                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Priced with data</span>
+                <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Investor buyer list</span>
                 <span className="flex items-center gap-1"><span className="text-emerald-400">✓</span> Zero obligation</span>
               </div>
               <Link href="/sell" className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#8AB6FF] no-underline hover:text-white">
