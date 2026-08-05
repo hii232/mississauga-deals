@@ -4,6 +4,7 @@ import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { fetchGoogleRating, googleRatingShort } from '@/lib/google-rating';
 import { GOOGLE_REVIEWS } from '@/lib/constants';
 import { ValuationForm } from '@/components/sell/valuation-form';
+import { InvestorListBand, fetchInvestorCount } from '@/components/sell/investor-list-band';
 import { fetchPropertiesAnalyzedCount } from '@/lib/listings/properties-analyzed';
 
 const BASE = 'https://www.mississaugainvestor.ca';
@@ -176,6 +177,9 @@ export default async function SellPage() {
   const googleRating = await fetchGoogleRating();
   const reviews = GOOGLE_REVIEWS.slice(0, 3);
   const propertiesAnalyzed = await fetchPropertiesAnalyzedCount();
+  // Live floored count from /api/investor-count; null renders the band
+  // without a number (omit-never-fake).
+  const investorCount = await fetchInvestorCount();
   const DIFFERENTIATORS = buildDifferentiators(propertiesAnalyzed);
   const SELL_FAQ = buildSellFaq(propertiesAnalyzed);
 
@@ -238,6 +242,16 @@ export default async function SellPage() {
         </div>
         <CityscapePanorama variant="dusk" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full opacity-90 md:h-32" />
       </section>
+
+      {/* ── The pitch only this site can make: the investor LIST. Placed
+          straight after the hero so a seller of a duplex/tenanted property -
+          this site's ideal listing - sees it before anything generic. CTA
+          jumps to the same valuation form; the form already captures phone,
+          and a seller expecting a call-back about their property is a natural
+          phone trade. ── */}
+      <div className="mt-10">
+        <InvestorListBand count={investorCount} ctaHref="#valuation-form" />
+      </div>
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* ── Differentiators ── */}

@@ -115,7 +115,7 @@ export function GoogleSignIn({
       return;
     }
     if (isFakePhone(phone)) {
-      setPhoneError('Please enter a real phone number Hamza can reach you at.');
+      setPhoneError('Please enter a real phone number we can text you at.');
       return;
     }
     setPhoneError('');
@@ -212,9 +212,14 @@ export function GoogleSignIn({
             <h2 className="text-lg font-bold text-navy">
               One last thing{pending.name ? `, ${pending.name.split(' ')[0]}` : ''}
             </h2>
+            {/* "We", not "Hamza" (his call, 2026-08-05), and a promise that is
+                actually true: the old line claimed deals are texted "before
+                they hit the site", which nothing does. This one is the same
+                manual top-pick text promised at the gate modal - hand-sent,
+                never automated. */}
             <p className="mt-1 text-sm text-muted">
-              What&apos;s the best number to reach you at? Hamza texts new deals to
-              investors before they hit the site.
+              What&apos;s the best number to text you at? We&apos;ll send you our top
+              cash-flow pick this week - a real listing and the numbers behind it.
             </p>
 
             {phoneError && (
