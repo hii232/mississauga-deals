@@ -10,6 +10,7 @@ import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 import { esc, fmtPrice } from '@/lib/emails/email-utils';
 import { probeSendLock, acquireSendLock } from '@/lib/emails/broadcast-guard';
+import { buildMarketStory } from '@/lib/market/market-story';
 
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
@@ -69,6 +70,24 @@ function kicker(text) {
 
 function hairline(m = '28px') {
   return `<div style="border-top:1px solid ${HAIR};margin:${m} 0;"></div>`;
+}
+
+// ── "The Brief" - the written market story ──
+// The email used to ship tables and nothing else. A table cannot tell you when
+// its own headline number is lying, and in July 2026 it was: the average sale
+// price moved 11.4% while the median moved 2.3%, so an average printed under
+// last month's average reads as a crash that did not happen. lib/market/
+// market-story.js writes the sentence that fixes that, gated on the data, and
+// is unit-tested because these paragraphs go out under a licensed agent's name.
+// Renders nothing at all when there is nothing honest to say.
+function buildStoryHTML(stats) {
+  const story = buildMarketStory(stats);
+  if (!story) return '';
+  return `${hairline()}
+  ${kicker('The Brief')}
+  <div style="font-family:${SERIF};font-size:22px;font-weight:700;color:${INK};line-height:1.3;margin-bottom:14px;">${esc(story.headline)}</div>
+  ${story.paragraphs.map((p) => `<p style="font-family:${SERIF};font-size:14px;color:${INK};line-height:1.7;margin:0 0 13px;">${esc(p)}</p>`).join('')}
+  ${story.footnote ? `<p style="font-family:${SERIF};font-size:11px;font-style:italic;color:${MUTED};line-height:1.6;margin:12px 0 0;">${esc(story.footnote)}</p>` : ''}`;
 }
 
 function buildEmailHTML(stats, date, extras = {}) {
@@ -163,6 +182,8 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
 <tr><td style="padding:30px 40px 8px;">
   ${extras.greetingName ? `<div style="font-family:${SERIF};font-style:italic;font-size:16px;color:${INK};margin-bottom:26px;">Dear ${esc(extras.greetingName)}, here is your week in Mississauga real estate.</div>` : ''}
   ${extras.dealsHtml || ''}
+
+  ${buildStoryHTML(s)}
 
   ${priceTiles.length > 0 ? `${hairline()}
   ${kicker('Average Prices &middot; By Property Type')}
