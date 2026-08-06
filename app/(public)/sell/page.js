@@ -57,6 +57,18 @@ const agentServiceSchema = {
   url: `${BASE}/sell`,
   image: `${BASE}/images/hamza-headshot.jpg`,
   telephone: '+1-647-609-1289',
+  // RealEstateAgent is a LocalBusiness subtype and Google REQUIRES an address
+  // on one. This node had none, which was the third of /sell's four
+  // structured-data errors (Semrush, 2026-08-06). Same address the
+  // Organization schema already publishes site-wide - not a new disclosure.
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '885 Plymouth Dr UNIT 2',
+    addressLocality: 'Mississauga',
+    addressRegion: 'ON',
+    postalCode: 'L5V 0B5',
+    addressCountry: 'CA',
+  },
   areaServed: [
     { '@type': 'City', name: 'Mississauga' },
     { '@type': 'AdministrativeArea', name: 'Peel Region, Ontario' },
@@ -68,7 +80,13 @@ const agentServiceSchema = {
     price: '0',
     priceCurrency: 'CAD',
   },
-  provider: { '@type': 'Person', '@id': `${BASE}/about#hamza-nouman`, name: 'Hamza Nouman' },
+  // `provider` was here and is NOT a property schema.org defines on
+  // LocalBusiness/RealEstateAgent - it belongs on a Service, and Semrush
+  // flagged it by name ("The property provider is not recognized by
+  // Schema.org vocabulary", 2026-08-06). It was redundant anyway: this node
+  // already IS Hamza, and `founder`/`@id` on the Organization node carries the
+  // person link. Replaced with the correct same-entity pointer.
+  sameAs: [`${BASE}/about`],
 };
 
 // Honest, general answers - no fabricated stats, commissions, or timelines.

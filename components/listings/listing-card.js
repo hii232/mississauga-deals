@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { fmtK, fmtNum } from '@/lib/utils/format';
 import { scoreColorHex } from '@/lib/deal-score';
 import { HOOD_DATA } from '@/lib/constants';
+import { usePhotoFallback } from '@/lib/listings/use-photo-fallback';
 
 const slugify = (name) => name.toLowerCase().replace(/\s+/g, '-');
 
@@ -102,13 +103,14 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
 
   // Use listing photos if available, otherwise use batch-fetched first photo
   const photo = listing.photos?.[0] || batchPhoto || null;
+  const [showPhoto, onPhotoError] = usePhotoFallback(photo);
   const scoreHex = scoreColorHex(listing.hamzaScore);
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-accent/30 hover:shadow-lg">
       {/* Photo - links to detail page */}
       <Link href={`/listings/${listing.id}`} className="relative block h-48 w-full overflow-hidden">
-        {photo ? (
+        {showPhoto ? (
           <>
             {/* Shimmer under the image while it loads. A cold TRREB photo can
                 take seconds (or, under upstream throttle, much longer), and
@@ -122,6 +124,7 @@ export function ListingCard({ listing, isGated, isCompared, onToggleCompare, bat
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               priority={priority}
+              onError={onPhotoError}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           </>

@@ -70,7 +70,7 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
           src={photos[currentIndex]}
           alt={`Photo ${currentIndex + 1}`}
           className="max-h-[calc(100vh-180px)] max-w-full rounded object-contain"
-          onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
+          onError={(e) => { e.target.src = '/images/placeholder-property.svg'; }}
         />
 
         {/* Next button */}
@@ -107,7 +107,7 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }) {
                 src={src}
                 alt={`Thumbnail ${i + 1}`}
                 className="h-full w-full object-cover"
-                onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
+                onError={(e) => { e.target.src = '/images/placeholder-property.svg'; }}
               />
             </button>
           ))}

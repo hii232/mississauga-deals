@@ -29,7 +29,17 @@ export function PersonJsonLd() {
       addressCountry: 'CA',
     },
     worksFor: {
-      '@type': 'RealEstateAgent',
+      // Organization, NOT RealEstateAgent, and the distinction is the whole
+      // fix for Semrush's 181 structured-data errors (2026-08-06).
+      // RealEstateAgent is a subtype of LocalBusiness, and Google REQUIRES an
+      // address on any LocalBusiness. This node exists only to name the
+      // brokerage Hamza works for - it is not a business listing for
+      // Cityscape, we do not publish their address, and Hamza has said the
+      // Cityscape site is not his. So the over-specific type was dragging in a
+      // requirement we cannot honestly satisfy, on every page, twice.
+      // Organization is the type worksFor/parentOrganization actually expect
+      // and it requires nothing beyond a name.
+      '@type': 'Organization',
       // Name only. The brokerage is real and the relationship is real; its
       // website is not - cityscaperealestate.ca has no DNS record as of
       // 2026-08-06. A url that 404s on an entity node is worse than no url.
@@ -130,7 +140,17 @@ export function OrganizationJsonLd() {
     // rich-results policy prohibits, and risks the whole markup being discarded
     // or a manual action. A rating belongs only on a page that shows the reviews.
     parentOrganization: {
-      '@type': 'RealEstateAgent',
+      // Organization, NOT RealEstateAgent, and the distinction is the whole
+      // fix for Semrush's 181 structured-data errors (2026-08-06).
+      // RealEstateAgent is a subtype of LocalBusiness, and Google REQUIRES an
+      // address on any LocalBusiness. This node exists only to name the
+      // brokerage Hamza works for - it is not a business listing for
+      // Cityscape, we do not publish their address, and Hamza has said the
+      // Cityscape site is not his. So the over-specific type was dragging in a
+      // requirement we cannot honestly satisfy, on every page, twice.
+      // Organization is the type worksFor/parentOrganization actually expect
+      // and it requires nothing beyond a name.
+      '@type': 'Organization',
       // Name only. The brokerage is real and the relationship is real; its
       // website is not - cityscaperealestate.ca has no DNS record as of
       // 2026-08-06. A url that 404s on an entity node is worse than no url.
