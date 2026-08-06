@@ -178,7 +178,7 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
             <p className="text-xs text-slate-600">APS signed between Apr 1, 2026 - Mar 31, 2027. This changes the investment math for every project below.</p>
           </div>
           <Link href="/pre-construction/hst-rebate" className="flex-shrink-0 text-xs font-semibold text-amber-700 hover:text-amber-900 no-underline">
-            Learn More &rarr;
+            How the rebate works &rarr;
           </Link>
         </div>
       </div>
