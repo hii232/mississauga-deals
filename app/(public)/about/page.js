@@ -164,10 +164,10 @@ export default async function AboutPage() {
             About Hamza Nouman
           </h2>
           <p className="text-navy/80 leading-relaxed mb-6">
-            Hamza Nouman is a licensed real estate Sales Representative with{' '}
-            <a href="https://www.cityscaperealestate.ca" target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent/80">
-              Cityscape Real Estate Ltd., Brokerage
-            </a>{' '}
+            {/* Brokerage NAME only - cityscaperealestate.ca has no DNS record
+                (verified 2026-08-06). RECO requires the name, not a link. */}
+            Hamza Nouman is a licensed real estate Sales Representative with
+            {' '}Cityscape Real Estate Ltd., Brokerage{' '}
             in Mississauga, Ontario. He specializes in helping investors find, analyze, and acquire
             income-producing properties across the Greater Toronto Area, with a primary focus on
             Mississauga and the Peel Region.
@@ -288,10 +288,14 @@ export default async function AboutPage() {
             Find Hamza Nouman Online
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* cityscaperealestate.ca and hamzahomes.ca were removed from this
+                list on 2026-08-06: neither domain has a DNS record, so both
+                tiles sent a visitor who wanted to verify Hamza to a dead page.
+                Add them back the moment the sites are live - this block is the
+                human-facing half of the same identity set as the Person
+                schema's sameAs, and the two must not drift apart. */}
             {[
-              { label: 'Cityscape Real Estate', url: 'https://www.cityscaperealestate.ca/' },
               { label: 'REALTOR.ca Profile', url: 'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7' },
-              { label: 'HamzaHomes.ca', url: 'https://www.hamzahomes.ca/' },
               { label: 'LinkedIn', url: 'https://www.linkedin.com/in/homeswithhamza/' },
               { label: 'Facebook', url: 'https://www.facebook.com/Homeswithhamza/' },
               { label: 'HomeFinder.ca', url: 'https://www.homefinder.ca/agents/494937-hamza-nouman' },

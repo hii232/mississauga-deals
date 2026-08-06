@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePhotoFallback } from '@/lib/listings/use-photo-fallback';
 import { scoreColorHex } from '@/lib/deal-score';
 import { fmtK, formatAddress } from '@/lib/utils/format';
 import { HOOD_DATA } from '@/lib/constants';
@@ -46,6 +47,7 @@ export function HomeDealCards({ deals, photoMap }) {
 }
 
 function HomeDealCard({ deal, photo, isGated, priority }) {
+  const [showPhoto, onPhotoError] = usePhotoFallback(photo);
   const scoreHex = scoreColorHex(deal.hamzaScore);
   const score = Number.isFinite(deal.hamzaScore) ? deal.hamzaScore : null;
   const cf = Number.isFinite(deal.cashFlow) ? deal.cashFlow : null;
@@ -56,7 +58,7 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
       className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:border-accent/20 hover:shadow-lg transition-all duration-300 no-underline"
     >
       <div className="relative h-32 sm:h-44 w-full overflow-hidden bg-slate-100">
-        {photo ? (
+        {showPhoto ? (
           <>
             {/* Shimmer under the image while it loads - same treatment as the
                 /listings cards: a cold TRREB photo on flat white reads as
@@ -68,6 +70,7 @@ function HomeDealCard({ deal, photo, isGated, priority }) {
               fill
               sizes="(min-width: 1024px) 25vw, 50vw"
               priority={priority}
+              onError={onPhotoError}
               className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
           </>

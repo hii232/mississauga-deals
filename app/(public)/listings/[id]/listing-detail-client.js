@@ -864,7 +864,7 @@ function PhotoGallery({ photos, listingId, address }) {
 
   const resolvedPhotos = photos?.length > 0 ? photos : fetchedPhotos;
   const dedupedPhotos = resolvedPhotos?.length ? deduplicatePhotos(resolvedPhotos) : null;
-  const images = dedupedPhotos?.length ? dedupedPhotos : ['/images/placeholder-property.jpg'];
+  const images = dedupedPhotos?.length ? dedupedPhotos : ['/images/placeholder-property.svg'];
   const hasRealPhotos = dedupedPhotos?.length > 0;
 
   const goPrev = (e) => { e.stopPropagation(); setActiveIdx((prev) => (prev - 1 + images.length) % images.length); };
@@ -883,7 +883,7 @@ function PhotoGallery({ photos, listingId, address }) {
           sizes="(min-width: 1024px) 560px, 100vw"
           priority
           className="object-cover object-center"
-          onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
+          onError={(e) => { e.target.src = '/images/placeholder-property.svg'; }}
         />
         {/* Left/Right arrows on main image */}
         {images.length > 1 && (
@@ -935,7 +935,7 @@ function PhotoGallery({ photos, listingId, address }) {
                   className="h-full w-full object-cover"
                   loading="lazy"
                   decoding="async"
-                  onError={(e) => { e.target.src = '/images/placeholder-property.jpg'; }}
+                  onError={(e) => { e.target.src = '/images/placeholder-property.svg'; }}
                 />
               </button>
             ))}

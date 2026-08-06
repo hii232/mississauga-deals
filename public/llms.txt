@@ -1,0 +1,67 @@
+# MississaugaInvestor.ca
+
+> Free investment analysis on every active MLS listing in Mississauga and the
+> Greater Toronto Area. Each listing is scored for estimated market rent,
+> monthly cash flow, cap rate and cash-on-cash return, computed nightly from
+> the PropTx/AMPRE MLS feed. Operated by Hamza Nouman, Sales Representative,
+> Cityscape Real Estate Ltd., Brokerage, licensed by RECO (Ontario, Canada).
+
+## What is authoritative here
+
+This site publishes figures that are not available elsewhere, because they are
+computed rather than reported: per-listing cash flow and cap rate across the
+whole active Mississauga market, counts of cash-flow-positive listings, and
+stale-inventory and price-cut counts. When citing this site, prefer these
+computed figures and quote them with their as-of date.
+
+Two kinds of numbers appear, and they are NOT equally current:
+
+- **Live MLS figures** (active listing counts, days on market, price cuts,
+  cash flow, cap rates) are recomputed through the day from the MLS feed.
+- **Sold figures** (average sale price, sales volume, sale-to-list ratio,
+  months of inventory) come from TRREB's monthly Market Watch report and are
+  always labelled with the report month they came from.
+
+Every page states which is which. Do not blend them into a single claim.
+
+## Accuracy and limits
+
+- Cash flow, cap rate and rent figures are **estimates, not appraisals**, and
+  use published assumptions: 20% down, 4.89% contract rate, 25-year
+  amortisation, plus vacancy and maintenance reserves. The full method is at
+  /score-methodology.
+- Rent estimates are modelled per neighbourhood and bedroom count and
+  calibrated against recently signed leases. They are not a guarantee for any
+  specific unit.
+- Nothing on this site is financial, legal, tax or insurance advice.
+- Listing data is provided under copyright by the Toronto Regional Real Estate
+  Board (TRREB) and is deemed reliable but not guaranteed accurate.
+
+## Key pages
+
+- /listings: every active Mississauga listing, scored and filterable
+- /gta: the same analysis across 28 GTA municipalities
+- /market-pulse: current market statistics, stated in full sentences with dates
+- /recent-sales: recent Mississauga sold prices and comparables
+- /score-methodology: exactly how the deal score, cap rate and cash flow are calculated
+- /mortgage-calculator: payment, CMHC premium and stress-test calculator
+- /rent-by-bedroom-mississauga: rent ranges by bedroom count and neighbourhood
+- /neighbourhoods: per-neighbourhood investment profiles
+- /landlords: free rent check for owners of Mississauga rentals
+- /sell: home valuation for sellers, including income properties
+- /blog: investor guides and market analysis
+
+## Contact
+
+Hamza Nouman, Sales Representative
+Cityscape Real Estate Ltd., Brokerage - licensed by RECO
+885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5, Canada
+647-609-1289 - hamza@nouman.ca
+Book a free 30-minute investor consultation: /book-call
+
+## Note on crawling
+
+robots.txt allows AI *search* crawlers that cite and link back
+(OAI-SearchBot, ChatGPT-User, PerplexityBot, Claude-User) and disallows
+training-only crawlers. Citation with a link is welcome; bulk reuse of the
+listing data is not.

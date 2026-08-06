@@ -20,32 +20,15 @@ const HOT_NEIGHBOURHOODS = [
 ];
 
 // ── TRREB data freshness ─────────────────────────────────
-// The monthly TRREB figures in this file are transcribed by hand from the Market
-// Watch PDF (TRREB publishes no API or feed), so they only change when someone
-// updates them. They once sat five months stale while every page, email and blog
-// post quoted them as current. This makes the age explicit and machine-readable
-// so staleness is impossible to miss: the admin dashboard shows a banner, and any
-// consumer can check `tRREBIsStale` before presenting a figure as current.
-//
-// TRREB releases each month's report in the first few days of the following
-// month, so one full month behind is normal; two or more means we're overdue.
-export function tRREBFreshness(asOf, now = new Date()) {
-  const asOfDate = new Date(asOf + 'T00:00:00Z');
-  if (isNaN(asOfDate)) return { tRREBMonthsBehind: null, tRREBIsStale: false, tRREBRefreshNote: null };
-
-  const monthsBehind =
-    (now.getUTCFullYear() - asOfDate.getUTCFullYear()) * 12 +
-    (now.getUTCMonth() - asOfDate.getUTCMonth());
-
-  const isStale = monthsBehind >= 2;
-  return {
-    tRREBMonthsBehind: monthsBehind,
-    tRREBIsStale: isStale,
-    tRREBRefreshNote: isStale
-      ? `Need new market data - the TRREB Market Watch figures are ${monthsBehind} months behind. Upload the latest Market Watch PDF to refresh them.`
-      : null,
-  };
-}
+// Moved to lib/market/trreb-freshness.js so it can be unit-tested: this file
+// imports next/server and cannot be loaded by a plain `node` test, and a
+// date-boundary heuristic is precisely what needs tests. Re-exported here so
+// the previous import path keeps working. See that file for why staleness
+// counts PUBLISHED reports rather than calendar months.
+// Imported AND re-exported: `export ... from` alone would not bind the name
+// in this module, and the response builder below calls it.
+import { tRREBFreshness } from '@/lib/market/trreb-freshness';
+export { tRREBFreshness };
 
 // ── Mississauga monthly history - TRREB Market Watch ─────
 // One row per published report, transcribed from the PDF (page 3, Mississauga

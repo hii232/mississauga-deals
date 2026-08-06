@@ -1,4 +1,5 @@
 import { MarketPulseClient } from './market-pulse-client';
+import { MarketSummaryProse } from '@/components/market/market-summary-prose';
 
 // /market-pulse was 100% client-rendered: every figure on it (avg DOM,
 // sale-to-list, months of inventory, the price-by-type chart, the motivated
@@ -41,5 +42,24 @@ export const revalidate = 900;
 
 export default async function MarketPulsePage() {
   const initialStats = await fetchMarketStats();
-  return <MarketPulseClient initialStats={initialStats} />;
+  // Server-rendered, quotable prose summary ABOVE the dashboard. Additive: the
+  // client component and every tile below are untouched. It exists because the
+  // tiles are unquotable by a retrieval system - see the component's header.
+  // `lastUpdated` comes from the API; falling back to the TRREB month would
+  // mis-date the live figures, so an absent value simply drops the block.
+  const asOfLabel = initialStats?.lastUpdated
+    ? new Date(initialStats.lastUpdated + 'T12:00:00Z').toLocaleDateString('en-CA', {
+        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+      })
+    : null;
+  return (
+    <>
+      {asOfLabel && (
+        <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+          <MarketSummaryProse stats={initialStats} asOfLabel={asOfLabel} />
+        </div>
+      )}
+      <MarketPulseClient initialStats={initialStats} />
+    </>
+  );
 }

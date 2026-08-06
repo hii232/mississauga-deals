@@ -1,4 +1,5 @@
 import { formatAddress } from '@/lib/utils/format';
+import { buildListingTitle, buildListingDescription } from '@/lib/listings/listing-meta';
 
 // Origin WITHOUT request APIs - headers() in generateMetadata forced the
 // entire route dynamic, disabling the ISR page.js declares (see the fuller
@@ -64,25 +65,34 @@ export async function generateMetadata({ params }) {
   }
 
   const address = formatAddress(listing.address);
-  const city = listing.city || 'Mississauga';
-  const type = listing.type || 'Property';
-  const price = listing.price ? `$${listing.price.toLocaleString()}` : '';
-  const beds = listing.beds || 0;
-  const baths = listing.baths || 0;
   // Real community from the feed's CityRegion (available 2026-07-27). A title
   // carrying "Port Credit, Mississauga" instead of just "Mississauga" targets
   // the street+neighbourhood queries these pages actually win, and makes
-  // ~5,400 titles genuinely distinct. Only rendered when it adds information -
-  // the fallback sets neighbourhood = city, and "Mississauga, Mississauga"
-  // would read as a bug in the SERP.
-  const hood = listing.neighbourhood && listing.neighbourhood !== city ? listing.neighbourhood : null;
-  const where = hood ? `${hood}, ${city}` : city;
-
-  const title = `${address}, ${where} - ${type} for Sale${price ? ` ${price}` : ''}`;
-  const description = `${type} for sale at ${address}, ${where}. ${beds} bed, ${baths} bath${price ? ` · Listed at ${price}` : ''}. Cash flow analysis, cap rate, deal score, and investment insights by Hamza Nouman.`;
+  // ~5,400 titles genuinely distinct.
+  //
+  // Both strings are now built against a CHARACTER BUDGET rather than by
+  // concatenation - see lib/listings/listing-meta.js. Straight concatenation
+  // plus the root layout's ` | MississaugaInvestor.ca` template was putting
+  // live pages at 97 characters, so Google cut them at "…Detached for Sa" and
+  // the price never reached the searcher.
+  const parts = {
+    address,
+    city: listing.city || 'Mississauga',
+    neighbourhood: listing.neighbourhood,
+    type: listing.type || 'Property',
+    price: listing.price,
+    beds: listing.beds,
+    baths: listing.baths,
+  };
+  const title = buildListingTitle(parts);
+  const description = buildListingDescription(parts);
 
   return {
-    title,
+    // absolute: the brand suffix cost 24 of the 60 characters Google renders
+    // and never appeared in a single result, because the titles it was
+    // appended to were already past the cut. Every other page on this site
+    // sets its title absolute for the same reason.
+    title: { absolute: title },
     description,
     alternates: { canonical: `/listings/${listing.id}` },
     openGraph: {

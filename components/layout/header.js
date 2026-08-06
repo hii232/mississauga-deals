@@ -341,11 +341,16 @@ export default function Header({ savedCount = 0 }) {
             (Apr 1, 2026 – Mar 31, 2027)
           </span>
           <div className="flex items-center gap-2">
+            {/* Anchor text names the DESTINATION, not the action. This banner
+                renders on every page, so "Learn More" was 83 of the site's 94
+                non-descriptive internal links (Semrush, 2026-08-06) - 83
+                chances to tell Google what /pre-construction/hst-rebate is
+                about, all spent on two words that describe nothing. */}
             <Link
               href="/pre-construction/hst-rebate"
               className="inline-flex items-center rounded-full bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-bold text-white no-underline transition-colors"
             >
-              Learn More
+              HST rebate rules
             </Link>
             <Link
               href="/book-call"

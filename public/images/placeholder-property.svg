@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Photo unavailable">
+  <!--
+    Shown when an MLS photo fails to load. Five places in the app already fell
+    back to /images/placeholder-property.jpg - a file that never existed, so
+    every "graceful" fallback on this site was itself a 404 until 2026-08-06.
+
+    Deliberately generic: no address, no price, no brokerage watermark. MLS
+    photos are owned by the listing brokerage and this stands in for one, so it
+    must not imply anything about the specific property behind it.
+  -->
+  <rect width="800" height="600" fill="#F8FAFC"/>
+  <g stroke="#1B2A4A" stroke-opacity="0.22" stroke-width="14" fill="none"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M248 300 L400 186 L552 300"/>
+    <path d="M286 288 V404 h228 V288"/>
+    <path d="M366 404 v-62 h68 v62"/>
+  </g>
+  <text x="400" y="470" text-anchor="middle"
+        font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="30" font-weight="600" fill="#1B2A4A" fill-opacity="0.42">
+    Photo unavailable
+  </text>
+</svg>
