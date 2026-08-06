@@ -179,6 +179,12 @@ export default function AdminDashboard() {
           list until he clicks the approval button inside that draft. */}
       <div className="space-y-4">
         <BroadcastPanel
+          endpoint="/api/broadcast/market-report"
+          icon="📰"
+          title="The Mississauga Monthly"
+          blurb="The TRREB report-day briefing: this month's Mississauga numbers, median-led with the mix-shift explained honestly, per-type table, and the live screener strip. Recurring - each new Market Watch upload arms a fresh edition, and it refuses to draft on a stale report"
+        />
+        <BroadcastPanel
           endpoint="/api/broadcast/announcement"
           icon="📣"
           title="Announcement Broadcast"

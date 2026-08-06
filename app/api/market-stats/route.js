@@ -41,6 +41,7 @@ const mississaugaMonthly = [
   { month: 'Apr 2026', report: 'MW2604', sales: 516, avgPrice: 980653,  medianPrice: 900000, newListings: 1517, activeListings: 2277, snlr: 33.2, monthsInventory: 5.1, spLp: 97, ldom: 31 },
   { month: 'May 2026', report: 'MW2605', sales: 568, avgPrice: 971047,  medianPrice: 896500, newListings: 1582, activeListings: 2465, snlr: 34.4, monthsInventory: 5.0, spLp: 97, ldom: 30 },
   { month: 'Jun 2026', report: 'MW2606', sales: 567, avgPrice: 1014120, medianPrice: 880000, newListings: 1632, activeListings: 2589, snlr: 35.1, monthsInventory: 4.9, spLp: 97, ldom: 29 },
+  { month: 'Jul 2026', report: 'MW2607', sales: 500, avgPrice: 899002, medianPrice: 860000, newListings: 1388, activeListings: 2518, snlr: 35.4, monthsInventory: 4.9, spLp: 97, ldom: 32 },
 ];
 
 // ── Fetch live stats from internal APIs ──────────────────
@@ -256,14 +257,14 @@ export async function GET() {
     : 0.972;
 
   // ── TRREB Market Watch June 2026 - Mississauga Sold Data ──
-  // Source: TRREB MW2606 (June 2026, released July 3 2026) - Mississauga rows on
+  // Source: TRREB MW2607 (July 2026, released August 6 2026) - Mississauga rows on
   // pages 3 (all types), 7 (detached), 9 (semi), 11 (Att/Row/Townhouse), 15
   // (condo apartment). Every figure below is copied straight from the report -
   // nothing derived, nothing averaged across categories.
   //
   // `townhouse` is freehold Att/Row/Townhouse and `condo` is Condo Apartment,
   // matching how the live-listing buckets above are mapped. Condo Townhouse
-  // (91 sales, $726,749 avg) and Link (1) are reported separately by TRREB and
+  // (95 sales, $712,285 avg) and Link are reported separately by TRREB and
   // are intentionally not folded in here - merging them would mean averaging
   // medians, which isn't valid. `all` carries the true Mississauga total.
   //
@@ -271,11 +272,11 @@ export async function GET() {
   // Watch does NOT publish a per-municipality YoY, so this is a GTA figure -
   // never relabel it as Mississauga-specific.
   const tRREBSold = {
-    all:          { sales: 567, avgPrice: 1014120, medianPrice: 880000,  yoy: -3.9 },
-    detached:     { sales: 227, avgPrice: 1482130, medianPrice: 1252000, yoy: -2.0 },
-    semiDetached: { sales: 86,  avgPrice: 908389,  medianPrice: 885000,  yoy: -4.6 },
-    townhouse:    { sales: 18,  avgPrice: 883038,  medianPrice: 901600,  yoy: -3.1 },
-    condo:        { sales: 142, avgPrice: 525333,  medianPrice: 498500,  yoy: -9.5 },
+    all:          { sales: 500, avgPrice: 899002,  medianPrice: 860000,  yoy: -4.5 },
+    detached:     { sales: 184, avgPrice: 1256800, medianPrice: 1187500, yoy: -5.1 },
+    semiDetached: { sales: 69,  avgPrice: 891613,  medianPrice: 880000,  yoy: -7.4 },
+    townhouse:    { sales: 23,  avgPrice: 911812,  medianPrice: 870000,  yoy: -3.9 },
+    condo:        { sales: 124, avgPrice: 511649,  medianPrice: 478450,  yoy: -2.3 },
   };
 
   const avgPrices = {
@@ -340,49 +341,49 @@ export async function GET() {
     avgSoldDOM: soldStats?.avgDOM || 0,
     avgNegotiationGap: soldStats?.avgNegotiationGap || 0,
 
-    // ── TRREB Market Watch June 2026 (MW2606) ──
+    // ── TRREB Market Watch July 2026 (MW2607) ──
     // Mississauga-specific from page 3; GTA from pages 1 and 3.
-    tRREBMonth: 'June 2026',
+    tRREBMonth: 'July 2026',
     // Machine-readable as-of date for the monthly TRREB snapshot (last day of the
     // report month). Consumers use this to show honest "as of" labels and detect
     // staleness - the monthly sold/volume/YoY figures are NOT live and must never
     // be presented as today's numbers. Keep in sync with tRREBMonth above.
-    tRREBAsOf: '2026-06-30',
+    tRREBAsOf: '2026-07-31',
     // Self-reporting staleness. TRREB publishes Market Watch in the first days of
     // each month, and these figures can only be refreshed by hand from that PDF -
     // which is exactly how they silently sat five months out of date. Anything
     // rendering this data can now SEE that it's old instead of trusting it, and
     // the admin dashboard surfaces a "need new market data" banner.
-    ...tRREBFreshness('2026-06-30'),
-    gtaAvgPrice: 1058658,
-    gtaMedianPrice: 890000,
-    gtaYoyChange: -3.9,
-    gtaSales: 6770,
-    gtaSalesYoy: 9.4,
-    gtaNewListings: 17282,
-    gtaNewListingsYoy: -12.9,
-    gtaActiveListings: 27329,
-    gtaActiveListingsYoy: -13.5,
-    gtaAvgLDOM: 29,
-    gtaAvgPDOM: 42,
+    ...tRREBFreshness('2026-07-31'),
+    gtaAvgPrice: 1003956,
+    gtaMedianPrice: 860000,
+    gtaYoyChange: -4.5,
+    gtaSales: 5995,
+    gtaSalesYoy: -0.9,
+    gtaNewListings: 14484,
+    gtaNewListingsYoy: -17.8,
+    gtaActiveListings: 26098,
+    gtaActiveListingsYoy: -12.1,
+    gtaAvgLDOM: 32,
+    gtaAvgPDOM: 45,
 
     // Mississauga TRREB stats
-    mississaugaSales: 567,
-    mississaugaNewListings: 1632,
-    mississaugaActiveListings: 2589,
-    mississaugaSNLR: 35.1,
+    mississaugaSales: 500,
+    mississaugaNewListings: 1388,
+    mississaugaActiveListings: 2518,
+    mississaugaSNLR: 35.4,
     mississaugaMonthsOfInventory: 4.9,
     mississaugaAvgSPLP: 97,
-    mississaugaAvgLDOM: 29,
+    mississaugaAvgLDOM: 32,
     mississaugaAvgPDOM: 47,
-    mississaugaAvgPrice: 1014120,
-    mississaugaMedianPrice: 880000,
+    mississaugaAvgPrice: 899002,
+    mississaugaMedianPrice: 860000,
 
     // Peel Region
-    peelSales: 1167,
-    peelAvgPrice: 966024,
-    peelMedianPrice: 875000,
-    peelActiveListings: 5189,
+    peelSales: 1053,
+    peelAvgPrice: 910007,
+    peelMedianPrice: 851000,
+    peelActiveListings: 5055,
 
     marketType: 'Buyers Market',
     salesForecast2026: '+7% vs 2025 (TRREB forecast)',
@@ -391,11 +392,11 @@ export async function GET() {
     // Economic indicators from page 1
     economic: {
       gdpGrowth: -0.1,             // Q1 2026
-      employmentGrowth: 0.7,       // May 2026 (Toronto)
-      unemployment: 7.6,           // May 2026 (Toronto, SA)
-      inflation: 3.2,              // May 2026 (Yr./Yr. CPI growth)
-      bocRate: 2.3,                // June 2026 overnight rate
-      primeRate: 4.5,              // June 2026
+      employmentGrowth: 0.9,       // June 2026 (Toronto)
+      unemployment: 7.2,           // June 2026 (Toronto, SA)
+      inflation: 2.8,              // June 2026 (Yr./Yr. CPI growth)
+      bocRate: 2.3,                // July 2026 overnight rate
+      primeRate: 4.5,              // July 2026
     },
     rates: {
       // IMPORTANT: the fixed rates TRREB reprints are the Bank of Canada
@@ -408,7 +409,7 @@ export async function GET() {
       // estimate of a real contract rate, which is why it sits below the posted
       // fixed rates rather than above them.
       variable: 4.45,
-      fixed1yr: 5.49,              // TRREB MW2606, June 2026 (posted)
+      fixed1yr: 5.49,              // TRREB MW2607, July 2026 (posted)
       fixed3yr: 6.05,              // (posted)
       fixed5yr: 6.09,              // (posted)
       // The contract rate the site's cash-flow engine actually underwrites at.
@@ -447,15 +448,15 @@ export async function GET() {
     // can say what they are rather than implying they are this month's live
     // average. The newsletter states it under the table.
     hotNeighbourhoodsAsOf: HOOD_OUTLOOK_AS_OF,
-    // Mississauga sales by home type - TRREB MW2606 (June 2026), the per-type
+    // Mississauga sales by home type - TRREB MW2607 (July 2026), the per-type
     // pages. The count key is `sales`, NOT a month name: baking "feb2026" into
     // the key is part of why nobody noticed this data had gone stale.
     salesByType: {
-      detached:     { sales: 227, avgPrice: 1482130, spLp: 96,  ldom: 25 },
-      semiDetached: { sales: 86,  avgPrice: 908389,  spLp: 100, ldom: 19 },
-      townhouse:    { sales: 18,  avgPrice: 883038,  spLp: 101, ldom: 30 },
-      condoTown:    { sales: 91,  avgPrice: 726749,  spLp: 98,  ldom: 31 },
-      condoApt:     { sales: 142, avgPrice: 525333,  spLp: 97,  ldom: 40 },
+      detached:     { sales: 184, avgPrice: 1256800, spLp: 96, ldom: 28 },
+      semiDetached: { sales: 69,  avgPrice: 891613,  spLp: 98, ldom: 26 },
+      townhouse:    { sales: 23,  avgPrice: 911812,  spLp: 98, ldom: 31 },
+      condoTown:    { sales: 95,  avgPrice: 712285,  spLp: 98, ldom: 31 },
+      condoApt:     { sales: 124, avgPrice: 511649,  spLp: 97, ldom: 41 },
     },
     // Full monthly history, every row transcribed from a published TRREB Market
     // Watch report (the `report` field names the source issue). The previous
@@ -466,7 +467,7 @@ export async function GET() {
     // Derived views kept for any consumer expecting the old shape.
     priceTrend: mississaugaMonthly.map((m) => ({ month: m.month, avg: m.avgPrice })),
     salesTrend: mississaugaMonthly.map((m) => ({ month: m.month, sales: m.sales })),
-    disclaimer: 'Active listing statistics computed from live MLS data. Sold statistics from TRREB Market Watch June 2026 (MW2606). Deemed reliable but not guaranteed.',
+    disclaimer: 'Active listing statistics computed from live MLS data. Sold statistics from TRREB Market Watch July 2026 (MW2607). Deemed reliable but not guaranteed.',
   };
 
   return NextResponse.json(stats, {
