@@ -30,19 +30,32 @@ const HOT_NEIGHBOURHOODS = [
 import { tRREBFreshness } from '@/lib/market/trreb-freshness';
 export { tRREBFreshness };
 
-// ── Mississauga monthly history - TRREB Market Watch ─────
-// One row per published report, transcribed from the PDF (page 3, Mississauga
-// row). Nothing here is interpolated, smoothed or estimated: if a month has no
-// report on hand it is simply absent. Add older months by sending the matching
-// Market Watch PDF - see the refresh process in CLAUDE.md.
-const mississaugaMonthly = [
-  { month: 'Feb 2026', report: 'MW2602', sales: 345, avgPrice: 963747,  medianPrice: 850000, newListings: 940,  activeListings: 1748, snlr: 32.4, monthsInventory: 5.2, spLp: 96, ldom: 36 },
-  { month: 'Mar 2026', report: 'MW2603', sales: 452, avgPrice: 966615,  medianPrice: 860000, newListings: 1322, activeListings: 1933, snlr: 32.7, monthsInventory: 5.2, spLp: 97, ldom: 36 },
-  { month: 'Apr 2026', report: 'MW2604', sales: 516, avgPrice: 980653,  medianPrice: 900000, newListings: 1517, activeListings: 2277, snlr: 33.2, monthsInventory: 5.1, spLp: 97, ldom: 31 },
-  { month: 'May 2026', report: 'MW2605', sales: 568, avgPrice: 971047,  medianPrice: 896500, newListings: 1582, activeListings: 2465, snlr: 34.4, monthsInventory: 5.0, spLp: 97, ldom: 30 },
-  { month: 'Jun 2026', report: 'MW2606', sales: 567, avgPrice: 1014120, medianPrice: 880000, newListings: 1632, activeListings: 2589, snlr: 35.1, monthsInventory: 4.9, spLp: 97, ldom: 29 },
-  { month: 'Jul 2026', report: 'MW2607', sales: 500, avgPrice: 899002,  medianPrice: 860000, newListings: 1388, activeListings: 2518, snlr: 35.4, monthsInventory: 4.9, spLp: 97, ldom: 32 },
-];
+// ── TRREB Market Watch figures ───────────────────────────
+// NOT typed in here any more. Every sold/volume/YoY number, the month string,
+// the as-of date and the disclaimer sentence are derived from data/trreb.js,
+// which scripts/trreb-extract.py writes straight off the Market Watch PDF.
+//
+// This file used to carry ~45 hand-keyed figures plus three strings that had to
+// move together, and it was only ONE of the places a refresh had to touch -
+// lib/blog/seed-posts.js quoted its own stale copies in prose, so the site
+// contradicted itself in public. One command refreshes all of it now:
+//
+//     ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2608.pdf --write
+//
+// scripts/compliance-check.mjs fails the build if a TRREB figure reappears as a
+// literal anywhere outside data/trreb.js.
+import {
+  tRREBMonth,
+  tRREBAsOf,
+  tRREBDisclaimer,
+  tRREBSold,
+  salesByType,
+  regional,
+  economic,
+  rates as tRREBRates,
+  rental,
+  mississaugaMonthly,
+} from '@/lib/market/trreb';
 
 // ── Fetch live stats from internal APIs ──────────────────
 async function fetchLiveListingStats(baseUrl) {
@@ -256,32 +269,11 @@ export async function GET() {
     ? +((100 + soldStats.avgNegotiationGap) / 100).toFixed(3)
     : 0.972;
 
-  // ── TRREB Market Watch July 2026 - Mississauga Sold Data ──
-  // Source: TRREB MW2607 (July 2026, released August 6 2026) - Mississauga rows
-  // on pages 3 (all types), 7 (detached), 9 (semi), 11 (Att/Row/Townhouse), 13
-  // (condo townhouse), 15 (condo apartment). Pages were IDENTIFIED by matching
-  // each page's TRREB-wide sales total, not assumed from their order - see
-  // scripts/trreb-extract.py. Every figure below is copied straight from the
-  // report -
-  // nothing derived, nothing averaged across categories.
-  //
-  // `townhouse` is freehold Att/Row/Townhouse and `condo` is Condo Apartment,
-  // matching how the live-listing buckets above are mapped. Condo Townhouse
-  // (95 sales, $712,285 avg) and Link (4) are reported separately by TRREB and
-  // are intentionally not folded in here - merging them would mean averaging
-  // medians, which isn't valid. `all` carries the true Mississauga total.
-  //
-  // yoy is TRREB's GTA-wide year-over-year change by home type (page 1). Market
-  // Watch does NOT publish a per-municipality YoY, so this is a GTA figure -
-  // never relabel it as Mississauga-specific.
-  const tRREBSold = {
-    all:          { sales: 500, avgPrice: 899002,  medianPrice: 860000,  yoy: -4.5 },
-    detached:     { sales: 184, avgPrice: 1256800, medianPrice: 1187500, yoy: -5.1 },
-    semiDetached: { sales: 69,  avgPrice: 891613,  medianPrice: 880000,  yoy: -7.4 },
-    townhouse:    { sales: 23,  avgPrice: 911812,  medianPrice: 870000,  yoy: -3.9 },
-    condo:        { sales: 124, avgPrice: 511649,  medianPrice: 478450,  yoy: -2.3 },
-  };
-
+  // tRREBSold, salesByType, regional, economic, rates and the monthly series
+  // all come from lib/market/trreb.js - see the import block at the top of this
+  // file for why nothing is typed in here. The per-type page identification
+  // (which page IS the condo page) is done by fingerprint in
+  // scripts/trreb-extract.py, never by page order.
   const avgPrices = {
     all: {
       avg: liveListings?.avgPrice || tRREBSold.all.avgPrice,
@@ -344,80 +336,43 @@ export async function GET() {
     avgSoldDOM: soldStats?.avgDOM || 0,
     avgNegotiationGap: soldStats?.avgNegotiationGap || 0,
 
-    // ── TRREB Market Watch July 2026 (MW2607) ──
-    // Mississauga-specific from page 3; GTA from pages 1 and 3.
-    tRREBMonth: 'July 2026',
+    // ── TRREB Market Watch ──
+    // Mississauga-specific from page 3; GTA from pages 1 and 3. The month
+    // string and the as-of date are read off the report by the extractor, so
+    // they cannot name a different month than the figures beside them - they
+    // used to be three separate hand-typed strings that had to move together.
+    tRREBMonth,
     // Machine-readable as-of date for the monthly TRREB snapshot (last day of the
     // report month). Consumers use this to show honest "as of" labels and detect
     // staleness - the monthly sold/volume/YoY figures are NOT live and must never
-    // be presented as today's numbers. Keep in sync with tRREBMonth above.
-    tRREBAsOf: '2026-07-31',
+    // be presented as today's numbers.
+    tRREBAsOf,
     // Self-reporting staleness. TRREB publishes Market Watch in the first days of
-    // each month, and these figures can only be refreshed by hand from that PDF -
-    // which is exactly how they silently sat five months out of date. Anything
-    // rendering this data can now SEE that it's old instead of trusting it, and
-    // the admin dashboard surfaces a "need new market data" banner.
-    ...tRREBFreshness('2026-07-31'),
-    gtaAvgPrice: 1003956,
-    gtaMedianPrice: 860000,
-    gtaYoyChange: -4.5,
-    gtaSales: 5995,
-    gtaSalesYoy: -0.9,
-    gtaNewListings: 14484,
-    gtaNewListingsYoy: -17.8,
-    gtaActiveListings: 26098,
-    gtaActiveListingsYoy: -12.1,
-    gtaAvgLDOM: 32,
-    gtaAvgPDOM: 45,
-
-    // Mississauga TRREB stats
-    mississaugaSales: 500,
-    mississaugaNewListings: 1388,
-    mississaugaActiveListings: 2518,
-    mississaugaSNLR: 35.4,
-    mississaugaMonthsOfInventory: 4.9,
-    mississaugaAvgSPLP: 97,
-    mississaugaAvgLDOM: 32,
-    mississaugaAvgPDOM: 47,
-    mississaugaAvgPrice: 899002,
-    mississaugaMedianPrice: 860000,
-
-    // Peel Region
-    peelSales: 1053,
-    peelAvgPrice: 910007,
-    peelMedianPrice: 851000,
-    peelActiveListings: 5055,
+    // each month, and these figures can only be refreshed from that PDF - which is
+    // exactly how they silently sat five months out of date. Anything rendering
+    // this data can now SEE that it's old instead of trusting it, and the admin
+    // dashboard surfaces a "need new market data" banner.
+    ...tRREBFreshness(tRREBAsOf),
+    // GTA, Mississauga and Peel headline blocks, all derived from data/trreb.js.
+    ...regional,
 
     marketType: 'Buyers Market',
     salesForecast2026: '+7% vs 2025 (TRREB forecast)',
     pentUpDemand: '100,000+ sidelined buyers in GTA',
 
-    // Economic indicators from page 1
-    economic: {
-      gdpGrowth: -0.1,             // Q1 2026
-      employmentGrowth: 0.9,       // June 2026 (Toronto)
-      unemployment: 7.2,           // June 2026 (Toronto, SA)
-      inflation: 2.8,              // June 2026 (Yr./Yr. CPI growth)
-      bocRate: 2.3,                // July 2026 overnight rate (unchanged)
-      primeRate: 4.5,              // July 2026 (unchanged)
-    },
+    // Economic indicators from page 1. TRREB reprints these from StatCan and
+    // the Bank of Canada, so the readings lag the report month -
+    // `indicatorsAsOf` travels with them rather than letting them read as this
+    // month's numbers.
+    economic,
     rates: {
-      // IMPORTANT: the fixed rates TRREB reprints are the Bank of Canada
-      // CONVENTIONAL MORTGAGE series - i.e. POSTED rates. Posted rates run well
-      // above the discounted contract rates a borrower is actually quoted (with
-      // prime at 4.5%, nobody is signing a 6.09% five-year fixed). Never present
-      // these as "the rate you'll get" - label them posted wherever they render.
-      posted: true,
-      // variable is NOT published in Market Watch - kept as a broker-sourced
-      // estimate of a real contract rate, which is why it sits below the posted
-      // fixed rates rather than above them.
-      variable: 4.45,
-      fixed1yr: 5.49,              // TRREB MW2607, July 2026 (posted, unchanged)
-      fixed3yr: 6.05,              // (posted)
-      fixed5yr: 6.09,              // (posted)
+      // Posted-vs-contract handling and the reason `variable` sits below the
+      // fixed rates are documented on the `rates` export in lib/market/trreb.js.
+      ...tRREBRates,
       // The contract rate the site's cash-flow engine actually underwrites at.
       // Exposed so pages can show posted vs. assumed side by side instead of
-      // silently disagreeing with each other.
+      // silently disagreeing with each other. NOT a TRREB figure - it belongs to
+      // the engine, so it is composed in here rather than stored with the report.
       contractRateAssumption: DEFAULT_ASSUMPTIONS.annualInterestRate,
       // Federal stress test = greater of CONTRACT rate + 2% or 5.25%. It keys off
       // the contract rate, not the posted rate. This was hardcoded to 8.09
@@ -426,12 +381,7 @@ export async function GET() {
       // making qualifying look harder than it is.
       stressTest: +Math.max(DEFAULT_ASSUMPTIONS.annualInterestRate + 2, 5.25).toFixed(2),
     },
-    rental: {
-      avg1Bed: 2100,
-      avg2Bed: 2700,
-      avg3Bed: 3200,
-      rentalYoyChange: -3.2,
-    },
+    rental,
     // Prices come from HOOD_DATA, not from a second hardcoded copy. They used
     // to be typed here as well, and the two had drifted: Churchill Meadows was
     // $1,100,000 here against $843,000 in HOOD_DATA - a 30% gap on the same
@@ -451,26 +401,22 @@ export async function GET() {
     // can say what they are rather than implying they are this month's live
     // average. The newsletter states it under the table.
     hotNeighbourhoodsAsOf: HOOD_OUTLOOK_AS_OF,
-    // Mississauga sales by home type - TRREB MW2607 (July 2026), the per-type
-    // pages. The count key is `sales`, NOT a month name: baking "feb2026" into
+    // Mississauga sales by home type, from the per-type pages of the current
+    // report. The count key is `sales`, NOT a month name: baking "feb2026" into
     // the key is part of why nobody noticed this data had gone stale.
-    salesByType: {
-      detached:     { sales: 184, avgPrice: 1256800, spLp: 96, ldom: 28 },
-      semiDetached: { sales: 69,  avgPrice: 891613,  spLp: 98, ldom: 26 },
-      townhouse:    { sales: 23,  avgPrice: 911812,  spLp: 98, ldom: 31 },
-      condoTown:    { sales: 95,  avgPrice: 712285,  spLp: 98, ldom: 31 },
-      condoApt:     { sales: 124, avgPrice: 511649,  spLp: 97, ldom: 41 },
-    },
-    // Full monthly history, every row transcribed from a published TRREB Market
-    // Watch report (the `report` field names the source issue). The previous
-    // series ran back to Apr 2025 on round invented numbers - those are gone
-    // rather than left to be charted as if they were real. Extend backwards by
-    // sending older Market Watch PDFs; never interpolate a missing month.
+    salesByType,
+    // Full monthly history, one row per published TRREB Market Watch report (the
+    // `report` field names the source issue). The previous series ran back to Apr
+    // 2025 on round invented numbers - those are gone rather than left to be
+    // charted as if they were real. Extend backwards by running the extractor
+    // over older Market Watch PDFs; never interpolate a missing month.
     mississaugaMonthly,
     // Derived views kept for any consumer expecting the old shape.
     priceTrend: mississaugaMonthly.map((m) => ({ month: m.month, avg: m.avgPrice })),
     salesTrend: mississaugaMonthly.map((m) => ({ month: m.month, sales: m.sales })),
-    disclaimer: 'Active listing statistics computed from live MLS data. Sold statistics from TRREB Market Watch July 2026 (MW2607). Deemed reliable but not guaranteed.',
+    // Generated from the loaded report, so it can never name a different month
+    // than the figures it sits under.
+    disclaimer: tRREBDisclaimer,
   };
 
   return NextResponse.json(stats, {

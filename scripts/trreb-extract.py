@@ -3,22 +3,33 @@
 Extract the Mississauga rows from a TRREB Market Watch PDF.
 
     python3 -m venv .venv && ./.venv/bin/pip install pypdf
-    ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2607.pdf
+    ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2607.pdf          # dry run
+    ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2607.pdf --write  # refresh the site
 
 Why this exists
 ---------------
-The monthly sold/volume/YoY figures in app/api/market-stats/route.js are
-transcribed BY HAND from this PDF — TRREB publishes no API or feed. That
-process once let the numbers sit five months stale while the market pages, the
-weekly newsletter and every auto-generated blog post quoted them as current,
-and hand-keying is exactly the process that produces a transposed digit.
+The monthly sold/volume/YoY figures were once transcribed BY HAND into
+app/api/market-stats/route.js — TRREB publishes no API or feed. That process
+let the numbers sit five months stale while the market pages, the weekly
+newsletter and every auto-generated blog post quoted them as current, and
+hand-keying is exactly the process that produces a transposed digit.
 
-This script does the reading so the human only does the pasting. It prints the
-values already shaped like the literals in market-stats/route.js.
+--write closes that gap. It reads the PDF and MERGES one report into
+data/trreb.js, which is the single source every page, email and generated post
+derives from (via lib/market/trreb.js). One command refreshes the whole site:
+the month string, the as-of date, the disclaimer sentence and every figure move
+together because they are all read off the same report.
 
-It does NOT write to the repo. Transcription stays a deliberate human step —
-see CLAUDE.md, which also documents the fields that must move together
-(tRREBMonth, tRREBAsOf, the disclaimer string).
+Without --write it prints and changes nothing, which is the right mode for
+eyeballing a new report before letting it near the site.
+
+MERGE, NEVER REPLACE
+--------------------
+--write adds one key to `reports` and repoints `latest`. It never drops a month
+— the monthly history chart is built from that object, so a writer that
+rebuilt the file from scratch would silently shorten the series every time it
+ran on a single PDF. Re-running on a report already present is refused unless
+you pass --force.
 
 Fail-closed page identification
 -------------------------------
@@ -39,6 +50,8 @@ between the June all-types page and the per-type pages sits a year-to-date
 summary page that also carries a Mississauga row.
 """
 
+import calendar
+import json
 import re
 import sys
 from pathlib import Path
@@ -49,6 +62,24 @@ except ImportError:
     sys.exit("pypdf missing. python3 -m venv .venv && ./.venv/bin/pip install pypdf")
 
 CITY = "Mississauga"
+
+# The one file the whole site reads its TRREB figures from.
+DATA_FILE = Path(__file__).resolve().parent.parent / "data" / "trreb.js"
+
+# Row labels on the all-types page, in the shape lib/market/trreb.js expects.
+REGION_ROWS = [("mississauga", CITY), ("peel", "Peel Region"), ("gta", "All TRREB Areas")]
+
+# Column order of a REGION row on the all-types page.
+ALL_TYPES_COLS = ["sales", "volume", "avgPrice", "medianPrice", "newListings",
+                  "snlr", "activeListings", "monthsInventory", "spLp", "ldom", "pdom"]
+
+# Column order of a city row on a PER-TYPE page. Note it differs from the
+# all-types page: no SNLR, no months-of-inventory, and activeListings sits one
+# column earlier. Reading a per-type row with the all-types layout puts the
+# active-listing count into the SNLR slot — plausible-looking and wrong, which
+# is the failure mode this whole script exists to prevent.
+PER_TYPE_COLS = ["sales", "volume", "avgPrice", "medianPrice", "newListings",
+                 "activeListings", "spLp", "ldom"]
 
 MONTHS = {"January": "01", "February": "02", "March": "03", "April": "04",
           "May": "05", "June": "06", "July": "07", "August": "08",
@@ -145,7 +176,12 @@ def page1_yoy(text):
     per-municipality YoY at all, so anything using these must stay labelled
     GTA-wide — CLAUDE.md forbids relabelling them."""
     out = {}
-    for label in ("Detached", "Semi-Detached", "Townhouse", "Condo\tApt"):
+    # "All Home Types" is the whole-GTA row; TRREB has also printed it as
+    # "Total". Both are tried and the first that parses wins, so a relabelled
+    # summary row leaves the figure MISSING rather than silently unmapped.
+    labels = ("Detached", "Semi-Detached", "Townhouse", "Condo\tApt",
+              "All Home Types", "Total")
+    for label in labels:
         for line in text.split("\n"):
             if label in line and "%" in line:
                 pcts = re.findall(r"-?\d+\.\d+%", line)
@@ -155,10 +191,109 @@ def page1_yoy(text):
     return out
 
 
+def as_row(vals, cols):
+    """Zip a numeric row against its column names. Columns the report did not
+    print come back None rather than shifted-up neighbours: a short row means a
+    missing value, never a re-aligned one."""
+    return {c: (vals[i] if i < len(vals) else None) for i, c in enumerate(cols)}
+
+
+def tidy(row):
+    """Ints where TRREB reports ints, floats where it reports one decimal."""
+    keep_float = {"snlr", "monthsInventory"}
+    out = {}
+    for k, v in row.items():
+        if k == "volume":
+            continue  # derivable from sales x avgPrice; nothing renders it
+        if v is None:
+            out[k] = None
+        elif k in keep_float:
+            out[k] = round(float(v), 1)
+        else:
+            out[k] = int(round(v))
+    return out
+
+
+def read_data_file():
+    """Parse data/trreb.js back into a dict, keeping its header comment.
+
+    The file is a JS module rather than JSON so it imports identically from the
+    Next bundle, a plain `node` test and here — at the cost of this small
+    round-trip. The body between `const TRREB = ` and the trailing `;` is strict
+    JSON by construction (this writer is the only thing that produces it).
+    """
+    if not DATA_FILE.exists():
+        sys.exit(f"missing {DATA_FILE} — nothing to merge into.")
+    text = DATA_FILE.read_text(encoding="utf-8")
+    marker = "\nconst TRREB = "
+    i = text.find(marker)
+    j = text.rfind(";\n\nexport default TRREB;")
+    if i < 0 or j < 0:
+        sys.exit(f"{DATA_FILE} is not in the expected generated shape — refusing to rewrite it.")
+    header = text[:i]
+    try:
+        data = json.loads(text[i + len(marker):j])
+    except json.JSONDecodeError as e:
+        sys.exit(f"{DATA_FILE} body is not valid JSON ({e}) — refusing to rewrite it.")
+    return header, data
+
+
+def write_data_file(header, data):
+    DATA_FILE.write_text(
+        header + "\nconst TRREB = " + json.dumps(data, indent=2) + ";\n\nexport default TRREB;\n",
+        encoding="utf-8",
+    )
+
+
+def merge_report(report, force):
+    """Add one report to data/trreb.js and repoint `latest`.
+
+    Deliberately additive. The monthly history chart is built from `reports`, so
+    a writer that rebuilt the file from one PDF would shorten the series on
+    every run — the same shape of bug that once shrank a 224-company corpus to
+    50 because a script defaulted to a small sweep.
+    """
+    header, data = read_data_file()
+    rid = report["report"]
+    before = set(data.get("reports", {}))
+
+    if rid in before and not force:
+        sys.exit(f"{rid} is already in data/trreb.js. Re-run with --force to overwrite it.")
+
+    # Page-1 boxes this script cannot parse yet (rates, the economic indicators,
+    # rental averages). Carry the previous report's block forward — a month-old
+    # posted rate beats a missing one — but stamp which report it was verified
+    # against so lib/market/trreb.js can report `manualBlockIsCurrent: false`
+    # and the admin dashboard can ask for a look.
+    prev = data.get("reports", {}).get(data.get("latest"))
+    if prev and prev.get("manual"):
+        report["manual"] = json.loads(json.dumps(prev["manual"]))
+
+    data.setdefault("reports", {})[rid] = report
+    # `latest` only advances. Re-running an OLD pdf must not roll the site back.
+    cur = data.get("reports", {}).get(data.get("latest"))
+    if not cur or str(report["asOf"]) >= str(cur.get("asOf", "")):
+        data["latest"] = rid
+
+    after = set(data["reports"])
+    dropped = before - after
+    if dropped:  # cannot happen by construction; assert it anyway
+        sys.exit(f"refusing to write: would drop report(s) {', '.join(sorted(dropped))}")
+
+    write_data_file(header, data)
+    return data, rid in before
+
+
 def main():
-    if len(sys.argv) < 2:
-        sys.exit(f"usage: {sys.argv[0]} <market-watch.pdf>")
-    path = Path(sys.argv[1]).expanduser()
+    argv = [a for a in sys.argv[1:] if not a.startswith("--")]
+    flags = {a for a in sys.argv[1:] if a.startswith("--")}
+    unknown = flags - {"--write", "--force"}
+    if unknown:
+        sys.exit(f"unknown flag(s): {', '.join(sorted(unknown))}")
+    do_write, force = "--write" in flags, "--force" in flags
+    if not argv:
+        sys.exit(f"usage: {sys.argv[0]} <market-watch.pdf> [--write] [--force]")
+    path = Path(argv[0]).expanduser()
     if not path.exists():
         sys.exit(f"no such file: {path}")
 
@@ -244,29 +379,80 @@ def main():
             problems.append(f"per-type sales sum ({city_sum}) is implausibly far from "
                             f"the all-types total ({int(row[0])})")
 
-    print("\n\n--- PASTE INTO market-stats/route.js  (salesByType)\n")
-    print("    salesByType: {")
-    for field, _ in PER_TYPE:
-        if field in results:
-            r = results[field]
-            print(f"      {field + ':':14}{{ sales: {int(r[0])}, avgPrice: {int(r[2])}, "
-                  f"spLp: {int(r[6])}, ldom: {int(r[7])} }},")
-    print("    },")
-
     yoy = page1_yoy(pages[0])
     if yoy:
         print("\n--- GTA-WIDE YoY average price (NOT Mississauga — keep labelled GTA-wide)")
         for k, v in yoy.items():
             print(f"    {k:16} {v}")
 
-    print(f"\n--- REMEMBER: update tRREBMonth, tRREBAsOf AND the disclaimer string together.")
-
     if problems:
-        print("\n!!! PROBLEMS — do not transcribe until resolved:")
+        print("\n!!! PROBLEMS — nothing written:")
         for p in problems:
             print(f"    - {p}")
         sys.exit(1)
-    print("\nAll five per-type pages identified and verified against page 2.\n")
+    print("\nAll five per-type pages identified and verified against page 2.")
+
+    # ── Assemble the report record ───────────────────────────────────────
+    parts = month.split()
+    mm = MONTHS.get(parts[0]) if len(parts) == 2 else None
+    if not mm:
+        sys.exit(f"could not read the report month from page 1 (got {month!r}) — "
+                 "refusing to file figures under a guessed month")
+    month_name, year = parts
+    last_day = calendar.monthrange(int(year), int(mm))[1]
+
+    regions = {}
+    for key, label in REGION_ROWS:
+        vals = city_row(pages[all_idx], label)
+        if vals:
+            regions[key] = tidy(as_row(vals, ALL_TYPES_COLS))
+        elif key == "mississauga":
+            sys.exit(f"no {CITY} row on the all-types page — refusing to build a report without it")
+        else:
+            print(f"  [note] no '{label}' row found on the all-types page; leaving {key} out")
+
+    def yoy_pct(label):
+        v = yoy.get(label)
+        return float(v.rstrip("%")) if v else None
+
+    report = {
+        "report": f"MW{year[2:]}{mm}",
+        "month": month,
+        "monthShort": f"{month_name[:3]} {year}",
+        "asOf": f"{year}-{mm}-{last_day:02d}",
+        "extracted": {
+            **regions,
+            "byType": {f: tidy(as_row(r, PER_TYPE_COLS)) for f, r in results.items()},
+            # GTA-wide, NOT Mississauga. Market Watch publishes no
+            # per-municipality YoY; lib/market/trreb.js keeps this labelled.
+            "gtaYoy": {
+                "all": yoy_pct("All Home Types") or yoy_pct("Total"),
+                "detached": yoy_pct("Detached"),
+                "semiDetached": yoy_pct("Semi-Detached"),
+                "townhouse": yoy_pct("Townhouse"),
+                "condoApt": yoy_pct("Condo Apt"),
+            },
+        },
+    }
+
+    if not do_write:
+        print("\n--- DRY RUN. Re-run with --write to merge this into data/trreb.js:\n")
+        print(json.dumps(report, indent=2))
+        print("\nNothing was written.\n")
+        return
+
+    data, overwrote = merge_report(report, force)
+    print(f"\n--- WROTE {DATA_FILE.relative_to(DATA_FILE.parent.parent)}")
+    print(f"    {'overwrote' if overwrote else 'added'} {report['report']} ({month})")
+    print(f"    latest is now {data['latest']}; history holds "
+          f"{len(data['reports'])} report(s): {', '.join(sorted(data['reports']))}")
+    print("\n    The whole site now reads these figures — the month string, the")
+    print("    as-of date and the disclaimer sentence are derived, not typed.")
+    print("\n    STILL BY HAND: page-1 mortgage rates, the economic indicators and")
+    print("    the rental averages. The previous report's block was carried")
+    print("    forward and flagged, so the admin dashboard will ask for a check.")
+    print("    Update `manual` in data/trreb.js and set checkedFor to "
+          f"\"{report['report']}\".\n")
 
 
 if __name__ == "__main__":

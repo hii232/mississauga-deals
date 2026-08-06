@@ -31,28 +31,39 @@ The site exists to **generate investor leads and convert them**. In priority ord
 
 ## Market data (TRREB) — refresh process
 
-The monthly sold/volume/YoY figures in `app/api/market-stats/route.js` are **transcribed by hand** from TRREB's Market Watch PDF. TRREB publishes no API or feed, so nothing refreshes them automatically — they once sat five months stale while the market pages, weekly newsletter and every auto-generated blog post quoted them as current.
+**One file holds every TRREB figure: `data/trreb.js`. One command refreshes it.**
+
+```
+python3 -m venv .venv && ./.venv/bin/pip install pypdf     # once
+./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2608.pdf --write
+```
+
+That reads the PDF and merges one report into `data/trreb.js`. Everything else derives: `lib/market/trreb.js` builds the sold figures, the per-type table, the GTA/Peel blocks, the monthly history, the month string, the as-of date and the disclaimer sentence from it; `/api/market-stats` publishes those; the market pages, the newsletter, the generated posts and `lib/blog/seed-posts.js` all read the API or the module. **Do not hand-edit numbers anywhere else** — `scripts/compliance-check.mjs` fails the build on a TRREB figure typed outside `data/trreb.js`.
+
+Without `--write` the script prints and changes nothing. Use that first on an unfamiliar report.
 
 - TRREB releases each month's report in the first few days of the following month (July 2026 → released 6 Aug 2026): https://trreb.ca/market-data/market-watch/
-- **Currently loaded: July 2026 (MW2607), `tRREBAsOf: '2026-07-31'`.** Mississauga 500 sales, $899,002 avg, $860,000 median; GTA 5,995 sales, $1,003,956 avg (−4.5% YoY). Next expected: MW2608, early September 2026.
-- To refresh: Hamza uploads the PDF, then run **`scripts/trreb-extract.py`** — it reads every Mississauga row and prints them already shaped like the literals in `market-stats/route.js`, so the only manual step is pasting.
+- **Which report is loaded is not recorded here** — this file used to carry a "currently loaded" line with the figures repeated in it, which is the same drift problem one level up. Ask the data:
   ```
-  python3 -m venv .venv && ./.venv/bin/pip install pypdf
-  ./.venv/bin/python scripts/trreb-extract.py ~/Downloads/mw2607.pdf
+  node -e "import('./lib/market/trreb.js').then(m=>console.log(m.loadedSummary()))"
   ```
-  It exits non-zero and refuses to print a paste block if anything fails to verify. **Do not transcribe past a refusal** — it means the PDF's layout moved and the numbers may be landing under the wrong property type.
+- The script **refuses to write** if anything fails to verify, and refuses to overwrite a report already present unless given `--force`. **Do not work around a refusal** — it means the PDF's layout moved and the numbers may be landing under the wrong property type.
+- The merge is **additive**: it adds one report and repoints `latest`, never rebuilding the file from one PDF. The monthly history chart is built from that object, so a writer that rebuilt it would shorten the series on every run. Running an *older* PDF adds history without rolling `latest` back.
+- **Still by hand, every month:** the page-1 boxes the extractor cannot parse — posted mortgage rates, the economic indicators, rental averages. The writer carries the previous report's `manual` block forward (a month-old posted rate beats a missing one) and stamps `checkedFor` with the report it was verified against, so `manualBlockIsCurrent` goes false and the admin dashboard asks. Update `manual` and set `checkedFor` to the new report id.
 - Doing it by hand instead: use `pypdf` with `extraction_mode='layout'` (the default scrambles columns). Mississauga rows are on page 3 (all types) and the per-type pages (7 detached, 9 semi, 11 Att/Row/Townhouse, 13 condo townhouse, 15 condo apartment); GTA summary and economic indicators are on page 1. **Those page numbers are a hint, not a contract** — page 5 is a year-to-date summary that also carries a Mississauga row, so counting Mississauga-bearing pages in order silently maps detached figures onto semis. The script identifies each page by matching its TRREB-wide sales total against the per-type totals on page 2 rather than trusting position; do the same if you work by hand.
-- Update `tRREBMonth` **and** `tRREBAsOf` together, plus the `disclaimer` string.
+- The all-types page and the per-type pages have **different column orders** (per-type pages have no SNLR and no months-of-inventory, and `activeListings` sits one column earlier). Reading a per-type row with the all-types layout puts the active-listing count into the SNLR slot — plausible-looking and wrong. `PER_TYPE_COLS` / `ALL_TYPES_COLS` in the script encode both.
 - `tRREBFreshness()` (in **`lib/market/trreb-freshness.js`**, re-exported by the route so it stays unit-testable) derives `tRREBMonthsBehind` / `tRREBReportsBehind` / `tRREBIsStale` / `tRREBRefreshNote` from `tRREBAsOf`.
   - **Stale means a PUBLISHED report has not been ingested, not "N calendar months old."** Month M's report is treated as available only once day `PUBLICATION_GRACE_DAY` (8) of M+1 has passed. The old `monthsBehind >= 2` rule flipped to stale on the 1st of the month, days before the new report could exist - on 2026-08-05 it asked Hamza for a July PDF TRREB had not released. This flag is the only guard against the five-month drift below, and one that cries wolf every month-turn is one people stop reading.
   - `tRREBMonthsBehind` keeps its literal calendar-age meaning: `/api/broadcast/offer-picks` refuses to price offers above 3, and the admin banner displays it. Only the stale verdict changed.
   - The admin dashboard shows a "Need new market data" banner when stale, and a monthly Routine pings Hamza on the 5th - which now correctly stays silent when the new report is not out yet.
 - **Page 1's summary box extracts with its columns TRANSPOSED** — it can read as though the prior year's figures are the current month's. The press-release prose on the same page states sales / new listings / average price in words; trust that over the box, and cross-check that the per-type pages sum to the page-3 total (Jul 2026: 184+69+23+95+124+4+1 = 500 ✓).
-- **Never estimate, scrape or interpolate these numbers.** If a figure isn't in the report, omit it or leave it clearly labelled as approximate. Market Watch publishes no per-municipality YoY — the per-type `yoy` values are GTA-wide and must stay labelled as such.
+- **Never estimate, scrape or interpolate these numbers.** If a figure isn't in the report, omit it or leave it clearly labelled as approximate. A value the extractor could not read stays `null` so consumers omit it — never let a short row slide its neighbours up into the wrong keys. Market Watch publishes no per-municipality YoY — the per-type `yoy` values are GTA-wide and must stay labelled as such.
+- **Derived claims in prose must be computed, not asserted.** "Malton is roughly 39% below the city average" was true against June and false against July. `lib/blog/seed-posts.js` computes it now. The same applies to anything of the form "X% below/above", "twice as long", "the cheapest".
 
 ## Verification
 
-- `npm run build` must pass before any commit. There is no test suite; the build is the gate.
+- `npm run build` must pass before any commit. It runs, in order: `npm test` (every `*.test.mjs`, ~617 checks), the compliance check, then `next build`.
+- `npm test` alone is the fast loop for logic changes.
 - For UI changes, sanity-check the affected page renders (`npm run dev` + fetch, or Playwright with `/opt/pw-browsers/chromium`).
 
 ## Continuous improvement protocol (scheduled agent runs)
