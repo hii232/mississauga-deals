@@ -47,37 +47,33 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
         ],
       },
-      {
-        // /book-call renders a full serverless function on EVERY request and
-        // caches nothing. Production logs (2026-08-06, 40-minute window) show
-        // it as the third-busiest route on the site - 107 requests - with
-        // `cache=MISS` on every single one.
-        //
-        // The cause is `searchParams`. The listing "Book a Viewing" button
-        // passes ?listing/&addr/&price so the booking notification names the
-        // property, and reading searchParams in an App Router page forces the
-        // whole route dynamic. There is no server-side way around that.
-        //
-        // But nothing on this page is per-VISITOR. There is no auth, no
-        // cookie, no personalization - the only variable input is the query
-        // string, and the CDN cache key already includes it. So the plain
-        // /book-call a searcher lands on and each listing's ?listing=... form
-        // cache independently and correctly.
-        //
-        // This matters more than a page-speed score: /book-call is a booking
-        // conversion path, and it is the page most likely to be opened on a
-        // phone on mobile data.
-        //
-        // s-maxage stays modest because the Google rating chip is real data;
-        // stale-while-revalidate is what actually removes the wait, serving
-        // the cached page instantly while a fresh one is built behind it.
-        source: '/book-call',
-        headers: [
-          { key: 'Cache-Control', value: 'public, s-maxage=600, stale-while-revalidate=86400' },
-        ],
-      },
     ];
   },
+  // DO NOT try to make a dynamic App Router page cacheable by adding a
+  // Cache-Control entry to headers() above. It does not work on Vercel, and
+  // it LOOKS like it works locally, which is the trap.
+  //
+  // Tried and reverted 2026-08-06 for /book-call, which reads searchParams
+  // (the listing "Book a Viewing" button passes ?listing/&addr/&price) and is
+  // therefore dynamic, returning `private, no-cache, no-store` with
+  // cache=MISS on every request - 107 of them in one 40-minute window.
+  // `public, s-maxage=600, stale-while-revalidate=86400` was added here and
+  // verified against a real local `next start` build, where the header landed
+  // correctly. On production it did not: Next overrides Cache-Control for
+  // dynamic routes, while every OTHER header in this block (X-Frame-Options,
+  // Referrer-Policy and the rest) reaches production fine. `next start`
+  // applies config headers last; Vercel does not.
+  //
+  // The supported ways to actually cache /book-call, neither of them free:
+  //   1. Stop reading searchParams on the server - read them in a client
+  //      component via useSearchParams inside Suspense. The page becomes
+  //      static, but the hero copy that swaps to "Book a Viewing" plus the
+  //      address would then paint after hydration, i.e. a visible content
+  //      shift on a conversion page.
+  //   2. Move the listing into the PATH (/book-call/[id]) and look the
+  //      address up by id. Cacheable per listing and keeps the server-
+  //      rendered hero, but it is a new route on the booking flow.
+  // Both are product calls, not a config tweak.
   // Auto-blog keyword cannibalization, evidenced from Hamza's real GSC export
   // (IMPROVEMENT_BACKLOG.md item 13): the auto-blog generator produced posts
   // that outranked the site's own hand-built page for the SAME query — e.g.
