@@ -247,19 +247,27 @@ export default function NeighbourhoodsPage() {
                 </p>
               </div>
 
-              {/* Links */}
+              {/* Links.
+                  Both anchors NAME THEIR NEIGHBOURHOOD. They used to read
+                  "Investment Guide" and "View Listings" on all 24 cards, so
+                  this one page shipped 24 followed internal links whose anchor
+                  text was byte-identical while every destination differed - a
+                  crawler was told 24 times that a different page is "the
+                  investment guide". Anchor text is one of the strongest
+                  signals for what the TARGET page is about, and these 24
+                  guides are exactly the pages that have to be told apart. */}
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   href={`/neighbourhoods/${name.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="block text-center rounded-lg bg-accent py-2 text-xs font-medium text-white hover:bg-accent/90 transition-colors no-underline"
+                  className="block text-center rounded-lg bg-accent px-2 py-2 text-xs font-medium text-white hover:bg-accent/90 transition-colors no-underline"
                 >
-                  Investment Guide
+                  {name} guide
                 </Link>
                 <Link
                   href={`/listings?hood=${encodeURIComponent(name)}`} rel="nofollow"
-                  className="block text-center rounded-lg bg-cloud py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
+                  className="block text-center rounded-lg bg-cloud px-2 py-2 text-xs font-medium text-accent hover:bg-accent/5 transition-colors no-underline"
                 >
-                  View Listings
+                  {name} listings
                 </Link>
               </div>
               </div>
