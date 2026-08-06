@@ -4,6 +4,7 @@ import { FAQJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { PageHero } from '@/components/layout/page-hero';
 import InlineCTA from '@/components/ui/inline-cta';
 import { RelatedGuides } from '@/components/ui/related-guides';
+import { DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 
 const YEAR = new Date().getFullYear();
 
@@ -56,7 +57,12 @@ const CF_FAQ = [
   {
     question: 'How do you calculate whether a listing is cash flow positive?',
     answer:
-      'Each listing is scored using estimated market rent minus a full expense stack: the mortgage on the shown price, property tax, insurance, a maintenance reserve, vacancy, and the actual condo fee when there is one. That is the same math the mortgage calculator uses, so the number on the card matches what you would model yourself. It is an estimate - confirm rent and costs for the specific property - but it is a consistent, honest basis for comparison.',
+      // The two percentages come from DEFAULT_ASSUMPTIONS rather than being
+      // typed here, for the same reason /score-methodology derives them: this
+      // answer ships inside FAQPage JSON-LD, so a hardcoded figure that drifts
+      // from the engine would be served by Google as our own published rule
+      // long after the assumption changed.
+      `Each listing is scored using estimated market rent minus a full expense stack: the mortgage on the shown price, property tax, insurance, a maintenance reserve, vacancy, and the actual condo fee when there is one. The maintenance reserve on a card is the greater of ${DEFAULT_ASSUMPTIONS.maintenancePercent}% of rent or ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}% of the property value per year, and it drops to zero on a condo, because the condo fee already covers building upkeep. The mortgage calculator is a scenario tool rather than the scoring engine: its maintenance slider is a straight percentage of rent, so to reproduce a card there, set that slider until the monthly maintenance figure matches - on a freehold the ${DEFAULT_ASSUMPTIONS.maintenanceValueFloorPercent}%-of-value term usually wins. Every figure is an estimate; confirm rent and costs for the specific property.`,
   },
 ];
 
