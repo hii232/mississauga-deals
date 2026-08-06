@@ -33,10 +33,22 @@ function getSupabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+// Public site URL - never build the internal fetch from request.url: on the
+// weekly cron that resolves to the *.vercel.app deployment host, which sits
+// behind Vercel deployment protection and serves an HTML auth wall (200), so a
+// fetch would silently return nothing and the newsletter would ship without the
+// thing it is for. In production this IS the public domain, so the behaviour is
+// unchanged; in development it points at localhost so `?preview=1` can render a
+// real email offline instead of silently dropping every stat.
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
 // ── Fetch live market stats ──
 async function fetchMarketStats() {
   try {
-    const res = await fetch('https://www.mississaugainvestor.ca/api/market-stats', {
+    const res = await fetch(`${SITE_URL}/api/market-stats`, {
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -320,18 +332,10 @@ async function getSubscriberProfiles(supabase) {
   return profiles;
 }
 
-// Public site URL - never build the internal fetch from request.url: on the
-// weekly cron that resolves to the *.vercel.app deployment host, which sits
-// behind Vercel deployment protection and serves an HTML auth wall (200), so
-// the deals fetch would silently return [] and the newsletter would ship with
-// zero deals - its whole point. Use the public domain (as the market-stats
-// fetch above already does).
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
-
 // ── Fetch scored listings once for the whole send ──
+// Uses the same SITE_URL as the stats fetch above - defined once near the top
+// of this file. It used to be declared here with market-stats fetching a
+// separately hardcoded copy of the same host, which is how the two could drift.
 // ALL pages, not page 1. The "top 10 cash-flow deals" used to be selected from
 // the first 200 rows of ~2,500 actives - the top of an 8% sample, so the
 // market's actual best deals mostly never reached subscribers.
