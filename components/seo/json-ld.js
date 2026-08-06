@@ -30,8 +30,10 @@ export function PersonJsonLd() {
     },
     worksFor: {
       '@type': 'RealEstateAgent',
+      // Name only. The brokerage is real and the relationship is real; its
+      // website is not - cityscaperealestate.ca has no DNS record as of
+      // 2026-08-06. A url that 404s on an entity node is worse than no url.
       name: 'Cityscape Real Estate Ltd., Brokerage',
-      url: 'https://www.cityscaperealestate.ca',
     },
     alumniOf: [
       {
@@ -49,10 +51,15 @@ export function PersonJsonLd() {
       'Cap rate calculation',
       'Investment property scoring',
     ],
+    // EVERY URL HERE MUST RESOLVE. sameAs is how Google and the AI assistants
+    // verify that these profiles are the same person/business - an entry that
+    // does not load cannot be fetched, cannot be corroborated, and weakens the
+    // entity link this site depends on for name queries. hamzahomes.ca and
+    // cityscaperealestate.ca were dropped on 2026-08-06: neither has a DNS
+    // record. Re-add them when the domains are live; do not add a URL here
+    // without loading it first.
     sameAs: [
       'https://www.mississaugainvestor.ca',
-      'https://www.hamzahomes.ca',
-      'https://www.cityscaperealestate.ca',
       'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7',
       'https://www.linkedin.com/in/homeswithhamza/',
       'https://www.facebook.com/Homeswithhamza/',
@@ -124,13 +131,20 @@ export function OrganizationJsonLd() {
     // or a manual action. A rating belongs only on a page that shows the reviews.
     parentOrganization: {
       '@type': 'RealEstateAgent',
+      // Name only. The brokerage is real and the relationship is real; its
+      // website is not - cityscaperealestate.ca has no DNS record as of
+      // 2026-08-06. A url that 404s on an entity node is worse than no url.
       name: 'Cityscape Real Estate Ltd., Brokerage',
-      url: 'https://www.cityscaperealestate.ca',
     },
+    // EVERY URL HERE MUST RESOLVE. sameAs is how Google and the AI assistants
+    // verify that these profiles are the same person/business - an entry that
+    // does not load cannot be fetched, cannot be corroborated, and weakens the
+    // entity link this site depends on for name queries. hamzahomes.ca and
+    // cityscaperealestate.ca were dropped on 2026-08-06: neither has a DNS
+    // record. Re-add them when the domains are live; do not add a URL here
+    // without loading it first.
     sameAs: [
       'https://www.mississaugainvestor.ca',
-      'https://www.hamzahomes.ca',
-      'https://www.cityscaperealestate.ca',
       'https://www.realtor.ca/agent/2100010/hamza-nouman-201-30-eglinton-ave-west-mississauga-ontario-l5r3e7',
       'https://www.linkedin.com/in/homeswithhamza/',
       'https://www.facebook.com/Homeswithhamza/',
