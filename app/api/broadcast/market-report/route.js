@@ -9,6 +9,12 @@ import { tagRecipient } from '@/lib/emails/recipient-token';
 import { requireBroadcast } from '@/lib/api-auth';
 import { selfOrigin } from '@/lib/emails/self-origin';
 import { acquireSendLock, BROADCAST_SENDS_SQL } from '@/lib/emails/broadcast-guard';
+import {
+  tRREBMonth,
+  mississaugaMonthly as trrebMonthly,
+  salesByType as trrebSalesByType,
+  regional as trrebRegional,
+} from '@/lib/market/trreb';
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  "The Mississauga Monthly" - the TRREB report-day briefing.
@@ -68,30 +74,24 @@ async function fetchReport(origin) {
 }
 
 // Dev-preview layout data ONLY (?preview=1 in a sandbox with no reachable
-// feed). Every figure below is the REAL July 2026 transcription, not an
-// invention - but real drafts and sends never touch this: they refuse instead.
+// feed). The TRREB half is DERIVED from the single source (lib/market/trreb),
+// never typed here - scripts/compliance-check.mjs fails the build on a second
+// copy. Only the live-screener sample figures are literals, because they are
+// live-feed numbers with no authoritative source in a sandbox; real drafts and
+// sends never touch any of this - they refuse instead.
 const SAMPLE_STATS = {
   tRREBIsStale: false,
   tRREBReportsBehind: 0,
-  tRREBMonth: 'July 2026',
+  tRREBMonth,
   activeCount: 2424,
   medianDOM: 37,
-  gtaAvgPrice: 1003956,
-  gtaYoyChange: -4.5,
-  gtaNewListingsYoy: -17.8,
-  gtaSales: 5995,
+  gtaAvgPrice: trrebRegional.gtaAvgPrice,
+  gtaYoyChange: trrebRegional.gtaYoyChange,
+  gtaNewListingsYoy: trrebRegional.gtaNewListingsYoy,
+  gtaSales: trrebRegional.gtaSales,
   screener: { total: 2396, cfPlusCount: 5, bestCap: 5.94, priceDropCount: 412 },
-  salesByType: {
-    detached:     { sales: 184, avgPrice: 1256800, spLp: 96, ldom: 28 },
-    semiDetached: { sales: 69,  avgPrice: 891613,  spLp: 98, ldom: 26 },
-    townhouse:    { sales: 23,  avgPrice: 911812,  spLp: 98, ldom: 31 },
-    condoTown:    { sales: 95,  avgPrice: 712285,  spLp: 98, ldom: 31 },
-    condoApt:     { sales: 124, avgPrice: 511649,  spLp: 97, ldom: 41 },
-  },
-  mississaugaMonthly: [
-    { month: 'Jun 2026', report: 'MW2606', sales: 567, avgPrice: 1014120, medianPrice: 880000, newListings: 1632, activeListings: 2589, snlr: 35.1, monthsInventory: 4.9, spLp: 97, ldom: 29 },
-    { month: 'Jul 2026', report: 'MW2607', sales: 500, avgPrice: 899002, medianPrice: 860000, newListings: 1388, activeListings: 2518, snlr: 35.4, monthsInventory: 4.9, spLp: 97, ldom: 32 },
-  ],
+  salesByType: trrebSalesByType,
+  mississaugaMonthly: trrebMonthly,
 };
 
 async function sendEmail(to, subject, html) {
