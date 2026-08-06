@@ -33,7 +33,8 @@ The site exists to **generate investor leads and convert them**. In priority ord
 
 The monthly sold/volume/YoY figures in `app/api/market-stats/route.js` are **transcribed by hand** from TRREB's Market Watch PDF. TRREB publishes no API or feed, so nothing refreshes them automatically — they once sat five months stale while the market pages, weekly newsletter and every auto-generated blog post quoted them as current.
 
-- TRREB releases each month's report in the first few days of the following month (June 2026 → released 3 Jul 2026): https://trreb.ca/market-data/market-watch/
+- TRREB releases each month's report in the first few days of the following month (July 2026 → released 6 Aug 2026): https://trreb.ca/market-data/market-watch/
+- **Currently loaded: July 2026 (MW2607), `tRREBAsOf: '2026-07-31'`.** Mississauga 500 sales, $899,002 avg, $860,000 median; GTA 5,995 sales, $1,003,956 avg (−4.5% YoY). Next expected: MW2608, early September 2026.
 - To refresh: Hamza uploads the PDF, then run **`scripts/trreb-extract.py`** — it reads every Mississauga row and prints them already shaped like the literals in `market-stats/route.js`, so the only manual step is pasting.
   ```
   python3 -m venv .venv && ./.venv/bin/pip install pypdf
@@ -46,6 +47,7 @@ The monthly sold/volume/YoY figures in `app/api/market-stats/route.js` are **tra
   - **Stale means a PUBLISHED report has not been ingested, not "N calendar months old."** Month M's report is treated as available only once day `PUBLICATION_GRACE_DAY` (8) of M+1 has passed. The old `monthsBehind >= 2` rule flipped to stale on the 1st of the month, days before the new report could exist - on 2026-08-05 it asked Hamza for a July PDF TRREB had not released. This flag is the only guard against the five-month drift below, and one that cries wolf every month-turn is one people stop reading.
   - `tRREBMonthsBehind` keeps its literal calendar-age meaning: `/api/broadcast/offer-picks` refuses to price offers above 3, and the admin banner displays it. Only the stale verdict changed.
   - The admin dashboard shows a "Need new market data" banner when stale, and a monthly Routine pings Hamza on the 5th - which now correctly stays silent when the new report is not out yet.
+- **Page 1's summary box extracts with its columns TRANSPOSED** — it can read as though the prior year's figures are the current month's. The press-release prose on the same page states sales / new listings / average price in words; trust that over the box, and cross-check that the per-type pages sum to the page-3 total (Jul 2026: 184+69+23+95+124+4+1 = 500 ✓).
 - **Never estimate, scrape or interpolate these numbers.** If a figure isn't in the report, omit it or leave it clearly labelled as approximate. Market Watch publishes no per-municipality YoY — the per-type `yoy` values are GTA-wide and must stay labelled as such.
 
 ## Verification
