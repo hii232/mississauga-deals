@@ -10,6 +10,7 @@ import { fetchAllListings } from '@/lib/listings/fetch-all-listings';
 import { isCronAuthorized, isAdminAuthorized } from '@/lib/api-auth';
 import { esc, fmtPrice } from '@/lib/emails/email-utils';
 import { probeSendLock, acquireSendLock } from '@/lib/emails/broadcast-guard';
+import { buildMarketStory } from '@/lib/market/market-story';
 
 // 300 (Pro Fluid limit headroom): the no-store pool walk is batched 6 pages
 // at a time with 15s per-page timeouts (lib/listings/fetch-all-listings.js)
@@ -32,10 +33,22 @@ function getSupabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+// Public site URL - never build the internal fetch from request.url: on the
+// weekly cron that resolves to the *.vercel.app deployment host, which sits
+// behind Vercel deployment protection and serves an HTML auth wall (200), so a
+// fetch would silently return nothing and the newsletter would ship without the
+// thing it is for. In production this IS the public domain, so the behaviour is
+// unchanged; in development it points at localhost so `?preview=1` can render a
+// real email offline instead of silently dropping every stat.
+const SITE_URL =
+  process.env.NODE_ENV === 'development'
+    ? 'http://localhost:3000'
+    : 'https://www.mississaugainvestor.ca';
+
 // ── Fetch live market stats ──
 async function fetchMarketStats() {
   try {
-    const res = await fetch('https://www.mississaugainvestor.ca/api/market-stats', {
+    const res = await fetch(`${SITE_URL}/api/market-stats`, {
       cache: 'no-store',
     });
     if (!res.ok) return null;
@@ -69,6 +82,24 @@ function kicker(text) {
 
 function hairline(m = '28px') {
   return `<div style="border-top:1px solid ${HAIR};margin:${m} 0;"></div>`;
+}
+
+// ── "The Brief" - the written market story ──
+// The email used to ship tables and nothing else. A table cannot tell you when
+// its own headline number is lying, and in July 2026 it was: the average sale
+// price moved 11.4% while the median moved 2.3%, so an average printed under
+// last month's average reads as a crash that did not happen. lib/market/
+// market-story.js writes the sentence that fixes that, gated on the data, and
+// is unit-tested because these paragraphs go out under a licensed agent's name.
+// Renders nothing at all when there is nothing honest to say.
+function buildStoryHTML(stats) {
+  const story = buildMarketStory(stats);
+  if (!story) return '';
+  return `${hairline()}
+  ${kicker('The Brief')}
+  <div style="font-family:${SERIF};font-size:22px;font-weight:700;color:${INK};line-height:1.3;margin-bottom:14px;">${esc(story.headline)}</div>
+  ${story.paragraphs.map((p) => `<p style="font-family:${SERIF};font-size:14px;color:${INK};line-height:1.7;margin:0 0 13px;">${esc(p)}</p>`).join('')}
+  ${story.footnote ? `<p style="font-family:${SERIF};font-size:11px;font-style:italic;color:${MUTED};line-height:1.6;margin:12px 0 0;">${esc(story.footnote)}</p>` : ''}`;
 }
 
 function buildEmailHTML(stats, date, extras = {}) {
@@ -163,6 +194,8 @@ ${headerStats.length > 0 ? `<!-- BY THE NUMBERS STRIP -->
 <tr><td style="padding:30px 40px 8px;">
   ${extras.greetingName ? `<div style="font-family:${SERIF};font-style:italic;font-size:16px;color:${INK};margin-bottom:26px;">Dear ${esc(extras.greetingName)}, here is your week in Mississauga real estate.</div>` : ''}
   ${extras.dealsHtml || ''}
+
+  ${buildStoryHTML(s)}
 
   ${priceTiles.length > 0 ? `${hairline()}
   ${kicker('Average Prices &middot; By Property Type')}
@@ -299,18 +332,10 @@ async function getSubscriberProfiles(supabase) {
   return profiles;
 }
 
-// Public site URL - never build the internal fetch from request.url: on the
-// weekly cron that resolves to the *.vercel.app deployment host, which sits
-// behind Vercel deployment protection and serves an HTML auth wall (200), so
-// the deals fetch would silently return [] and the newsletter would ship with
-// zero deals - its whole point. Use the public domain (as the market-stats
-// fetch above already does).
-const SITE_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000'
-    : 'https://www.mississaugainvestor.ca';
-
 // ── Fetch scored listings once for the whole send ──
+// Uses the same SITE_URL as the stats fetch above - defined once near the top
+// of this file. It used to be declared here with market-stats fetching a
+// separately hardcoded copy of the same host, which is how the two could drift.
 // ALL pages, not page 1. The "top 10 cash-flow deals" used to be selected from
 // the first 200 rows of ~2,500 actives - the top of an 8% sample, so the
 // market's actual best deals mostly never reached subscribers.
