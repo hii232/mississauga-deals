@@ -18,6 +18,7 @@ import { fetchGoogleRating, googleRatingLabel } from '@/lib/google-rating';
 // canonical claim, and these posts' canonicals point elsewhere) and
 // next.config.js, so the lists can't drift.
 import { getCanonicalOverride } from '@/lib/blog/canonical-overrides';
+import { LiveMarketBand } from '@/components/blog/live-market-band';
 
 export const revalidate = 60;
 
@@ -282,6 +283,14 @@ export default async function BlogPostPage({ params }) {
             />
 
             <MarkdownRenderer content={post.content} />
+
+            {/* The blog -> product bridge. Sits BEFORE the booking CTA on
+                purpose: a cold organic reader who just finished the article is
+                ready for a low-commitment next click (the live data behind
+                what they read), not yet a phone call. Mobile gets no sidebar,
+                so for most traffic this is the first non-blog, non-call path
+                offered on the whole page. */}
+            <LiveMarketBand postTitle={post.title} />
 
             {/* End-of-post booking CTA */}
             <div className="mt-12 bg-gradient-to-br from-navy to-accent/20 rounded-2xl p-8 text-center">
