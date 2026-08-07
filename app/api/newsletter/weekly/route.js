@@ -481,7 +481,55 @@ function buildBlogHTML(post) {
 }
 
 // ── Send email via Resend ──
-async function sendEmail(to, subject, html) {
+/**
+ * Plain-text part - a written digest, not a tag-strip (a stripped table-layout
+ * email reads like garbage). The Brief's prose (buildMarketStory) IS the
+ * story, so the text edition leads with it, then the deals, then the links.
+ * HTML-only bulk mail is a long-standing spam signal; this and the daily
+ * alert are the domain's recurring senders, so they set its reputation.
+ */
+function buildEmailText(stats, { greetingName = '', deals = [], personalized = false, email = '' } = {}) {
+  const money = (v) => '$' + Math.round(Number(v) || 0).toLocaleString('en-CA');
+  const story = buildMarketStory(stats);
+  const lines = [
+    greetingName ? `Hi ${greetingName},` : 'Hi,',
+    '',
+  ];
+  if (story) {
+    if (story.headline) lines.push(story.headline.toUpperCase(), '');
+    for (const para of story.paragraphs || []) lines.push(para, '');
+    if (story.footnote) lines.push(story.footnote, '');
+  }
+  if (deals.length) {
+    lines.push(personalized ? 'Matches for your saved search this week:' : "This week's top-scoring deals:", '');
+    for (const d of deals) {
+      lines.push(`${d.address || 'Address on request'} (${d.neighbourhood || 'Mississauga'})`);
+      const facts = [];
+      if (Number(d.price) > 0) facts.push(money(d.price));
+      if (Number.isFinite(d.hamzaScore)) facts.push(`score ${d.hamzaScore}/10`);
+      if (Number.isFinite(d.capRate) && d.capRate > 0) facts.push(`${d.capRate}% cap`);
+      if (Number.isFinite(d.cashFlow)) facts.push(`${d.cashFlow >= 0 ? '+' : '-'}${money(Math.abs(d.cashFlow))}/mo`);
+      if (facts.length) lines.push('  ' + facts.join(' | '));
+      lines.push(`  https://www.mississaugainvestor.ca/listings/${encodeURIComponent(d.id)}?utm_source=newsletter&utm_medium=email&utm_campaign=weekly`);
+      lines.push('');
+    }
+  }
+  lines.push(
+    'Full dashboard: https://www.mississaugainvestor.ca/market-pulse?utm_source=newsletter&utm_medium=email&utm_campaign=weekly',
+    'Book a free 30-min call: https://www.mississaugainvestor.ca/book-call?utm_source=newsletter&utm_medium=email&utm_campaign=weekly',
+    '',
+    'Every figure is an estimate from live MLS and TRREB data - confirm rent and',
+    'costs for the specific property. Not financial advice.',
+    '',
+    '- Hamza Nouman, Sales Representative, Cityscape Real Estate Ltd., Brokerage',
+    'Cityscape Real Estate Ltd., Brokerage, 885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5',
+    '',
+    `Unsubscribe: ${unsubscribeUrl(email)}`
+  );
+  return lines.join('\n');
+}
+
+async function sendEmail(to, subject, html, text) {
   // Per-recipient click identity for the admin "Who Clicked" list
   html = tagRecipient(html, to);
   const res = await fetch('https://api.resend.com/emails', {
@@ -495,6 +543,8 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      // multipart/alternative - HTML-only is a spam signal on a weekly list send.
+      ...(text ? { text } : {}),
       headers: {
         // Native one-click unsubscribe in Gmail/Outlook - deliverability signal
         'List-Unsubscribe': `<${unsubscribeUrl(to)}>`,
@@ -589,7 +639,8 @@ async function sendToAllSubscribers(supabase, data) {
           preheader: buildPreheader(deals, personalized),
         });
         const subject = buildSubject(personalized, deals, dateLabel);
-        return sendEmail(email, subject, html);
+        const text = buildEmailText(stats, { greetingName: firstName, deals, personalized, email });
+        return sendEmail(email, subject, html, text);
       })
     );
     results.forEach((r) => {
