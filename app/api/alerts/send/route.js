@@ -105,6 +105,19 @@ export async function POST(request) {
     // returns nothing, every search matches nothing, indistinguishable from
     // "quiet day" without this number sitting next to it).
     let feedListingCount = allListings.length;
+    // Coverage, not just count: fetchAllListings now retries pages the
+    // upstream throttled away, but a retry can still fall short (production
+    // has seen 10/24 extra pages fail in one run) - a subscriber's saved
+    // search silently missing a listing is exactly the failure this pool
+    // exists to prevent, so a partial run must be VISIBLE, not merely logged
+    // to a console nobody is tailing. Mirrors the pool-coverage fields the
+    // GTA screener already publishes for the same reason.
+    let feedCoverage = { pagesMissed: rawListings.pagesMissed, fill: rawListings.fill };
+    if (rawListings.pagesMissed > 0) {
+      console.error(
+        `Alerts: Mississauga pool is partial - ${rawListings.pagesMissed} page(s) missing after retry, fill ${rawListings.fill == null ? 'unknown' : Math.round(rawListings.fill * 100) + '%'} (${allListings.length} of ${rawListings.total} listings).`
+      );
+    }
 
     // 2b. GTA pool - only fetched when some saved search is scoped outside
     // Mississauga (filters.city set by the save-search flow on /gta pages).
@@ -119,6 +132,7 @@ export async function POST(request) {
         // Full GTA pool too - same page-1-only bug applied here.
         const rawGta = await fetchAllListings(SITE_URL, '/api/listings-gta');
         gtaListings = processListings(rawGta.listings);
+        feedCoverage.gta = { pagesMissed: rawGta.pagesMissed, fill: rawGta.fill };
       } catch (err) {
         console.error('Alerts: GTA listings fetch error', err);
       }
@@ -449,6 +463,7 @@ export async function POST(request) {
         recipients: preview.length,
         wouldSend: totalWouldSend,
         feedListingCount,
+        feedCoverage,
         matchSummary,
         preview,
         defaultAudience,
@@ -484,6 +499,7 @@ export async function POST(request) {
       sent: sentCount,
       failed: failures.length,
       feedListingCount,
+      feedCoverage,
       matchSummary,
       defaultAudience,
       // Surfaced so the daily run is self-diagnosing without dashboard access.

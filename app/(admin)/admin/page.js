@@ -973,6 +973,17 @@ function EmailHealthPanel({ health, adminKey, onRefresh }) {
           {typeof result.data.feedListingCount === 'number' && (
             <p className="mt-2 text-blue-300/70">Feed: {result.data.feedListingCount} active listing{result.data.feedListingCount === 1 ? '' : 's'} fetched this run.</p>
           )}
+          {/* A partial pool means a saved search can silently miss a listing -
+              the coverage fields exist so that's visible here, not only in a
+              server log nobody is tailing. */}
+          {(result.data.feedCoverage?.pagesMissed > 0 || result.data.feedCoverage?.gta?.pagesMissed > 0) && (
+            <p className="mt-2 text-amber-300/90">
+              ⚠ Pool is partial: Mississauga feed missing {result.data.feedCoverage.pagesMissed || 0} page{result.data.feedCoverage.pagesMissed === 1 ? '' : 's'}
+              {typeof result.data.feedCoverage.fill === 'number' ? ` (${Math.round(result.data.feedCoverage.fill * 100)}% fill)` : ''}
+              {result.data.feedCoverage.gta?.pagesMissed > 0 && `, GTA feed missing ${result.data.feedCoverage.gta.pagesMissed}`}
+              {' '}- some subscribers may have missed a matching listing this run.
+            </p>
+          )}
           {Array.isArray(result.data.preview) && result.data.preview.length > 0 && (
             <ul className="mt-2 space-y-2">
               {result.data.preview.map((p, i) => (

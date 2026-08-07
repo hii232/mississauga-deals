@@ -42,9 +42,12 @@ export default function LoginPage() {
           </span>
           <span className="font-heading text-2xl font-bold text-accent">.ca</span>
         </Link>
-        <p className="mt-2 text-sm text-muted">
+        {/* The page's only heading-level text - was a <p>, so the page shipped
+            with zero h1s (found 2026-08-07, seo agent). Same classes, no
+            visual change, just the right element for semantic structure. */}
+        <h1 className="mt-2 text-sm font-normal text-muted">
           Log in to access deal analysis tools
-        </p>
+        </h1>
       </div>
 
       {error && (
