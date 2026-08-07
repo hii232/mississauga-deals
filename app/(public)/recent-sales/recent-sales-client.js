@@ -96,6 +96,16 @@ export function RecentSalesClient() {
       <PageHero compact eyebrow={HERO.eyebrow} title={HERO.title} subtitle={HERO.subtitle} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
+      {/* Contextual bridge: city-wide sold data is here; the address-first
+          version of the same question lives at /sold-near-me. */}
+      <p className="mb-4 text-sm text-muted">
+        Want this for your own street?{' '}
+        <Link href="/sold-near-me" className="font-medium text-accent hover:text-accent-dark">
+          Find your home&apos;s comparables
+        </Link>
+        {' '}- scan your postal code for nearby solds and the active competition.
+      </p>
+
       {/* Individual sold prices + addresses are VOW-restricted TRREB data -
           gated the same real way as the listing-detail Sold Comps tab. */}
       <AuthGate

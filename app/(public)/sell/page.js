@@ -280,6 +280,16 @@ export default async function SellPage() {
               Most agents list your home and hope. Hamza brings data, professional marketing, and an investor’s eye for
               what makes a home sell for the most.
             </p>
+            {/* Contextual bridge to the comps scanner - a seller's first
+                question is "what did my neighbours get?", and answering it
+                with real data is the credibility this page trades on. */}
+            <p className="mt-3 text-sm text-muted">
+              Not sure what your area is doing?{' '}
+              <Link href="/sold-near-me" className="font-medium text-accent hover:text-accent-dark">
+                Scan what sold near you
+              </Link>
+              {' '}- real close prices, free.
+            </p>
           </div>
           <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
             {DIFFERENTIATORS.map((d) => (

@@ -75,6 +75,7 @@ export default async function sitemap() {
     { url: `${BASE}/market-pulse`, changeFrequency: 'daily', priority: 0.8 },
     { url: `${BASE}/neighbourhoods`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/landlords`, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE}/sold-near-me`, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE}/news`, changeFrequency: 'daily', priority: 0.7 },
     { url: `${BASE}/quiz`, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/pre-construction`, changeFrequency: 'weekly', priority: 0.6 },
