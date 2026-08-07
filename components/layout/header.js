@@ -61,6 +61,12 @@ const NAV_ITEMS = [
       { href: '/market-pulse', label: 'Market Pulse' },
       { href: '/neighbourhoods', label: 'Neighbourhoods' },
       { href: '/recent-sales', label: 'Recent Sales' },
+      // Sits next to Recent Sales deliberately - both answer "what did homes
+      // actually sell for", and this one is the personalized version. It
+      // shipped 2026-08-07 linked only from the footer, /sell and
+      // /recent-sales, so nothing in the nav led to it and Hamza could not
+      // find his own feature.
+      { href: '/sold-near-me', label: 'What Sold Near Me' },
       { href: '/score-methodology', label: 'Deal Score Method' },
     ],
   },
