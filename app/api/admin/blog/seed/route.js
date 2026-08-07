@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { SEED_POSTS } from '@/lib/blog/seed-posts';
+import { requireCronOrAdmin } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-
-function isAuthorized(request) {
-  const adminKey = request.headers.get('x-admin-key');
-  if (adminKey && adminKey === process.env.ADMIN_SECRET) return true;
-  const cronSecret = request.headers.get('authorization');
-  if (cronSecret === `Bearer ${process.env.CRON_SECRET}`) return true;
-  return false;
-}
 
 function getSupabase() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
@@ -25,13 +18,22 @@ function getSupabase() {
  * so re-running is safe and will never clobber an edit made in the admin UI.
  * Pass ?dryRun=1 to see what WOULD publish without writing anything.
  *
- *   curl -X POST https://www.mississaugainvestor.ca/api/admin/blog/seed \
- *        -H "x-admin-key: $ADMIN_SECRET"
+ * Runs two ways:
+ *   - By hand:  curl -X POST https://www.mississaugainvestor.ca/api/admin/blog/seed \
+ *                    -H "x-admin-key: $ADMIN_SECRET"
+ *   - Hourly Vercel cron (GET): a new post added to seed-posts.js publishes
+ *     itself within an hour of the deploy, with nobody holding a secret in
+ *     their shell history. Idempotency is what makes an hourly schedule safe -
+ *     the steady-state run reads one column off blog_posts and stops.
+ *
+ * Auth is delegated to lib/api-auth so it fails CLOSED: the previous inline
+ * check compared against `Bearer ${process.env.CRON_SECRET}`, so with
+ * CRON_SECRET unset, sending the literal header "Bearer undefined"
+ * authenticated you.
  */
-export async function POST(request) {
-  if (!isAuthorized(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+async function runSeed(request) {
+  const denied = requireCronOrAdmin(request);
+  if (denied) return denied;
 
   const supabase = getSupabase();
   if (!supabase) {
@@ -94,4 +96,13 @@ export async function POST(request) {
     console.error('Blog seed error:', err);
     return NextResponse.json({ error: 'Seed failed' }, { status: 500 });
   }
+}
+
+export async function POST(request) {
+  return runSeed(request);
+}
+
+/** Vercel cron invokes routes with GET. Same guard, same idempotent seed. */
+export async function GET(request) {
+  return runSeed(request);
 }
