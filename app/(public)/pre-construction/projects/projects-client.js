@@ -379,7 +379,12 @@ export default function PreConstructionProjectsClient({ initialProjects = [], fr
                             rel="nofollow"
                             className="block w-full text-center py-2.5 rounded-lg bg-navy/5 text-navy text-xs font-semibold hover:bg-accent hover:text-white transition no-underline"
                           >
-                            Get VIP Pricing & Floor Plans
+                            {/* Every card used to share this exact anchor text
+                                while linking to a different project - the same
+                                "24 identical anchors" class of bug already
+                                fixed on /neighbourhoods (found 2026-08-07, seo
+                                agent). Naming the project disambiguates it. */}
+                            Get {p.name} Pricing & Floor Plans
                           </Link>
                         </div>
                       </div>
