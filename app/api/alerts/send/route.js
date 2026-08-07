@@ -287,6 +287,8 @@ export async function POST(request) {
           to: email,
           subject: alertSubject(listings),
           html: emailHtml,
+          // Plain-text part -> multipart/alternative; HTML-only is a spam signal.
+          text: buildAlertText(listings, userData.name || 'Investor', { email }),
           // RFC 8058 one-click unsubscribe - required by Gmail/Yahoo bulk-sender
           // rules for a daily list send. Missing it depresses inbox placement.
           headers: {
@@ -386,6 +388,7 @@ export async function POST(request) {
             to: r.email,
             subject: alertSubject(unseen),
             html,
+            text: buildAlertText(unseen, r.name || 'Investor', { audience: 'default', email: r.email }),
             headers: {
               'List-Unsubscribe': `<${unsubscribeUrl(r.email)}>`,
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -542,6 +545,50 @@ function rentAssumptionLine(l) {
   // such disclosure.
   const condoNote = l.condoFeeEstimated ? ' · condo fee is estimated' : '';
   return `Assumes ${money(rent)}/mo rent${breakdown}${condoNote}`;
+}
+
+/**
+ * Plain-text part for the daily alert - written out properly, not tag-stripped
+ * (a stripped table-layout email reads like garbage; the offer-picks builder
+ * documents the same rule). An HTML-only body is a long-standing spam signal,
+ * and this is the highest-volume sender on the domain, so it sets the
+ * domain's reputation more than any campaign.
+ */
+function buildAlertText(listings, name, opts = {}) {
+  const isDefault = opts.audience === 'default';
+  const first = (name || '').trim().split(/\s+/)[0] || '';
+  const money = (v) => '$' + Math.round(Number(v) || 0).toLocaleString('en-CA');
+  const lines = [
+    first && first !== 'Investor' ? `Hi ${first},` : 'Hi,',
+    '',
+    isDefault
+      ? `Today's top-scoring new Mississauga ${listings.length === 1 ? 'listing' : 'listings'}:`
+      : `${listings.length === 1 ? 'A new listing matches' : listings.length + ' new listings match'} your saved search:`,
+    '',
+  ];
+  for (const l of listings) {
+    lines.push(`${l.address || 'Address on request'}${l.neighbourhood && l.neighbourhood !== l.city ? ` (${l.neighbourhood})` : ''}`);
+    const facts = [];
+    if (Number(l.price) > 0) facts.push(money(l.price));
+    if (Number.isFinite(l.hamzaScore)) facts.push(`score ${l.hamzaScore}/10`);
+    if (Number.isFinite(l.cashFlow)) facts.push(`${l.cashFlow >= 0 ? '+' : '-'}${money(Math.abs(l.cashFlow))}/mo cash flow`);
+    if (Number.isFinite(l.capRate) && l.capRate > 0) facts.push(`${l.capRate.toFixed(1)}% cap`);
+    if (facts.length) lines.push('  ' + facts.join(' | '));
+    const assumption = rentAssumptionLine(l);
+    if (assumption) lines.push('  ' + assumption);
+    lines.push(`  https://www.mississaugainvestor.ca/listings/${l.id}?${UTM}`);
+    lines.push('');
+  }
+  lines.push(
+    'Every figure is an estimate from live MLS data - confirm rent and costs',
+    'for the specific property. Not financial advice.',
+    '',
+    '- Hamza Nouman, Sales Representative, Cityscape Real Estate Ltd., Brokerage',
+    'Cityscape Real Estate Ltd., Brokerage, 885 Plymouth Dr, Unit 2, Mississauga, ON L5V 0B5',
+    '',
+    `Unsubscribe: ${unsubscribeUrl(opts.email || '')}`
+  );
+  return lines.join('\n');
 }
 
 /**

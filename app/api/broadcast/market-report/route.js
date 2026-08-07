@@ -94,7 +94,7 @@ const SAMPLE_STATS = {
   mississaugaMonthly: trrebMonthly,
 };
 
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, text) {
   html = tagRecipient(html, to);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -107,6 +107,12 @@ async function sendEmail(to, subject, html) {
       to,
       subject,
       html,
+      // multipart/alternative: an HTML-only body is a long-standing spam
+      // signal (the offer-picks builder documents the same rule). This route
+      // originally copied the older motivated-sellers pattern and dropped the
+      // text part its own builder returned - found the day the first edition
+      // landed in iCloud junk.
+      ...(text ? { text } : {}),
       reply_to: REPLY_TO,
       // Stable per-edition key so the Resend webhook attributes opens/clicks.
       tags: [{ name: 'campaign', value: 'market-report' }],
@@ -148,8 +154,8 @@ async function sendToAll(recipients, report) {
     recipients,
     budgetMs: SEND_BUDGET_MS,
     sendOne: ({ email, name }) => {
-      const { subject, html } = buildMarketReportEmail({ email, name, report });
-      return sendEmail(email, subject, html);
+      const { subject, html, text } = buildMarketReportEmail({ email, name, report });
+      return sendEmail(email, subject, html, text);
     },
   });
   console.log(`Broadcast ${campaignKey(report)}: ${summarizeBulk(result)}`);
@@ -257,12 +263,13 @@ export async function GET(request) {
       // table missing - proceed; the send path fails closed regardless
     }
     const recipients = await getBroadcastRecipients(supabase);
-    const { html } = buildMarketReportEmail({ email: APPROVER, name: 'Hamza', report });
+    const { html, text } = buildMarketReportEmail({ email: APPROVER, name: 'Hamza', report });
     const draftHtml = approvalBanner(recipients.length, report, selfOrigin(request)) + html;
     const ok = await sendEmail(
       APPROVER,
       `[APPROVE] The Mississauga Monthly (${report.monthLabel}) - send to ${recipients.length}?`,
-      draftHtml
+      draftHtml,
+      text
     );
     return NextResponse.json({
       success: ok,
