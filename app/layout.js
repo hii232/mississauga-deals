@@ -1,4 +1,8 @@
 import Script from 'next/script';
+// Vercel Web Analytics - Hamza enabled it in the dashboard 2026-08-06 to
+// measure whether blog readers actually click through the new LiveMarketBand
+// into listings. The component is a tiny client beacon; renders nothing.
+import { Analytics } from '@vercel/analytics/react';
 import { Inter, DM_Sans } from 'next/font/google';
 import './globals.css';
 import { OrganizationJsonLd, WebSiteJsonLd, PersonJsonLd } from '@/components/seo/json-ld';
@@ -121,6 +125,7 @@ export default function RootLayout({ children }) {
           <PageTracker />
         </Suspense>
         {children}
+        <Analytics />
       </body>
     </html>
   );
