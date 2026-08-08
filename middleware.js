@@ -1,8 +1,23 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import { classifyCrawler } from '@/lib/seo/crawlers';
+import { canonicalHostRedirect } from '@/lib/seo/canonical-host';
 
 export async function middleware(request) {
+  // ── One public hostname ──
+  // mississauga-deals.vercel.app serves the whole site publicly (verified
+  // 2026-08-08) - a crawlable duplicate that showed up as 59+ pages of the
+  // GSC coverage report. 308 everything on a mirror hostname to www.
+  // Logic + tests in lib/seo/canonical-host.js. Note the matcher below skips
+  // robots.txt/sitemaps/api - fine: the duplicate problem is PAGES, and the
+  // mirror's sitemap already points at absolute www URLs.
+  const target = canonicalHostRedirect(
+    request.headers.get('host'),
+    request.nextUrl.pathname + request.nextUrl.search,
+    process.env.VERCEL_ENV
+  );
+  if (target) return NextResponse.redirect(target, 308);
+
   let supabaseResponse = NextResponse.next({ request });
 
   // ── Name the crawler walking the listing pages ──
