@@ -404,11 +404,26 @@ export async function fetchGtaListings(city) {
       timeoutMs,
       limit: SSR_CARD_ROWS,
     });
-    if (!data) return { listings: [], total: 0 };
+    if (!data) return { listings: [], total: 0, pages: 0 };
     // browsableTotal excludes the commercial/lease rows the site never shows.
-    return { listings: processListings(raw), total: Number(data.browsableTotal ?? data.total) || 0 };
+    //
+    // `pages` is for the CLIENT's background walk and follows the /listings
+    // rule exactly: computed from the RAW @odata.count (data.total) at the
+    // container's own page size of 100 - never from browsableTotal (the
+    // post-filter count once computed 13 where the truth was 14, stranding
+    // the last page), and never left unset. Unset was this page's actual bug:
+    // with no initialPages the container fell back to Math.ceil(total/200),
+    // half the real page count, so every GTA city analyzed only ~half its
+    // inventory and then presented those counts as settled (Toronto: 4,700
+    // of 9,380). Found 2026-08-08 while diagnosing the screener skeletons.
+    const CLIENT_PAGE_ROWS = 100;
+    return {
+      listings: processListings(raw),
+      total: Number(data.browsableTotal ?? data.total) || 0,
+      pages: Math.ceil((Number(data.total) || 0) / CLIENT_PAGE_ROWS) || 0,
+    };
   } catch {
-    return { listings: [], total: 0 }; // client fetch takes over - same as before this change
+    return { listings: [], total: 0, pages: 0 }; // client fetch takes over - same as before this change
   }
 }
 
@@ -467,7 +482,7 @@ export default async function GtaListingsPage({ searchParams }) {
 
   const copy = CITY_COPY[city]; // always null here since valid cities redirect above
   // In PARALLEL - the summary fetch must not add to this render's wall clock.
-  const [{ listings: initialListings, total: initialTotal }, summary] = await Promise.all([
+  const [{ listings: initialListings, total: initialTotal, pages: initialPages }, summary] = await Promise.all([
     fetchGtaListings(city),
     fetchGtaScreenerSummary(city),
   ]);
@@ -586,6 +601,7 @@ export default async function GtaListingsPage({ searchParams }) {
           <ListingsContainer
             initialListings={slimForSSR(initialListings)}
             initialTotal={initialTotal}
+            initialPages={initialPages}
             initialSummary={summary}
             apiEndpoint="/api/listings-gta"
             popularHoods={['Toronto', 'Brampton', 'Vaughan', 'Oakville', 'Hamilton', 'Markham', 'Richmond Hill', 'Milton', 'Georgetown']}

@@ -78,7 +78,7 @@ export default async function GtaCityPage({ params }) {
   // `summary` is this CITY's whole-market Deal Screener aggregate, sliced out
   // of the single grouped GTA feed walk. Null for any city the walk cannot
   // cover honestly (and on a cold cache), and null keeps today's skeletons.
-  const [{ listings: initialListings, total: initialTotal }, summary] = await Promise.all([
+  const [{ listings: initialListings, total: initialTotal, pages: initialPages }, summary] = await Promise.all([
     fetchGtaListings(city),
     fetchGtaScreenerSummary(city),
   ]);
@@ -151,6 +151,7 @@ export default async function GtaCityPage({ params }) {
           <ListingsContainer
             initialListings={slimForSSR(initialListings)}
             initialTotal={initialTotal}
+            initialPages={initialPages}
             initialSummary={summary}
             apiEndpoint="/api/listings-gta"
             city={city}
