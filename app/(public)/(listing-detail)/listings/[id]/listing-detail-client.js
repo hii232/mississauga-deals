@@ -62,10 +62,17 @@ function OverviewTab({ listing }) {
     { label: 'Year Built', value: listing.yearBuilt || 'N/A' },
     { label: 'Status', value: listing.status },
     { label: 'Basement Income',
+      // The tiers come from scanning the LISTING DESCRIPTION (detectBasementTier):
+      // "legal suite" wording -> legal; "separate entrance" -> potential;
+      // "finished basement" -> finished. When none of those appear we know
+      // nothing about the basement - the agent simply didn't mention a suite -
+      // so the empty state says that, not "unfinished" (a state we cannot
+      // verify) and not "None Detected" (Hamza misread it as "non detached",
+      // which means investors will too).
       value: listing.basementTier === 'legal' ? `Legal Suite (+$${(listing.basementIncome || 1200).toLocaleString()}/mo)`
            : listing.basementTier === 'potential' ? `Suite Potential (+$${(listing.basementIncome || 900).toLocaleString()}/mo)`
            : listing.basementTier === 'finished' ? 'Finished Basement'
-           : 'None Detected' },
+           : 'No suite mentioned' },
   ];
 
   return (
