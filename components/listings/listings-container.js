@@ -186,6 +186,37 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   const [filters, setFilters] = useState(initialFilters);
   const [view, setView] = useState('grid');
   const [compareIds, setCompareIds] = useState([]);
+  // Compare selection survives navigation. The selection used to live ONLY in
+  // this component's state and reached localStorage solely via the floating
+  // bar's "Compare (N)" button - so every other road to /compare (the
+  // "Compare them side-by-side" text link lower on /listings, the profile
+  // page shortcut, the back button) landed on "No properties to compare"
+  // while the visitor's checkboxes were still ticked one scroll up. Found by
+  // walking the site as a buyer, 2026-08-08. Restore on mount, persist on
+  // every change; compareHydrated stops the initial empty state from wiping
+  // a stored selection before the restore has run.
+  const compareHydrated = useRef(false);
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('compare_list') || '[]');
+      if (Array.isArray(stored) && stored.length) {
+        setCompareIds(stored.filter((x) => typeof x === 'string').slice(0, 4));
+      }
+    } catch {}
+    compareHydrated.current = true;
+  }, []);
+  useEffect(() => {
+    if (!compareHydrated.current) return;
+    try {
+      localStorage.setItem('compare_list', JSON.stringify(compareIds));
+      // Prune (never enrich) the cached objects so they can't contradict the
+      // id list; the bar button remains the writer that fills this cache.
+      const data = JSON.parse(localStorage.getItem('compare_data') || '[]');
+      if (Array.isArray(data) && data.length) {
+        localStorage.setItem('compare_data', JSON.stringify(data.filter((l) => compareIds.includes(l?.id))));
+      }
+    } catch {}
+  }, [compareIds]);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isLoading, setIsLoading] = useState(initialListings.length === 0);
   const [loadError, setLoadError] = useState(false);
