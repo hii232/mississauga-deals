@@ -668,6 +668,15 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           loadError={loadError}
           onRetry={() => { setIsLoading(true); setLoadError(false); setRetryKey((k) => k + 1); }}
           initialPage={initialPage}
+          // Whole-market cash-flow-positive count from the server screener
+          // summary, shown ONLY in the still-scanning state while the Cash
+          // Flowing chip is active. Cash-flowing listings are ~6 in ~2,450, so
+          // the filter shows 0 matches for most of the client-side walk and
+          // reads as broken (Hamza, 2026-08-08: "it doesn't load"). The page
+          // KNOWS the market-wide count before the walk starts - saying it
+          // turns a dead wait into an answer. Market-wide, so it stays true
+          // whatever other filters are stacked on top.
+          marketCfCount={filters.cf && Number.isFinite(initialSummary?.cfPlusCount) ? initialSummary.cfPlusCount : null}
         />
       )}
       {view === 'table' && (

@@ -50,7 +50,7 @@ function SkeletonCard() {
 // exactly what made the multi-unit email read as a lie.
 //
 // Defaulted to `true` so any other caller keeps today's behaviour.
-export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage, marketTotal = 0, analysisComplete = true, loadedCount = 0 }) {
+export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompare, photoMap, isLoading, loadError, onRetry, initialPage, marketTotal = 0, analysisComplete = true, loadedCount = 0, marketCfCount = null }) {
   const [currentPage, setCurrentPage] = useState(initialPage || 1);
   const [accessVerified, setAccessVerified] = useState(isRegistered);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -157,6 +157,20 @@ export function ListingGrid({ listings, isRegistered, compareIds, onToggleCompar
               ? `${loadedCount.toLocaleString()} of ${marketTotal.toLocaleString()} properties analyzed so far. Matches for this filter may still be loading.`
               : 'Matches for this filter may still be loading.'}
           </p>
+          {/* Cash Flowing is the needle-in-haystack filter: ~6 matches in
+              ~2,450 listings, so 0-matches-while-scanning is the NORMAL state
+              for most of the walk and read as "broken" (Hamza, 2026-08-08).
+              The server-side screener already counted the whole market before
+              this page loaded - tell the visitor what the scan is looking
+              for. Market-wide fact, so it stays true with other filters
+              stacked; renders nothing when the summary is unavailable. */}
+          {Number.isFinite(marketCfCount) && (
+            <p className="mt-2 text-xs font-medium text-navy/80">
+              {marketCfCount > 0
+                ? `Across the whole market, ${marketCfCount} listing${marketCfCount === 1 ? '' : 's'} currently cash flow${marketCfCount === 1 ? 's' : ''} at 20% down — scanning to find ${marketCfCount === 1 ? 'it' : 'them'}.`
+                : 'Right now no listing in the whole market cash flows at 20% down at asking price — that is the honest state of the market, not an error.'}
+            </p>
+          )}
         </div>
       </div>
     );
