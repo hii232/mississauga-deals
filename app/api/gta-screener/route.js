@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { unstable_cache } from 'next/cache';
 import { buildGtaScreenerAggregates, READ_ONLY_HEADER } from '@/lib/listings/gta-screener';
 
 // Its OWN endpoint, deliberately - this must never ride a page render.
@@ -27,6 +28,47 @@ export const maxDuration = 300;
  * slow upstream.
  */
 const WALK_BUDGET_MS = 240000;
+
+// ── Where the aggregate actually lives ──
+//
+// THE BUG THIS FIXES (measured live 2026-08-08, three consecutive GETs):
+// every response came back `x-vercel-cache: MISS` with a fresh `generatedAt`,
+// carrying the wire header `public, max-age=0, must-revalidate` - a string
+// this file never writes. `dynamic = 'force-dynamic'` sets the route's
+// revalidate to 0, which takes it out of the prerender manifest entirely, so
+// Next streams the body straight to the socket and the s-maxage set below is
+// discarded. (Same class as the /book-call trap already documented in
+// next.config.js: on Vercel, Cache-Control on a dynamic route is not yours.)
+//
+// That broke the whole design, because the read-only branch below returns a
+// HARDCODED `complete: false` on the premise that "a warm CDN entry is served
+// before this function is reached". There was no warm entry, ever. So the
+// cron computed a perfect 22k-listing aggregate roughly eight times a day and
+// every single one was garbage-collected with the response, while all 28
+// /gta/[city] pages read the placeholder and rendered skeletons - for the
+// entire life of the feature.
+//
+// unstable_cache writes to the Next DATA cache, which is a different system
+// from the route/CDN cache and is NOT disabled by force-dynamic. It persists
+// across invocations, instances and deployments - which is exactly the
+// "somewhere a later request can read it" that was missing. The cron
+// populates it; page renders read it in milliseconds.
+//
+// revalidate matches the cron cadence (13 */3 * * *): the cron refreshes the
+// entry before it expires, so in steady state a page render never triggers a
+// walk. An incomplete result caches too - deliberately accepted, because it
+// self-heals on the next cron rather than needing a deploy.
+const AGGREGATE_TTL_S = 10800;
+const getCachedAggregate = unstable_cache(
+  async (origin) => buildGtaScreenerAggregates(origin, { budgetMs: WALK_BUDGET_MS }),
+  ['gta-screener-aggregate-v1'],
+  { revalidate: AGGREGATE_TTL_S, tags: ['gta-screener'] }
+);
+
+// A page render must never wait on a cold walk: /gta and /gta/[city] give up
+// on this fetch after 4s. Resolve well inside that, and let a cold-cache walk
+// keep running in the background so it warms the entry for the next visitor.
+const READ_ONLY_WAIT_MS = 3000;
 
 export async function GET(request) {
   // SITE_URL / VERCEL, never headers(). This route is cron-invoked, and on a
@@ -58,13 +100,29 @@ export async function GET(request) {
   // the pages fall back to skeletons - which is what they showed anyway, since
   // no run has ever published. Only the cron pays for the walk.
   if (request.headers.get(READ_ONLY_HEADER)) {
+    // Read the Data Cache entry. Warm (the steady state) resolves in
+    // milliseconds and the page gets real whole-market figures at first
+    // paint. Cold loses the race, we answer with the placeholder so the
+    // render is never delayed, and the walk it started keeps going and
+    // populates the entry for the next visitor - the self-healing the old
+    // hardcoded branch could never do.
+    const cached = await Promise.race([
+      getCachedAggregate(origin).catch(() => null),
+      new Promise((resolve) => setTimeout(() => resolve(null), READ_ONLY_WAIT_MS)),
+    ]);
+    if (cached?.complete) {
+      return NextResponse.json(
+        { scope: 'GTA', generatedAt: new Date().toISOString(), ...cached },
+        { headers: { 'Cache-Control': 's-maxage=86400, stale-while-revalidate=3600' } }
+      );
+    }
     return NextResponse.json(
       {
         scope: 'GTA',
         complete: false,
         gta: null,
         cities: {},
-        note: 'No aggregate cached yet. The GTA feed walk runs on its cron only; a page render never starts one.',
+        note: 'No aggregate cached yet - the walk is warming. A page render never waits on one.',
       },
       {
         // 60s. Short deliberately: this placeholder must never squat on the
@@ -79,7 +137,10 @@ export async function GET(request) {
 
   let result;
   try {
-    result = await buildGtaScreenerAggregates(origin, { budgetMs: WALK_BUDGET_MS });
+    // Through the SAME cached function the read-only path reads, so the cron
+    // populates the entry the pages consume. (Previously this called the
+    // builder directly, so the cron's result went nowhere a page could see.)
+    result = await getCachedAggregate(origin);
   } catch (err) {
     console.error('gta-screener: aggregate failed -', err);
     result = { complete: false, gta: null, cities: {}, note: 'Aggregate failed: ' + String(err?.message || err).slice(0, 200) };
