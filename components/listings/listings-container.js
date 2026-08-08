@@ -195,6 +195,14 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
   // lib/listings/screener-metrics.js for the measured damage that caused.
   const [analysisComplete, setAnalysisComplete] = useState(false);
 
+  // Cash-flow-positive listings fetched DIRECTLY, ahead of the walk. Kept in
+  // separate state on purpose: the background walk's flush() rebuilds
+  // `listings` wholesale from its own pages, so rows merged into `listings`
+  // here would vanish on the next flush and reappear later - matches
+  // flickering in and out. These merge at render time instead (see the
+  // `pool` memo) and dedupe naturally once their own pages arrive.
+  const [cfFastRows, setCfFastRows] = useState(null);
+
   const [photoMap, setPhotoMap] = useState({});
 
   // Read city from URL (set by GTA mega-menu) or from the `city` prop.
@@ -363,7 +371,12 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
 
         if (initialListings.length === 0) {
           // Cold start - fetch page 1 ourselves and show it immediately.
-          const res = await fetch(apiEndpoint + '?limit=100&page=1' + cityQs);
+          // 20s budget: page 1 is the whole difference between a page and a
+          // blank screen (worth waiting longer than the background pages),
+          // but a hang here used to leave the skeletons up forever.
+          const res = await fetch(apiEndpoint + '?limit=100&page=1' + cityQs, {
+            signal: AbortSignal.timeout(20000),
+          });
           if (!res.ok) {
             // Feed down: stop the skeletons and show an honest error state
             if (!cancelled) { setIsLoading(false); setLoadError(true); }
@@ -453,7 +466,16 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           // function, over the same rows, in the same order.
           const loadPage = async (p) => {
             try {
-              const r = await fetch(apiEndpoint + '?limit=100&page=' + p + cityQs);
+              // 15s timeout, same budget as the server-side walk. Without one,
+              // a single hung response wedges its worker FOREVER - and with 6
+              // workers, 6 hung responses freeze the whole scan. That is
+              // exactly what production showed on 2026-08-08: "130 of 2,451
+              // analyzed" (SSR's 30 + one page) sitting unchanged for an hour
+              // on Hamza's phone. A timed-out page goes through the same
+              // failed->retry path as a 5xx instead of blocking the pool.
+              const r = await fetch(apiEndpoint + '?limit=100&page=' + p + cityQs, {
+                signal: AbortSignal.timeout(15000),
+              });
               if (!r.ok) throw new Error('page ' + p);
               const pg = await r.json();
               pageRows[p] = processListings(pg?.listings || []);
@@ -509,7 +531,65 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
     );
   }, []);
 
-  const filtered = useMemo(() => applyFilters(listings, filters), [listings, filters]);
+  // The Cash Flowing chip lives in activeStrategies; ?cf= deep-links (emails,
+  // the cash-flow guide) arrive as minCashFlow. Either means the visitor is
+  // hunting cash flow. NOTE: an earlier pass keyed this off `filters.cf`,
+  // which does not exist in DEFAULT_FILTERS - the market-count line never
+  // rendered. This is the corrected predicate.
+  const cfFilterActive =
+    (filters.activeStrategies || []).includes('cf') || Number(filters.minCashFlow) > 0;
+
+  // ── Cash-flow fast path ──
+  // ~6 of ~2,450 listings cash flow, and they are scattered through a feed
+  // the walk streams in arbitrary order - so the Cash Flowing filter shows
+  // "0 matches" for most of a ~30-60s scan, which reads as broken (Hamza,
+  // 2026-08-08: "people don't have time for shit to load"). The server's
+  // daily market walk already knows exactly which listings they are and now
+  // publishes their IDs (screener.cfPlusIds); fetch those few directly and
+  // show them in seconds, while the full walk continues for completeness.
+  // Mississauga only - the GTA pages' summary comes from a different
+  // aggregate that doesn't publish IDs.
+  useEffect(() => {
+    if (!cfFilterActive || analysisComplete || cfFastRows !== null) return;
+    if (apiEndpoint !== '/api/listings') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/market-stats', { signal: AbortSignal.timeout(8000) });
+        if (!res.ok) return;
+        const stats = await res.json();
+        const ids = Array.isArray(stats?.screener?.cfPlusIds) ? stats.screener.cfPlusIds.slice(0, 12) : [];
+        if (!ids.length || cancelled) { if (!cancelled) setCfFastRows([]); return; }
+        const { processListings } = await import('@/lib/listings/process-listings');
+        const raws = await Promise.all(
+          ids.map((id) =>
+            fetch('/api/listing-single?id=' + encodeURIComponent(id), { signal: AbortSignal.timeout(10000) })
+              .then((r) => (r.ok ? r.json() : null))
+              .catch(() => null)
+          )
+        );
+        // Same raw->processed path the detail page uses (processListings on
+        // the single-listing payload), so every figure matches the cards the
+        // walk would eventually produce for the same rows.
+        const rows = processListings(raws.map((d) => d?.listing).filter(Boolean));
+        if (!cancelled) setCfFastRows(rows);
+      } catch {
+        if (!cancelled) setCfFastRows([]); // tried and failed - don't retry every render
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [cfFilterActive, analysisComplete, cfFastRows, apiEndpoint]);
+
+  // Render-time merge of the fast-path rows (never merged into `listings` -
+  // see the cfFastRows comment). Dedupe key matches the walk's own.
+  const pool = useMemo(() => {
+    if (!cfFastRows?.length || analysisComplete) return listings;
+    const seen = new Set(listings.map((l) => l.address + '|' + l.price));
+    const extra = cfFastRows.filter((l) => !seen.has(l.address + '|' + l.price));
+    return extra.length ? [...listings, ...extra] : listings;
+  }, [listings, cfFastRows, analysisComplete]);
+
+  const filtered = useMemo(() => applyFilters(pool, filters), [pool, filters]);
   // Sorting reorders the set but never changes its membership, so it does not
   // disqualify the whole-market summary.
   const unfiltered = useMemo(() => hasNoActiveFilters(filters), [filters]);
@@ -675,8 +755,9 @@ export function ListingsContainer({ initialListings, initialTotal = 0, initialPa
           // reads as broken (Hamza, 2026-08-08: "it doesn't load"). The page
           // KNOWS the market-wide count before the walk starts - saying it
           // turns a dead wait into an answer. Market-wide, so it stays true
-          // whatever other filters are stacked on top.
-          marketCfCount={filters.cf && Number.isFinite(initialSummary?.cfPlusCount) ? initialSummary.cfPlusCount : null}
+          // whatever other filters are stacked on top. (cfFilterActive, not
+          // filters.cf - see the predicate's comment for the bug that fixed.)
+          marketCfCount={cfFilterActive && Number.isFinite(initialSummary?.cfPlusCount) ? initialSummary.cfPlusCount : null}
         />
       )}
       {view === 'table' && (
