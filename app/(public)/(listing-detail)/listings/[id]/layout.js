@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { formatAddress } from '@/lib/utils/format';
 import { buildListingTitle, buildListingDescription } from '@/lib/listings/listing-meta';
 
@@ -15,18 +16,22 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   (process.env.VERCEL ? 'https://www.mississaugainvestor.ca' : 'http://localhost:3000');
 
-// Fetch minimal listing data for SEO metadata - one call via listing-single
+// Fetch minimal listing data for SEO metadata - one call via listing-single.
+// Same gone-vs-transient split page.js uses: a 404 from the API is
+// authoritative (the feed answered and said this listing does not exist),
+// anything else is a hiccup that must not 404 a live page.
 async function fetchListingData(id) {
   try {
     const res = await fetch(
       `${SITE_URL}/api/listing-single?id=${encodeURIComponent(id)}`,
       { next: { revalidate: 3600 } }
     );
-    if (!res.ok) return null;
+    if (res.status === 404) return { gone: true };
+    if (!res.ok) return { listing: null };
     const data = await res.json();
-    return data.listing || null;
+    return data.listing ? { listing: data.listing } : { gone: true };
   } catch {
-    return null;
+    return { listing: null };
   }
 }
 
@@ -53,10 +58,28 @@ async function fetchListingPhoto(id) {
 }
 
 export async function generateMetadata({ params }) {
-  const listing = await fetchListingData(params.id);
+  const result = await fetchListingData(params.id);
+
+  // Dead listing -> real HTTP 404, thrown HERE and not only in page.js, on
+  // purpose. The route has a loading.js, so it STREAMS: by the time page.js
+  // reaches its own notFound() the 200 status and shell have already been
+  // flushed, and Next can only patch a <meta noindex> into the stream - which
+  // is exactly the 200-with-error-body signature Google files as Soft 404
+  // (confirmed live on /listings/W00000000, 2026-08-08). generateMetadata
+  // resolves BEFORE the shell flushes, so a notFound() thrown here becomes a
+  // genuine 404 status. It also kills the other symptom: every dead listing
+  // used to serve this identical generic shell with a DIFFERENT self-canonical
+  // - N same-looking pages each claiming to be canonical - which is duplicate-
+  // classification bait. The sitemap churns thousands of listing IDs, so this
+  // class grows forever without a real 404.
+  if (result?.gone) notFound();
+
+  const listing = result?.listing;
   const photo = listing?.photos?.[0] || (await fetchListingPhoto(params.id));
 
   if (!listing) {
+    // Transient feed failure only (never "gone") - keep the page alive with
+    // generic metadata; the client component retries the fetch on mount.
     return {
       title: 'Property Details',
       description: 'View investment property details, cash flow analysis, and deal score on MississaugaInvestor.ca.',
