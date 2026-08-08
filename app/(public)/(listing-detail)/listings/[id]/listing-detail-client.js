@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { calcMonthly, calculateCashFlow, calculateNOI, calculateCapRate, calculateCashOnCash, calculateBRRR, calculateGRM, getClosingCosts, breakEvenRent, mortgageSplit, DEFAULT_ASSUMPTIONS } from '@/lib/cash-flow-engine';
 import { scoreColorHex } from '@/lib/deal-score';
-import { fmtK, fmtNum } from '@/lib/utils/format';
+import { fmtK, fmtNum, formatAddress } from '@/lib/utils/format';
 import { processListings } from '@/lib/listings/process-listings';
 import { PropertyJsonLd, BreadcrumbJsonLd } from '@/components/seo/json-ld';
 import { SkylineStrip } from '@/components/art/cityscape';
@@ -1610,7 +1610,16 @@ export default function PropertyDetailClient({ initialListing = null }) {
               {/* Mirror the metadata title (layout.js): "address, city" so the h1
                   matches the "address + Mississauga" query form these pages win. */}
               <h1 className="font-heading text-xl font-bold text-navy">
-                {listing.address}
+                {/* Same formatAddress the metadata title uses. The h1 rendered
+                    the RAW MLS casing ("109- 3025 The credit woodlands Drive")
+                    while the <title> a searcher clicked showed "#109 - 3025
+                    The Credit Woodlands Drive" - the SERP snippet and the
+                    headline it landed on disagreed about the address, on
+                    ~5,200 pages (backlog, 2026-08-06). City stays here (the
+                    neighbourhood link sits on the very next line - repeating
+                    the hood twice two lines apart reads worse, and the
+                    hood==city fallback would print "Mississauga, Mississauga"). */}
+                {formatAddress(listing.address)}
                 {listing.city ? `, ${listing.city}` : ', Mississauga'}
               </h1>
               {HOOD_DATA[listing.neighbourhood] ? (
