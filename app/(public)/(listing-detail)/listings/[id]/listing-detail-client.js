@@ -72,6 +72,13 @@ function OverviewTab({ listing }) {
       value: listing.basementTier === 'legal' ? `Legal Suite (+$${(listing.basementIncome || 1200).toLocaleString()}/mo)`
            : listing.basementTier === 'potential' ? `Suite Potential (+$${(listing.basementIncome || 900).toLocaleString()}/mo)`
            : listing.basementTier === 'finished' ? 'Finished Basement'
+           // Multi-unit properties skip suite detection BY DESIGN - their
+           // rental income is modelled as the units themselves (the RENT
+           // ESTIMATE breakdown right below). Without this branch a duplex
+           // whose remarks said "separate entrance - in-law suite potential"
+           // showed "No suite mentioned" two cards above those very remarks -
+           // a visible self-contradiction (found walking the site 2026-08-08).
+           : listing.unitCount >= 2 ? `In the ${listing.unitCount}-unit rent model`
            : 'No suite mentioned' },
   ];
 
